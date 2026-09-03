@@ -1,0 +1,70 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "002-memory-thesis"
+    ],
+    "domain": "chassis",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "rust-toolchain.toml"
+      },
+      {
+        "kind": "file",
+        "path": "deny.toml"
+      },
+      {
+        "kind": "file",
+        "path": "apps/aicortex/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "apps/aicortex/src/main.rs"
+      },
+      {
+        "kind": "file",
+        "path": "apps/aicortex/src/cell.rs"
+      },
+      {
+        "kind": "file",
+        "path": "apps/aicortex/manifest.toml"
+      },
+      {
+        "kind": "file",
+        "path": "apps/aicortex/tests/cell.rs"
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "010-chassis-adoption-and-workspace",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "critical",
+    "sectionHeadings": [
+      "010: The cell",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/010-chassis-adoption-and-workspace/spec.md",
+    "status": "approved",
+    "summary": "The workspace and the seam to the chassis. rahi crates are pinned to one exact version in the workspace manifest and are never vendored or patched. The application is a `Cell`: it returns a manifest, a migration list, a router, and an operator router, and `main` hands it to rahi's runner, which owns argument parsing, boot, the verbs, and the exit codes. The manifest is the capability ceiling, and it starts closed: no egress host is declared until a spec needs one.\n",
+    "title": "The cell: a Cargo workspace, pinned rahi crates, a declared manifest, and one line of main"
+  },
+  "shardHash": "4ae9fa6dde2a9b8f6909642c49b64a61811dcaf1a294efe62dfa21bdcd300e00",
+  "specVersion": "1.1.0"
+}

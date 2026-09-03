@@ -1,0 +1,131 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '010-chassis-adoption-and-workspace' file unit 'Cargo.toml' does not exist",
+        "path": "Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '010-chassis-adoption-and-workspace' file unit 'rust-toolchain.toml' does not exist",
+        "path": "rust-toolchain.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '010-chassis-adoption-and-workspace' file unit 'deny.toml' does not exist",
+        "path": "deny.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/Cargo.toml' does not exist",
+        "path": "apps/aicortex/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/src/main.rs' does not exist",
+        "path": "apps/aicortex/src/main.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/src/cell.rs' does not exist",
+        "path": "apps/aicortex/src/cell.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/manifest.toml' does not exist",
+        "path": "apps/aicortex/manifest.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/tests/cell.rs' does not exist",
+        "path": "apps/aicortex/tests/cell.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "002-memory-thesis"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/manifest.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/main.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/cell.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deny.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "rust-toolchain.toml"
+        }
+      }
+    ],
+    "specId": "010-chassis-adoption-and-workspace",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "3095f2550e22c9042e37bab6b95a48635b166b93ae240fc2d986eda6ef9be6bc"
+}

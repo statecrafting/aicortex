@@ -1,0 +1,9 @@
+{
+  "mapping": {
+    "implementingPaths": [],
+    "specId": "000-aicortex-bootstrap",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "207516153d6f2e3d10ec031cb88e4e64ca19d8d2ad4246ae526c6c21bc69b88f"
+}

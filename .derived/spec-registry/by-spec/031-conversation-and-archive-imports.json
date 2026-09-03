@@ -1,0 +1,97 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "030-source-adapter-framework"
+    ],
+    "domain": "ingest",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/mod.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/chat_export.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/vault.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/readlater.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/mail.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/upload.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/sources.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/testdata/exports/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 3
+    },
+    "id": "031-conversation-and-archive-imports",
+    "implementation": "pending",
+    "kind": "feature",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "031: Imports",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/031-conversation-and-archive-imports/spec.md",
+    "status": "approved",
+    "summary": "A memory system is worth little on day one and a great deal once it knows what you already said. This spec brings a user's existing history in: chat exports from the major assistants, a note vault on disk, a read-later archive, and mail, each as an adapter over the framework. The interesting work is not fetching, it is turning a transcript into memories worth keeping rather than a wall of every message, and doing it without sending the archive anywhere.\n",
+    "title": "Bringing a history in: chat exports, note vaults, and read-later archives"
+  },
+  "shardHash": "b58b56afad56b8357bf8e89f4340be84c25ccee498b210a0d9f65410c90989fa",
+  "specVersion": "1.1.0"
+}

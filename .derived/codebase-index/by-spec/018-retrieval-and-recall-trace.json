@@ -1,0 +1,159 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/Cargo.toml' does not exist",
+        "path": "crates/aicortex-recall/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/src/lib.rs' does not exist",
+        "path": "crates/aicortex-recall/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/src/query.rs' does not exist",
+        "path": "crates/aicortex-recall/src/query.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/src/channels.rs' does not exist",
+        "path": "crates/aicortex-recall/src/channels.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/src/fusion.rs' does not exist",
+        "path": "crates/aicortex-recall/src/fusion.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/src/trace.rs' does not exist",
+        "path": "crates/aicortex-recall/src/trace.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/src/filter.rs' does not exist",
+        "path": "crates/aicortex-recall/src/filter.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/tests/fusion.rs' does not exist",
+        "path": "crates/aicortex-recall/tests/fusion.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/tests/trace.rs' does not exist",
+        "path": "crates/aicortex-recall/tests/trace.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '018-retrieval-and-recall-trace' file unit 'crates/aicortex-recall/testdata/queries/' does not exist",
+        "path": "crates/aicortex-recall/testdata/queries/"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "017-entities-and-typed-edges"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/channels.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/filter.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/fusion.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/query.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/trace.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/testdata/queries/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/tests/fusion.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/tests/trace.rs"
+        }
+      }
+    ],
+    "specId": "018-retrieval-and-recall-trace",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "e12a2863ef2a053d19310a19ca143b0b7bc355a8c4736c79370e226a07940e3a"
+}

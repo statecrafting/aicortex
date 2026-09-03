@@ -1,0 +1,109 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "019-untrusted-content-boundary"
+    ],
+    "domain": "protocol",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/router.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/scopes.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/capture.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/search.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/memories.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/entities.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/events.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/dto.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/error.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/tests/api.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/tests/authz.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 2
+    },
+    "id": "020-http-api-and-scopes",
+    "implementation": "pending",
+    "kind": "kernel",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionHeadings": [
+      "020: The HTTP API",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/020-http-api-and-scopes/spec.md",
+    "status": "approved",
+    "summary": "The product's own HTTP surface, mounted by the cell into rahi's edge. Every route is authorized by a rauthy-issued bearer token or a browser session, both resolved to the same principal, and gated by an OAuth scope that names what it permits. Scopes are coarse enough to be understandable and fine enough to be useful: read, write, delete, admin, and a separate scope for promotion, which no agent client is ever granted. Long operations report progress over server-sent events through the chassis's declared streaming routes. Every response carrying content obeys the untrusted content boundary.\n",
+    "title": "The HTTP API: bearer-authorized, scope-gated, streaming where it earns it"
+  },
+  "shardHash": "0921b9bfcc30a44610d5158052f53a3b24cc5ff4b672d8996eb9e5c14ed30644",
+  "specVersion": "1.1.0"
+}

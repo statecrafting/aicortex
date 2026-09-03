@@ -1,0 +1,187 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/Cargo.toml' does not exist",
+        "path": "crates/aicortex-index/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/lib.rs' does not exist",
+        "path": "crates/aicortex-index/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/vector.rs' does not exist",
+        "path": "crates/aicortex-index/src/vector.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/scan.rs' does not exist",
+        "path": "crates/aicortex-index/src/scan.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/topk.rs' does not exist",
+        "path": "crates/aicortex-index/src/topk.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/text.rs' does not exist",
+        "path": "crates/aicortex-index/src/text.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/tokenize.rs' does not exist",
+        "path": "crates/aicortex-index/src/tokenize.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-index/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/tests/scan.rs' does not exist",
+        "path": "crates/aicortex-index/tests/scan.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/tests/text.rs' does not exist",
+        "path": "crates/aicortex-index/tests/text.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/benches/scan.rs' does not exist",
+        "path": "crates/aicortex-index/benches/scan.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "015-embedding-pipeline"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/benches/scan.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/scan.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/text.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/tokenize.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/topk.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/vector.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/tests/scan.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/tests/text.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "specId": "016-vector-index-and-scan",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "4076db4f700ffe25f0a3ce67c38b9510e52e524b5286a0f3f53bef06374e2caa"
+}

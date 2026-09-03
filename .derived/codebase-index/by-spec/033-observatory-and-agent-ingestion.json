@@ -1,0 +1,107 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '033-observatory-and-agent-ingestion' file unit 'crates/aicortex-ingest/src/sources/agent_session.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/agent_session.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '033-observatory-and-agent-ingestion' file unit 'crates/aicortex-ingest/src/sources/decision_feed.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/decision_feed.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '033-observatory-and-agent-ingestion' file unit 'crates/aicortex-ingest/src/schema/session-event.schema.json' does not exist",
+        "path": "crates/aicortex-ingest/src/schema/session-event.schema.json"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '033-observatory-and-agent-ingestion' file unit 'crates/aicortex-ingest/tests/agent_session.rs' does not exist",
+        "path": "crates/aicortex-ingest/tests/agent_session.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '033-observatory-and-agent-ingestion' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/registry.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "032-capture-sources-and-webhooks"
+    ],
+    "implementingPaths": [
+      {
+        "path": "specs/019-untrusted-content-boundary/spec.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/schema/session-event.schema.json"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/agent_session.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/decision_feed.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/tests/agent_session.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "033-observatory-and-agent-ingestion",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "798aaca89f89761ff34df61a4709685ded0190e60514d40ac289b95436d9a44a"
+}

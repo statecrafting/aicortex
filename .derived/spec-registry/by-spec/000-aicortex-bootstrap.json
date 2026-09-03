@@ -1,0 +1,45 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "domain": "governance",
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "000-aicortex-bootstrap",
+    "implementation": "n-a",
+    "kind": "constitutional-bootstrap",
+    "origin": {
+      "retroactive": true
+    },
+    "risk": "critical",
+    "sectionHeadings": [
+      "000: Bootstrap",
+      "1. The authoring and derived boundary",
+      "2. Identity",
+      "3. The typed authority graph",
+      "4. Closed taxonomies",
+      "5. Determinism",
+      "6. The clean-room rule",
+      "7. The coherence guard",
+      "8. Lifecycle as scheduling",
+      "9. The gate chain",
+      "10. Bootstrap order"
+    ],
+    "specPath": "specs/000-aicortex-bootstrap/spec.md",
+    "status": "approved",
+    "summary": "The founding spec. It fixes the authoring boundary (markdown in, compiler-owned JSON out), the identity rule (directory name equals id), the typed authority graph, the closed taxonomies, the lifecycle that makes a spec a work order, and the gate chain. It also fixes the two rules that are specific to this product: the coherence guard that forbids amending a spec to ratify code, and the clean-room rule that separates what may be carried from the system this product replaces (observations) from what may not (its expression).\n",
+    "title": "Bootstrap spec system for aicortex (specify first, build by spec, clean of the system it replaces)",
+    "unamendable": [
+      "markdown-truth-boundary",
+      "json-truth-boundary",
+      "determinism-requirement",
+      "directory-name-equals-id",
+      "clean-room-rule"
+    ]
+  },
+  "shardHash": "5b57c716c1e02f670425977f10a86eb3b6ae41105b2ab1d04a967b57e9df5b39",
+  "specVersion": "1.1.0"
+}

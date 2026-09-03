@@ -1,0 +1,89 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "022-client-adapters"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-curate/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-curate/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-curate/src/review.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-curate/src/promotion.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-curate/src/migrations.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-curate/tests/review.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 2
+    },
+    "id": "023-review-and-promotion",
+    "implementation": "pending",
+    "kind": "feature",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "023: Review and promotion",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/023-review-and-promotion/spec.md",
+    "status": "approved",
+    "summary": "Three situations need a person: content whose origin could not be established and was quarantined, two edges that contradict each other, and a memory that someone wants a client to act on. This spec is the one queue where all three wait, the decisions that empty it, and the ledger records those decisions produce. Promotion is the important one: it is the only path to instruction grade, it requires the promote scope and an interactive principal, and it writes a rahi Decision whose id becomes part of the memory's trust.\n",
+    "title": "Review: the queue where quarantine, contradiction, and promotion wait for a human"
+  },
+  "shardHash": "6d0a94bd780ba6d8a4677fa4de9aac2a3f257929dc40e14c2468bb07b2df83ff",
+  "specVersion": "1.1.0"
+}

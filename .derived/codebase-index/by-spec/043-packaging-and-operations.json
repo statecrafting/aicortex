@@ -1,0 +1,117 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '043-packaging-and-operations' file unit 'docker/Dockerfile' does not exist",
+        "path": "docker/Dockerfile"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '043-packaging-and-operations' file unit 'docker/compose.yml' does not exist",
+        "path": "docker/compose.yml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '043-packaging-and-operations' file unit 'apps/aicortex/src/operator.rs' does not exist",
+        "path": "apps/aicortex/src/operator.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '043-packaging-and-operations' file unit 'docs/operations.md' does not exist",
+        "path": "docs/operations.md"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '043-packaging-and-operations' file unit 'docs/configuration.md' does not exist",
+        "path": "docs/configuration.md"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '043-packaging-and-operations' file unit '.github/workflows/image.yml' does not exist",
+        "path": ".github/workflows/image.yml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '043-packaging-and-operations' file unit 'apps/aicortex/src/cell.rs' does not exist",
+        "path": "apps/aicortex/src/cell.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "042-portability-and-migration"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/image.yml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/operator.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docker/Dockerfile"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docker/compose.yml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docs/configuration.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docs/operations.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      }
+    ],
+    "specId": "043-packaging-and-operations",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "ab4a1d09e50f71f7bef60d67042c73420bad217a4b65b8720bd5626ab529af25"
+}

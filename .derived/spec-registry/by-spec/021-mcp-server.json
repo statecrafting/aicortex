@@ -1,0 +1,109 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "020-http-api-and-scopes"
+    ],
+    "domain": "protocol",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/src/transport.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/src/session.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/src/tools.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/src/resources.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/src/compat.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/src/render.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/tests/protocol.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/tests/tools.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-mcp/testdata/sessions/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 2
+    },
+    "id": "021-mcp-server",
+    "implementation": "pending",
+    "kind": "kernel",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionHeadings": [
+      "021: The MCP server",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/021-mcp-server/spec.md",
+    "status": "approved",
+    "summary": "One remote MCP server over streamable HTTP, stateless per request, serving every client that speaks the protocol. Seven tools, no more: capture, search, fetch, list, update, forget, and relate. Authorization is the chassis's resource server, so an unauthenticated initialize answers the challenge that lets a client discover the authorization server and register itself without the user pasting anything. Tool results carry envelopes and the framing statement, and the tool descriptions themselves never contain recalled content.\n",
+    "title": "The MCP server: streamable HTTP, a small tool surface, OAuth discovery that bootstraps itself"
+  },
+  "shardHash": "5fe662984f5b1aea16537d1232a2adfb369a71af1608fe41c93344478e0bd6e3",
+  "specVersion": "1.1.0"
+}

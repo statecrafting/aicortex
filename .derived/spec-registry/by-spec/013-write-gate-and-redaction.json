@@ -1,0 +1,91 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "no insert path exists that has not passed a Verdict",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      }
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "012-store-schema-and-repositories"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/src/rules.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/src/secrets.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/src/limits.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/src/verdict.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/tests/gate.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/testdata/corpus/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "013-write-gate-and-redaction",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "critical",
+    "sectionHeadings": [
+      "013: The write gate",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/013-write-gate-and-redaction/spec.md",
+    "status": "approved",
+    "summary": "Everything that enters the store passes one gate, and the gate runs before the transaction opens. It refuses credentials rather than redacting them, because a redacted secret is still a secret that was transmitted, stored in a log, and possibly embedded. It caps size, requires an establishable origin, and quarantines rather than admits when origin is doubtful. Every refusal is a ledgered Decision with a reason code and never the offending content. The rule set is data, the corpus of fixtures is committed, and the gate is a pure function so its verdicts are reproducible in review.\n",
+    "title": "The write gate: refuse secrets, cap size, establish origin, quarantine the rest"
+  },
+  "shardHash": "ecfbeccc25b60f6206f3e3aafea5224a9a6d36ad58966e7f21cc17ef08fff168",
+  "specVersion": "1.1.0"
+}

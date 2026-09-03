@@ -1,0 +1,72 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "034-curation-workers"
+    ],
+    "domain": "clients",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/agents.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/claims.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/claims_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/tests/claims.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 3
+    },
+    "id": "035-agent-coordination",
+    "implementation": "pending",
+    "kind": "feature",
+    "risk": "medium",
+    "sectionHeadings": [
+      "035: Agent coordination",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/035-agent-coordination/spec.md",
+    "status": "approved",
+    "summary": "When several agents work in one scope they need to know who did what and to avoid doing the same thing twice. Per-agent identity already exists, because each client is its own OAuth client; this spec adds the two things that build on it. A work claim is a lease over a named unit of work with a fencing token, so two agents cannot both take it. A working-memory scope is a short-lived, high-churn area where agents post what they are doing, visible to their siblings and expired automatically, so coordination does not pollute durable memory.\n",
+    "title": "Agent coordination: per-agent identity, work claims, and a shared working memory"
+  },
+  "shardHash": "7ae669db00f9fee23680c351d8a2a3a1ffccdccdc72e4a425411ec8b4d3c3af9",
+  "specVersion": "1.1.0"
+}

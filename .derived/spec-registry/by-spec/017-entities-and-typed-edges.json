@@ -1,0 +1,104 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "016-vector-index-and-scan"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/entity.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/resolve.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/edge.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/vocabulary.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/extract.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/walk.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/migrations.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/tests/resolve.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/tests/edge.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/testdata/extraction/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/worker.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "017-entities-and-typed-edges",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "high",
+    "sectionHeadings": [
+      "017: Entities and typed edges",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/017-entities-and-typed-edges/spec.md",
+    "status": "approved",
+    "summary": "Similarity alone answers \"what looks like this\", not \"what do I know about this person\". Entities give recall a second axis: people, projects, organizations, places, and artifacts, resolved to canonical records with aliases, connected by typed edges from a closed vocabulary. Every entity and every edge names the memory it was derived from and the extractor version that produced it, and a derived assertion never outranks the memory it came from. Extraction is a job on the same outbox as embedding, so it inherits the retry and dead-letter discipline rather than inventing its own.\n",
+    "title": "Entities and typed edges: a closed predicate vocabulary, derived facts that never outrank their source"
+  },
+  "shardHash": "f29a52f749ad061af2b25433dfd9afbdf4ad8b6e75a70f5cef9166c762bd7d00",
+  "specVersion": "1.1.0"
+}

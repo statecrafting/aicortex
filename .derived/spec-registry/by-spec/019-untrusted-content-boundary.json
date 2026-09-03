@@ -1,0 +1,54 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "every returned memory carries its envelope; no raw body escapes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "flavor": "invariant-freeze",
+        "note": "Instruction grade requires a human Promotion",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/trust.rs"
+        }
+      }
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "018-retrieval-and-recall-trace"
+    ],
+    "domain": "retrieval",
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "019-untrusted-content-boundary",
+    "implementation": "pending",
+    "kind": "constraint",
+    "risk": "critical",
+    "sectionHeadings": [
+      "019: The untrusted content boundary",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/019-untrusted-content-boundary/spec.md",
+    "status": "approved",
+    "summary": "A memory store feeds text written by other people, other agents, and web pages into a model's context, which makes it an indirect prompt-injection surface by construction. This constraint spec owns no code and freezes one property across every path that returns content: memory bodies leave this system only inside an envelope that delimits them, labels their trust class and origin, and states that instructions inside them are not to be followed. Instruction grade, the only class a client is told to act on, requires a human promotion recorded in the ledger. An agent never promotes its own memory.\n",
+    "title": "Recalled content is data: delimited, labelled, never in an instruction position"
+  },
+  "shardHash": "acaa35f7c561e3c89cf66ae8a608593ebfa1e5558568c6628254917612147462",
+  "specVersion": "1.1.0"
+}

@@ -1,0 +1,177 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/src/worker.rs' does not exist",
+        "path": "crates/aicortex-curate/src/worker.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/src/atomize.rs' does not exist",
+        "path": "crates/aicortex-curate/src/atomize.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/src/consolidate.rs' does not exist",
+        "path": "crates/aicortex-curate/src/consolidate.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/src/enrich.rs' does not exist",
+        "path": "crates/aicortex-curate/src/enrich.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/src/digest.rs' does not exist",
+        "path": "crates/aicortex-curate/src/digest.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/src/schedule.rs' does not exist",
+        "path": "crates/aicortex-curate/src/schedule.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/tests/curate.rs' does not exist",
+        "path": "crates/aicortex-curate/tests/curate.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/testdata/curation/' does not exist",
+        "path": "crates/aicortex-curate/testdata/curation/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/src/lib.rs' does not exist",
+        "path": "crates/aicortex-curate/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '034-curation-workers' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "033-observatory-and-agent-ingestion"
+    ],
+    "implementingPaths": [
+      {
+        "path": "specs/019-untrusted-content-boundary/spec.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/atomize.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/consolidate.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/digest.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/enrich.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/schedule.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/worker.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/testdata/curation/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/tests/curate.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "034-curation-workers",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "8b43d0fd2a75c6e7f5cc6b4107a331acca79be59bb7641708e5dae61c74c94b1"
+}

@@ -1,0 +1,187 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/Cargo.toml' does not exist",
+        "path": "crates/aicortex-eval/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/lib.rs' does not exist",
+        "path": "crates/aicortex-eval/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/corpus.rs' does not exist",
+        "path": "crates/aicortex-eval/src/corpus.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/metrics.rs' does not exist",
+        "path": "crates/aicortex-eval/src/metrics.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/runner.rs' does not exist",
+        "path": "crates/aicortex-eval/src/runner.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/report.rs' does not exist",
+        "path": "crates/aicortex-eval/src/report.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/main.rs' does not exist",
+        "path": "crates/aicortex-eval/src/main.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/tests/metrics.rs' does not exist",
+        "path": "crates/aicortex-eval/tests/metrics.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'eval/README.md' does not exist",
+        "path": "eval/README.md"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'eval/golden/' does not exist",
+        "path": "eval/golden/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'eval/baselines/' does not exist",
+        "path": "eval/baselines/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-recall/src/lib.rs' does not exist",
+        "path": "crates/aicortex-recall/src/lib.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "035-agent-coordination"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/src/corpus.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/src/main.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/src/metrics.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/src/report.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/src/runner.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/tests/metrics.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "eval/README.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "eval/baselines/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "eval/golden/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      }
+    ],
+    "specId": "040-retrieval-evaluation",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "6a60f5ad0488ca20e2ab541b1bb8453eca5d3c7397c6710066838e9b3ed4b585"
+}

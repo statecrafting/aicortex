@@ -1,0 +1,47 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '019-untrusted-content-boundary' file unit 'crates/aicortex-recall/src/lib.rs' does not exist",
+        "path": "crates/aicortex-recall/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '019-untrusted-content-boundary' file unit 'crates/aicortex-types/src/trust.rs' does not exist",
+        "path": "crates/aicortex-types/src/trust.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "018-retrieval-and-recall-trace"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/trust.rs"
+        }
+      }
+    ],
+    "specId": "019-untrusted-content-boundary",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "8121e125996bd17c9438a9b7fc2aabcd1640d3c6d5680b0411b1d882a63b7520"
+}

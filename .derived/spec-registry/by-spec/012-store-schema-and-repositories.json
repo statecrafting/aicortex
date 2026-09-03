@@ -1,0 +1,107 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "every statement carries a scope predicate; no post-filtering",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      }
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "011-memory-model"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/memory_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/provenance_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/scope_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/counters.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/cursor.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/schema.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/repo.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "012-store-schema-and-repositories",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "critical",
+    "sectionHeadings": [
+      "012: Schema and repositories",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/012-store-schema-and-repositories/spec.md",
+    "status": "approved",
+    "summary": "The tables and the only code allowed to touch them. Schema arrives as an ordered list of rahi migrations with versions, never as SQL a user pastes from a guide. Every repository call takes a scope and puts it in the SQL, so an unscoped read is not expressible. Aggregates are maintained counters updated in the writing transaction, because the predecessor's statistics call read every row's metadata into memory. Listing is keyset-paged; there is no offset pagination and no unbounded select.\n",
+    "title": "Schema and repositories: versioned migrations, scope in the predicate, counters instead of scans"
+  },
+  "shardHash": "dc11702b1422693016fc1dc8f39f6a083cdb00cb6168fcb2103002d35e10f16d",
+  "specVersion": "1.1.0"
+}

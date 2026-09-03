@@ -1,0 +1,78 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "017-entities-and-typed-edges"
+    ],
+    "domain": "retrieval",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/query.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/channels.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/fusion.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/trace.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/filter.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/tests/fusion.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/tests/trace.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/testdata/queries/"
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "018-retrieval-and-recall-trace",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "critical",
+    "sectionHeadings": [
+      "018: Recall",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/018-retrieval-and-recall-trace/spec.md",
+    "status": "approved",
+    "summary": "One query, four candidate channels (vector, text, recency, graph), one fused order, and a trace that explains it. Fusion is reciprocal rank with declared weights and an importance prior, chosen because it needs no score calibration between channels that do not share a scale. Every result set carries the query, the per-channel candidates and scores, the fusion arithmetic, and the reason each returned memory made the cut. A ranking that cannot be explained is not shippable, and an evaluation corpus (040) is the only way a weight changes.\n",
+    "title": "Recall: four channels fused into one order, every result explainable, scope in the SQL"
+  },
+  "shardHash": "5e30af0876c198b9f1d7143825961423a9d51ee948a20ab3b1c1fd887bb12060",
+  "specVersion": "1.1.0"
+}

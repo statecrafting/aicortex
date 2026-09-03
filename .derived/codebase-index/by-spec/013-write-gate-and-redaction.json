@@ -1,0 +1,160 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/Cargo.toml' does not exist",
+        "path": "crates/aicortex-gate/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/lib.rs' does not exist",
+        "path": "crates/aicortex-gate/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/rules.rs' does not exist",
+        "path": "crates/aicortex-gate/src/rules.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/secrets.rs' does not exist",
+        "path": "crates/aicortex-gate/src/secrets.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/limits.rs' does not exist",
+        "path": "crates/aicortex-gate/src/limits.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/verdict.rs' does not exist",
+        "path": "crates/aicortex-gate/src/verdict.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/tests/gate.rs' does not exist",
+        "path": "crates/aicortex-gate/tests/gate.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/testdata/corpus/' does not exist",
+        "path": "crates/aicortex-gate/testdata/corpus/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' section unit 'workspace.dependencies' not found in Cargo.toml",
+        "path": "Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/memory_repo.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "012-store-schema-and-repositories"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/limits.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/rules.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/secrets.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/verdict.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/testdata/corpus/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/gate.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      }
+    ],
+    "specId": "013-write-gate-and-redaction",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "a581cdad92dcd304b1a5a24469870f43ee360def807995c06e0f38116473d21b"
+}

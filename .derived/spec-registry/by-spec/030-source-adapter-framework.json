@@ -1,0 +1,96 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "024-decision-and-audit-references"
+    ],
+    "domain": "ingest",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/adapter.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/run.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/cursor.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/mapping.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/registry.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/migrations.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/adapter.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/run.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 3
+    },
+    "id": "030-source-adapter-framework",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "high",
+    "sectionHeadings": [
+      "030: Source adapters",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/030-source-adapter-framework/spec.md",
+    "status": "approved",
+    "summary": "The predecessor's ecosystem grew by forking the server: fifty-odd capabilities, each a copy of the same six hundred lines, so a fix in one never reached the others. This spec is the alternative. A source is an implementation of one trait, registered by name, driven by one runner that owns fetching pages, mapping to candidates, passing the gate, staging the transaction, recording a resumable cursor, and reporting progress. Adding a source is a module and a fixture set, and it inherits dedup, retries, provenance, egress governance, and the untrusted content boundary without restating any of them.\n",
+    "title": "Source adapters: one contract, incremental and resumable, so a capability is never a fork"
+  },
+  "shardHash": "3d561e687b49945960747119ac9a73bad0774b65404fbc06adcaef948d34b8ac",
+  "specVersion": "1.1.0"
+}

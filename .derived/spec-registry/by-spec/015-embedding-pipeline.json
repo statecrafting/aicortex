@@ -1,0 +1,123 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "a memory is never left unembedded and unreported; constitution XI",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/worker.rs"
+        }
+      }
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "014-memory-lifecycle-and-erasure"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/provider.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/local.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/remote.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/chunk.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/worker.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/registry.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/migrations.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/tests/worker.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/tests/chunk.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/testdata/vectors/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/manifest.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "015-embedding-pipeline",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "critical",
+    "sectionHeadings": [
+      "015: Embeddings",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/015-embedding-pipeline/spec.md",
+    "status": "approved",
+    "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
+    "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
+  },
+  "shardHash": "ce525b3403620caa8d7608054fb1bb01a4dfe928b313c4bb4a2731b7b81b7342",
+  "specVersion": "1.1.0"
+}

@@ -1,0 +1,219 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/Cargo.toml' does not exist",
+        "path": "crates/aicortex-mcp/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/src/lib.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/src/transport.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/transport.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/src/session.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/session.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/tools.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/src/resources.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/resources.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/src/compat.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/compat.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/src/render.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/render.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/tests/protocol.rs' does not exist",
+        "path": "crates/aicortex-mcp/tests/protocol.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/tests/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/tests/tools.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-mcp/testdata/sessions/' does not exist",
+        "path": "crates/aicortex-mcp/testdata/sessions/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'apps/aicortex/src/cell.rs' does not exist",
+        "path": "apps/aicortex/src/cell.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '021-mcp-server' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
+        "path": "crates/aicortex-api/src/dto.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "020-http-api-and-scopes"
+    ],
+    "implementingPaths": [
+      {
+        "path": "specs/019-untrusted-content-boundary/spec.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/compat.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/render.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/resources.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/session.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/transport.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/testdata/sessions/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/protocol.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "021-mcp-server",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "2a9c6cfcb32833c764f45beef5ccee1e419731f6c3649fca552bab140bce1b35"
+}

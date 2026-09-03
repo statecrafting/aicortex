@@ -1,0 +1,103 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '035-agent-coordination' file unit 'crates/aicortex-api/src/agents.rs' does not exist",
+        "path": "crates/aicortex-api/src/agents.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '035-agent-coordination' file unit 'crates/aicortex-api/src/claims.rs' does not exist",
+        "path": "crates/aicortex-api/src/claims.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '035-agent-coordination' file unit 'crates/aicortex-store/src/claims_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/claims_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '035-agent-coordination' file unit 'crates/aicortex-api/tests/claims.rs' does not exist",
+        "path": "crates/aicortex-api/tests/claims.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '035-agent-coordination' file unit 'crates/aicortex-api/src/router.rs' does not exist",
+        "path": "crates/aicortex-api/src/router.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '035-agent-coordination' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "034-curation-workers"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/agents.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/claims.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/claims.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claims_repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "specId": "035-agent-coordination",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "df38266df0ecf94eed5885e5f2665079f112fa6afcf0a11628557bf9f1d323d4"
+}

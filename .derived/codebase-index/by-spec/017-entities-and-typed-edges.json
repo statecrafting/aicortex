@@ -1,0 +1,215 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/Cargo.toml' does not exist",
+        "path": "crates/aicortex-graph/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/src/lib.rs' does not exist",
+        "path": "crates/aicortex-graph/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/src/entity.rs' does not exist",
+        "path": "crates/aicortex-graph/src/entity.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/src/resolve.rs' does not exist",
+        "path": "crates/aicortex-graph/src/resolve.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/src/edge.rs' does not exist",
+        "path": "crates/aicortex-graph/src/edge.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/src/vocabulary.rs' does not exist",
+        "path": "crates/aicortex-graph/src/vocabulary.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/src/extract.rs' does not exist",
+        "path": "crates/aicortex-graph/src/extract.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/src/walk.rs' does not exist",
+        "path": "crates/aicortex-graph/src/walk.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-graph/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/tests/resolve.rs' does not exist",
+        "path": "crates/aicortex-graph/tests/resolve.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/tests/edge.rs' does not exist",
+        "path": "crates/aicortex-graph/tests/edge.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/testdata/extraction/' does not exist",
+        "path": "crates/aicortex-graph/testdata/extraction/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-embed/src/worker.rs' does not exist",
+        "path": "crates/aicortex-embed/src/worker.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "016-vector-index-and-scan"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/edge.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/entity.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/extract.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/resolve.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/vocabulary.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/walk.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/testdata/extraction/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/tests/edge.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/tests/resolve.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/worker.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "specId": "017-entities-and-typed-edges",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "285863442214e93717dfa26a27adf63491a6df5269463f533c7023194ab880b7"
+}

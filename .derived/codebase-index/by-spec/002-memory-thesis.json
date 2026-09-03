@@ -1,0 +1,32 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "000-aicortex-bootstrap"
+    ],
+    "implementingPaths": [
+      {
+        "path": "docs/design/00-lineage.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      }
+    ],
+    "specId": "002-memory-thesis",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "92e4f7446e0a98b567aa35cda7b84fbf2370575535c43749379af0db4ddd43a5"
+}

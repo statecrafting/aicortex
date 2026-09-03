@@ -1,0 +1,131 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/lifecycle.rs' does not exist",
+        "path": "crates/aicortex-store/src/lifecycle.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/fingerprint.rs' does not exist",
+        "path": "crates/aicortex-store/src/fingerprint.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
+        "path": "crates/aicortex-store/src/erasure.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/tests/lifecycle.rs' does not exist",
+        "path": "crates/aicortex-store/tests/lifecycle.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/tests/erasure.rs' does not exist",
+        "path": "crates/aicortex-store/tests/erasure.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/lib.rs' does not exist",
+        "path": "crates/aicortex-store/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
+        "path": "crates/aicortex-store/src/erasure.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "013-write-gate-and-redaction"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/fingerprint.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/erasure.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      }
+    ],
+    "specId": "014-memory-lifecycle-and-erasure",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "892779233f025acf49a1bad260831dafeda6187e87117c3bb59c8f753d85f100"
+}

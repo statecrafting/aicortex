@@ -1,0 +1,103 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "a memory without provenance cannot be constructed; constitution IX",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      }
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "010-chassis-adoption-and-workspace"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/id.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/memory.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/scope.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/trust.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/actor.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/provenance.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/error.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/tests/model.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/testdata/memories/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "011-memory-model",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "critical",
+    "sectionHeadings": [
+      "011: The memory record",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/011-memory-model/spec.md",
+    "status": "approved",
+    "summary": "What a memory is, as types, before anything can store one. A memory is a claim by a named actor, from a named source, at a known time, inside a scope owned by a rauthy subject, carrying a trust class that decides whether a client may act on it and a status that decides whether it is still true. The type system enforces the parts that matter: there is no way to construct a memory without provenance, and no way to promote one to instruction grade without an authority token that only a human decision produces.\n",
+    "title": "The memory record: scope, trust class, actor, provenance, and the states a memory can be in"
+  },
+  "shardHash": "725221b64aedb81da1669c4c108ef47c4351afcd49efddd02be8ba0677711564",
+  "specVersion": "1.1.0"
+}

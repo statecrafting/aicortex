@@ -1,0 +1,54 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "the egress ceiling is the whole privacy claim; additions are reviewable",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/manifest.toml"
+        }
+      },
+      {
+        "flavor": "invariant-freeze",
+        "note": "no content leaves except through a declared, governed host",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/remote.rs"
+        }
+      }
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "040-retrieval-evaluation"
+    ],
+    "domain": "ops",
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "041-privacy-and-egress-boundary",
+    "implementation": "pending",
+    "kind": "constraint",
+    "risk": "critical",
+    "sectionHeadings": [
+      "041: The privacy boundary",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/041-privacy-and-egress-boundary/spec.md",
+    "status": "approved",
+    "summary": "The product's claim is that the user's memory stays theirs. This spec turns that from a sentence in a README into a checkable property. In the default configuration the manifest declares no egress host at all, so the process can make no outbound call and a test proves it. Every feature that would need one names it, justifies it, and is off by default. Telemetry does not exist. Backups go where the operator configured and nowhere else. The boundary is stated once here and inherited by every spec that could cross it.\n",
+    "title": "The privacy boundary: what leaves the container, proved by the manifest rather than promised"
+  },
+  "shardHash": "c1d150b4631d3e98ea345b3f2621bb96dfb7e1596de5ff4c01cf73949c465011",
+  "specVersion": "1.1.0"
+}

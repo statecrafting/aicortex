@@ -1,0 +1,145 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'clients/README.md' does not exist",
+        "path": "clients/README.md"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'clients/matrix.toml' does not exist",
+        "path": "clients/matrix.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'clients/claude-code/' does not exist",
+        "path": "clients/claude-code/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'clients/codex/' does not exist",
+        "path": "clients/codex/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'clients/cursor/' does not exist",
+        "path": "clients/cursor/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'clients/antigravity/' does not exist",
+        "path": "clients/antigravity/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'crates/aicortex-api/src/clients.rs' does not exist",
+        "path": "crates/aicortex-api/src/clients.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'crates/aicortex-api/tests/clients.rs' does not exist",
+        "path": "crates/aicortex-api/tests/clients.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '022-client-adapters' file unit 'crates/aicortex-api/src/router.rs' does not exist",
+        "path": "crates/aicortex-api/src/router.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "021-mcp-server"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "clients/README.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "clients/antigravity/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "clients/claude-code/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "clients/codex/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "clients/cursor/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "clients/matrix.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/clients.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/clients.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      }
+    ],
+    "specId": "022-client-adapters",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "ea78cf269252753bd72472b0910dacd34657787e39c9efe1dcd91ddd2448eeb4"
+}

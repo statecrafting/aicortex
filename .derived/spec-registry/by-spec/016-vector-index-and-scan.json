@@ -1,0 +1,92 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "015-embedding-pipeline"
+    ],
+    "domain": "retrieval",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/src/vector.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/src/scan.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/src/topk.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/src/text.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/src/tokenize.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/src/migrations.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/tests/scan.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/tests/text.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-index/benches/scan.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "016-vector-index-and-scan",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "high",
+    "sectionHeadings": [
+      "016: The index",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/016-vector-index-and-scan/spec.md",
+    "status": "approved",
+    "summary": "Similarity is computed in this process. Vectors are BLOBs read through rahi's paged read, scored by dot product against a normalized query, and reduced by a bounded top-k heap, with the scope predicate in the SQL so a scan never leaves its scope. The text channel is an application-owned inverted index rather than FTS5, because FTS5 is not compiled into hiqlite's SQLite build and a loadable extension is refused by the chassis. A trait boundary exists so an approximate index can replace the scan when the evaluation corpus says it must, and not before.\n",
+    "title": "The index: a paged cosine scan, an application-owned text index, and no SQLite extension"
+  },
+  "shardHash": "6b2c974290318f41c3326f8cf3d17be75950f8802be055c63131b5cf81a1608d",
+  "specVersion": "1.1.0"
+}

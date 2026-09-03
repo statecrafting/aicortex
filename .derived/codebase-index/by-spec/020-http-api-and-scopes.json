@@ -1,0 +1,233 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/Cargo.toml' does not exist",
+        "path": "crates/aicortex-api/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/lib.rs' does not exist",
+        "path": "crates/aicortex-api/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/router.rs' does not exist",
+        "path": "crates/aicortex-api/src/router.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/scopes.rs' does not exist",
+        "path": "crates/aicortex-api/src/scopes.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/capture.rs' does not exist",
+        "path": "crates/aicortex-api/src/capture.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/search.rs' does not exist",
+        "path": "crates/aicortex-api/src/search.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/memories.rs' does not exist",
+        "path": "crates/aicortex-api/src/memories.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/entities.rs' does not exist",
+        "path": "crates/aicortex-api/src/entities.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/events.rs' does not exist",
+        "path": "crates/aicortex-api/src/events.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
+        "path": "crates/aicortex-api/src/dto.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/error.rs' does not exist",
+        "path": "crates/aicortex-api/src/error.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/tests/api.rs' does not exist",
+        "path": "crates/aicortex-api/tests/api.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/tests/authz.rs' does not exist",
+        "path": "crates/aicortex-api/tests/authz.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '020-http-api-and-scopes' file unit 'apps/aicortex/src/cell.rs' does not exist",
+        "path": "apps/aicortex/src/cell.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "019-untrusted-content-boundary"
+    ],
+    "implementingPaths": [
+      {
+        "path": "specs/019-untrusted-content-boundary/spec.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/capture.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/entities.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/error.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/events.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/memories.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/scopes.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/search.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/api.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/authz.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "020-http-api-and-scopes",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "cf87a081db8f161bfc6450a9410fbb35287aef74d841a5b162fdb468eba4dfa1"
+}

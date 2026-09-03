@@ -1,0 +1,86 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "erasure reaches every derivative; memory content never enters the ledger",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      }
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "013-write-gate-and-redaction"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/lifecycle.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/fingerprint.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/erasure.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/lifecycle.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/erasure.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "014-memory-lifecycle-and-erasure",
+    "implementation": "pending",
+    "kind": "kernel",
+    "risk": "critical",
+    "sectionHeadings": [
+      "014: Lifecycle",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/014-memory-lifecycle-and-erasure/spec.md",
+    "status": "approved",
+    "summary": "A memory store that can only append becomes wrong over time and then confidently recalls the wrong thing. This spec gives a memory the rest of its life: an exact fingerprint that merges a repeated capture instead of duplicating it, supersession that keeps the old row readable but unretrievable, correction that records who said the old value was wrong, expiry for memories that were true until a date, and erasure that removes content, chunks, embeddings, and index entries in one transaction while the ledger records only that it happened.\n",
+    "title": "Lifecycle: supersession, correction, expiry, deduplication, and erasure that reaches the vectors"
+  },
+  "shardHash": "03969d321bbfcf3b3952e18e6c416bbfbe09a30bfa5306cbe34625119fdf1645",
+  "specVersion": "1.1.0"
+}

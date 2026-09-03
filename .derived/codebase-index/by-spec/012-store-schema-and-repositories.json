@@ -1,0 +1,202 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/Cargo.toml' does not exist",
+        "path": "crates/aicortex-store/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/lib.rs' does not exist",
+        "path": "crates/aicortex-store/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/memory_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/provenance_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/provenance_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/scope_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/scope_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/counters.rs' does not exist",
+        "path": "crates/aicortex-store/src/counters.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/cursor.rs' does not exist",
+        "path": "crates/aicortex-store/src/cursor.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/tests/schema.rs' does not exist",
+        "path": "crates/aicortex-store/tests/schema.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/tests/repo.rs' does not exist",
+        "path": "crates/aicortex-store/tests/repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'apps/aicortex/src/cell.rs' does not exist",
+        "path": "apps/aicortex/src/cell.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' section unit 'workspace.dependencies' not found in Cargo.toml",
+        "path": "Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/memory_repo.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "011-memory-model"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/counters.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/cursor.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/provenance_repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/scope_repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      }
+    ],
+    "specId": "012-store-schema-and-repositories",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "dd6cbe298aebf0011e64b38e7ceb6303f8f88a423b3830192758506559035aa4"
+}

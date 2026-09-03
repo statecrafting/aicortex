@@ -1,0 +1,78 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "one chain per deployment; this product appends, never chains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/decision_ref.rs"
+        }
+      }
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "023-review-and-promotion"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/audit.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/decision_ref.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/audit.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 2
+    },
+    "id": "024-decision-and-audit-references",
+    "implementation": "pending",
+    "kind": "feature",
+    "risk": "high",
+    "sectionHeadings": [
+      "024: Decisions and audit",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/024-decision-and-audit-references/spec.md",
+    "status": "approved",
+    "summary": "There is exactly one hash chain in a deployment and it belongs to the chassis. This product appends Decisions to it and stores references to them; it never builds a second chain, and it never puts memory content into the one that exists. The audit view is a join: a memory's history is its lifecycle rows plus the decisions that reference it, rendered in one timeline. This also fixes the vocabulary, because the sibling product in this family has its own object called a ledger and two things called ledger in one deployment would be a permanent source of confusion.\n",
+    "title": "One chain, referenced: decisions live in rahi's ledger and memories point at them"
+  },
+  "shardHash": "7ed0709f6de574ea404829b7578948076efdac319c81608873d6bec25fa3fd0a",
+  "specVersion": "1.1.0"
+}

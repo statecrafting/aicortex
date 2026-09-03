@@ -1,0 +1,73 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "032-capture-sources-and-webhooks"
+    ],
+    "domain": "ingest",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/agent_session.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/decision_feed.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/schema/session-event.schema.json"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/agent_session.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 3
+    },
+    "id": "033-observatory-and-agent-ingestion",
+    "implementation": "pending",
+    "kind": "feature",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionHeadings": [
+      "033: Machine intake",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/033-observatory-and-agent-ingestion/spec.md",
+    "status": "approved",
+    "summary": "The most valuable memories in a software team are the decisions made inside driven sessions and then forgotten when the session ends. This spec accepts them: a generic session-event ingestion contract that any orchestrator or agent runtime can post to, with claude-observatory as its first producer, and a decision feed that turns sealed session decisions into memories. It is deliberately not Claude-specific, and it is deliberately a push into a documented schema rather than a reader of any particular tool's private files.\n",
+    "title": "Machine intake: session decisions from the orchestrator and memories written by agents"
+  },
+  "shardHash": "74ac53fd5c821ad0168822604cc2c914951270ae4ba377855126de5464bd6f3f",
+  "specVersion": "1.1.0"
+}

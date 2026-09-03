@@ -1,0 +1,86 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "043-packaging-and-operations"
+    ],
+    "domain": "ops",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "deploy/k8s/kustomization.yaml"
+      },
+      {
+        "kind": "file",
+        "path": "deploy/k8s/statefulset.yaml"
+      },
+      {
+        "kind": "file",
+        "path": "deploy/k8s/service.yaml"
+      },
+      {
+        "kind": "file",
+        "path": "deploy/k8s/ingress.yaml"
+      },
+      {
+        "kind": "file",
+        "path": "deploy/k8s/backup-cronjob.yaml"
+      },
+      {
+        "kind": "file",
+        "path": "deploy/k8s/servicemonitor.yaml"
+      },
+      {
+        "kind": "file",
+        "path": "deploy/k8s/secret.example.yaml"
+      },
+      {
+        "kind": "file",
+        "path": "deploy/README.md"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/k8s-validate.sh"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-harness/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-harness/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-harness/tests/e2e.rs"
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "044-reference-deployment",
+    "implementation": "pending",
+    "kind": "tooling",
+    "risk": "high",
+    "sectionHeadings": [
+      "044: The reference deployment",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/044-reference-deployment/spec.md",
+    "status": "approved",
+    "summary": "The wave 4 exit condition and the product's own proof. A three-node StatefulSet on Kubernetes with object storage for backups and archived ledger segments, one origin behind an ingress, metrics scraped, backups on a schedule, and an end-to-end harness that drives the whole product through a real client path: sign in, connect, capture, import, curate, recall, promote, export, and erase. When this is green the specification has been demonstrated rather than argued.\n",
+    "title": "The reference deployment: three nodes on Kubernetes, object storage behind it, evaluation green"
+  },
+  "shardHash": "4b5904c1ba313e41dc4ff6400df06c733212150cb8952b8d00e87dbda0cf8cf3",
+  "specVersion": "1.1.0"
+}

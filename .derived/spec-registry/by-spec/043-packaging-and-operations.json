@@ -1,0 +1,72 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "042-portability-and-migration"
+    ],
+    "domain": "ops",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "docker/Dockerfile"
+      },
+      {
+        "kind": "file",
+        "path": "docker/compose.yml"
+      },
+      {
+        "kind": "file",
+        "path": "apps/aicortex/src/operator.rs"
+      },
+      {
+        "kind": "file",
+        "path": "docs/operations.md"
+      },
+      {
+        "kind": "file",
+        "path": "docs/configuration.md"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/image.yml"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "043-packaging-and-operations",
+    "implementation": "pending",
+    "kind": "tooling",
+    "risk": "high",
+    "sectionHeadings": [
+      "043: Packaging and operations",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/043-packaging-and-operations/spec.md",
+    "status": "approved",
+    "summary": "The chassis already owns the image shape, the volume, the supervision, the four verbs, the probes, and the metrics. This spec adds only what is this product's: the build that produces the binary and fetches or embeds the local model, the operator routes the cell mounts, the configuration reference, and the runbook for the handful of things that can go wrong. It is deliberately thin, because a packaging spec that grows is a sign the chassis is being reimplemented.\n",
+    "title": "Packaging: one image on the chassis, the operator surface, the runbook"
+  },
+  "shardHash": "af46b2815aba8188c67882cd638d9095257cffc0c81a94cc392d9b2b3f467156",
+  "specVersion": "1.1.0"
+}

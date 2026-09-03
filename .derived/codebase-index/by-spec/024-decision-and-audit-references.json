@@ -1,0 +1,103 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '024-decision-and-audit-references' file unit 'crates/aicortex-store/src/audit.rs' does not exist",
+        "path": "crates/aicortex-store/src/audit.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '024-decision-and-audit-references' file unit 'crates/aicortex-store/src/decision_ref.rs' does not exist",
+        "path": "crates/aicortex-store/src/decision_ref.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '024-decision-and-audit-references' file unit 'crates/aicortex-store/tests/audit.rs' does not exist",
+        "path": "crates/aicortex-store/tests/audit.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '024-decision-and-audit-references' file unit 'crates/aicortex-store/src/lib.rs' does not exist",
+        "path": "crates/aicortex-store/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '024-decision-and-audit-references' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '024-decision-and-audit-references' file unit 'crates/aicortex-store/src/decision_ref.rs' does not exist",
+        "path": "crates/aicortex-store/src/decision_ref.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "023-review-and-promotion"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/audit.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/decision_ref.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/audit.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/decision_ref.rs"
+        }
+      }
+    ],
+    "specId": "024-decision-and-audit-references",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "c7a6de2e1bf7e39ce460194b0c0ba2f89f8df767bc40e1e92d4bbc55c1bbc101"
+}

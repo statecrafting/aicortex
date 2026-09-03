@@ -1,0 +1,80 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "041-privacy-and-egress-boundary"
+    ],
+    "domain": "ingest",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/portable/mod.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/portable/export.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/portable/import.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/portable/format.md"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/openbrain.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/portable.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "042-portability-and-migration",
+    "implementation": "pending",
+    "kind": "feature",
+    "risk": "medium",
+    "sectionHeadings": [
+      "042: Portability",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/042-portability-and-migration/spec.md",
+    "status": "approved",
+    "summary": "A memory store that cannot be left is a hostage situation, and a product whose pitch is ownership has to prove it. Export writes a documented, self-describing archive of a scope: memories, provenance, entities, edges, lifecycle history, and optionally embeddings, in a format specified here and readable without this software. Import reads it back. The same machinery carries the migration path off the system this product replaces, as an ordinary source adapter reading a user's own data at their request.\n",
+    "title": "Portability: a documented export anyone can read, and an import path off the system this replaces"
+  },
+  "shardHash": "3c74968e38d3b442bbd25d1ab35dcc580bffcac48cbd8f3caee6c337a682ed47",
+  "specVersion": "1.1.0"
+}

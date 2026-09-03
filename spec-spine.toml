@@ -1,0 +1,107 @@
+# spec-spine.toml governs this repository.
+#
+# aicortex is specified before it is built: the corpus under specs/ is the
+# whole design, and the code under crates/ and apps/ arrives one spec per
+# driven session (AGENTS.md, "Working the backlog"). Every knob is deliberate.
+
+[manifest]
+# Cargo `[package.metadata.spec-spine].spec` names each crate's founding spec.
+metadata_namespace = "spec-spine"
+
+[domains]
+# The `domain` of a spec is the product responsibility it serves (spec 002 §2).
+# Closed enum: a spec outside the list is a compile error (V-005), and a spec
+# without a domain is a lint warning (L-002) that fails the gate.
+allowed = [
+  "governance",
+  "chassis",
+  "memory",
+  "retrieval",
+  "protocol",
+  "clients",
+  "ingest",
+  "ops",
+]
+
+[kind]
+# Closed enum (V-006 / L-003). `kernel` specs are load-bearing product
+# contracts; `feature` specs are replaceable above them; `constraint` specs
+# own no code and freeze a property across other specs' units; `tooling` is
+# repository and deployment machinery.
+allowed = [
+  "constitutional-bootstrap",
+  "thesis",
+  "governance",
+  "kernel",
+  "feature",
+  "constraint",
+  "tooling",
+]
+
+[layout]
+specs_dir     = "specs"
+derived_dir   = ".derived"
+standards_dir = "standards/spec"
+schemas_dir   = "standards/schemas"
+cargo_workspace = "Cargo.toml"
+standalone_rust_workspaces = []
+# No npm anywhere in this repository (spec 001 D-1).
+npm_workspaces = []
+standalone_npm_packages = []
+
+[index]
+extra_hashed_inputs = [
+  "standards/**",
+  ".github/workflows/**",
+  ".claude/agents/**",
+  ".claude/rules/**",
+  ".claude/skills/**",
+  ".claude/settings.json",
+  "AGENTS.md",
+  "CLAUDE.md",
+  "Makefile",
+  "docs/design/**",
+  "docker/**",
+  "deploy/**",
+  "eval/**",
+]
+resolver_exclusions = ["target", "node_modules", ".derived", "dist", "build", "data"]
+
+[index.slices]
+governance = [
+  "standards/**",
+  ".claude/settings.json",
+  ".claude/agents/**",
+  ".claude/rules/**",
+  ".claude/skills/**",
+  "AGENTS.md",
+  "CLAUDE.md",
+  ".github/workflows/**",
+]
+deployment = ["docker/**", "deploy/**"]
+evaluation = ["eval/**"]
+
+[branding]
+compiler_id = "spec-spine"
+indexer_id  = "spec-spine"
+
+[coupling]
+waiver_keyword = "Spec-Drift-Waiver:"
+bypass_prefixes = ["**/README.md", "**/CHANGELOG.md"]
+# The ownership ratchet is on from day one: greenfield, so every source file
+# a session adds must be claimed by the spec it implements (C-002).
+require_ownership = true
+auto_waive_dependency_only = true
+
+[provenance.uri_schemes]
+knowledge        = "knowledge://"
+code-fingerprint = "fingerprint://"
+# A lesson taken from the Open Brain (OB1) system this product replaces. The
+# citation is to the observed behavior, never to its source: see spec 000 §6.
+openbrain        = "openbrain://"
+# A contract this product consumes from the rahi chassis, cited by spec id.
+rahi             = "rahi://"
+
+[frontmatter]
+# `wave` is the build-order wave a spec belongs to (spec 002 §5).
+extra_known_keys = ["wave"]

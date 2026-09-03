@@ -1,0 +1,80 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "021-mcp-server"
+    ],
+    "domain": "clients",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "clients/README.md"
+      },
+      {
+        "kind": "file",
+        "path": "clients/matrix.toml"
+      },
+      {
+        "kind": "file",
+        "path": "clients/claude-code/"
+      },
+      {
+        "kind": "file",
+        "path": "clients/codex/"
+      },
+      {
+        "kind": "file",
+        "path": "clients/cursor/"
+      },
+      {
+        "kind": "file",
+        "path": "clients/antigravity/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/clients.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/tests/clients.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 2
+    },
+    "id": "022-client-adapters",
+    "implementation": "pending",
+    "kind": "feature",
+    "risk": "medium",
+    "sectionHeadings": [
+      "022: Client adapters",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/022-client-adapters/spec.md",
+    "status": "approved",
+    "summary": "Connecting is one URL, and everything a client needs beyond that is generated rather than written by hand. This spec owns the capability matrix: which clients support remote MCP, which support OAuth against it, and what each offers for automatic capture, which is the only place they genuinely differ. It ships per-client configuration snippets and the hook or notification payloads that turn a session into captured memories, and a route that serves the correct snippet for a client so setup is a copy rather than a document to follow.\n",
+    "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
+  },
+  "shardHash": "c449d7a965408c8feeba051613fd2a61d28f568f3102f79e9e99057eb486704c",
+  "specVersion": "1.1.0"
+}

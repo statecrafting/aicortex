@@ -1,0 +1,131 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '042-portability-and-migration' file unit 'crates/aicortex-ingest/src/portable/mod.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/portable/mod.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '042-portability-and-migration' file unit 'crates/aicortex-ingest/src/portable/export.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/portable/export.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '042-portability-and-migration' file unit 'crates/aicortex-ingest/src/portable/import.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/portable/import.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '042-portability-and-migration' file unit 'crates/aicortex-ingest/src/portable/format.md' does not exist",
+        "path": "crates/aicortex-ingest/src/portable/format.md"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '042-portability-and-migration' file unit 'crates/aicortex-ingest/src/sources/openbrain.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/openbrain.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '042-portability-and-migration' file unit 'crates/aicortex-ingest/tests/portable.rs' does not exist",
+        "path": "crates/aicortex-ingest/tests/portable.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '042-portability-and-migration' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/registry.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '042-portability-and-migration' file unit 'crates/aicortex-api/src/router.rs' does not exist",
+        "path": "crates/aicortex-api/src/router.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "041-privacy-and-egress-boundary"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/export.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/format.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/import.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/mod.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/openbrain.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/tests/portable.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      }
+    ],
+    "specId": "042-portability-and-migration",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "c4bb2f7816705684fea43c3d3c99749f6210c36f3fbf35f5b650bc1458400361"
+}

@@ -1,0 +1,149 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-ingest/src/webhook/mod.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/webhook/mod.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-ingest/src/webhook/verify.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/webhook/verify.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-ingest/src/webhook/chat.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/webhook/chat.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-ingest/src/webhook/browser.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/webhook/browser.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-ingest/src/webhook/binding.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/webhook/binding.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-ingest/tests/webhook.rs' does not exist",
+        "path": "crates/aicortex-ingest/tests/webhook.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/registry.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-api/src/router.rs' does not exist",
+        "path": "crates/aicortex-api/src/router.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "031-conversation-and-archive-imports"
+    ],
+    "implementingPaths": [
+      {
+        "path": "specs/019-untrusted-content-boundary/spec.md",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/webhook/binding.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/webhook/browser.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/webhook/chat.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/webhook/mod.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/webhook/verify.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/tests/webhook.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "032-capture-sources-and-webhooks",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "e9b647b412511919c00356128dc51a0f4271a886c1a1dafdc662eddfa16337de"
+}

@@ -1,0 +1,187 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/Cargo.toml' does not exist",
+        "path": "crates/aicortex-ingest/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/src/lib.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/src/adapter.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/adapter.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/src/run.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/run.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/src/cursor.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/cursor.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/src/mapping.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/mapping.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/registry.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/tests/adapter.rs' does not exist",
+        "path": "crates/aicortex-ingest/tests/adapter.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/tests/run.rs' does not exist",
+        "path": "crates/aicortex-ingest/tests/run.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-api/src/router.rs' does not exist",
+        "path": "crates/aicortex-api/src/router.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "024-decision-and-audit-references"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/adapter.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/cursor.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/mapping.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/run.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/tests/adapter.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/tests/run.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "specId": "030-source-adapter-framework",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "b7173e5cabfd9f2ef4fe00feb4cf04ee3eab6b0751dabe8ba3edaf629f1eeb42"
+}

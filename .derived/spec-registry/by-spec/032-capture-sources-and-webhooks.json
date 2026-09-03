@@ -1,0 +1,89 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "dependsOn": [
+      "031-conversation-and-archive-imports"
+    ],
+    "domain": "ingest",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/webhook/mod.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/webhook/verify.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/webhook/chat.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/webhook/browser.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/webhook/binding.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/webhook.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 3
+    },
+    "id": "032-capture-sources-and-webhooks",
+    "implementation": "pending",
+    "kind": "feature",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "032: Live capture",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/032-capture-sources-and-webhooks/spec.md",
+    "status": "approved",
+    "summary": "Capture that happens while you work: a message forwarded from a chat system, a page clipped from the browser. Both arrive as webhooks, which means both are unauthenticated in the OAuth sense and must be treated accordingly. Signatures are verified per platform, the external identity is bound to a local subject by an explicit linking step, and content from a channel other people can write to is quarantined by default rather than trusted because it arrived over a verified transport.\n",
+    "title": "Live capture: signed webhooks from chat systems and the browser, quarantined by default"
+  },
+  "shardHash": "560b471e2d4af20a0641742bc8efdcb5b0fa32bf889b72a470846bc49469d74f",
+  "specVersion": "1.1.0"
+}

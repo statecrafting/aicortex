@@ -1,0 +1,187 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'deploy/k8s/kustomization.yaml' does not exist",
+        "path": "deploy/k8s/kustomization.yaml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'deploy/k8s/statefulset.yaml' does not exist",
+        "path": "deploy/k8s/statefulset.yaml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'deploy/k8s/service.yaml' does not exist",
+        "path": "deploy/k8s/service.yaml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'deploy/k8s/ingress.yaml' does not exist",
+        "path": "deploy/k8s/ingress.yaml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'deploy/k8s/backup-cronjob.yaml' does not exist",
+        "path": "deploy/k8s/backup-cronjob.yaml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'deploy/k8s/servicemonitor.yaml' does not exist",
+        "path": "deploy/k8s/servicemonitor.yaml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'deploy/k8s/secret.example.yaml' does not exist",
+        "path": "deploy/k8s/secret.example.yaml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'deploy/README.md' does not exist",
+        "path": "deploy/README.md"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'scripts/k8s-validate.sh' does not exist",
+        "path": "scripts/k8s-validate.sh"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'crates/aicortex-harness/Cargo.toml' does not exist",
+        "path": "crates/aicortex-harness/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'crates/aicortex-harness/src/lib.rs' does not exist",
+        "path": "crates/aicortex-harness/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '044-reference-deployment' file unit 'crates/aicortex-harness/tests/e2e.rs' does not exist",
+        "path": "crates/aicortex-harness/tests/e2e.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "043-packaging-and-operations"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-harness/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-harness/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-harness/tests/e2e.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deploy/README.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deploy/k8s/backup-cronjob.yaml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deploy/k8s/ingress.yaml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deploy/k8s/kustomization.yaml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deploy/k8s/secret.example.yaml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deploy/k8s/service.yaml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deploy/k8s/servicemonitor.yaml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "deploy/k8s/statefulset.yaml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/k8s-validate.sh"
+        }
+      }
+    ],
+    "specId": "044-reference-deployment",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "e0329aca58c5abbac171cd2c496b54b286e53c4791971b94f1429f844c8a55dc"
+}

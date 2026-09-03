@@ -1,0 +1,244 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/Cargo.toml' does not exist",
+        "path": "crates/aicortex-embed/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/lib.rs' does not exist",
+        "path": "crates/aicortex-embed/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/provider.rs' does not exist",
+        "path": "crates/aicortex-embed/src/provider.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/local.rs' does not exist",
+        "path": "crates/aicortex-embed/src/local.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/remote.rs' does not exist",
+        "path": "crates/aicortex-embed/src/remote.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/chunk.rs' does not exist",
+        "path": "crates/aicortex-embed/src/chunk.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/worker.rs' does not exist",
+        "path": "crates/aicortex-embed/src/worker.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/registry.rs' does not exist",
+        "path": "crates/aicortex-embed/src/registry.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-embed/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/tests/worker.rs' does not exist",
+        "path": "crates/aicortex-embed/tests/worker.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/tests/chunk.rs' does not exist",
+        "path": "crates/aicortex-embed/tests/chunk.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/testdata/vectors/' does not exist",
+        "path": "crates/aicortex-embed/testdata/vectors/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'apps/aicortex/manifest.toml' does not exist",
+        "path": "apps/aicortex/manifest.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' section unit 'workspace.dependencies' not found in Cargo.toml",
+        "path": "Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/worker.rs' does not exist",
+        "path": "crates/aicortex-embed/src/worker.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "014-memory-lifecycle-and-erasure"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/chunk.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/local.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/provider.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/registry.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/remote.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/worker.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/testdata/vectors/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/tests/chunk.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/tests/worker.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/manifest.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/worker.rs"
+        }
+      }
+    ],
+    "specId": "015-embedding-pipeline",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "931eb7392b150a774b569d0765c63c91192383c5b7802539779237897f921277"
+}
