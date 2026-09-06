@@ -58,12 +58,7 @@
     "dependsOn": [
       "030-source-adapter-framework"
     ],
-    "implementingPaths": [
-      {
-        "path": "specs/019-untrusted-content-boundary/spec.md",
-        "source": "spec-edge"
-      }
-    ],
+    "implementingPaths": [],
     "resolvedUnits": [
       {
         "locations": [],
@@ -173,5 +168,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "984e5a08c2319059d8e6eae450ce6d371881eb5c0b5ee3d725a0ad021c0d891d"
+  "shardHash": "f3dbf58688182e8240661739129f82b8749f8f48fe9f3899f1e38f7fc595b356"
 }

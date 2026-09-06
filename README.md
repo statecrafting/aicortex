@@ -39,7 +39,7 @@ make ci         # spine + coverage --fail-on-untraced + the cargo gates
 make verify SPEC=018-retrieval-and-recall-trace
 ```
 
-Governance is `spec-spine` 0.11.0 on `PATH`; CI pins the same version.
+Governance is `spec-spine` 0.14.0 on `PATH`; CI pins the same version.
 Derived shards are committed and read only through the `spec-spine` CLI.
 
 ## Working the backlog

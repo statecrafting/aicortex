@@ -99,7 +99,7 @@ constitution is 000's; this spec owns the operational summary of it.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.11.0
+- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.14.0
   on `PATH`.
 - **AC-2.** `scripts/spec-dag.sh` reports the corpus acyclic with every
   dependency lower-numbered.
@@ -140,6 +140,20 @@ consumes this repository as a registered target.
   (golden vectors, `ledger-guardian`, `trust-reviewer`, L0/L1, `web/`)
   with this product's memory invariants and crates. Learned from rahi's
   001 D-4 and hqgit's 001 D-3, where the identical workflow first failed.
+
+- **D-4 (2026-09-06, pin bump).** The `spec-spine` pin moves from 0.11.0
+  to 0.14.0 in every site that states it (`govern.yml`, `AGENTS.md`,
+  `README.md`, `/setup`, the architect agent, AC-1). The corpus was
+  verified byte-compatible first: 0.14.0's `compile --check` and `index
+  check` both report fresh against shards written by 0.11.0. What the bump
+  buys: `registry plan` (spec-spine 038, which `/next` reimplemented in
+  Python), `--json` verdicts on the gate verbs (037), `layout.state_dir`
+  (039), the `depends_on` cycle refusal (033), and the lifecycle fixes
+  (041, 044, 045) this specify-first corpus lives inside. `spec-spine
+  index` now prints the `W-001` warnings it always recorded; with 26 specs
+  pending that is one line per not-yet-written unit (248 today) and is the
+  expected state, not a defect. Follow-ons (`registry plan` in the init
+  reads, `state_dir`, retiring the Python in `/next`) are their own change.
 
 ## Verification
 

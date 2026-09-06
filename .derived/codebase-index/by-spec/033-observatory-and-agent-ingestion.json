@@ -33,12 +33,7 @@
     "dependsOn": [
       "032-capture-sources-and-webhooks"
     ],
-    "implementingPaths": [
-      {
-        "path": "specs/019-untrusted-content-boundary/spec.md",
-        "source": "spec-edge"
-      }
-    ],
+    "implementingPaths": [],
     "resolvedUnits": [
       {
         "locations": [],
@@ -103,5 +98,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "798aaca89f89761ff34df61a4709685ded0190e60514d40ac289b95436d9a44a"
+  "shardHash": "23bfb903b9fb0592f8cc4dc9dac64b3540681d5d2bbd34915c429f5469ca6b87"
 }

@@ -48,12 +48,7 @@
     "dependsOn": [
       "022-client-adapters"
     ],
-    "implementingPaths": [
-      {
-        "path": "specs/019-untrusted-content-boundary/spec.md",
-        "source": "spec-edge"
-      }
-    ],
+    "implementingPaths": [],
     "resolvedUnits": [
       {
         "locations": [],
@@ -145,5 +140,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9587a521187310eb3c6359da59fedd4aad9d3e679b0411e98e2218fba59a1588"
+  "shardHash": "668caad3fd280b3ef125567d3e9598e0c32ab8189cf9630ff5a62861194642bc"
 }

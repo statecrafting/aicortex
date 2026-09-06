@@ -45,10 +45,6 @@
         "source": "spec-edge"
       },
       {
-        "path": "docs/design/00-lineage.md",
-        "source": "spec-edge"
-      },
-      {
         "path": "scripts/spec-dag.sh",
         "source": "spec-edge"
       },
@@ -283,5 +279,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "29d36b18df2817f88cfca423dc850d3fd97fc213f4f11dad38c652a147d70dcc"
+  "shardHash": "358a76b314c46ab78dc4bc5cc8fdbe967bcc7c380e3897d92b1227a5de93bc8c"
 }
