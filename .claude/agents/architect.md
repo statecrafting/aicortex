@@ -21,7 +21,7 @@ memory: project
 
 - Before implementing a spec whose territory touches more than one crate, or that extends another spec's files
 - When asked to "plan", "design", "decompose", or "think through" an approach
-- To validate a proposed change against the thesis (spec 002), the constitution, and the frozen invariants
+- To validate a proposed change against the thesis (spec 002), the constitution, and the memory invariants
 - When a build session finds the spec imprecise and must decide before coding (the decision becomes a D-n entry)
 
 ## aicortex Context
@@ -56,7 +56,7 @@ Read the spec (or request). Identify the layer, the crate, every file in `establ
 ### 3. Validate Against the Corpus
 
 - Does the approach stay inside the spec's Territory? A file outside it needs an `extends` edge or belongs to another spec.
-- Does it hold the frozen invariants? Anything that changes a golden vector, adds a clock or map-order dependency to a hashed path, or writes authoritatively from L5 up is a stop, not a plan step.
+- Does it hold the memory invariants? Anything that splits a capture from its outbox work, stores a memory without provenance or a trust class, compares vectors across models, returns recalled content as instruction, loads a SQLite extension, or reimplements a chassis responsibility is a stop, not a plan step.
 - Does it keep dependencies pointing downward, and does it consume rahi rather than reimplement it?
 - Does it need a new third-party crate? Then the plan includes the `[workspace.dependencies]` entry and the `extends` edge on spec 010.
 - Will the derived artifacts need regenerating (`spec-spine compile && spec-spine index`)? Almost always yes.
@@ -67,7 +67,7 @@ Ordered, atomic steps. For each: **What** (files), **Why** (the B-n, FR, or prin
 
 ### 5. Identify Risks
 
-- **Invariant risk**: any step near hashed bytes, signatures, or cache trust
+- **Invariant risk**: any step near the capture transaction, the write gate, embedding storage, the recall path, or the MCP surface
 - **Coupling drift**: a file the plan touches that no edge covers
 - **Ownership debt**: a new file not yet in `establishes` (`C-002`)
 - **Spec silence**: a decision the spec does not make; name it so the session records a D-n
@@ -110,15 +110,15 @@ Ordered, atomic steps. For each: **What** (files), **Why** (the B-n, FR, or prin
 - **DO:** Keep each step verifiable by one command
 - **DO NOT:** Modify files; this agent is read-only
 - **DO NOT:** Plan around the gate or the ownership ratchet
-- **DO NOT:** Propose regenerating a golden vector
+- **DO NOT:** Propose relaxing a memory invariant; that is a human decision
 
 ## What to remember (project memory)
 
 This agent writes to `.claude/agent-memory/architect/MEMORY.md`. Record patterns that recur across decompositions, not plans for specific specs:
 
-- **Spec-shape patterns**: edge combinations that keep the gate clean for a class of change (a crate extension, a new predicate, a new CLI verb)
+- **Spec-shape patterns**: edge combinations that keep the gate clean for a class of change (a crate extension, a new source adapter, a new MCP tool)
 - **Decomposition pitfalls**: wrong cuts seen proposed (splitting a spec's code and its `establishes` growth across PRs; putting a dependency in a crate manifest without the workspace table)
 - **Latent constraints**: invariants that emerge from how the crates compose rather than from one spec
-- **Reusable plan skeletons**: the standard shape for "found a crate", "add a module", "add a fact kind", "add a predicate"
+- **Reusable plan skeletons**: the standard shape for "found a crate", "add a module", "add a source adapter", "add a curator"
 
 Do not record plans for specific specs, reactions to one conversation, or generic engineering advice.

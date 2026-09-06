@@ -124,6 +124,22 @@ consumes this repository as a registered target.
   generation rather than written fresh, so that a contributor moving
   between the repositories in this family finds the same protocol, the same
   skill names, and the same failure messages.
+- **D-3 (2026-09-05, first CI runs).** The CI mirror of B-2 in
+  `govern.yml` guards its cargo jobs with an output of the `spine` job, not
+  `hashFiles` in a job-level `if`. GitHub allows `hashFiles` only inside a
+  step (a job-level `if` is evaluated before any checkout), and the
+  workflow fails at startup with `calling function "hashFiles" is not
+  allowed here`, which reports as a run with no checks rather than as a
+  failed gate; every govern run on this repository failed that way until
+  this fix. The `spine` job probes for `Cargo.toml` and `deny.toml` after
+  its checkout and publishes `has_cargo` and `has_deny`; the `cargo` and
+  `deny` jobs gate on those. The guard's meaning is unchanged. The same
+  review dropped the dependabot `npm` entry for `/web`, which D-1 already
+  rules out and which failed on every scheduled run, and replaced the
+  hqgit vocabulary the D-2 copy carried into the skills and agents
+  (golden vectors, `ledger-guardian`, `trust-reviewer`, L0/L1, `web/`)
+  with this product's memory invariants and crates. Learned from rahi's
+  001 D-4 and hqgit's 001 D-3, where the identical workflow first failed.
 
 ## Verification
 

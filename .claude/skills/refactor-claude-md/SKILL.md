@@ -39,7 +39,7 @@ index: every change here couples to `specs/001-agentic-harness/spec.md`
    ```markdown
    ---
    paths:
-     - "crates/aicortex-eval/**"
+     - "crates/aicortex-recall/**"
    ---
 
    Two or three key points, and the doc to read: `docs/<name>.md`.
@@ -53,7 +53,7 @@ index: every change here couples to `specs/001-agentic-harness/spec.md`
 
 - Extract only context-specific guidance; keep universal rules in
   `CLAUDE.md`.
-- Preserve critical information in `CLAUDE.md`: the frozen invariants,
+- Preserve critical information in `CLAUDE.md`: the memory invariants,
   the commands, the architecture table, the governance mechanics, house
   style.
 - Meaningful globs: a rule that loads everywhere is a `CLAUDE.md` section
@@ -63,13 +63,13 @@ index: every change here couples to `specs/001-agentic-harness/spec.md`
 ## Good extraction candidates in this repository
 
 - Per-crate implementation notes once a crate has shipped (for example
-  the REAPI digest mapping for `crates/aicortex-eval/**`).
-- Testing patterns (fixture ledgers, the `testing` feature builders).
-- The web client's conventions (`web/**`).
+  the fusion and trace format for `crates/aicortex-recall/**`).
+- Testing patterns (fixture memories, the evaluation corpus under `eval/`).
+- Deployment notes for `docker/**` and `deploy/**`.
 
 ## Keep in CLAUDE.md
 
-- The frozen invariants and the hash-stability rule.
+- The memory invariants and the chassis-consumed-never-forked rule.
 - Commands and exit codes.
 - The layer-to-crate table.
 - Governance mechanics (ownership ratchet, committed `.derived/`, hooks).
