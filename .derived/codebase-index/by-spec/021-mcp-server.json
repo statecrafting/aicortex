@@ -73,12 +73,7 @@
     "dependsOn": [
       "020-http-api-and-scopes"
     ],
-    "implementingPaths": [
-      {
-        "path": "specs/019-untrusted-content-boundary/spec.md",
-        "source": "spec-edge"
-      }
-    ],
+    "implementingPaths": [],
     "resolvedUnits": [
       {
         "locations": [],
@@ -215,5 +210,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "2a9c6cfcb32833c764f45beef5ccee1e419731f6c3649fca552bab140bce1b35"
+  "shardHash": "426834c5b62496d29763d8316ece5e36613df4497b1bb61505568009ed4a254e"
 }

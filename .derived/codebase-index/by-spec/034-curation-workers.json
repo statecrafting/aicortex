@@ -58,12 +58,7 @@
     "dependsOn": [
       "033-observatory-and-agent-ingestion"
     ],
-    "implementingPaths": [
-      {
-        "path": "specs/019-untrusted-content-boundary/spec.md",
-        "source": "spec-edge"
-      }
-    ],
+    "implementingPaths": [],
     "resolvedUnits": [
       {
         "locations": [],
@@ -173,5 +168,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "8b43d0fd2a75c6e7f5cc6b4107a331acca79be59bb7641708e5dae61c74c94b1"
+  "shardHash": "e1dfaf57a849b7a619205b6b8b0f3805022f9ac9a9fc741c9538c9cd491d65c0"
 }

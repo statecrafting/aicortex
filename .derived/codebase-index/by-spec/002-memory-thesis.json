@@ -3,12 +3,7 @@
     "dependsOn": [
       "000-aicortex-bootstrap"
     ],
-    "implementingPaths": [
-      {
-        "path": "docs/design/00-lineage.md",
-        "source": "spec-edge"
-      }
-    ],
+    "implementingPaths": [],
     "resolvedUnits": [
       {
         "locations": [
@@ -28,5 +23,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "92e4f7446e0a98b567aa35cda7b84fbf2370575535c43749379af0db4ddd43a5"
+  "shardHash": "4b481288c46d3ab3871a48300013173034f4b222b36f17edf117df579c5afaf7"
 }

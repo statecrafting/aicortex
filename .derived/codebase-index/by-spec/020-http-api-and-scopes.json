@@ -78,12 +78,7 @@
     "dependsOn": [
       "019-untrusted-content-boundary"
     ],
-    "implementingPaths": [
-      {
-        "path": "specs/019-untrusted-content-boundary/spec.md",
-        "source": "spec-edge"
-      }
-    ],
+    "implementingPaths": [],
     "resolvedUnits": [
       {
         "locations": [],
@@ -229,5 +224,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "cf87a081db8f161bfc6450a9410fbb35287aef74d841a5b162fdb468eba4dfa1"
+  "shardHash": "7c7d48eb3a95855291c0267b70d9f4324ba3f5b01cb684defbd6551b981ea847"
 }
