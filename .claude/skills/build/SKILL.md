@@ -72,7 +72,7 @@ code.
   {
     "id": "<spec-id>/D-n",
     "specId": "<spec-id>",
-    "scope": ["<spec-id>", "crates/aicortex-ledger/src/entry.rs"],
+    "scope": ["<spec-id>", "crates/aicortex-recall/src/fusion.rs"],
     "title": "one line",
     "decision": "what was chosen",
     "rationale": "why",
@@ -89,7 +89,7 @@ code.
 
 ## Step 3: implement inside the territory (steps 4 and 5)
 
-- Every new file under `crates/`, `fuzz/`, `executor/`, or `web/` is
+- Every new file under `crates/`, `apps/`, `eval/`, `docker/`, or `deploy/` is
   claimed in this spec's `establishes` in the same change (the ownership
   ratchet: `spec-spine index coverage --fail-on-untraced` refuses an
   unclaimed file and `couple` refuses a changed one).
@@ -99,11 +99,11 @@ code.
   with `workspace = true`. Always `--locked`.
 - Touching a file another spec owns needs an `extends` edge on that
   spec's unit, declared in this spec's frontmatter.
-- The frozen invariants (step 5): nothing that reaches a hashed byte may
-  depend on a clock, an environment read, a float, or `HashMap`
-  iteration. A change to any golden vector under
-  `crates/aicortex-types/testdata/vectors/` is a schema MAJOR and a human
-  decision: stop and report, never regenerate.
+- The memory invariants (step 5): `.claude/rules/memory-invariants.md`
+  is the checklist. A change to chunking, embedding, ranking, or fusion
+  runs the evaluation corpus and reports the delta; the corpus and its
+  baseline are never edited to make the delta pass. A change that needs
+  an invariant relaxed is a human decision: stop and report.
 - Do not edit `.derived/` by hand.
 
 Use the `implementer` agent for focused sub-tasks and `explorer` for
@@ -118,7 +118,7 @@ make ci      # spine + index coverage --fail-on-untraced + build, test, clippy -
 ```
 
 Both exit 0, or the commit waits. Then `/commit` with the spec ordinal as
-scope (`feat(017): ...`), staging the regenerated `.derived/` shards with
+scope (`feat(012): ...`), staging the regenerated `.derived/` shards with
 the code they describe. Commit in coherent slices; a red gate is fixed,
 not committed around.
 
@@ -148,7 +148,7 @@ next spec.
 - A dirty tree, the wrong branch, or a red `make spine` in preflight.
 - A `draft` spec, an unmet dependency, or a missing operator prerequisite.
 - A contradiction between the spec and what the code must do.
-- A golden vector that would change.
+- A memory invariant that would have to be relaxed.
 - A coupling failure that only a spec rewrite or a `Spec-Drift-Waiver:`
   could clear: a driven session never self-approves a waiver.
 - A `PreToolUse` hook refusal (exit 2): it is a stop, not an obstacle.

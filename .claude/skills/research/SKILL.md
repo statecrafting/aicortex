@@ -27,13 +27,13 @@ Decide: query type, agent count, domains (corpus, codebase, external
 docs, papers, general web), and scope (corpus-only, web-only, hybrid).
 
 - **Corpus questions** ("what does spec 020 say about erasure", "who owns
-  `crates/aicortex-ledger/src/order.rs`", "what depends on 064"): use the
+  `crates/aicortex-recall/src/fusion.rs`", "what depends on 018"): use the
   `explorer` agent with `spec-spine registry show|relationships <id>`,
   `spec-spine index render`, `Grep` over `specs/`, and `git log`. Never
   parse `.derived/` directly.
-- **External questions** (REAPI digest functions, BAO range proofs,
-  Biscuit datalog, Willow reconciliation, Sigstore bundle format, hiqlite
-  Raft semantics): `WebSearch` and `WebFetch`, preferring primary sources
+- **External questions** (the MCP streamable HTTP transport, OAuth
+  protected resource metadata, embedding model normalization, hybrid
+  ranking fusion, hiqlite Raft semantics): `WebSearch` and `WebFetch`, preferring primary sources
   (specifications, RFCs, the library's own docs).
 - Many questions are hybrid; split them across agents by domain.
 

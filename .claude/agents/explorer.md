@@ -20,7 +20,7 @@ mutation: read-only
 
 - To understand how a layer, crate, or module works, or is specified to work
 - To trace a `depends_on` chain, an `extends` chain, or a crate dependency chain
-- To find every spec that claims a path, every fact kind, every predicate, every seam
+- To find every spec that claims a path, every source adapter, every MCP tool, every seam
 - To answer "where is X specified?", "what depends on Y?", "which spec owns Z?"
 - Before planning a change, to gather the current state of affected specs and code
 

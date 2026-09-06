@@ -56,20 +56,21 @@ silently). Outcomes:
 - `index coverage --fail-on-untraced` lists a file: same remedy as
   `C-002`.
 - A cargo gate fails: fix it. Never disable a test, never loosen a lint,
-  never regenerate a golden vector (a vector change is a schema MAJOR and a
-  human decision; stop and report).
+  never edit the evaluation corpus or its baseline under `eval/` to make
+  a retrieval delta pass (the corpus is evidence; stop and report).
 
 ## Step 2: review the diff
 
-Invoke the `code-review` skill on the working diff. It delegates L0/L1
-paths to `ledger-guardian` and trust-plane paths to `trust-reviewer`.
+Invoke the `code-review` skill on the working diff. It checks any path
+under the store, gate, embed, index, recall, or mcp crates against
+`.claude/rules/memory-invariants.md`.
 Apply confirmed, actionable fixes. If a fix touches any gate input (a
 `spec.md`, a manifest, a workflow, `Makefile`), re-run Step 1.
 
 ## Step 3: commit
 
 Invoke the `commit` skill: conventional, impact-focused, the spec ordinal
-as scope (`feat(017): ...`), the regenerated `.derived/` staged alongside
+as scope (`feat(012): ...`), the regenerated `.derived/` staged alongside
 the change. Banned in commits and PR bodies: AI attribution of any kind,
 session links, em dashes, emojis. If a waiver was chosen in Step 1, keep
 the `Spec-Drift-Waiver:` line with the change so the PR carries it.
