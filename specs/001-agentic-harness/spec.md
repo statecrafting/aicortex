@@ -155,6 +155,26 @@ consumes this repository as a registered target.
   expected state, not a defect. Follow-ons (`registry plan` in the init
   reads, `state_dir`, retiring the Python in `/next`) are their own change.
 
+- **D-5 (2026-09-06, kit adoption).** The fifteen skills under
+  `.claude/skills/` are the spec-spine kit's own (spec-spine spec 048),
+  taken byte for byte, and the three standing rules are the kit's spec 047
+  text. The kit moved every project fact out of the skills into
+  `AGENTS.md` and the path-scoped rules, which this repository already
+  held (`make spine`, `make ci`, the 0.14.0 pin, `memory-invariants`), so
+  nothing was lost in the swap and a future kit update is a copy. This
+  also retires the copy residue the audit found: the `build` skill's
+  dangling `ledger-invariants` and `trust-invariants` references, the
+  `spec` skill's domain enum copied from another corpus (the skill now
+  reads `[domains] allowed` from `spec-spine.toml`), and the
+  `code-review` heading mismatch. In substance: `/next` wraps
+  `spec-spine registry plan` and drops the Python readiness script (the
+  D-4 follow-on), `/code-review` uses `compile --check` so a review never
+  writes, `/commit` carries the session-link and em-dash bans, and
+  `scripts/verify-spec.sh` is the kit's copy. B-5's hooks are unchanged:
+  the kit's hooks now read and never write (spec-spine spec 046), and
+  porting them changes what B-5 requires of the `PreToolUse` and `Stop`
+  hooks, which is an amendment for a human to file, not a mid-build edit.
+
 ## Verification
 
 ```verify:cli

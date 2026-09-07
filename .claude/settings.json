@@ -42,7 +42,13 @@
       "Bash(gh repo delete *)",
       "Bash(gh repo archive *)",
       "Bash(git push --force*)",
-      "Bash(git push -f *)"
+      "Bash(git push -f *)",
+      "Bash(git push -f*)",
+      "Bash(rm -rf /*)",
+      "Bash(rm -rf ~*)",
+      "Bash(rm -rf .git*)",
+      "Bash(rm -rf specs*)",
+      "Bash(rm -rf .derived*)"
     ]
   },
   "hooks": {
