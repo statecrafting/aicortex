@@ -51,34 +51,37 @@ standalone_npm_packages = []
 
 [index]
 extra_hashed_inputs = [
-  "standards/**",
-  ".github/workflows/**",
-  ".claude/agents/**",
-  ".claude/rules/**",
-  ".claude/skills/**",
+  "standards/**/*",
+  ".github/workflows/**/*",
+  ".claude/agents/**/*",
+  ".claude/rules/**/*",
+  ".claude/skills/**/*",
   ".claude/settings.json",
   "AGENTS.md",
   "CLAUDE.md",
   "Makefile",
-  "docs/design/**",
-  "docker/**",
-  "deploy/**",
-  "eval/**",
+  "scripts/**/*",
+  ".mcp.json",
+  ".github/dependabot.yml",
+  "docs/design/**/*",
+  "docker/**/*",
+  "deploy/**/*",
+  "eval/**/*",
 ]
 resolver_exclusions = ["target", "node_modules", ".derived", "dist", "build", "data"]
 
 [index.slices]
 governance = [
-  "standards/**",
+  "standards/**/*",
   ".claude/settings.json",
-  ".claude/agents/**",
-  ".claude/rules/**",
-  ".claude/skills/**",
+  ".claude/agents/**/*",
+  ".claude/rules/**/*",
+  ".claude/skills/**/*",
   "AGENTS.md",
   "CLAUDE.md",
-  ".github/workflows/**",
+  ".github/workflows/**/*",
 ]
-deployment = ["docker/**", "deploy/**"]
+deployment = ["docker/**/*", "deploy/**"]
 evaluation = ["eval/**"]
 
 [branding]
