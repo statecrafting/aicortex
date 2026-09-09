@@ -99,7 +99,7 @@ constitution is 000's; this spec owns the operational summary of it.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.17.0
+- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.14.0
   on `PATH`.
 - **AC-2.** `scripts/spec-dag.sh` reports the corpus acyclic with every
   dependency lower-numbered.
@@ -177,11 +177,15 @@ consumes this repository as a registered target.
 
 - **D-6 (2026-09-09, pin bump).** The `spec-spine` pin moves from 0.14.0 to
   0.17.0 in every site that states it (`govern.yml`, `AGENTS.md`,
-  `README.md`, the architect agent, AC-1). As in D-4 the corpus was
+  `README.md`, the architect agent). AC-1 deliberately still reads 0.14.0:
+  under 0.17.0 `make ci` exits 1 on the coverage step below, so restamping
+  AC-1 now would make the spec assert something false. It moves with the
+  amendment that unblocks that step. As in D-4 the corpus was
   verified byte-compatible first: 0.17.0's `compile --check` and `index
   check` both report fresh against shards written by 0.14.0, and no
   registry shard changes in this commit. Unlike D-4, two gate steps refuse
-  under the new pin, and both refusals are correct. `lint --fail-on-warn`
+  under the new pin. Both refusals are correct; one is fixed here and one
+  is not this session's to fix. `lint --fail-on-warn`
   reported six `L-008` warnings (spec-spine 057): claimed paths that no
   content hash covers, so their contents could change without staling any
   shard. The cause was this repository's own config. Eight of the thirteen
@@ -197,10 +201,18 @@ consumes this repository as a registered target.
   scalar restales all 30 index shards, regenerated here. `index coverage
   --fail-on-untraced` refuses an empty coverage universe (spec-spine 059)
   rather than passing it vacuously, on the reasoning that a CI step which
-  did not run its check should not be green; this corpus has no packages
-  yet, so the flag can only refuse. `govern.yml` runs bare `index
-  coverage`, and the flag returns with the first package that carries
-  source files. What the bump buys: `verify` running a spec's declared
+  did not run its check should not be green; this corpus has no packages,
+  so under 0.17.0 that step can only refuse and the gate is red on it.
+  **This entry does not resolve that, because it may not.** Spec 000 §9
+  names the flag as part of `make ci`, and `standards/spec/contract.md`
+  restates it; B-7 admits a decision entry for a choice the spec is silent
+  on, and 000 §9 is not silent. Removing the flag to make the pin green
+  would be a decision entry doing an amendment's work, against the
+  bootstrap spec at that. The bump is blocked on one of two human
+  instruments: an amendment carrying 000 §9 and the contract to say
+  coverage runs as a report until the first package carries source files,
+  or an approved `Spec-Drift-Waiver:` for this change. The red step is
+  left visible rather than routed around. What the bump buys: `verify` running a spec's declared
   acceptance (049), `index diagnostics` for unresolved units (050),
   `couple` naming the `extends` crossing that cleared a change (052), the
   `L-008` lint that found the dead globs above (057), `registry plan`

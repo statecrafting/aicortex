@@ -68,11 +68,9 @@ jobs:
             --base "${{ github.event.pull_request.base.sha }}" \
             --head HEAD \
             --pr-body "$RUNNER_TEMP/pr-body.txt"
-      # Coverage runs as a report, not an assertion: this corpus has no
-      # packages yet, and spec-spine 059 makes `--fail-on-untraced` refuse an
-      # empty coverage universe rather than pass it vacuously. Restore the
-      # flag with the first package that carries source files.
-      - run: spec-spine index coverage
+      # The whole-tree ownership assertion: every source file inside a crate
+      # is specifically claimed by a spec (spec 032 of spec-spine).
+      - run: spec-spine index coverage --fail-on-untraced
       - run: scripts/spec-dag.sh
 
   cargo:

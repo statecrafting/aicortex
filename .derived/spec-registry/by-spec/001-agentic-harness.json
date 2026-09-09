@@ -102,6 +102,6 @@
     "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, five behavioral rules of which two are path-scoped, four subagents, fifteen skills, settings hooks that recompile and refuse, one Makefile that is the single definition of the gate, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
     "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
   },
-  "shardHash": "06d7c3bf5796767488c7668da104bc6f14ef31465143ac3565383e215fbc0ddd",
+  "shardHash": "dda847cd45a27d3814927adefa4db1931529a99c7ea1447d92197c8c634290ca",
   "specVersion": "1.1.0"
 }
