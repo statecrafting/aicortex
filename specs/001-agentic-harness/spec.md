@@ -175,6 +175,44 @@ consumes this repository as a registered target.
   porting them changes what B-5 requires of the `PreToolUse` and `Stop`
   hooks, which is an amendment for a human to file, not a mid-build edit.
 
+- **D-6 (2026-09-09, hashed inputs).** Nine of the thirteen `[index]
+  extra_hashed_inputs` patterns ended in `**`, which enumerates
+  directories and contributes no bytes to any content hash. Six of the
+  nine cover directories that exist and hold thirty files between them
+  (`standards/`, `.github/workflows/`, `.claude/agents/`,
+  `.claude/rules/`, `.claude/skills/`, `docs/design/`), so those files
+  were folded into the global scalar by nothing at all: an edit to
+  `standards/spec/contract.md`, or to a standing rule, staled no shard
+  and passed `index check` clean. The other three (`docker/`, `deploy/`,
+  `eval/`) name directories this repository has not created yet, so they
+  cost nothing today and would have stayed silently dead on the day they
+  arrive, which is the worse failure of the two. The bare filenames in
+  the same list (`AGENTS.md`, `CLAUDE.md`, `Makefile`,
+  `.claude/settings.json`) were never affected and are unchanged. Every
+  glob is rewritten as `**/*`, and `scripts/**/*`, `.mcp.json` and
+  `.github/dependabot.yml` are added for the claimed paths that no
+  pattern covered at all. `[index.slices]` carried the same defect and is
+  fixed with it: `governance` held five dead globs, and `deployment` and
+  `evaluation` held `deploy/**` and `eval/**`. Correcting them moves every
+  index shard hash even though `deploy/` and `eval/` do not exist and the
+  matched file set stays empty, but not because slice patterns are hashed:
+  they are not. `spec-spine.toml` is itself a hashed input, folded whole
+  into the global scalar every index shard carries, so any edit to that
+  file restales every shard, a comment or a whitespace change included.
+  Verified at 0.14.0 by appending only a comment, which exits `index
+  check` 2. Both tables were almost certainly copied from spec-spine's
+  own spec 012 example, which still teaches the dead form. Measured with
+  the pinned 0.14.0 binary, which is
+  what CI recomputes against: before the change, appending a line to
+  `standards/spec/contract.md` left `index check` at exit 0; after it, the
+  same edit exits 2. Regenerating rewrites all 30 index shards, which is
+  the one-time cost of the patterns finally covering bytes and the
+  evidence the hole was real rather than cosmetic. The `spec-spine` pin is
+  untouched here, and B-2 is unaffected: `make ci` and CI still run the
+  same targets. No spec text names the hashed-input patterns, so this is a
+  choice the corpus was silent on and B-7's dated decision entry is the
+  right instrument.
+
 ## Verification
 
 ```verify:cli
