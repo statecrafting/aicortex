@@ -81,8 +81,8 @@ governance = [
   "CLAUDE.md",
   ".github/workflows/**/*",
 ]
-deployment = ["docker/**/*", "deploy/**"]
-evaluation = ["eval/**"]
+deployment = ["docker/**/*", "deploy/**/*"]
+evaluation = ["eval/**/*"]
 
 [branding]
 compiler_id = "spec-spine"
