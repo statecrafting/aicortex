@@ -26,7 +26,7 @@ memory: project
 
 ## aicortex Context
 
-aicortex is specified before it is built: the corpus under `specs/` is the whole design, spec ordinals are the build order, and code lands one spec per session (`AGENTS.md`, "Working the backlog"). `spec-spine` 0.14.0 governs the corpus; it is a dependency, not source you edit.
+aicortex is specified before it is built: the corpus under `specs/` is the whole design, spec ordinals are the build order, and code lands one spec per session (`AGENTS.md`, "Working the backlog"). `spec-spine` 0.17.0 governs the corpus; it is a dependency, not source you edit.
 
 | Surface | Path | Notes |
 |---------|------|-------|

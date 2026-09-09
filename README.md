@@ -35,11 +35,11 @@ responsibilities, the crate topology, and the four waves.
 
 ```sh
 make spine      # compile, index, lint --fail-on-warn, index check, couple, spec-dag
-make ci         # spine + coverage --fail-on-untraced + the cargo gates
+make ci         # spine + coverage (--fail-on-untraced once Cargo.toml exists) + the cargo gates
 make verify SPEC=018-retrieval-and-recall-trace
 ```
 
-Governance is `spec-spine` 0.14.0 on `PATH`; CI pins the same version.
+Governance is `spec-spine` 0.17.0 on `PATH`; CI pins the same version.
 Derived shards are committed and read only through the `spec-spine` CLI.
 
 ## Working the backlog

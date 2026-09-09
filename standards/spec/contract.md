@@ -71,8 +71,9 @@ is a `C-002` refusal.
 
 `make spine`: `compile` → `index` → `lint --fail-on-warn` → `index check` →
 `couple --base origin/main --head HEAD` → `scripts/spec-dag.sh`.
-`make ci`: `make spine` → `index coverage --fail-on-untraced` → the cargo
-gates when `Cargo.toml` exists. CI (`govern.yml`) runs the same set with
+`make ci`: `make spine` → `index coverage` (a report) → and, when
+`Cargo.toml` exists, `index coverage --fail-on-untraced` → the cargo
+gates. CI (`govern.yml`) runs the same set with
 `compile --check` in place of `compile`. The escape valve is a scoped
 `Spec-Drift-Waiver:` line in the PR body, approved by a human.
 
