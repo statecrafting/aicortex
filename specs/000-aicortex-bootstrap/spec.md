@@ -131,17 +131,30 @@ orchestrator reports as a blocker rather than scheduling around.
 
 ## 9. The gate chain
 
-`make spine` runs `compile`, `index`, `lint --fail-on-warn`, `index check`,
-`couple --base origin/main`, and `scripts/spec-dag.sh`. `make ci` adds
-`index coverage` as a report and, once `Cargo.toml` exists, `index
-coverage --fail-on-untraced`, `cargo build`, `test`, `clippy -D
-warnings`, `fmt --check`, and `deny`. Coverage is a report until the first
-package carries source files and a refusal from then on, because
-spec-spine 059 refuses an empty coverage universe rather than passing it
-vacuously (amended 2026-09-09, 001 D-7). CI runs the same set with
-`compile --check` in place of `compile`. Every ordinary
-spec ends with a `## Verification` section whose `verify:cli` blocks are
-commands with exit codes, run after merge.
+The chain is split into a reading half and a writing half, so that a gate
+never repairs the tree it is judging (amended 2026-09-09, 001 D-8).
+
+`make gate` runs `check --fail-on-warn`, `lint --fail-on-warn`, `couple
+--base $BASE --head HEAD`, and `scripts/spec-dag.sh`, and writes nothing.
+`make refresh` runs `compile` and `index`, which write. `make spine` is
+`refresh` then `gate`, for a session that can commit the regenerated shards.
+`make ci` adds `index coverage` as a report and, once `Cargo.toml` exists,
+`index coverage --fail-on-untraced`, `cargo build`, `test`, `clippy -D
+warnings`, `fmt --check`, and `deny`. CI runs the same set through the
+read-only half.
+
+Coverage is a report until the first package carries source files and a
+refusal from then on, because spec-spine 059 refuses an empty coverage
+universe rather than passing it vacuously (amended 2026-09-09, 001 D-7).
+`check` is called without `--fail-on-unresolved` for the same class of
+reason: a corpus specified before it is built legitimately carries an
+unresolved unit for every pending spec, and the flag returns the day that
+stops being true. `$BASE` is resolved from the repository rather than
+assumed to be `origin/main`.
+
+Every ordinary spec ends with a `## Verification` section whose `verify:cli`
+blocks are commands with exit codes, run after merge by the verify stage and
+locally by `spec-spine verify <id>`.
 
 ## 10. Bootstrap order
 

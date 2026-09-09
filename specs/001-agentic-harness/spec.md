@@ -338,13 +338,14 @@ consumes this repository as a registered target.
 
   `standards/spec/contract.md` is this spec's, and its "Determinism" and
   "The gate chain" sections both described the old chain, so both are updated
-  with it. The bootstrap spec's section 9 describes the same chain and is
-  **not** this spec's to edit: it still reads `index check` and `compile
-  --check`, which the coupling gate cannot catch because it checks path
-  ownership and not prose. That contradiction is surfaced rather than
-  resolved here, exactly as D-7 surfaced the coverage flag the bootstrap spec
-  named, and it waits on the same instrument: a maintainer amendment to spec
-  000.
+  with it. The bootstrap spec's section 9 describes the same chain and is not
+  this spec's to edit: it read `index check`, `compile --check`, and a `make
+  spine` that wrote before it judged. The coupling gate cannot catch that,
+  because it checks path ownership and not prose, so it was surfaced rather
+  than resolved in passing. The maintainer amended section 9 on 2026-09-09,
+  the same instrument and the same day as D-7's coverage amendment, and it is
+  marked inline there as that one is. The gate chain is not among spec 000's
+  `unamendable` clauses; the five that are were untouched.
 
   The merge driver (`.githooks/`, and the stanza binding it to the shard
   globs in `.gitattributes`) is installed although the kit's own README says
