@@ -68,5 +68,5 @@
     "title": "Packaging: one image on the chassis, the operator surface, the runbook"
   },
   "shardHash": "af46b2815aba8188c67882cd638d9095257cffc0c81a94cc392d9b2b3f467156",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

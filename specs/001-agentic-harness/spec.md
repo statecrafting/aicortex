@@ -25,18 +25,20 @@ establishes:
   - ".claude/skills/"
   - ".github/workflows/govern.yml"
   - ".github/dependabot.yml"
-  - "scripts/verify-spec.sh"
+  - ".githooks/"
+  - ".gitattributes"
   - "scripts/spec-dag.sh"
 references:
   - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
 summary: >
   The machinery that turns the corpus into work: AGENTS.md as the
   cross-agent session protocol and backlog discipline, CLAUDE.md as the
-  Claude Code overlay, five behavioral rules of which two are path-scoped,
-  four subagents, fifteen skills, settings hooks that recompile and refuse,
-  one Makefile that is the single definition of the gate, and a CI workflow
-  that runs the same targets. This spec is complete on arrival: the harness
-  exists before the first line of product code.
+  Claude Code overlay, six behavioral rules of which three are path-scoped,
+  four subagents, ten skills, settings hooks that report and refuse, one
+  Makefile that is the single definition of the gate and splits its reading
+  half from its writing half, and a CI workflow that runs the same targets.
+  This spec is complete on arrival: the harness exists before the first line
+  of product code.
 ---
 
 # 001: Agentic engineering harness
@@ -60,23 +62,34 @@ constitution is 000's; this spec owns the operational summary of it.
 
 - **B-1 (protocol location).** `AGENTS.md` is the single source for the
   session-init protocol and the backlog discipline, read by every agent
-  runtime through the AGENTS.md standard. The `/init` skill dispatches to
+  runtime through the AGENTS.md standard. The `/prime` skill dispatches to
   it and never carries a second copy of the protocol.
 - **B-2 (the gate is the Makefile).** `make ci` is the definition of what
   CI validates. Every target is guarded so the composite is green on a
   specify-only tree, because before spec 010 lands there is no
-  `Cargo.toml`. CI runs the same targets with `compile --check`.
+  `Cargo.toml`. The chain is split: `make gate` reads and never writes,
+  `make refresh` is the writing half, and `make spine` is the two in order
+  for a session that can commit the regenerated shards. CI runs the same
+  chain through the read-only half. The coupling base is resolved from the
+  repository, never assumed to be `origin/main`.
 - **B-3 (rules).** Three standing rules load at init (orchestrator,
-  governed artifact reads, the coherence guard) and two path-scoped rules
+  governed artifact reads, the coherence guard) and three path-scoped rules
   load on touch (`memory-invariants` for the admission, understanding,
   recall, and MCP crates; `build-commands` for anything under `crates/`,
-  `apps/`, `eval/`, `docker/`, or `deploy/`).
+  `apps/`, `eval/`, `docker/`, or `deploy/`;
+  `derived-artifacts-are-compiler-output` for `.derived/**`). A scoped rule
+  reinforces a standing one where the work is; it never replaces it.
 - **B-4 (agents).** `architect`, `explorer`, `implementer`, and `reviewer`,
   all self-contained, with the read-only ones actually read-only.
-- **B-5 (hooks).** `.claude/settings.json` recompiles the registry after a
-  spec edit, checks index staleness after a hashed-input edit, blocks `gh
-  pr create` when the coupling gate is red, and blocks `git push` to
-  `main`.
+- **B-5 (hooks).** `.claude/settings.json` reads and never writes, with one
+  sanctioned exception: it recompiles the registry after a spec edit, when
+  the session is live and can commit the result. It reports freshness at
+  session start and at stop, checks staleness after a hashed-input edit,
+  blocks `gh pr create` on a stale tree, uncommitted shards, or a red
+  coupling gate without an inline waiver, and refuses a push that would
+  update the default branch. Every hook acts on the repository the command
+  targets, not on the session's project, and says so when it skips. The
+  default branch and the binary are resolved, not assumed.
 - **B-6 (one spec per session).** A session implements one spec start to
   finish and stops. Territory that cannot fit one session is a signal to
   split the spec, not to run longer.
@@ -93,16 +106,24 @@ constitution is 000's; this spec owns the operational summary of it.
   cargo target as skipped rather than failing.
 - **FR-003.** `scripts/spec-dag.sh` exits non-zero on a cycle and on a
   dependency that names a higher-numbered spec.
-- **FR-004.** `scripts/verify-spec.sh <id>` runs every `verify:cli` line of
-  that spec and propagates the first non-zero exit.
+- **FR-004.** `make verify SPEC=<id>` runs every `verify:cli` line of that
+  spec through `spec-spine verify` and reports the first failing command;
+  `--plan` prints the commands and runs none of them.
 - **FR-005.** The em-dash hook refuses a write that introduces U+2014.
+- **FR-006.** `make gate` writes nothing. Running it leaves
+  `git status --porcelain` unchanged, on a fresh tree and on a stale one.
+- **FR-007.** The CLI refuses to run below the pin: `spec-spine.toml [meta]
+  required_version` states the same floor `AGENTS.md`, `README.md`, and
+  `govern.yml` state.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.14.0
+- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.18.0
   on `PATH`.
 - **AC-2.** `scripts/spec-dag.sh` reports the corpus acyclic with every
   dependency lower-numbered.
+- **AC-3.** `make gate` exits 0 on a clean checkout and leaves the working
+  tree unchanged.
 
 ## 6. Out of scope
 
@@ -248,9 +269,98 @@ consumes this repository as a registered target.
   Setting `required_version` is the obvious follow-on and is its own
   change.
 
+- **D-8 (2026-09-09, kit v18 and the amendment it forced).** The
+  `spec-spine` kit moves to v18 and the pin to 0.18.0 in every site that
+  states it (`govern.yml`, `AGENTS.md`, `README.md`, the architect agent,
+  AC-1), plus `spec-spine.toml [meta] required_version = ">=0.18.0"`, which
+  is D-7's named follow-on and is load-bearing now rather than cosmetic: the
+  kit's PR gate calls `spec-spine check`, and on a binary below 0.18.0 that
+  verb does not exist, so the gate refuses every `gh pr create` and names the
+  binary that could not answer. Stating the floor in the config makes the CLI
+  say so itself, before any verb runs.
+
+  As in D-4 and D-7 the corpus was verified byte-compatible first, and this
+  time the answer is more precise than "fresh". 0.18.0 moves the registry
+  shard envelope from `specVersion` 1.1.0 to 1.2.0, so all 29 registry shards
+  are rewritten; every `shardHash` in them is unchanged, and no codebase-index
+  shard moves from the compile at all. The corpus content the ledger commits
+  to is identical, and only the schema stamp on it moved. `lint
+  --fail-on-warn` and `compile --check --fail-on-warn` are both clean under
+  the new pin without further change.
+
+  What the bump buys, and what forced the amendment. The kit is no longer the
+  fifteen skills D-5 adopted: spec-spine's spec 081 cut it to ten, retiring
+  `cleanup`, `implement-plan`, `refactor-claude-md`, `research` and
+  `validate-and-fix`, none of which the loop ever called, and renaming
+  `/init` to `/prime` so the verb the loop starts with is not the verb every
+  other tool spells `init`. `scripts/verify-spec.sh` is deleted: spec-spine
+  0.15.0 absorbed it into `spec-spine verify`, and a harness carrying a second
+  implementation of one protocol is exactly the drift this repository refuses
+  elsewhere. `spec-spine check` (spec 075) replaces the `compile --check` plus
+  `index check` pair with one verb answering for both committed trees, and it
+  keeps the never-writes contract both primitives had. The hooks are rewritten
+  to act on the repository the command targets rather than the session's
+  project, to resolve the binary and the default branch instead of assuming
+  them (specs 051, 072), and to stop regenerating the index at session stop:
+  a session that has ended cannot commit what it wrote, so the write left
+  `.derived/` dirty and the next run refused to start on it. A fourth rule,
+  `derived-artifacts-are-compiler-output`, arrives scoped to `.derived/**` as
+  the worked example of the pattern; `governed-artifact-reads` stays
+  unconditional, because the mistake it prevents has the shape of *not*
+  touching that path.
+
+  This is an amendment, not a decision entry, and the distinction matters.
+  B-1, B-2, B-3, B-5, FR-004, AC-1, the `establishes` list and the summary all
+  stated things that v18 changes, so none of them was silent and B-7's
+  instrument could not reach them. D-5 anticipated exactly this and said so:
+  porting the hooks "changes what B-5 requires, which is an amendment for a
+  human to file, not a mid-build edit". The maintainer directed the v18
+  adoption and approved the amendment on 2026-09-09; the agent authored the
+  text and this entry records that authority rather than assuming it. Three
+  clauses are additions rather than rewrites and would have been legitimate
+  either way: FR-006 and AC-3 assert the read-only property `make gate` now
+  has, and FR-007 asserts the version floor.
+
+  Two pieces of the kit are deliberately not taken verbatim. The kit's own
+  `Makefile` and `govern.yml` run `check --fail-on-unresolved` and an
+  unguarded `index coverage --fail-on-untraced`; on this corpus both can only
+  refuse. The first because a repository specified before it is built carries
+  an unresolved unit for every pending spec, which is the state spec-spine 050
+  made opt-in for precisely this case, and the second because spec-spine 059
+  refuses an empty coverage universe, which is the refusal D-7 already
+  guarded on `Cargo.toml`. So the kit's gate semantics are folded into this
+  repository's targets rather than replacing them: `gate` and `refresh` are
+  the kit's names and the kit's split, `spine`, `ci`, `attest`, `deny` and
+  `spec-dag` stay, and `--fail-on-warn` is adopted on `check` because it is
+  clean here today. Both flags come back on their own terms: coverage the day
+  spec 010 lands a workspace, unresolved the day the corpus builds what it
+  claims.
+
+  `standards/spec/contract.md` is this spec's, and its "Determinism" and
+  "The gate chain" sections both described the old chain, so both are updated
+  with it. The bootstrap spec's section 9 describes the same chain and is not
+  this spec's to edit: it read `index check`, `compile --check`, and a `make
+  spine` that wrote before it judged. The coupling gate cannot catch that,
+  because it checks path ownership and not prose, so it was surfaced rather
+  than resolved in passing. The maintainer amended section 9 on 2026-09-09,
+  the same instrument and the same day as D-7's coverage amendment, and it is
+  marked inline there as that one is. The gate chain is not among spec 000's
+  `unamendable` clauses; the five that are were untouched.
+
+  The merge driver (`.githooks/`, and the stanza binding it to the shard
+  globs in `.gitattributes`) is installed although the kit's own README says
+  most adopters do not need it, this repository included: sharding already
+  makes two pull requests touching different specs write disjoint files, and
+  the loop is one spec per pull request. It is opt-in per clone and inert
+  until `./.githooks/enable-merge-driver.sh` runs, it never substitutes for
+  the staleness gate that proves a merge is what the corpus compiles to, and
+  it is claimed here so the ownership ratchet holds it. `.gitattributes` joins
+  `establishes` and the hashed inputs with it.
+
 ## Verification
 
 ```verify:cli
+make gate
 make spine
 scripts/spec-dag.sh
 ```

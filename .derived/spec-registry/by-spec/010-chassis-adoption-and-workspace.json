@@ -66,5 +66,5 @@
     "title": "The cell: a Cargo workspace, pinned rahi crates, a declared manifest, and one line of main"
   },
   "shardHash": "4ae9fa6dde2a9b8f6909642c49b64a61811dcaf1a294efe62dfa21bdcd300e00",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

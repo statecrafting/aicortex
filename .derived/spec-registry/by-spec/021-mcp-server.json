@@ -105,5 +105,5 @@
     "title": "The MCP server: streamable HTTP, a small tool surface, OAuth discovery that bootstraps itself"
   },
   "shardHash": "5fe662984f5b1aea16537d1232a2adfb369a71af1608fe41c93344478e0bd6e3",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

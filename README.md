@@ -34,13 +34,16 @@ responsibilities, the crate topology, and the four waves.
 ## The gate
 
 ```sh
-make spine      # compile, index, lint --fail-on-warn, index check, couple, spec-dag
+make gate       # read-only: check --fail-on-warn, lint --fail-on-warn, couple, spec-dag
+make refresh    # writing:   compile, index
+make spine      # refresh + gate
 make ci         # spine + coverage (--fail-on-untraced once Cargo.toml exists) + the cargo gates
 make verify SPEC=018-retrieval-and-recall-trace
 ```
 
-Governance is `spec-spine` 0.17.0 on `PATH`; CI pins the same version.
-Derived shards are committed and read only through the `spec-spine` CLI.
+Governance is `spec-spine` 0.18.0 on `PATH`; CI pins the same version, and
+`spec-spine.toml [meta] required_version` makes the CLI refuse to run below
+it. Derived shards are committed and read only through the `spec-spine` CLI.
 
 ## Working the backlog
 

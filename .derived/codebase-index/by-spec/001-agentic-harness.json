@@ -21,6 +21,14 @@
         "source": "spec-edge"
       },
       {
+        "path": ".gitattributes",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".githooks/",
+        "source": "spec-edge"
+      },
+      {
         "path": ".github/dependabot.yml",
         "source": "spec-edge"
       },
@@ -46,10 +54,6 @@
       },
       {
         "path": "scripts/spec-dag.sh",
-        "source": "spec-edge"
-      },
-      {
-        "path": "scripts/verify-spec.sh",
         "source": "spec-edge"
       },
       {
@@ -116,6 +120,32 @@
         "unit": {
           "kind": "file",
           "path": ".claude/skills/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".gitattributes"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".gitattributes"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".githooks/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".githooks/"
         }
       },
       {
@@ -212,19 +242,6 @@
       {
         "locations": [
           {
-            "file": "scripts/verify-spec.sh"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "scripts/verify-spec.sh"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "spec-spine.toml"
           }
         ],
@@ -279,5 +296,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "36e5265bcc00d80b796c2148ccd8c72315371b293ba209838066aa90ddc226af"
+  "shardHash": "39b363dd98fc2208a6dc138f1e6cfa9fb9f5b710284d7b7063b5124a23820c51"
 }

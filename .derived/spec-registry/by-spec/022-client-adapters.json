@@ -76,5 +76,5 @@
     "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
   },
   "shardHash": "c449d7a965408c8feeba051613fd2a61d28f568f3102f79e9e99057eb486704c",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

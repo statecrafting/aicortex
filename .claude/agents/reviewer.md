@@ -37,11 +37,11 @@ memory: project
 
 ### 1. Identify What Changed
 
-`git status --short`, `git diff origin/main...HEAD --stat`, `git log --oneline -10`. Classify files: spec, crate source, tests, manifests, workflows, harness.
+`git status --short`, `git diff "$BASE"...HEAD --stat`, `git log --oneline -10`, where `BASE` is the resolved default branch (`git symbolic-ref --short refs/remotes/origin/HEAD`, falling back to `origin/main`) rather than an assumed `origin/main` (spec-spine spec 072). Classify files: spec, crate source, tests, manifests, workflows, harness.
 
 ### 2. Gate Evidence
 
-Run `make spine` and capture the output; a red gate is the headline finding. Run `spec-spine index coverage` and confirm zero unclaimed and zero floor-only files.
+Run `make gate` and capture the output; a red gate is the headline finding. `gate` is the read-only half of the chain (`spec-spine check --fail-on-warn`, `lint --fail-on-warn`, `couple`, `spec-dag`), so the review never repairs the tree it is judging; a stale verdict is itself a finding, never something to fix here. Run `spec-spine index coverage` and confirm zero unclaimed and zero floor-only files.
 
 ### 3. Spec Compliance
 
@@ -74,7 +74,7 @@ Input validation at boundaries, no secrets or seeds logged, path handling, new d
 [approve / approve with notes / request changes, one sentence]
 
 ### Gate
-make spine: [ok/FAIL] | coverage: [n claimed, m unclaimed]
+make gate: [ok/FAIL] | check: registry [fresh/stale], index [fresh/stale] | couple: [clean/C-001/C-002] | coverage: [n claimed, m unclaimed]
 
 ### Critical Issues
 1. **[title]**

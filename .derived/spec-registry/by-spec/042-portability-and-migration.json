@@ -76,5 +76,5 @@
     "title": "Portability: a documented export anyone can read, and an import path off the system this replaces"
   },
   "shardHash": "3c74968e38d3b442bbd25d1ab35dcc580bffcac48cbd8f3caee6c337a682ed47",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

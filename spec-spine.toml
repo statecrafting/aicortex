@@ -4,6 +4,14 @@
 # whole design, and the code under crates/ and apps/ arrives one spec per
 # driven session (AGENTS.md, "Working the backlog"). Every knob is deliberate.
 
+[meta]
+# The binary floor this repository is governed by, checked by the CLI itself
+# before any verb runs (spec-spine spec 062). 0.18.0 is the floor the kit's
+# hooks and the `check` verb they call require (spec-spine spec 075); below it
+# the PR gate refuses every `gh pr create` and says which binary could not
+# answer. Bump this together with AGENTS.md, README.md and govern.yml.
+required_version = ">=0.18.0"
+
 [manifest]
 # Cargo `[package.metadata.spec-spine].spec` names each crate's founding spec.
 metadata_namespace = "spec-spine"
@@ -63,6 +71,8 @@ extra_hashed_inputs = [
   "scripts/**/*",
   ".mcp.json",
   ".github/dependabot.yml",
+  ".githooks/**/*",
+  ".gitattributes",
   "docs/design/**/*",
   "docker/**/*",
   "deploy/**/*",
@@ -80,6 +90,7 @@ governance = [
   "AGENTS.md",
   "CLAUDE.md",
   ".github/workflows/**/*",
+  ".githooks/**/*",
 ]
 deployment = ["docker/**/*", "deploy/**/*"]
 evaluation = ["eval/**/*"]
