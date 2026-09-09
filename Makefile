@@ -3,23 +3,41 @@
 # Every target is guarded so the composite is green on the specify-only tree:
 # before spec 010 lands there is no Cargo.toml.
 # `make ci` locally means a green CI run.
+#
+# The gate is split the way spec-spine's kit splits it (spec-spine spec 064):
+# `make gate` reads and never writes, `make refresh` is the writing half, and
+# `make spine` is the two in order for a live session that can commit the
+# regenerated shards. A gate that writes repairs what it exists to judge.
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := ci
 
 SPEC_SPINE ?= spec-spine
-BASE ?= origin/main
+# The coupling base follows the branch this repository actually has
+# (spec-spine spec 072): $SPEC_SPINE_DEFAULT_BRANCH (make imports the
+# environment, so `?=` leaves an exported value alone), then the remote's own
+# HEAD, then `main`. An explicit `BASE=` on the command line still wins.
+SPEC_SPINE_DEFAULT_BRANCH ?= $(shell git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
+BASE ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
 
-.PHONY: spine spec-dag ci build test lint fmt deny coverage attest verify help
+.PHONY: gate refresh spine spec-dag ci build test lint fmt deny coverage attest verify help
 
-## spine: the governed gate chain (compile, index, lint, index check, couple, spec-dag)
-spine:
-	$(SPEC_SPINE) compile
-	$(SPEC_SPINE) index
+## gate: the governed chain, read-only (check, lint, couple, spec-dag)
+gate:
+	$(SPEC_SPINE) check --fail-on-warn
 	$(SPEC_SPINE) lint --fail-on-warn
-	$(SPEC_SPINE) index check
 	$(SPEC_SPINE) couple --base $(BASE) --head HEAD
 	scripts/spec-dag.sh
+
+## refresh: recompute the committed shard trees (the writing half)
+refresh:
+	$(SPEC_SPINE) compile
+	$(SPEC_SPINE) index
+
+## spine: refresh then gate, for a session that can commit the regenerated shards
+spine:
+	$(MAKE) refresh
+	$(MAKE) gate
 
 ## spec-dag: depends_on is acyclic and only names lower-numbered specs
 spec-dag:
@@ -68,10 +86,10 @@ attest:
 	$(SPEC_SPINE) attest --with-coupling > .derived/attestation/corpus.json
 	@echo "attestation written to .derived/attestation/corpus.json"
 
-## verify: run one spec's verify:cli blocks, e.g. make verify SPEC=018-retrieval-and-recall-trace
+## verify: run one spec's declared acceptance, e.g. make verify SPEC=018-retrieval-and-recall-trace
 verify:
-	@test -n "$(SPEC)" || { echo "usage: make verify SPEC=<spec-id>"; exit 2; }
-	scripts/verify-spec.sh $(SPEC)
+	@test -n "$(SPEC)" || { echo "usage: make verify SPEC=<spec-id>"; exit 3; }
+	$(SPEC_SPINE) verify $(SPEC)
 
 ## help: list targets
 help:

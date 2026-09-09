@@ -82,5 +82,5 @@
     "title": "The reference deployment: three nodes on Kubernetes, object storage behind it, evaluation green"
   },
   "shardHash": "4b5904c1ba313e41dc4ff6400df06c733212150cb8952b8d00e87dbda0cf8cf3",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

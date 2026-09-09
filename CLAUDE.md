@@ -25,7 +25,9 @@ no `Cargo.toml`; every Makefile target and CI step is guarded for that.
 ## Commands
 
 ```sh
-make spine      # spec-spine compile, index, lint --fail-on-warn, index check, couple, spec-dag
+make gate       # read-only: spec-spine check --fail-on-warn, lint --fail-on-warn, couple, spec-dag
+make refresh    # writing:   spec-spine compile, index
+make spine      # make refresh + make gate
 make ci         # make spine + index coverage --fail-on-untraced + the cargo gates
 make build      # cargo build --workspace --locked
 make test       # cargo test  --workspace --locked
@@ -34,7 +36,8 @@ make fmt        # cargo fmt --all --check
 make deny       # cargo deny check (when deny.toml exists)
 make coverage   # spec-spine index coverage
 make attest     # spec-spine attest --with-coupling -> .derived/attestation/
-scripts/verify-spec.sh <id>   # run a spec's verify:cli blocks
+make verify SPEC=<id>         # spec-spine verify <id>: the spec's declared acceptance
+spec-spine verify <id> --plan # print those commands and run none of them
 scripts/spec-dag.sh           # depends_on is acyclic and only points to lower-numbered specs
 
 # One crate, one test:
@@ -42,8 +45,9 @@ cargo test -p aicortex-recall --locked --test fusion
 ```
 
 Exit codes of `spec-spine`: `0` ok, `1` validation failure or drift, `2`
-stale, `3` I/O, parse, schema, or config. The `aicortex` binary adopts
-rahi's four (`rahi://010`).
+stale, `3` I/O, parse, schema, or config. Since 0.18.0 a usage error is `3`,
+not `2`, so `2` means staleness and nothing else. The `aicortex` binary
+adopts rahi's four (`rahi://010`).
 
 ## Architecture in one screen
 
@@ -90,8 +94,10 @@ depends on the app.
 - Every source file inside a crate must be specifically claimed by a spec
   (`require_ownership` is on). Add new files to the implementing spec's
   `establishes` in the same change.
-- `.derived/` shards are committed; regenerate with `spec-spine compile &&
-  spec-spine index` and commit them with the change.
+- `.derived/` shards are committed; regenerate with `make refresh`
+  (`spec-spine compile && spec-spine index`) and commit them with the
+  change. `make gate` never writes: a gate that repairs the tree hides the
+  defect it exists to find.
 - Derived artifacts are read only through `spec-spine` subcommands.
 - Hooks in `.claude/settings.json` recompile after spec edits, check
   staleness after hashed-input edits, block `gh pr create` on a red

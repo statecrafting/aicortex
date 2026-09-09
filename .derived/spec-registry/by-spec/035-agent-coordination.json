@@ -68,5 +68,5 @@
     "title": "Agent coordination: per-agent identity, work claims, and a shared working memory"
   },
   "shardHash": "7ae669db00f9fee23680c351d8a2a3a1ffccdccdc72e4a425411ec8b4d3c3af9",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

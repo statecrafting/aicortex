@@ -81,8 +81,9 @@ gates. CI (`govern.yml`) runs the same set with
 
 Every ordinary spec ends with `## Verification` holding `verify:cli` fenced
 blocks: one shell command per line, run from the repo root after merge by
-the verify stage (`scripts/verify-spec.sh <id>` locally). A spec with no
-observable command says so in that section rather than omitting it.
+the verify stage. Locally the same verb runs them: `spec-spine verify <id>`,
+or `--plan` to print them and run none. A spec with no observable command
+says so in that section rather than omitting it.
 
 ## Determinism
 

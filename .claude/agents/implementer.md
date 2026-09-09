@@ -82,7 +82,7 @@ Files changed with paths, verification results, deviations from the plan, and an
 - clippy + fmt: [pass/fail]
 - make spine: [pass/fail]
 - make ci: [pass/fail/not run]
-- scripts/verify-spec.sh: [pass/fail/not run]
+- spec-spine verify <id>: [pass/fail/not-declared/not run]
 
 ### Decisions recorded
 - [D-n: one line each, or "None"]

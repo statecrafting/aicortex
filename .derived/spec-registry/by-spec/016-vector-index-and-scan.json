@@ -88,5 +88,5 @@
     "title": "The index: a paged cosine scan, an application-owned text index, and no SQLite extension"
   },
   "shardHash": "6b2c974290318f41c3326f8cf3d17be75950f8802be055c63131b5cf81a1608d",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

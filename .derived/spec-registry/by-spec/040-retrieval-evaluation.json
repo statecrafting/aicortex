@@ -88,5 +88,5 @@
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
   "shardHash": "a93780402b250a49947ea7fd46f6b4206f0000332864c1692f0c5f8f76fc9018",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

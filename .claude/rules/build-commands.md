@@ -21,7 +21,8 @@ cargo test -p aicortex-recall --locked --test fusion         # one crate, one te
 cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo fmt --all --check                                      # fix with: cargo fmt --all
 cargo deny check                                             # supply chain (deny.toml, spec 010)
-scripts/verify-spec.sh <spec-id>                             # the spec's verify:cli blocks
+make verify SPEC=<spec-id>                                   # the spec's declared acceptance
+spec-spine verify <spec-id> --plan                            # print those commands, run none
 ```
 
 Rules:

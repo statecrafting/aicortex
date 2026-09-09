@@ -82,5 +82,5 @@
     "title": "Lifecycle: supersession, correction, expiry, deduplication, and erasure that reaches the vectors"
   },
   "shardHash": "03969d321bbfcf3b3952e18e6c416bbfbe09a30bfa5306cbe34625119fdf1645",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

@@ -85,5 +85,5 @@
     "title": "Live capture: signed webhooks from chat systems and the browser, quarantined by default"
   },
   "shardHash": "560b471e2d4af20a0641742bc8efdcb5b0fa32bf889b72a470846bc49469d74f",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }

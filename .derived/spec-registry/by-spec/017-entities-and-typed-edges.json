@@ -100,5 +100,5 @@
     "title": "Entities and typed edges: a closed predicate vocabulary, derived facts that never outrank their source"
   },
   "shardHash": "f29a52f749ad061af2b25433dfd9afbdf4ad8b6e75a70f5cef9166c762bd7d00",
-  "specVersion": "1.1.0"
+  "specVersion": "1.2.0"
 }
