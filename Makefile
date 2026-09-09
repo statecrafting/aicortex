@@ -27,7 +27,8 @@ spec-dag:
 
 ## ci: everything CI runs, in order
 ci: spine
-	$(SPEC_SPINE) index coverage --fail-on-untraced
+	$(SPEC_SPINE) index coverage
+	@if [ -f Cargo.toml ]; then $(SPEC_SPINE) index coverage --fail-on-untraced; else echo "coverage: no Cargo.toml yet, reported above and not refused (spec 001 D-7)"; fi
 	$(MAKE) build
 	$(MAKE) test
 	$(MAKE) lint

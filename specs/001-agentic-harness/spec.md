@@ -213,6 +213,41 @@ consumes this repository as a registered target.
   choice the corpus was silent on and B-7's dated decision entry is the
   right instrument.
 
+- **D-7 (2026-09-09, pin bump and the coverage amendment).** The
+  `spec-spine` pin moves from 0.14.0 to 0.17.0 in every site that states
+  it (`govern.yml`, `AGENTS.md`, `README.md`, the architect agent). As in
+  D-4 the corpus was verified byte-compatible first: 0.17.0's `compile
+  --check` and `index check` both report fresh against the shards on
+  `main`, and no registry shard other than 000's and this spec's own
+  changes here. The `L-008` warnings 0.17.0 reported were the dead globs
+  D-6 already fixed, so `lint --fail-on-warn` is clean under the new pin
+  without further change.
+
+  One gate step could not be: `index coverage --fail-on-untraced` refuses
+  an empty coverage universe (spec-spine 059) rather than passing it
+  vacuously, and this corpus has no packages, so under 0.17.0 the step
+  could only refuse. The flag was named in the bootstrap spec's section 9
+  and in `standards/spec/contract.md`, neither of which is silent, so a
+  decision entry could not remove it. The maintainer amended both on
+  2026-09-09: coverage runs as a report until the first package carries
+  source files, and as a refusal from then on, under the same `Cargo.toml`
+  guard the cargo gates already use. `Makefile` and `govern.yml` apply the
+  guard; the bare `index coverage` line stays in both so the empty universe
+  is reported on every run rather than skipped. The flag comes back on its
+  own the day spec 010 lands a workspace. B-2 is unchanged: `make ci` is
+  still the definition of what CI validates, and every target is still
+  guarded so the composite is green on a specify-only tree, which is
+  exactly the property the unguarded flag had broken.
+
+  What the bump buys: `verify` running a spec's declared acceptance (049),
+  `index diagnostics` for unresolved units (050), `couple` naming the
+  `extends` crossing that cleared a change (052), the `L-008` lint that
+  found D-6's dead globs (057), `registry plan` answering blocked as well
+  as ready (060), `[meta] required_version` so the CLI can check its own
+  floor (062), and a malformed spec id refused rather than panicking (070).
+  Setting `required_version` is the obvious follow-on and is its own
+  change.
+
 ## Verification
 
 ```verify:cli

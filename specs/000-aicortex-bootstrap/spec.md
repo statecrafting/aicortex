@@ -133,9 +133,13 @@ orchestrator reports as a blocker rather than scheduling around.
 
 `make spine` runs `compile`, `index`, `lint --fail-on-warn`, `index check`,
 `couple --base origin/main`, and `scripts/spec-dag.sh`. `make ci` adds
-`index coverage --fail-on-untraced` and, once `Cargo.toml` exists, `cargo
-build`, `test`, `clippy -D warnings`, `fmt --check`, and `deny`. CI runs
-the same set with `compile --check` in place of `compile`. Every ordinary
+`index coverage` as a report and, once `Cargo.toml` exists, `index
+coverage --fail-on-untraced`, `cargo build`, `test`, `clippy -D
+warnings`, `fmt --check`, and `deny`. Coverage is a report until the first
+package carries source files and a refusal from then on, because
+spec-spine 059 refuses an empty coverage universe rather than passing it
+vacuously (amended 2026-09-09, 001 D-7). CI runs the same set with
+`compile --check` in place of `compile`. Every ordinary
 spec ends with a `## Verification` section whose `verify:cli` blocks are
 commands with exit codes, run after merge.
 

@@ -19,7 +19,7 @@ is `approved` and `implementation: pending`, and spec ordinals are the build
 order. Code arrives one spec per session under `crates/`, `apps/`, `eval/`,
 `docker/`, and `deploy/`.
 
-Governance is `spec-spine` **0.14.0** on your `PATH` (CI pins the same
+Governance is `spec-spine` **0.17.0** on your `PATH` (CI pins the same
 version). All governed reads of `.derived/` go through its CLI.
 
 ## New Sessions
@@ -128,8 +128,9 @@ spec, start to finish, then stops. Specs `000`, `001`, and `002` are records
    report.
 6. **Run the gate before every commit.** `make spine` (compile, index,
    lint `--fail-on-warn`, index check, couple, spec-dag), then `make ci`
-   (adds coverage `--fail-on-untraced` and, once `Cargo.toml` exists,
-   `cargo build`, `test`, `clippy -D warnings`, `fmt --check`, and `deny`).
+   (adds coverage as a report and, once `Cargo.toml` exists, coverage
+   `--fail-on-untraced`, `cargo build`, `test`, `clippy -D warnings`,
+   `fmt --check`, and `deny`).
    All must exit 0. Commit the regenerated `.derived/` shards with the code
    they describe.
 7. **Satisfy Acceptance criteria verbatim.** Run the spec's `##
