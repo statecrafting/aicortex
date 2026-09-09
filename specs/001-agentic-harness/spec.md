@@ -336,6 +336,16 @@ consumes this repository as a registered target.
   spec 010 lands a workspace, unresolved the day the corpus builds what it
   claims.
 
+  `standards/spec/contract.md` is this spec's, and its "Determinism" and
+  "The gate chain" sections both described the old chain, so both are updated
+  with it. The bootstrap spec's section 9 describes the same chain and is
+  **not** this spec's to edit: it still reads `index check` and `compile
+  --check`, which the coupling gate cannot catch because it checks path
+  ownership and not prose. That contradiction is surfaced rather than
+  resolved here, exactly as D-7 surfaced the coverage flag the bootstrap spec
+  named, and it waits on the same instrument: a maintainer amendment to spec
+  000.
+
   The merge driver (`.githooks/`, and the stanza binding it to the shard
   globs in `.gitattributes`) is installed although the kit's own README says
   most adopters do not need it, this repository included: sharding already

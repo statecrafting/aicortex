@@ -19,8 +19,9 @@ govern.
   code-as-source shards (`index`).
 - `.derived/**/build-meta.json`: wall-clock metadata; gitignored.
 
-Both shard trees are **committed**. `spec-spine compile --check` and
-`spec-spine index check` refuse a stale tree in CI.
+Both shard trees are **committed**. `spec-spine check` answers for both in
+one read and refuses a stale tree in CI. It never writes: the primitives it
+composes, `compile --check` and `index check`, keep their own contracts.
 
 ## Required frontmatter
 
@@ -69,13 +70,24 @@ is a `C-002` refusal.
 
 ## The gate chain
 
-`make spine`: `compile` → `index` → `lint --fail-on-warn` → `index check` →
-`couple --base origin/main --head HEAD` → `scripts/spec-dag.sh`.
+The chain is split into a reading half and a writing half, so a gate never
+repairs the tree it is judging.
+
+`make gate` (read-only): `check --fail-on-warn` → `lint --fail-on-warn` →
+`couple --base $BASE --head HEAD` → `scripts/spec-dag.sh`.
+`make refresh` (writes): `compile` → `index`.
+`make spine`: `make refresh` → `make gate`, for a session that can commit the
+regenerated shards.
 `make ci`: `make spine` → `index coverage` (a report) → and, when
-`Cargo.toml` exists, `index coverage --fail-on-untraced` → the cargo
-gates. CI (`govern.yml`) runs the same set with
-`compile --check` in place of `compile`. The escape valve is a scoped
-`Spec-Drift-Waiver:` line in the PR body, approved by a human.
+`Cargo.toml` exists, `index coverage --fail-on-untraced` → the cargo gates.
+
+CI (`govern.yml`) runs the same set through the read-only half. `BASE` is
+resolved from the repository (`$SPEC_SPINE_DEFAULT_BRANCH`, then the remote's
+own HEAD, then `main`), never assumed to be `origin/main`. `check` is called
+without `--fail-on-unresolved`: a corpus specified before it is built
+legitimately carries an unresolved unit for every pending spec. The escape
+valve is a scoped `Spec-Drift-Waiver:` line in the PR body, approved by a
+human.
 
 ## Verification
 
