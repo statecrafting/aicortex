@@ -1,0 +1,429 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-types/src/coordination.rs' does not exist",
+        "path": "crates/aicortex-types/src/coordination.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-types/tests/coordination.rs' does not exist",
+        "path": "crates/aicortex-types/tests/coordination.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/coordination_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/coordination_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/coordination_fold.rs' does not exist",
+        "path": "crates/aicortex-store/src/coordination_fold.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/tests/coordination.rs' does not exist",
+        "path": "crates/aicortex-store/tests/coordination.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/tests/coordination_recovery.rs' does not exist",
+        "path": "crates/aicortex-store/tests/coordination_recovery.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/tests/coordination_erasure.rs' does not exist",
+        "path": "crates/aicortex-store/tests/coordination_erasure.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/coordination.rs' does not exist",
+        "path": "crates/aicortex-api/src/coordination.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/tests/coordination.rs' does not exist",
+        "path": "crates/aicortex-api/tests/coordination.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/src/sources/coordination.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/coordination.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/tests/coordination.rs' does not exist",
+        "path": "crates/aicortex-ingest/tests/coordination.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/tests/coordination_portable.rs' does not exist",
+        "path": "crates/aicortex-ingest/tests/coordination_portable.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-types/src/lib.rs' does not exist",
+        "path": "crates/aicortex-types/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/lib.rs' does not exist",
+        "path": "crates/aicortex-store/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-store/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
+        "path": "crates/aicortex-store/src/erasure.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/lib.rs' does not exist",
+        "path": "crates/aicortex-api/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/router.rs' does not exist",
+        "path": "crates/aicortex-api/src/router.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/scopes.rs' does not exist",
+        "path": "crates/aicortex-api/src/scopes.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/src/lib.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/src/portable/export.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/portable/export.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/src/portable/import.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/portable/import.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/src/portable/format.md' does not exist",
+        "path": "crates/aicortex-ingest/src/portable/format.md"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "035-agent-coordination",
+      "042-portability-and-migration"
+    ],
+    "implementingPaths": [
+      {
+        "path": "docs/design/01-coordination-and-local-integration.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "specs/045-durable-coordination-protocol/fixtures/",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/coordination.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/coordination.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/coordination.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/tests/coordination.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/tests/coordination_portable.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/coordination_fold.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/coordination_repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/coordination.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/coordination_erasure.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/coordination_recovery.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/coordination.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/tests/coordination.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/01-coordination-and-local-integration.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/01-coordination-and-local-integration.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/045-durable-coordination-protocol/fixtures/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "specs/045-durable-coordination-protocol/fixtures/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/scopes.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/export.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/format.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/import.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/002-memory-thesis/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/002-memory-thesis/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/024-decision-and-audit-references/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/024-decision-and-audit-references/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/033-observatory-and-agent-ingestion/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/033-observatory-and-agent-ingestion/spec.md"
+        }
+      }
+    ],
+    "specId": "045-durable-coordination-protocol",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "d096371ab49e868f4bca0c1a24cda84e373ebebf156c9d184f2a037a8ef79c04"
+}
