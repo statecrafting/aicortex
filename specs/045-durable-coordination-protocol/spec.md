@@ -164,6 +164,8 @@ algorithm and byte digest; foreign evidence is never reserialized to check
 its original digest. Source authentication material and credentials are
 excluded from storage. Secret-bearing input is refused under 013, not
 stored to preserve a hash. Bodies are separately erasable (B-11).
+How retained bytes coexist with 013 B-8's normalization is unresolved;
+P-8 proposes the rule.
 
 ### B-3. Requests, recipients and revisions
 
@@ -171,7 +173,8 @@ A request records owner, intended recipient roles/repositories, subject
 and baseline revision, requested result, acceptance criteria, priority,
 optional deadline, dependencies on exact request revisions and evidence
 needed. Recipient roles resolve through an explicit scope membership map;
-a repository path or a mention in text grants no access.
+a repository path or a mention in text grants no access. That map is the
+explicit grant table 012 B-9 requires any sharing to add (P-11).
 
 Its work state is one of `open`, `accepted`, `blocked`, `reported`,
 `resolved`, `cancelled`, `superseded`. Delivery is a separate per-recipient
@@ -335,9 +338,11 @@ version), `GET /inbox`, `GET /outbox`, `GET /requests/{id}`, and
 and mapped disposition, never a claim that work or an external effect ran.
 An external occurrence may feed reconciliation but cannot call the transition
 route internally with stronger privilege. The scope permissions are
-`coordination.read` and `coordination.write`; resolver/owner/recipient checks
-apply in addition to token scope. Import/export still use the separate
-administrative authority of 042.
+`coordination.read` and `coordination.write`, which amends 020 B-3 and D-1
+(P-12); resolver/owner/recipient checks apply in addition to token scope.
+Under 042 B-9 a scope export needs only `memory.read`; P-10 proposes the
+additional authority for the coordination section and for importing its
+history.
 
 Inbox groups actionable requests, changed evidence, unanswered decisions
 and conflicts. Outbox shows each recipient's delivery/acknowledgment, work
@@ -396,7 +401,9 @@ without an explicit authorized restoration operation and new provenance.
 Capture minimal duplicate-suppression identity under a documented retention
 policy; where erasure removes it too, report that replay deduplication is
 no longer assured and require a fresh import decision. No body, raw payload,
-credential or private digest enters Rahi's immutable decision chain.
+credential or private digest enters Rahi's immutable decision chain. 013 B-9
+currently appends a content hash for every refusal and quarantine; P-9
+proposes how the two rules meet.
 Source-access revocation suspends new delivery and invalidates cached views;
 retained data follows the configured authorization/retention policy, not
 an assumption of perpetual provider access. Export 042 gains a separately
@@ -490,7 +497,10 @@ by authoring this specification.
 
 No owner ratification is recorded. The following are proposed design choices
 from the September 11 user-requested analysis, with alternatives and impact
-in `docs/design/01-coordination-and-local-integration.md`.
+in `docs/design/01-coordination-and-local-integration.md`. P-5 and P-6 were
+restated and P-7 to P-16 added on September 12, after reconciling this draft
+with source at the revisions listed in §11 of that record. They remain
+proposals: none is a decision, an approval or an amendment of another spec.
 
 - **P-1.** Durable structured coordination in the existing application
   store, plus inbox/outbox projections and chassis wakeups. Reject mailbox
@@ -507,15 +517,114 @@ in `docs/design/01-coordination-and-local-integration.md`.
   coordination slice requires an explicit sequencing revision, with the
   needed types/store/gate/API/claims extracted from the linear plan. It
   does not require embeddings, curation or Kubernetes on technical grounds.
-- **P-5.** Rahi 012 currently exposes notification outbox semantics rather
-  than a durable task-consumer acknowledgment API. Stage durable application
-  work in the same transaction and treat notifications only as hints.
-  Validate the available lease API before claiming 035's requested duration
-  and renewal semantics work. Chassis changes belong in Rahi.
-- **P-6.** Before implementing 010, reconcile its published-only Rahi
-  dependencies and crate list with the actual distribution and public APIs.
-  A Git revision useful for a spike does not satisfy its no-git exact-version
-  contract. This spec grants no dependency waiver.
+- **P-5.** Rahi at `444bcf8` supports B-4's single transaction:
+  `Outbox::stage` appends to the caller's `TxnBuilder`, and its envelope is
+  kind, tenant, name and revision only. `Outbox::drain` notifies and then
+  deletes, at least once, with no consumer acknowledgment. Stage durable
+  application work in the same transaction and treat notifications only as
+  hints. Leases do not match 035: `LEASE_TTL_SECONDS` is 10 and documented as
+  never configurable, hiqlite sets the expiry once at acquisition and never
+  refreshes it, no renew method exists, and every `StoreHandle::lease` call
+  mints a new fence token. Rahi 012 D-1 and D-6 still record contradictions
+  pending a human amendment. Chassis changes belong in Rahi.
+- **P-6.** Before implementing 010, reconcile its published-only dependency
+  rule with the actual distribution. Rahi has nine crates at `0.1.0`, no
+  tags and no publication; its draft 039 leaves registry publication versus
+  Git tags open. 010 B-2 lists eight crates while B-3 requires
+  `rahi_cli::run`, so `rahi-cli` must be pinned as well. A Git revision
+  useful for a spike does not satisfy 010 D-1. This spec grants no
+  dependency waiver.
+- **P-7. Claims over a ten-second chassis lease.** Keep 035's HTTP contract
+  (requested duration, `PATCH` renewal, `DELETE` release, 409 naming the
+  holder) but store a claim as an application row with key, holder, expiry
+  and its own per-key token, which increases on takeover and never on
+  renewal. Serialize claim changes under a short rahi `Lease` and check
+  guarded writes against the claim row in the same transaction. Rahi's fence
+  token cannot serve as the claim token: a competitor's refused attempt also
+  acquires a lease and mints a token, which would supersede the rightful
+  holder. This amends 035 B-2's statement that a claim is a chassis lease.
+  The alternative, a renewable lease API, needs a Rahi spec and release.
+  This spec's first slice needs neither, because one authority and a
+  compare-and-set on request version protect its transitions.
+- **P-8. Original bytes and normalization.** Keep admitted original payload
+  bytes as an opaque object used only for digest checks and portable export.
+  Every API body, packet, inbox view and model-facing rendering uses the
+  013 B-8 normalized body inside 019's envelope; export labels both. This
+  keeps bidirectional and zero-width controls out of every rendered view.
+- **P-9. Digests in the decision chain.** 013 B-9 appends a content hash to
+  rahi's chain for every refusal and quarantine. For short or predictable
+  text that hash can be confirmed by guessing and can never be erased, which
+  B-11 forbids here and 013 permits for memories. Recommended: amend 013 B-9
+  so the chain records a keyed digest whose key stays in the application
+  store, for memories and coordination alike. Alternative: narrow B-11 to
+  admitted bodies and accept 013's hash for refused or quarantined input.
+  Either is an owner decision; this spec must not silently diverge from 013.
+- **P-10. Export and import authority.** 042 B-9 lets any holder of
+  `memory.read` export a scope. Include the coordination section only when
+  the caller also holds `coordination.read`, and never export credentials,
+  cursors, live claims, grants or erased bodies. Importing coordination
+  history needs `coordination.write` and produces `Import`-actor historical
+  records; an imported open request becomes actionable only when a current
+  owner creates it again.
+- **P-11. Membership is the grant table.** 012 B-9 requires sharing to arrive
+  as an explicit grant table with its own predicate. First slice: a case and
+  its requests live in one coordination scope, whose owner grants principals
+  (a `sub`, optionally narrowed to a client) roles in it. There is no
+  cross-scope delivery; a recipient outside the scope receives only a
+  reference it cannot resolve (C13). Whether 033 B-5's shared scopes reuse
+  this table is a separate decision.
+- **P-12. Scopes and resolvers.** Adding `coordination.read` and
+  `coordination.write` amends 020 B-3 and D-1, which fix five scopes. That is
+  recommended over reusing `memory.write`, which would let any memory writer
+  submit coordination state. Mirror 020 B-3's promotion rule: resolving or
+  cancelling a request whose acceptance names a human decision requires an
+  interactive principal, and a client-credentials principal resolves only
+  requests their owner marked machine-resolvable at creation. A delegated
+  resolver (C06) is an explicit grant row, never inferred from text.
+- **P-13. Territory the frontmatter may be missing.** Wakeups delivered on
+  `GET /events` need an `extends` edge on 020's
+  `crates/aicortex-api/src/events.rs`; named errors with stable RFC 9457
+  types need one on 020's `crates/aicortex-api/src/error.rs`; an intake
+  registered like 033's and 042's sources needs one on 030's
+  `crates/aicortex-ingest/src/registry.rs`. Recommended: add all three at
+  approval. The gate does not detect a missing, mistyped or misattributed
+  `extends` unit while the code is absent, so review has to.
+- **P-14. Evidence result mapping.** Adopt the family recommendation's
+  dimensions `integrity`, `signature`, `issuerTrust` and `subjectBinding`,
+  with `policy` kept as a separate admission result. Normalized outcomes are
+  `pass`, `fail`, `unknown` and `not-applicable`, plus `unsigned` for
+  `signature` only. Store each verifier's raw value beside the normalized
+  one; an unmapped value normalizes to `unknown`. A verifier reference names
+  verifier and version, subject repository with full commit and tree, verb
+  and output schema version, check time and a digest of the verifier's
+  emitted bytes. For `spec-spine verify`, map `report.outcome` (`passed`,
+  `failed`, `not-declared`) to pass, fail and unknown, never the exit code,
+  because `not-declared` exits 0. Still open: CLI 132 names `subject` and
+  `issuer` with no signature dimension, hqgit names signature validity, and
+  Statecraft 015 adds a request-level `incomplete`. Statecraft leads the
+  agreement; B-7's wording changes only after it.
+- **P-15. CLI integration positions.** For the CLI owner's integration
+  draft: publish from a separate least-privilege process that reads the
+  journal or export, not inside the daemon's full environment; queue
+  submissions as a new journal record kind carrying the envelope `id`, not a
+  second chain; define a documented observation adapter before relying on
+  the ship stage's `gh` read seam; build reported-versus-verified display on
+  draft 131; label reports produced by the unfenced verify stage (129's
+  recorded residual); feed coordination entries into the 123 handoff capsule
+  as enveloped data rather than a second resume format; and admit CLI
+  handbacks as `Assertion` with `signature: unsigned` rather than blocking
+  on signing.
+- **P-16. Sequencing.** This spec is absent from 002's `sequencing-plan`
+  targets, wave 4 is defined as proof, and lowest-numbered-ready scheduling
+  builds it after 044. Option A: keep it last and add it to 002's list.
+  Option B, recommended if coordination should arrive earlier: a separate
+  draft at the free wave 2 ordinal 025 for the deterministic core (B-1 to
+  B-4, the B-8 reads and B-11 erasure) depending on 014 and 020 only and not
+  on 035, with this spec keeping observations, reconciliation, export and
+  local integration and gaining a dependency on it. Nothing is renumbered.
+  It still follows 015 to 019, because 020 depends on 019; building before
+  embeddings would amend 020's dependencies and 002's linear plan. Both
+  options need the owner.
 
 ## Verification
 

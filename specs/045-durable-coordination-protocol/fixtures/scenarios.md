@@ -50,3 +50,18 @@ The other six need no redispatch unless their evidence or dependencies moved.
 
 This fixture abstracts the user-supplied lineage; it is not an instruction
 to send these packets, approve those specs, or contact any repository owner.
+
+## Proposed additions, pending review
+
+Added on September 12 with proposals P-7 to P-15. They are not acceptance
+obligations and no FR cites them until the owner accepts the proposal each
+one tests; a rejected proposal removes its row rather than inverting it.
+
+| ID | Input history or fault | Required observation | Tests |
+|---|---|---|---|
+| C23 | Admitted body carries bidirectional and zero-width control characters | Original bytes retained for digest and export only; every API body, packet, inbox view and model-facing rendering shows the normalized text inside the envelope | P-8 |
+| C24 | Holder renews a claim; a competitor's refused attempt lands between renewals; after expiry a takeover occurs and the paused holder resumes | Renewal and the refused attempt leave the holder's token valid; after takeover the old token's guarded write is refused | P-7 |
+| C25 | A short coordination body is refused by the gate, then its scope is erased | No chain entry lets someone without the application key confirm the body by guessing | P-9 |
+| C26 | A principal holding `memory.read` but not `coordination.read` exports the scope; a principal holding both exports again | First archive has no coordination section; second has one with no credentials, cursors, claims, grants or erased bodies | P-10 |
+| C27 | A client-credentials principal resolves a request whose acceptance names a human decision; the owner then creates a machine-resolvable request | First refused with a named error and no state change; second resolves | P-12 |
+| C28 | A consumer acknowledges position P before applying it, crashes, and restarts reading from its own last applied position below P | Records from that position are served again unchanged; only a position below the retention watermark returns a reset | B-4, P-15 |

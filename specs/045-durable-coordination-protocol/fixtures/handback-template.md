@@ -8,6 +8,8 @@ This is an authored template, not a live report or instruction.
 | In reply to | Exact case, request and revision |
 | Reporter | Subject/client/run and repository |
 | Inspected revision | Full commit/tree, branch and dirty state |
+| Tools and releases | Exact binary versions used for checks, and the released version if any claim concerns one |
+| Spec lifecycle | Status and implementation of every governing spec the report relies on |
 | Acknowledgment | Received / accepted / declined; give reason if declined |
 | Work outcome | Reported complete / partial / blocked; not owner-resolved |
 
@@ -22,6 +24,19 @@ This is an authored template, not a live report or instruction.
 List files and local commit/PR references without conflating them with merge,
 release or deployment. Separate checks that ran and passed, ran and failed,
 were skipped, or could not run. Bind each result to the tested revision.
+
+## Negative cases
+
+For each safety or authority claim, name the unauthorized input or mutation
+attempted, the command that ran, its exit code and the recorded refusal. A
+case that could not run is listed as not demonstrated, never as passed. Keep
+a positive control beside each refusal so a check that refuses everything is
+visible.
+
+## Unknown
+
+List claims no one in this report checked, including sibling reports that
+were cited but not re-executed.
 
 ## Contract responses
 

@@ -1,7 +1,8 @@
 # Coordination as part of local Statecraft
 
-Status: proposed, September 11, 2026. Owned by draft
-[045](../../specs/045-durable-coordination-protocol/spec.md). This analysis
+Status: proposed, September 11, 2026; reconciled with source on September
+12 (§11), which corrects this record without rewriting §1 to §10. Owned by
+draft [045](../../specs/045-durable-coordination-protocol/spec.md). This analysis
 answers the user's request to generalize the Statecraft-family handoff and
 handback process within aicortex. It does not approve the draft or adopt
 changes to the existing thesis. The attached conversations are evidence of
@@ -309,3 +310,129 @@ were skipped for missing manifests. No runtime test is reported as passed.
 Adding the design note changes the global hashed inputs, so existing index
 shards are regenerated along with 045's two new shards; existing approved
 spec source files are unchanged.
+
+## 11. Reconciliation, September 12
+
+This section reconciles §1 to §10 and draft 045 with current source, the
+approved aicortex corpus and the revision-3 family packet
+(`repo-handoffs/10-aicortex.md`). It approves nothing, amends no approved
+spec and sends no request. The decisions it surfaces are proposals P-5 to
+P-16 in 045 §7. Sibling facts below were read from source at the named
+revisions; findings those repositories' own sessions reported were not
+re-executed here.
+
+### 11.1 Revisions inspected
+
+| Repository | Ref | Commit | Note |
+|---|---|---|---|
+| aicortex | `045-durable-coordination-protocol` | `a825abb` | Two local commits over `main` `82121b6`, which equals `origin/main`; not pushed, no PR |
+| rahi | `main` | `444bcf8` | Cached `origin/main` `c13cc70` differs only in workflow version bumps; not re-fetched |
+| rahi | `corpus/runtime-binding` | `b24de62` | Drafts 035 to 041, all draft and pending |
+| hiqlite | `0.14.0` in rahi's lockfile | checkout `b91cefd` | Lock semantics read from the local checkout |
+| statecraft-cli | `128-132-realignment-rev3` | `874766b` | Drafts 126 to 132 pending; 122 and 123 approved and complete |
+| spec-spine | `main` | `0e41641` | Installed binary 0.18.0 |
+| statecraft | `014-rahi-realignment` | `afe31c3` | Drafts 015 to 017 |
+| hqgit | `main` | `4d0f9c2` | Design 02 |
+
+### 11.2 What source confirmed and corrected
+
+| September 11 statement | Result | Evidence |
+|---|---|---|
+| Rahi outbox stages key-only envelopes, drains then deletes, no acknowledgment | Confirmed. Staging joins the caller's transaction, so B-4's single commit is available | `rahi-store/src/outbox.rs:108` (`stage`), `:136` (`drain`) |
+| Rahi lease has a fixed ten-second TTL and no renewal | Confirmed and sharpened: expiry is set once at acquisition and never refreshed while held; every acquisition mints a new fence token; `fenced_txn` accepts only `UPDATE` and `DELETE` | `rahi-store/src/lock.rs:62`, `:157`, `:199`; hiqlite `dlock_handler.rs:13` |
+| 010's published-only rule does not match rahi's distribution | Confirmed, plus an internal gap: 010 B-2 pins eight crates and omits `rahi-cli`, which B-3's `rahi_cli::run` needs. Rahi has nine crates at `0.1.0`, no tags, and draft 039 §7 leaves registry publication versus Git tags open | 010 B-2, B-3, D-1; rahi `Cargo.toml` |
+| Rahi 012 records pending amendments on token origin and cache behavior | Refined: 012 D-1 and D-6 each contradict a behavior (B-1, B-6) pending a human amendment, inside an approved and complete spec | rahi `specs/012-*/spec.md` D-1, D-6 |
+| CLI journal and broker seams exist | Confirmed: a hash-chained JSONL journal and a broker that checks the run's lease before push, PR or merge | `members/src/orchestrator/journal.ts`, `broker.ts:128`, `:167` |
+| CLI supplies Git/provider observations through a documented protocol | Corrected: a typed `GitHubClient` read seam over `gh pr view --json` and `gh api` verifies the ship stage's own PR; no observation contract or external publication exists, and a submission cursor is new design | `members/src/orchestrator/stages/ship.ts` header |
+| CLI has no resume format to reuse | Corrected: approved spec 123's handoff capsule already folds resume context from the journal and renders it into prompts; P-15 feeds it instead of adding a second format | `members/src/orchestrator/handoff.ts` |
+| 045 B-8: import and export use a separate administrative authority of 042 | Wrong: 042 B-9 lets any `memory.read` holder export. B-8 corrected; P-10 proposes the rule | 042 B-9 |
+| The README calls every family product Apache-2.0 | Still wrong: Statecraft and hqgit declare AGPL-3.0; rahi, spec-spine, statecraft-cli and statecrafting declare Apache-2.0 | Each repository's `LICENSE` |
+| A common evidence vocabulary is pending | Still unagreed and unratified; see P-14 | CLI `specs/132-evidence-fixtures/spec.md:128`, `:133`; Statecraft 015 `incomplete`; hqgit design 02 signature validity |
+
+The README sentence is outside 045's territory. Proposed correction, for the
+owner of that file: state that aicortex, rahi, spec-spine and statecraft-cli
+are Apache-2.0, that Statecraft and hqgit are AGPL-3.0, and that moving code
+across that boundary needs a licence review. The OPC reuse assessment adds
+that OPC is AGPL as well; its session-memory behaviors may inform fixtures
+only as restated observed behavior (000 §6), never as copied tests.
+
+### 11.3 Conflicts with approved specs
+
+| Approved rule | Draft 045 position | Proposal | Amendment if 045 is approved as proposed |
+|---|---|---|---|
+| 002 `sequencing-plan` lists 010 to 044; wave 4 is proof | Wave 4 feature after 044 | P-16 | 002's target list (option A) or a new core draft at 025 (option B) |
+| 010 B-2 eight exact crates, D-1 registry only | Needs a consumable rahi | P-6 | 010 B-2 if Rahi chooses Git tags; pinning `rahi-cli` can be a build-time D-n |
+| 012 B-9 sharing needs a grant table spec | Scope membership map | P-11 | None; 045 becomes that spec |
+| 013 B-8 normalizes content before admission | Retains original bytes | P-8 | None; rendering rule stated in 045 |
+| 013 B-9 content hash on every refusal and quarantine | No private digest in the chain | P-9 | 013 B-9 (recommended) or narrow 045 B-11 |
+| 020 B-3 and D-1 five coarse scopes | Two coordination scopes | P-12 | 020 B-3 and D-1 |
+| 035 B-2 a claim is a chassis lease with renewal | CAS without claims in the first slice | P-7 | 035 B-2 and B-4 wording |
+| 042 B-9 export with `memory.read` | Coordination section | P-10 | None beyond the declared `format.md` extension |
+
+The eleven `extends` units in 045's frontmatter were checked by hand: each
+names a file its named owner establishes. P-13 lists three edges that are
+probably missing. §11.5 shows why a hand check is needed.
+
+### 11.4 Positions on the packet's decisions
+
+1. **045 review (erasure, replay, current versus historical authority,
+   export).** Accepted: immutable occurrence identity with erasable bodies,
+   historical imports that restore no authority, tombstones instead of
+   bodies for pending consumers. Counter-proposed or completed: P-8 to P-13.
+   One replay limit stays explicit: once erasure removes duplicate-suppression
+   identity, replay deduplication is not assured (B-11).
+2. **Rahi compatibility.** Accepted: notifications are hints (P-5).
+   Counter-proposal: build 035's renewable claims as application rows over
+   the ten-second lease (P-7) rather than asking Rahi for renewable leases.
+   Requests for Rahi: decide 039's publication question and name the version
+   010 pins, including `rahi-cli`; confirm that `StoreHandle::lease` and the
+   fence sequence are supported for application use; treat 038's bearer
+   exemption as a prerequisite, since `csrf.rs` refuses unsafe bearer
+   requests today and every non-browser write in 020, 033 and 045 depends on
+   it; resolve 012 D-1 and D-6; and cover local Rauthy provisioning, which no
+   runtime-binding draft addresses, before a local cell is called installable.
+3. **Sequencing.** No change made. P-16 gives two concrete options; neither
+   renumbers a spec or bypasses a prerequisite.
+4. **CLI integration.** Request for the CLI owner, not sent: author a draft
+   using P-15's positions and answer where the publisher runs, which journal
+   record kind carries queued submissions, whether observations join 124's
+   provider conformance, whether 131 hosts the reported-versus-verified view,
+   how verify-stage reports are labelled, and whether unsigned handbacks are
+   acceptable input. Imported content never reaches an outbound effect.
+5. **Evidence mapping.** P-14 accepts the reconciliation's four dimensions
+   and separate policy, adds `unsigned` for `signature`, and maps spec-spine
+   `verify` by `report.outcome`. Requests: Statecraft leads the agreement;
+   CLI reconciles 132's `subject` and `issuer` with its own doc 05 wording;
+   spec-spine answers the two tool questions in §11.5.
+
+### 11.5 Negative evidence that actually ran
+
+Each case ran on September 12 with spec-spine 0.18.0 against a `git archive`
+export of `a825abb` in a scratch directory, never the working tree. Exit codes
+are the process's own.
+
+| Case | Mutation | Commands and exits | Observation |
+|---|---|---|---|
+| N1 | None | `spec-spine verify 045-durable-coordination-protocol --json`: 1 | `outcome: failed`, ran 1 of 7, the first `cargo test` exited 101 with no `Cargo.toml`, `skipped: []`. Acceptance fails closed without a runtime |
+| N2 | 045 depends only on `002-memory-thesis` | `compile` 0, `lint --fail-on-warn` 0, `registry plan` 0 | The draft appears in the ready set beside 010; `plan --next` picks 010 only because it is lower-numbered. Draft exclusion rests on AGENTS.md and `/next`, not on `registry plan` |
+| N3 | 045 extends a unit 020 does not establish | `compile` 0, `index` 0, `check --fail-on-warn` 0, `lint --fail-on-warn` 0 | Undetected: one `W-001` warning replaces another |
+| N4 | 045 names 035 as owner of 020's `router.rs` | Same four commands, all 0 | Undetected: warnings identical to the unmodified tree |
+| N5 | 042 depends on 045 | `compile` 1 (`V-014` cycle), `check` 1, `registry plan` 1, `scripts/spec-dag.sh` 1 | Refused, naming the higher ordinal and the cycle |
+| N6 | 045 claims `implementation: complete` | `compile` 0, `lint` 0, `index` 0 with 23 `I-004` diagnostics, `check --fail-on-warn` 2 | Refused, but through the staleness exit code with "blocking diagnostics", and a draft marked complete compiles |
+
+Positive control: the unmodified export and the working tree report
+`check` 0 with both trees fresh, `registry plan` 0 with only 010 ready, and
+`scripts/spec-dag.sh` 0. Questions for spec-spine from N2 and N6: should
+`registry plan` withhold drafts or label them, and should an `I-004`
+refusal exit 1 rather than 2? No aicortex runtime, provider round trip,
+crash recovery, identity, local composition or sibling reproduction ran.
+Rust build, test, clippy, fmt and deny cannot run before 010.
+
+### 11.6 Next smallest authorized increment
+
+None is buildable today. 010 is the only approved and ready spec, and its
+operator prerequisite, an exact published rahi version that includes
+`rahi-cli`, does not exist; AGENTS.md "Working the backlog" step 1 says to
+stop and report that. The next authorized step is owner review of P-5 to
+P-16 and a rahi publication decision. Once those land, 010 is the smallest
+implementation, and it is unaffected by whether 045 is ever approved.

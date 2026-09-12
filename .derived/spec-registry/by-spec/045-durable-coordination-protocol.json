@@ -222,6 +222,6 @@
     "summary": "Generalize repository handoff packets and handbacks into a durable, scoped coordination protocol. Requests, acknowledgment, replies, evidence observations, explicit resolutions and corrections retain their identity and revision. Inbox and outbox are projections, not another broker or hash chain. The same hiqlite store holds records, recipient state and consumer cursors transactionally; chassis events only wake consumers. Statecraft-cli supplies local session and Git/provider observations and keeps execution authority. A recalled request cannot authorize an action, a session report cannot approve its own specification, and an interrupted or disconnected consumer can reconcile what it missed.\n",
     "title": "Coordinate repository work through durable requests, replies, and reconciled evidence"
   },
-  "shardHash": "bad0f45035b8bad522a453962634e2672286e2964eb4e33856a5100d6ef3496d",
+  "shardHash": "9fbf2ae51f2fa9201b2453d6b6a96a87f38109dc65c41af690b25e11e5781109",
   "specVersion": "1.2.0"
 }
