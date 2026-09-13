@@ -110,8 +110,12 @@ release exists; its acceptance cannot pass, and the spec cannot flip to
 - **FR-002.** `aicortex --help` lists rahi's verbs (`serve`, `preflight`,
   `migrate`, `backup`, `restore`, `ledger verify`) without the application
   declaring any of them.
-- **FR-003.** `aicortex preflight` against a temporary data directory
-  reports the manifest hash, the empty egress list, and schema version 0.
+- **FR-003 (amended 2026-09-13, D-3).** `tests/cell.rs` parses the
+  embedded manifest with the chassis's `Manifest::parse`, computes its
+  hash, and finds `resources.egress` empty; it finds `Aicortex::migrations()`
+  empty, which is schema version 0. `aicortex preflight` against an empty
+  temporary data directory prints every chassis check by name, in the
+  chassis's order, and fails exactly one of them, `keys`.
 - **FR-004.** The B-2 and B-8 grep tests fail when a `[patch]` table or a
   stray router is introduced.
 - **FR-005.** The B-2 test fails when any of the nine rahi crates is
@@ -122,8 +126,9 @@ release exists; its acceptance cannot pass, and the spec cannot flip to
 
 - **AC-1.** `cargo test -p aicortex --locked` passes.
 - **AC-2.** `cargo deny check` passes.
-- **AC-3.** `aicortex preflight` exits 0 on an empty data directory and
-  prints the manifest hash.
+- **AC-3 (amended 2026-09-13, D-3).** `aicortex preflight` on an empty
+  temporary data directory exits 1 with `keys` as its only failing check,
+  names every other check, and starts no network listener.
 
 ## 6. Out of scope
 
@@ -154,6 +159,28 @@ manifest will eventually declare. The reference deployment (044).
   than the published crates. The maintainer adopted this on 2026-09-12
   through revision 4's aicortex decisions; the agent authored the text and
   this entry records that authority rather than assuming it.
+- **D-3 (2026-09-13, amendment of FR-003 and AC-3).** FR-003 and AC-3 were
+  written before the chassis's preflight existed, and they contradict it.
+  At rahi `444bcf8`, preflight reports nine named checks (`config`,
+  `data_dir`, `keys`, `restore_env`, `hiqlite`, `engine`, `rauthy`,
+  `ledger`, `disk`) as PASS, FAIL, or SKIP and exits 1 on any failure. On
+  an empty data directory the key set is missing, so `keys` fails and the
+  store, engine, rauthy, and ledger checks are skipped: exit 1, never 0.
+  Its report prints no manifest hash, no egress list, and no schema
+  version. The chassis's own binary showed exactly this against an empty
+  scratch directory on 2026-09-12. Because `main` is one line (B-3), the
+  application cannot add to that output. The maintainer chose to amend
+  this spec to the chassis. The manifest hash, the empty egress list, and
+  schema version 0 are asserted in `tests/cell.rs` from the embedded
+  manifest and the migration list, and the preflight criterion becomes the
+  report it actually gives on an empty directory. Rejected: asking rahi to
+  print those values and pass on a fresh volume, which would add a chassis
+  spec and release to a bootstrap already waiting on one; and dropping the
+  preflight criteria, which would leave the verb untested here. A preflight
+  that exits 0 needs `first-boot` and a rauthy on loopback, which 002 §5
+  places in wave 2, so it is not this spec's acceptance. The maintainer
+  decided this on 2026-09-13; the agent authored the text and this entry
+  records that authority rather than assuming it.
 
 ## Verification
 
