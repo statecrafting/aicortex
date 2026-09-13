@@ -101,9 +101,9 @@
     ],
     "specPath": "specs/020-http-api-and-scopes/spec.md",
     "status": "approved",
-    "summary": "The product's own HTTP surface, mounted by the cell into rahi's edge. Every route is authorized by a rauthy-issued bearer token or a browser session, both resolved to the same principal, and gated by an OAuth scope that names what it permits. Scopes are coarse enough to be understandable and fine enough to be useful: read, write, delete, admin, and a separate scope for promotion, which no agent client is ever granted. Long operations report progress over server-sent events through the chassis's declared streaming routes. Every response carrying content obeys the untrusted content boundary.\n",
+    "summary": "The product's own HTTP surface, mounted by the cell into rahi's edge. Every route is authorized by a rauthy-issued bearer token or a browser session, both resolved to the same principal, and gated by an OAuth scope that names what it permits. Scopes are coarse enough to be understandable and fine enough to be useful: read, write, delete, admin, a separate scope for promotion, which no agent client is ever granted, and a read and a write scope for coordination, which no memory scope implies. Long operations report progress over server-sent events through the chassis's declared streaming routes. Every response carrying content obeys the untrusted content boundary.\n",
     "title": "The HTTP API: bearer-authorized, scope-gated, streaming where it earns it"
   },
-  "shardHash": "0921b9bfcc30a44610d5158052f53a3b24cc5ff4b672d8996eb9e5c14ed30644",
+  "shardHash": "c40b8ff90acf0849a50e62d6af9711efa881750d68ffb9dfe8160ca8a91112bf",
   "specVersion": "1.2.0"
 }

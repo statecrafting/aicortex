@@ -34,8 +34,9 @@ summary: >
   route is authorized by a rauthy-issued bearer token or a browser session,
   both resolved to the same principal, and gated by an OAuth scope that
   names what it permits. Scopes are coarse enough to be understandable and
-  fine enough to be useful: read, write, delete, admin, and a separate scope
-  for promotion, which no agent client is ever granted. Long operations
+  fine enough to be useful: read, write, delete, admin, a separate scope
+  for promotion, which no agent client is ever granted, and a read and a
+  write scope for coordination, which no memory scope implies. Long operations
   report progress over server-sent events through the chassis's declared
   streaming routes. Every response carrying content obeys the untrusted
   content boundary.
@@ -78,7 +79,14 @@ only crate that defines a wire DTO.
   from the chassis gates each route. `memory.promote` is the human
   boundary of 019 B-4: it is grantable to an interactive client and is
   refused to a client-credentials token by 025 B-4's service-callable
-  rule.
+  rule. Two coordination scopes complete the list (amended 2026-09-12,
+  D-2): `coordination.read` for coordination views and `coordination.write`
+  for coordination submissions, transitions, and work claims (035). No
+  `memory.*` scope satisfies either, and neither satisfies a `memory.*`
+  scope. A coordination scope is necessary, never sufficient: the owner,
+  recipient, and resolver grants of the coordination scope still apply, and
+  resolving a request whose acceptance names a human decision is refused to
+  a client-credentials token under the same rule as `memory.promote`.
 - **B-4 (routes).** `POST /capture` (one or many candidates, returns the
   verdict per candidate and the merged or created id), `POST /search`
   (a `Query`, returns envelopes plus the trace summary), `GET /memories`
@@ -126,6 +134,9 @@ only crate that defines a wire DTO.
   first response and creates no second row.
 - **FR-007.** `GET /events` delivers a keep-alive, closes on shutdown with
   the chassis's shutdown event, and carries no memory body.
+- **FR-008.** `scopes.rs` enumerates exactly the seven scopes of B-3, and a
+  table test asserts that no `memory.*` scope satisfies a `coordination.*`
+  requirement and no `coordination.*` scope satisfies a `memory.*` one.
 
 ## 5. Acceptance criteria
 
@@ -142,10 +153,23 @@ documents.
 
 ## 7. Resolved decisions
 
-- **D-1 (2026-09-03, this spec).** Five coarse scopes rather than
-  per-tool scopes. A client asking for consent needs a screen a person can
+- **D-1 (2026-09-03, this spec; amended 2026-09-12, D-2).** Coarse scopes
+  rather than per-tool scopes: five for memory, and since D-2 two for
+  coordination. A client asking for consent needs a screen a person can
   read; a scope per tool produces a consent screen nobody reads, which is
   worse than a coarse one they do.
+- **D-2 (2026-09-12, amendment, revision-4 AI-04).** Draft 045 needs
+  coordination state (requests, transitions, resolutions, claims) that a
+  memory writer must not be able to change merely by holding
+  `memory.write`. The maintainer chose two separate coordination scopes
+  over reusing the memory scopes, with explicit owner, recipient, and
+  resolver grants inside the coordination scope, and interactive
+  principals for any resolution that names a human decision. Two scopes
+  keep the consent screen readable, which is D-1's reason for coarse
+  scopes in the first place. The grant table itself and the routes that
+  use these scopes are 045's; 035's claim routes use them as amended there.
+  The maintainer adopted this on 2026-09-12; the agent authored the text
+  and this entry records that authority rather than assuming it.
 
 ## Verification
 
