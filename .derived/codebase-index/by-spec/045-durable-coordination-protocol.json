@@ -99,8 +99,23 @@
       },
       {
         "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/events.rs' does not exist",
+        "path": "crates/aicortex-api/src/events.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/error.rs' does not exist",
+        "path": "crates/aicortex-api/src/error.rs"
+      },
+      {
+        "code": "W-001",
         "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/src/lib.rs' does not exist",
         "path": "crates/aicortex-ingest/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/registry.rs"
       },
       {
         "code": "W-001",
@@ -275,6 +290,24 @@
         "sourceField": "extends",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-api/src/error.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/events.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-api/src/lib.rs"
         }
       },
@@ -338,6 +371,15 @@
         "sourceField": "extends",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-store/src/erasure.rs"
         }
       },
@@ -384,6 +426,19 @@
       {
         "locations": [
           {
+            "file": "specs/013-write-gate-and-redaction/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "specs/019-untrusted-content-boundary/spec.md"
           }
         ],
@@ -425,5 +480,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "868ad26b22536491c4e6fe9d109603f02e71c62b130a43d6fcefce3525c27b8b"
+  "shardHash": "247bfd33f1f1bb427ff43f7e85dfc12679b341d87776920d245d091d6ef908bb"
 }

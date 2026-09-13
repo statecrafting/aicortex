@@ -1,7 +1,8 @@
 # Coordination as part of local Statecraft
 
 Status: proposed, September 11, 2026; reconciled with source on September
-12 (§11), which corrects this record without rewriting §1 to §10. Owned by
+12 (§11), which corrects this record without rewriting §1 to §10; the
+maintainer's decisions of the same day are recorded in §12. Owned by
 draft [045](../../specs/045-durable-coordination-protocol/spec.md). This analysis
 answers the user's request to generalize the Statecraft-family handoff and
 handback process within aicortex. It does not approve the draft or adopt
@@ -436,3 +437,67 @@ operator prerequisite, an exact published rahi version that includes
 stop and report that. The next authorized step is owner review of P-5 to
 P-16 and a rahi publication decision. Once those land, 010 is the smallest
 implementation, and it is unaffected by whether 045 is ever approved.
+
+## 12. Adoption, September 12
+
+On 2026-09-12 the maintainer adopted revision 4's aicortex decisions AI-01
+to AI-08 (grand-refactor `07-revision-4-decision-package.md` §3). Sections
+1 to 11 are kept as written. Where they call something a proposal, this
+section records the outcome. A `P-n` in §8 or §11 now names the decision
+`D-n` in 045 §7 with the same number, except P-2 and P-3, which no adopted
+decision covers and which stay proposals. Adopting these decisions did not
+approve 045: it stays `draft`.
+
+### 12.1 Where each decision landed
+
+| Decision | Settles | Recorded in |
+|---|---|---|
+| AI-01 | P-1, P-5, P-6 | 010 Territory, B-2, FR-005, D-2; 045 D-1, D-5, D-6 |
+| AI-02 | P-7 | 035 summary, §1, B-2 to B-4, FR-002, FR-006, FR-007, D-2; 045 B-5, D-7 |
+| AI-03 | P-8, P-9 | 013 Territory, `constrains` on 014's `erasure.rs`, B-9, FR-006 to FR-008, D-2; 045 B-2, B-11, D-8, D-9 |
+| AI-04 | P-10, P-11, P-12 | 020 summary, B-3, FR-008, D-1, D-2; 035 B-9, FR-008, D-3; 045 B-3, B-8, B-11, D-10 to D-12 |
+| AI-05 | P-13, P-14 | 045 `extends` (020 `events.rs` and `error.rs`, 030 `registry.rs`), B-7, D-13, D-14 |
+| AI-06 | P-15 | 045 B-12, AC-3, D-15 |
+| AI-07 | P-4, P-16 | 002 `sequencing-plan`, §5, D-4; 045 D-4, D-16 |
+| AI-08 | README licence, N2, N6 | `README.md`; 001 `establishes`, D-9; `spec-spine.toml` hashed inputs; 045 D-17; grand-refactor `analysis/spec-spine-findings-from-aicortex-2026-09-12.md` |
+
+Scenarios C23 to C28 were written as pending review: each would become an
+obligation if its proposal was accepted, or be removed if it was rejected.
+Every proposal they test was accepted, so 045 FR-013 now cites them and the
+matrix labels them by decision.
+
+### 12.2 What this changes in §11
+
+- **§11.2, the README row.** Corrected: the licence sentence names the
+  Apache-2.0 and AGPL-3.0 repositories and requires a licence review across
+  that boundary. No spec owned `README.md` (`spec-spine index owner`
+  answered none), so 001 claims it (001 D-9).
+- **§11.3, the amendment column.** Every amendment it lists was made as
+  listed, with two refinements. 010 kept the published-crate policy and
+  gained `rahi-cli` as an amendment rather than a build-time decision, since
+  B-2 names the crate list and is not silent. 013 B-9 was amended rather
+  than 045 B-11 narrowed.
+- **§11.4, the requests to rahi.** AI-01 settles the aicortex side of the
+  publication question by waiting for RH-05's registry release. At this
+  reading rahi `main` is still `444bcf8`, all nine crates are `0.1.0`, and
+  the repository has no tags. The other rahi items (lease use by
+  applications, 038's bearer exemption, 012 D-1 and D-6, local Rauthy
+  provisioning) are rahi's to record and are not restated as settled here.
+- **§11.6, the next increment.** 010 may now be prepared on its own branch.
+  Its acceptance and its flip to `complete` wait for the nine published
+  crates; a Git revision does not substitute.
+
+### 12.3 What stays open
+
+- 045's approval, a human status flip.
+- P-2 and P-3.
+- 014's own prose does not yet name the digest key. 013 now freezes the
+  obligation on `erasure.rs` through a `constrains` edge, and 013 FR-008
+  forbids claiming erasure of refusal and quarantine records until 014's
+  tests cover it. The smallest follow-up is one clause each in 014 B-7 and
+  B-9, which AI-03 did not name and so was not made here.
+- N2 and N6 are spec-spine's to answer, and nothing here waits on them. The
+  findings note records that N2 matches spec-spine 038 §3.1 and 048 D-2 as
+  designed, and that draft 086 §3.1 keeps the exit code at 2 on purpose.
+- No runtime, crash-recovery, identity, provider or local-composition test
+  ran. Only the corpus gate did.

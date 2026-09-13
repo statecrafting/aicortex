@@ -35,12 +35,16 @@ extends:
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/lib.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/scopes.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/events.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/error.rs", nature: additive }
   - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/lib.rs", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/registry.rs", nature: additive }
   - { spec: "042-portability-and-migration", unit: "crates/aicortex-ingest/src/portable/export.rs", nature: additive }
   - { spec: "042-portability-and-migration", unit: "crates/aicortex-ingest/src/portable/import.rs", nature: additive }
   - { spec: "042-portability-and-migration", unit: "crates/aicortex-ingest/src/portable/format.md", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/002-memory-thesis/spec.md" }, role: context }
+  - { unit: { kind: file, path: "specs/013-write-gate-and-redaction/spec.md" }, role: constraint }
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
   - { unit: { kind: file, path: "specs/024-decision-and-audit-references/spec.md" }, role: constraint }
   - { unit: { kind: file, path: "specs/033-observatory-and-agent-ingestion/spec.md" }, role: context }
@@ -81,6 +85,11 @@ This is a proposed implementation work order, not an implemented record.
 Approval would authorize the territory above, not sibling CLI/provider work
 or any product's thesis adoption. No frozen constitutional principle is
 changed. The sequencing implications are explicit in section 7.
+
+On 2026-09-12 the maintainer adopted revision 4's aicortex decisions AI-01
+to AI-08, which settle most of this draft's open design questions and amend
+010, 013, 020, 035, 002, and 001 to match (section 7). Adopting those
+decisions did not approve this spec: it stays `draft` until a human flips it.
 
 ## 2. Territory
 
@@ -164,8 +173,11 @@ algorithm and byte digest; foreign evidence is never reserialized to check
 its original digest. Source authentication material and credentials are
 excluded from storage. Secret-bearing input is refused under 013, not
 stored to preserve a hash. Bodies are separately erasable (B-11).
-How retained bytes coexist with 013 B-8's normalization is unresolved;
-P-8 proposes the rule.
+Retained original bytes are an opaque object used only for digest checks
+and portable export. Every API body, packet, inbox view, and model-facing
+rendering uses the 013 B-8 normalized body inside 019's envelope, so
+bidirectional and zero-width controls never reach a rendered view; an
+export labels which of the two it carries (D-8).
 
 ### B-3. Requests, recipients and revisions
 
@@ -174,7 +186,13 @@ and baseline revision, requested result, acceptance criteria, priority,
 optional deadline, dependencies on exact request revisions and evidence
 needed. Recipient roles resolve through an explicit scope membership map;
 a repository path or a mention in text grants no access. That map is the
-explicit grant table 012 B-9 requires any sharing to add (P-11).
+explicit grant table 012 B-9 requires any sharing to add (D-11). A case and
+its requests live in one coordination scope, whose owner grants principals
+(a `sub`, optionally narrowed to one client) roles in it: owner, recipient,
+or resolver. Delivery is same-scope only. A recipient outside the scope
+receives at most a reference it cannot resolve (C13), and a delegated
+resolver is an explicit grant row, never inferred from text (C06). Whether
+033 B-5's shared scopes reuse this table is deferred.
 
 Its work state is one of `open`, `accepted`, `blocked`, `reported`,
 `resolved`, `cancelled`, `superseded`. Delivery is a separate per-recipient
@@ -243,8 +261,11 @@ returns conflict with a readable current revision, not a last-write-wins
 merge. Two agents sharing an OAuth client remain distinct run instances
 for attribution, but receive no permissions from that distinction alone.
 
-Aicortex's work claim protects coordination writes only. It does not fence
-GitHub or an arbitrary process. The CLI executor/action broker must check
+Aicortex's work claim protects coordination writes only. It is 035's
+application claim row with its own per-key token, as amended by 035 D-2,
+and never rahi's lease fence token (D-7). The first slice's transitions
+need no claim at all: one authority and the compare-and-set on request
+version protect them. It does not fence GitHub or an arbitrary process. The CLI executor/action broker must check
 its own current grant and cancellation/lease status at the actual effect.
 A cancellation request is not confirmation that execution has stopped.
 That confirmation is a separate executor outcome.
@@ -314,13 +335,34 @@ historical. It does not mark the draft spec approved or its feature built.
 Two contradictory reports about the same subject/revision remain conflict
 until evidence or an authorized resolution explains the discrepancy.
 
-Evidence assessment records integrity, signature validity, issuer trust
-and subject binding separately, with a separate policy/admission result.
-Each assessment includes verifier identity/version and pass/fail/unknown/
-not-applicable outcomes. This is an adapter mapping to the family contract,
-not a new signature implementation here. Aicortex references independent
-verifier results and applies memory trust rules; it does not reimplement
-spec-spine, the CLI bundle verifier or Rahi's chain verification.
+Evidence assessment follows the family contract G-05 and G-06 (D-14). Four
+dimensions are recorded separately, each with its own closed outcome set:
+`integrity` (`pass`, `fail`, `unknown`), `signature` (`pass`, `fail`,
+`unsigned`, `unknown`), `issuerTrust` (`pass`, `fail`, `unknown`), and
+`subjectBinding` (`pass`, `fail`, `unknown`, `not-applicable`). `unsigned`
+belongs to `signature` only, `not-applicable` only to a subjectless record
+type, and a missing expected subject is `unknown`. `admission` (`admit`,
+`refuse`, with reason codes) is a separate result, and incomplete required
+evidence refuses admission with a reason. Trust comes from roots supplied
+independently of the evidence: an absent key is `unknown`, a positively
+revoked or excluded key is `fail`, and `issuerTrust` passes only after a
+passing `signature` against an eligible root. A signed observation cannot
+upgrade the evidence it observed, and an unperformed check is `unknown`.
+
+Each assessment keeps the verifier's raw value beside the normalized one,
+with the verifier's identity and version, the root-set identity, coverage
+and stop reasons. A raw value with no mapping normalizes to `unknown` and
+stays recorded as it was emitted. A verifier reference names the subject
+repository with full commit and tree, the verb and its output schema
+version, the check time, and a digest of the verifier's emitted bytes.
+`spec-spine verify` maps from `report.outcome`, never from the exit code,
+because `not-declared` exits 0: `passed` is `pass`, `failed` is `fail`, and
+`not-declared` is `unknown`. CLI 132 freezes the concrete schema version
+and serialization; this spec follows it rather than defining its own. This
+is an adapter mapping, not a new signature implementation here. Aicortex
+references independent verifier results and applies memory trust rules; it
+does not reimplement spec-spine, the CLI bundle verifier or Rahi's chain
+verification.
 
 ### B-8. Query views and bounded attention
 
@@ -338,11 +380,19 @@ version), `GET /inbox`, `GET /outbox`, `GET /requests/{id}`, and
 and mapped disposition, never a claim that work or an external effect ran.
 An external occurrence may feed reconciliation but cannot call the transition
 route internally with stronger privilege. The scope permissions are
-`coordination.read` and `coordination.write`, which amends 020 B-3 and D-1
-(P-12); resolver/owner/recipient checks apply in addition to token scope.
-Under 042 B-9 a scope export needs only `memory.read`; P-10 proposes the
-additional authority for the coordination section and for importing its
-history.
+`coordination.read` and `coordination.write`, as 020 B-3 now lists them
+(020 D-2, D-12 here); owner, recipient, and resolver grants apply in
+addition to token scope. Resolving or cancelling a request whose acceptance
+names a human decision requires an interactive principal. A
+client-credentials principal resolves only a request its owner marked
+machine-resolvable at creation.
+
+Under 042 B-9 a scope export needs `memory.read`. The coordination section
+is included only when the caller also holds `coordination.read`, and it
+never carries credentials, cursors, live claims, grants, or erased bodies.
+Importing coordination history needs `coordination.write` and produces
+`Import`-actor historical records only; an imported open request becomes
+actionable only when a current owner creates it again (D-10).
 
 Inbox groups actionable requests, changed evidence, unanswered decisions
 and conflicts. Outbox shows each recipient's delivery/acknowledgment, work
@@ -401,16 +451,19 @@ without an explicit authorized restoration operation and new provenance.
 Capture minimal duplicate-suppression identity under a documented retention
 policy; where erasure removes it too, report that replay deduplication is
 no longer assured and require a fresh import decision. No body, raw payload,
-credential or private digest enters Rahi's immutable decision chain. 013 B-9
-currently appends a content hash for every refusal and quarantine; P-9
-proposes how the two rules meet.
+credential or unkeyed digest enters Rahi's immutable decision chain. A
+refusal or quarantine of coordination input carries 013 B-9's keyed digest,
+as amended by 013 D-2, whose per-Decision key lives in the application
+store and is destroyed with the body or scope it covers (D-9). Erasure of
+these records is not claimed until key destruction, backups, and replay
+are tested (013 FR-008).
 Source-access revocation suspends new delivery and invalidates cached views;
 retained data follows the configured authorization/retention policy, not
 an assumption of perpetual provider access. Export 042 gains a separately
-versioned coordination section, never executable grants or live leases.
-Import does not restore permissions, membership, resolved authority or
-active work claims from an untrusted archive. It creates provenance-labelled
-historical records pending reauthorization.
+versioned coordination section, never live credentials, grants, cursors or
+claims. Import does not restore permissions, membership, resolved authority
+or active work claims from an untrusted archive. It creates
+provenance-labelled historical records pending reauthorization.
 
 ### B-12. Local product integration
 
@@ -428,6 +481,17 @@ must be proven before this composition is called installable. Aicortex being
 unavailable must not erase CLI execution evidence or prevent existing local
 operations unrelated to shared claims. The CLI reports coordination pending
 or offline and replays through its existing durable journal seam.
+
+The CLI side of the integration is adopted as a design and deferred as work
+(D-15). A separate least-privilege process publishes from the CLI journal or
+export, never from inside the daemon's full environment. Queued submissions
+are a journal record kind carrying the envelope `id`, not a second chain. A
+documented observation adapter comes before any reliance on the ship stage's
+`gh` read seam. Coordination entries feed CLI 123's handoff capsule as
+enveloped data rather than a second resume format, and CLI 131's report
+shows reported against verified. CLI handbacks are admitted as `Assertion`
+with `signature: unsigned`; signing does not block coordination. None of
+this is implemented until the CLI's safety and local slice exists.
 
 ## 4. Functional requirements
 
@@ -463,6 +527,13 @@ under their owned test modules without silently changing expected outcomes.
   per recipient, incorporates a later site update, and produces only changed
   or unanswered work on the second dispatch. No duplicate source entry and
   no historical approval may alter the current authority state.
+- **FR-013.** C23 to C28: rendered views carry only normalized text; a
+  renewal or a refused competitor leaves a claim token valid and a takeover
+  invalidates it; a refused body cannot be confirmed from the chain once
+  its key is destroyed; the export's coordination section needs
+  `coordination.read`; a client-credentials principal cannot resolve a
+  human-decision request; and a consumer that acknowledged ahead of applying
+  is served its records again.
 
 ## 5. Acceptance criteria
 
@@ -475,7 +546,8 @@ under their owned test modules without silently changing expected outcomes.
 - **AC-3.** One statecraft-cli producer publishes a local handback and a
   Git/provider observation through the documented endpoint; its UI distinguishes
   reported from verified and refuses action without a grant. This is a sibling
-  integration prerequisite, not permission to edit that repo here.
+  integration prerequisite, not permission to edit that repo here, and it
+  cannot run before the CLI's safety and local slice exists (D-15).
 - **AC-4.** Rebuilding projections from retained events and a versioned
   checkpoint yields identical visible states at the same watermark. An expired
   retention window is explicitly reported; erased content never reappears.
@@ -495,136 +567,116 @@ by authoring this specification.
 
 ## 7. Resolved decisions
 
-No owner ratification is recorded. The following are proposed design choices
-from the September 11 user-requested analysis, with alternatives and impact
-in `docs/design/01-coordination-and-local-integration.md`. P-5 and P-6 were
-restated and P-7 to P-16 added on September 12, after reconciling this draft
-with source at the revisions listed in §11 of that record. They remain
-proposals: none is a decision, an approval or an amendment of another spec.
+The September 11 analysis and the September 12 reconciliation proposed P-1
+to P-16, with alternatives and evidence in
+`docs/design/01-coordination-and-local-integration.md` (§8, §11). On
+2026-09-12 the maintainer adopted revision 4's aicortex decisions AI-01 to
+AI-08 (grand-refactor `07-revision-4-decision-package.md` §3, aicortex
+table). Each adopted proposal is recorded below as the decision with the
+same number, so a `P-n` citation in the design record names the `D-n` here.
+P-2 and P-3 are not among the adopted decisions and stay proposals. The
+maintainer adopted these decisions; the agent authored the text, and these
+entries record that authority rather than assuming it. None of them
+approves this spec, which stays `draft`.
 
-- **P-1.** Durable structured coordination in the existing application
-  store, plus inbox/outbox projections and chassis wakeups. Reject mailbox
-  folders as the primary runtime authority and an additional external broker
-  for the first slice.
-- **P-2.** CLI-managed local Rahi cell, not an embedded unauthenticated
-  database. If a true library-only embedding is required, amend the frozen
-  chassis/identity principles explicitly before designing that different product.
-- **P-3.** Keep execution/effect authority in CLI/Statecraft. Aicortex is
-  authoritative for its own coordination state, never for Git/provider facts
-  it has not verified or for an executor's permission.
-- **P-4.** Current ordinals put this extension in wave 4. This authoring
-  does not reorder 002 or bypass the approved dependencies. An earlier
-  coordination slice requires an explicit sequencing revision, with the
-  needed types/store/gate/API/claims extracted from the linear plan. It
-  does not require embeddings, curation or Kubernetes on technical grounds.
-- **P-5.** Rahi at `444bcf8` supports B-4's single transaction:
-  `Outbox::stage` appends to the caller's `TxnBuilder`, and its envelope is
-  kind, tenant, name and revision only. `Outbox::drain` notifies and then
-  deletes, at least once, with no consumer acknowledgment. Stage durable
-  application work in the same transaction and treat notifications only as
-  hints. Leases do not match 035: `LEASE_TTL_SECONDS` is 10 and documented as
-  never configurable, hiqlite sets the expiry once at acquisition and never
-  refreshes it, no renew method exists, and every `StoreHandle::lease` call
-  mints a new fence token. Rahi 012 D-1 and D-6 still record contradictions
-  pending a human amendment. Chassis changes belong in Rahi.
-- **P-6.** Before implementing 010, reconcile its published-only dependency
-  rule with the actual distribution. Rahi has nine crates at `0.1.0`, no
-  tags and no publication; its draft 039 leaves registry publication versus
-  Git tags open. 010 B-2 lists eight crates while B-3 requires
-  `rahi_cli::run`, so `rahi-cli` must be pinned as well. A Git revision
-  useful for a spike does not satisfy 010 D-1. This spec grants no
-  dependency waiver.
-- **P-7. Claims over a ten-second chassis lease.** Keep 035's HTTP contract
-  (requested duration, `PATCH` renewal, `DELETE` release, 409 naming the
-  holder) but store a claim as an application row with key, holder, expiry
-  and its own per-key token, which increases on takeover and never on
-  renewal. Serialize claim changes under a short rahi `Lease` and check
-  guarded writes against the claim row in the same transaction. Rahi's fence
-  token cannot serve as the claim token: a competitor's refused attempt also
-  acquires a lease and mints a token, which would supersede the rightful
-  holder. This amends 035 B-2's statement that a claim is a chassis lease.
-  The alternative, a renewable lease API, needs a Rahi spec and release.
-  This spec's first slice needs neither, because one authority and a
-  compare-and-set on request version protect its transitions.
-- **P-8. Original bytes and normalization.** Keep admitted original payload
-  bytes as an opaque object used only for digest checks and portable export.
-  Every API body, packet, inbox view and model-facing rendering uses the
-  013 B-8 normalized body inside 019's envelope; export labels both. This
-  keeps bidirectional and zero-width controls out of every rendered view.
-- **P-9. Digests in the decision chain.** 013 B-9 appends a content hash to
-  rahi's chain for every refusal and quarantine. For short or predictable
-  text that hash can be confirmed by guessing and can never be erased, which
-  B-11 forbids here and 013 permits for memories. Recommended: amend 013 B-9
-  so the chain records a keyed digest whose key stays in the application
-  store, for memories and coordination alike. Alternative: narrow B-11 to
-  admitted bodies and accept 013's hash for refused or quarantined input.
-  Either is an owner decision; this spec must not silently diverge from 013.
-- **P-10. Export and import authority.** 042 B-9 lets any holder of
-  `memory.read` export a scope. Include the coordination section only when
-  the caller also holds `coordination.read`, and never export credentials,
-  cursors, live claims, grants or erased bodies. Importing coordination
-  history needs `coordination.write` and produces `Import`-actor historical
-  records; an imported open request becomes actionable only when a current
-  owner creates it again.
-- **P-11. Membership is the grant table.** 012 B-9 requires sharing to arrive
-  as an explicit grant table with its own predicate. First slice: a case and
-  its requests live in one coordination scope, whose owner grants principals
-  (a `sub`, optionally narrowed to a client) roles in it. There is no
-  cross-scope delivery; a recipient outside the scope receives only a
-  reference it cannot resolve (C13). Whether 033 B-5's shared scopes reuse
-  this table is a separate decision.
-- **P-12. Scopes and resolvers.** Adding `coordination.read` and
-  `coordination.write` amends 020 B-3 and D-1, which fix five scopes. That is
-  recommended over reusing `memory.write`, which would let any memory writer
-  submit coordination state. Mirror 020 B-3's promotion rule: resolving or
-  cancelling a request whose acceptance names a human decision requires an
-  interactive principal, and a client-credentials principal resolves only
-  requests their owner marked machine-resolvable at creation. A delegated
-  resolver (C06) is an explicit grant row, never inferred from text.
-- **P-13. Territory the frontmatter may be missing.** Wakeups delivered on
-  `GET /events` need an `extends` edge on 020's
-  `crates/aicortex-api/src/events.rs`; named errors with stable RFC 9457
-  types need one on 020's `crates/aicortex-api/src/error.rs`; an intake
-  registered like 033's and 042's sources needs one on 030's
-  `crates/aicortex-ingest/src/registry.rs`. Recommended: add all three at
-  approval. The gate does not detect a missing, mistyped or misattributed
-  `extends` unit while the code is absent, so review has to.
-- **P-14. Evidence result mapping.** Adopt the family recommendation's
-  dimensions `integrity`, `signature`, `issuerTrust` and `subjectBinding`,
-  with `policy` kept as a separate admission result. Normalized outcomes are
-  `pass`, `fail`, `unknown` and `not-applicable`, plus `unsigned` for
-  `signature` only. Store each verifier's raw value beside the normalized
-  one; an unmapped value normalizes to `unknown`. A verifier reference names
-  verifier and version, subject repository with full commit and tree, verb
-  and output schema version, check time and a digest of the verifier's
-  emitted bytes. For `spec-spine verify`, map `report.outcome` (`passed`,
-  `failed`, `not-declared`) to pass, fail and unknown, never the exit code,
-  because `not-declared` exits 0. Still open: CLI 132 names `subject` and
-  `issuer` with no signature dimension, hqgit names signature validity, and
-  Statecraft 015 adds a request-level `incomplete`. Statecraft leads the
-  agreement; B-7's wording changes only after it.
-- **P-15. CLI integration positions.** For the CLI owner's integration
-  draft: publish from a separate least-privilege process that reads the
-  journal or export, not inside the daemon's full environment; queue
-  submissions as a new journal record kind carrying the envelope `id`, not a
-  second chain; define a documented observation adapter before relying on
-  the ship stage's `gh` read seam; build reported-versus-verified display on
-  draft 131; label reports produced by the unfenced verify stage (129's
-  recorded residual); feed coordination entries into the 123 handoff capsule
-  as enveloped data rather than a second resume format; and admit CLI
-  handbacks as `Assertion` with `signature: unsigned` rather than blocking
-  on signing.
-- **P-16. Sequencing.** This spec is absent from 002's `sequencing-plan`
-  targets, wave 4 is defined as proof, and lowest-numbered-ready scheduling
-  builds it after 044. Option A: keep it last and add it to 002's list.
-  Option B, recommended if coordination should arrive earlier: a separate
-  draft at the free wave 2 ordinal 025 for the deterministic core (B-1 to
-  B-4, the B-8 reads and B-11 erasure) depending on 014 and 020 only and not
-  on 035, with this spec keeping observations, reconciliation, export and
-  local integration and gaining a dependency on it. Nothing is renumbered.
-  It still follows 015 to 019, because 020 depends on 019; building before
-  embeddings would amend 020's dependencies and 002's linear plan. Both
-  options need the owner.
+- **D-1 (2026-09-12, AI-01; was P-1).** Durable structured coordination
+  lives in the existing application store, with inbox and outbox as
+  projections and chassis notifications as wakeups. Mailbox folders are not
+  the primary runtime authority, and the first slice adds no external
+  broker. D-5 states the transaction and notification mechanics.
+- **P-2 (open).** CLI-managed local Rahi cell, not an embedded
+  unauthenticated database. If a true library-only embedding is required,
+  amend the frozen chassis and identity principles explicitly before
+  designing that different product.
+- **P-3 (open).** Keep execution and effect authority in CLI/Statecraft.
+  Aicortex is authoritative for its own coordination state, never for
+  Git/provider facts it has not verified or for an executor's permission.
+- **D-4 (2026-09-12, AI-07; was P-4).** This spec stays in wave 4 at its
+  current ordinal, after its declared prerequisites. D-16 records the
+  sequencing choice.
+- **D-5 (2026-09-12, AI-01; was P-5).** Coordination uses durable
+  application transactions with outbox wakeup hints. Rahi at `444bcf8`
+  supports B-4's single transaction: `Outbox::stage` appends to the
+  caller's `TxnBuilder` with a key-only envelope (kind, tenant, name,
+  revision), and `Outbox::drain` notifies and then deletes, at least once,
+  with no consumer acknowledgment. Durable application work is staged in
+  the same transaction, and no correctness property depends on receiving a
+  notification. Chassis changes belong in Rahi.
+- **D-6 (2026-09-12, AI-01; was P-6).** 010 now pins all nine rahi crates,
+  `rahi-cli` included, and keeps its published-crate policy (010 B-2, D-2),
+  matching rahi's RH-05. 010 may be prepared before the release; its
+  bootstrap acceptance waits for the published nine-crate release. A Git
+  revision useful for a spike does not satisfy 010 D-1, and there is no
+  Git dependency waiver.
+- **D-7 (2026-09-12, AI-02; was P-7).** Renewable claims are application
+  rows with key, holder, expiry and their own per-key token, which
+  increases on takeover and never on renewal, checked inside the guarded
+  transaction (035 B-2 to B-4, D-2). Rahi's ten-second lease serializes
+  claim changes only. Its fence token cannot serve as a claim token: every
+  acquisition mints a new one, including a refused competitor's, which
+  would supersede the rightful holder. 035's HTTP contract (requested
+  duration, `PATCH` renewal, `DELETE` release, 409 naming the holder)
+  stands.
+- **D-8 (2026-09-12, AI-03; was P-8).** Admitted original payload bytes
+  are kept as an opaque object for digest checks and portable export only.
+  Every rendered view uses the 013 B-8 normalized body inside 019's
+  envelope, and export labels both (B-2).
+- **D-9 (2026-09-12, AI-03; was P-9).** Refusal and quarantine Decisions
+  carry a keyed digest whose per-Decision key lives in the application
+  store and is destroyed by the erasure that covers it, for memories and
+  coordination alike (013 B-9, D-2). A shared permanent key would defeat
+  per-object erasure. Key destruction, backups and replay are tested before
+  erasure of these records is asserted (013 FR-008, B-11 here).
+- **D-10 (2026-09-12, AI-04; was P-10).** The export's coordination section
+  requires `coordination.read` in addition to 042 B-9's `memory.read`, and
+  never includes credentials, cursors, live claims, grants or erased
+  bodies. Importing coordination history requires `coordination.write` and
+  produces `Import`-actor historical records only (B-8, B-11).
+- **D-11 (2026-09-12, AI-04; was P-11).** The coordination scope's
+  membership map is the explicit grant table 012 B-9 requires. Delivery is
+  same-scope only; a recipient outside the scope receives a reference it
+  cannot resolve (C13). Reuse of the table by 033 B-5's shared scopes is
+  deferred (B-3).
+- **D-12 (2026-09-12, AI-04; was P-12).** `coordination.read` and
+  `coordination.write` are separate OAuth scopes (020 B-3, D-2), not
+  `memory.write`. Resolvers are explicit grants. Resolving or cancelling a
+  request whose acceptance names a human decision requires an interactive
+  principal; a client-credentials principal resolves only requests their
+  owner marked machine-resolvable at creation (B-8).
+- **D-13 (2026-09-12, AI-05; was P-13).** The three missing ownership edges
+  are declared: 020's `events.rs` for wakeups on `GET /events`, 020's
+  `error.rs` for named errors with stable RFC 9457 types, and 030's
+  `registry.rs` for registering the intake. The gate does not detect a
+  missing, mistyped or misattributed `extends` unit while the code is
+  absent (design record §11.5, N3 and N4), so review has to.
+- **D-14 (2026-09-12, AI-05; was P-14).** Evidence assessment uses the
+  family contract G-05 and G-06 with each verifier's raw value preserved
+  beside the normalized one (B-7). An unmapped raw value is `unknown`.
+  `spec-spine verify` maps from `report.outcome`, never the exit code. The
+  earlier open question (CLI 132's `subject` and `issuer`, hqgit's
+  signature validity, Statecraft 015's `incomplete`) is closed by G-05's
+  dimensions and its separate `admission` result.
+- **D-15 (2026-09-12, AI-06; was P-15).** The CLI integration design is
+  adopted: a least-privilege publisher, a journal record kind rather than a
+  second chain, a documented observation adapter, CLI 123's handoff capsule
+  instead of a second resume format, and CLI 131's report for reported
+  against verified. Its implementation is deferred until the CLI's safety
+  and local slice exists (B-12, AC-3). Unsigned handbacks are assertions,
+  and signing does not block coordination.
+- **D-16 (2026-09-12, AI-07; was P-16).** Option A: this spec stays after
+  its current prerequisites and joins 002's `sequencing-plan` targets (002
+  D-4). Ordinal 025 is not allocated. The family's local slice and this
+  repository's bootstrap come before early coordination; an earlier core is
+  reopened only for a concrete adoption need, with a revised dependency
+  plan.
+- **D-17 (2026-09-12, AI-08).** Two items outside this spec's territory
+  were routed rather than resolved here. The README's blanket licence claim
+  is corrected under its owning spec (001 D-9). The spec-spine observations
+  N2 (a draft appears in `registry plan`'s ready set) and N6 (an `I-004`
+  refusal exits through the staleness code, and a draft marked complete
+  compiles) are reported to spec-spine's ongoing work as findings, not
+  blockers, and no resolution of that work is asserted. `registry plan`
+  listing a spec as ready is never its approval.
 
 ## Verification
 

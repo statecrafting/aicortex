@@ -126,10 +126,34 @@
       },
       {
         "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/events.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/error.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "030-source-adapter-framework",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-ingest/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
         }
       },
       {
@@ -169,6 +193,13 @@
         "unit": {
           "kind": "file",
           "path": "specs/002-memory-thesis/spec.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
         }
       },
       {
@@ -222,6 +253,6 @@
     "summary": "Generalize repository handoff packets and handbacks into a durable, scoped coordination protocol. Requests, acknowledgment, replies, evidence observations, explicit resolutions and corrections retain their identity and revision. Inbox and outbox are projections, not another broker or hash chain. The same hiqlite store holds records, recipient state and consumer cursors transactionally; chassis events only wake consumers. Statecraft-cli supplies local session and Git/provider observations and keeps execution authority. A recalled request cannot authorize an action, a session report cannot approve its own specification, and an interrupted or disconnected consumer can reconcile what it missed.\n",
     "title": "Coordinate repository work through durable requests, replies, and reconciled evidence"
   },
-  "shardHash": "9fbf2ae51f2fa9201b2453d6b6a96a87f38109dc65c41af690b25e11e5781109",
+  "shardHash": "f9b5220dd52ce391c7cf33f8e410af555f83ff0642dc4279382a6d1e6a611d6f",
   "specVersion": "1.2.0"
 }
