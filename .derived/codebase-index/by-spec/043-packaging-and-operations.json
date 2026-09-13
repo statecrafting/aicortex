@@ -31,11 +31,6 @@
         "code": "W-001",
         "message": "spec '043-packaging-and-operations' file unit '.github/workflows/image.yml' does not exist",
         "path": ".github/workflows/image.yml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '043-packaging-and-operations' file unit 'apps/aicortex/src/cell.rs' does not exist",
-        "path": "apps/aicortex/src/cell.rs"
       }
     ]
   },
@@ -43,7 +38,12 @@
     "dependsOn": [
       "042-portability-and-migration"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -100,7 +100,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/src/cell.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -113,5 +117,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f74c17be81549840ef9d41e634af693d29f7254ffc8a3d78f1146cfda26f0bbb"
+  "shardHash": "d823edca9366c490acbe82b280d55816bca1c7324163d8f637fb6d44bb69b995"
 }

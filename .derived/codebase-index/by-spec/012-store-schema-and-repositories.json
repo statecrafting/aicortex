@@ -54,16 +54,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'apps/aicortex/src/cell.rs' does not exist",
-        "path": "apps/aicortex/src/cell.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' section unit 'workspace.dependencies' not found in Cargo.toml",
-        "path": "Cargo.toml"
-      },
-      {
-        "code": "W-001",
         "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/memory_repo.rs"
       }
@@ -73,7 +63,16 @@
     "dependsOn": [
       "011-memory-model"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -166,7 +165,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/src/cell.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -175,7 +178,15 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 42,
+              "startLine": 17
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -198,5 +209,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "08a0348d764e938d951bda4b48b6dbddaed7d92c570677fc4b446647daa5ee9d"
+  "shardHash": "f2d3a6132695c96d5c1f8711affbdf0971a62526d4e858d78ff3ba51c947d961"
 }

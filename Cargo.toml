@@ -1,0 +1,53 @@
+# The aicortex workspace (spec 010 B-1). Every third-party and rahi version
+# lives in [workspace.dependencies]; a crate manifest inherits it with
+# `workspace = true`, and adding a dependency is an `extends` edge on this
+# section.
+
+[workspace]
+members = ["apps/*"]
+resolver = "3"
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.96"
+license = "Apache-2.0"
+repository = "https://github.com/statecrafting/aicortex"
+authors = ["Bartek Kus"]
+
+[workspace.dependencies]
+# The chassis (B-2): all nine crates at one exact version, from the registry
+# only. No [patch], no path, no git (D-1, D-2). The version is the one rahi's
+# sources carry today; the bump that names the published release is a
+# single change to these nine lines.
+rahi-types = "=0.1.0"
+rahi-store = "=0.1.0"
+rahi-ledger = "=0.1.0"
+rahi-kernel = "=0.1.0"
+rahi-idp = "=0.1.0"
+rahi-edge = "=0.1.0"
+rahi-ops = "=0.1.0"
+rahi-harness = "=0.1.0"
+rahi-cli = "=0.1.0"
+
+# The router type the Cell returns (B-3). The chassis's edge is built on it,
+# and this is the version rahi locks, so the workspace adds no second copy
+# of the HTTP stack.
+axum = "0.8"
+
+# Tests only: the B-2 test reads Cargo.toml files, and the preflight test
+# needs a data directory that is empty and disposable. Both match the
+# versions and features rahi's tree already carries.
+toml = { version = "1", default-features = false, features = ["parse", "serde"] }
+tempfile = "3"
+
+[workspace.lints.rust]
+unsafe_code = "forbid"
+
+[workspace.lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+indexing_slicing = "deny"
+panic = "deny"
+# Allowed only at the crate roots of aicortex-index and aicortex-recall,
+# each with one documented `allow` (B-1).
+float_arithmetic = "deny"

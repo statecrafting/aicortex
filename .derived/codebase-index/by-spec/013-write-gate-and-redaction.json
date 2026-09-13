@@ -44,11 +44,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' section unit 'workspace.dependencies' not found in Cargo.toml",
-        "path": "Cargo.toml"
-      },
-      {
-        "code": "W-001",
         "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/memory_repo.rs"
       },
@@ -63,7 +58,12 @@
     "dependsOn": [
       "012-store-schema-and-repositories"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -138,7 +138,15 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 42,
+              "startLine": 17
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -170,5 +178,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9b856139079642620d865977029db95b73524dd561fab46677dd77d79945b976"
+  "shardHash": "bd0b30fe7d7c8d0dc87a621017f2f8db072d46898c14fac570f4a618948745b9"
 }

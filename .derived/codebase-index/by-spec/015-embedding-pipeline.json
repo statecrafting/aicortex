@@ -69,16 +69,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'apps/aicortex/manifest.toml' does not exist",
-        "path": "apps/aicortex/manifest.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' section unit 'workspace.dependencies' not found in Cargo.toml",
-        "path": "Cargo.toml"
-      },
-      {
-        "code": "W-001",
         "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/worker.rs' does not exist",
         "path": "crates/aicortex-embed/src/worker.rs"
       }
@@ -88,7 +78,16 @@
     "dependsOn": [
       "014-memory-lifecycle-and-erasure"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/manifest.toml",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -199,7 +198,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/manifest.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -217,7 +220,15 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 42,
+              "startLine": 17
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -240,5 +251,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "1258725272a435a3581b5c5c58e27c31747ac87f61190739e7860f15ca5ca773"
+  "shardHash": "016b497911a34f192fdd367dc9a5f611ecff2391516059660ee00d065b6a5d16"
 }

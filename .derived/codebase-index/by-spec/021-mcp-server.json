@@ -59,11 +59,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '021-mcp-server' file unit 'apps/aicortex/src/cell.rs' does not exist",
-        "path": "apps/aicortex/src/cell.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '021-mcp-server' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
         "path": "crates/aicortex-api/src/dto.rs"
       }
@@ -73,7 +68,12 @@
     "dependsOn": [
       "020-http-api-and-scopes"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -175,7 +175,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/src/cell.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -210,5 +214,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "8b15710bb145d4bd46209db2ea796efb9d7e4f6564320d088fee2cbb735cb291"
+  "shardHash": "7875612ee56042223b9052756b5bfbdfc60cecf17ea2054f74db7ed2e3835190"
 }

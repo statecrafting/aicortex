@@ -42,6 +42,16 @@
         "path": "apps/aicortex/tests/cell.rs"
       }
     ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
+      }
+    ],
     "extraFrontmatter": {
       "wave": 1
     },
@@ -58,6 +68,7 @@
       "5. Acceptance criteria",
       "6. Out of scope",
       "7. Resolved decisions",
+      "Status (2026-09-13, in progress: waiting on the published rahi release)",
       "Verification"
     ],
     "specPath": "specs/010-chassis-adoption-and-workspace/spec.md",
@@ -65,6 +76,6 @@
     "summary": "The workspace and the seam to the chassis. rahi crates are pinned to one exact version in the workspace manifest and are never vendored or patched. The application is a `Cell`: it returns a manifest, a migration list, a router, and an operator router, and `main` hands it to rahi's runner, which owns argument parsing, boot, the verbs, and the exit codes. The manifest is the capability ceiling, and it starts closed: no egress host is declared until a spec needs one.\n",
     "title": "The cell: a Cargo workspace, pinned rahi crates, a declared manifest, and one line of main"
   },
-  "shardHash": "422bcb645fd193cf58feb619d6282806af71824321889d8c1b2c84373ee7d554",
+  "shardHash": "d09b3bee8f50ac51441437eaf5174d8aa246f002f568206a2cebc0b3cf64ca2e",
   "specVersion": "1.2.0"
 }

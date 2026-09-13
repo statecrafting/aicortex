@@ -4,11 +4,6 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '041-privacy-and-egress-boundary' file unit 'apps/aicortex/manifest.toml' does not exist",
-        "path": "apps/aicortex/manifest.toml"
-      },
-      {
-        "code": "W-001",
         "message": "spec '041-privacy-and-egress-boundary' file unit 'crates/aicortex-embed/src/remote.rs' does not exist",
         "path": "crates/aicortex-embed/src/remote.rs"
       }
@@ -18,10 +13,19 @@
     "dependsOn": [
       "040-retrieval-evaluation"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "apps/aicortex/manifest.toml",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/manifest.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -43,5 +47,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f377e5a826cfcb329efe6e4bbb56fa1aeea3b841358cbe3071f30f7527bc179b"
+  "shardHash": "1708f4e5bbffaefbb41d85c74e7a211e5f264b852b1b40dae9ca69e7b2a1804a"
 }

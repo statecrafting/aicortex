@@ -1,57 +1,57 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '010-chassis-adoption-and-workspace' file unit 'Cargo.toml' does not exist",
-        "path": "Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '010-chassis-adoption-and-workspace' file unit 'rust-toolchain.toml' does not exist",
-        "path": "rust-toolchain.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '010-chassis-adoption-and-workspace' file unit 'deny.toml' does not exist",
-        "path": "deny.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/Cargo.toml' does not exist",
-        "path": "apps/aicortex/Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/src/main.rs' does not exist",
-        "path": "apps/aicortex/src/main.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/src/cell.rs' does not exist",
-        "path": "apps/aicortex/src/cell.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/manifest.toml' does not exist",
-        "path": "apps/aicortex/manifest.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '010-chassis-adoption-and-workspace' file unit 'apps/aicortex/tests/cell.rs' does not exist",
-        "path": "apps/aicortex/tests/cell.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "002-memory-thesis"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "apps/aicortex/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/manifest.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "deny.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "rust-toolchain.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -60,7 +60,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -69,7 +73,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/manifest.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -78,7 +86,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/src/cell.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -87,7 +99,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/src/main.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -96,7 +112,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/cell.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -105,7 +125,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "deny.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -114,12 +138,29 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "rust-toolchain.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "rust-toolchain.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
         }
       }
     ],
@@ -127,5 +168,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "9c839ef757d1e6a5c8bd606b06f1bb44ce0a4e7727aa8864174ca3e55690b353"
+  "shardHash": "440746042100b9a3db7ecda6276c65831b5e0e7750fd96c8b8bcd18a9a6838a2"
 }

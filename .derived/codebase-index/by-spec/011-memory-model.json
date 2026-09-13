@@ -59,11 +59,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '011-memory-model' section unit 'workspace.dependencies' not found in Cargo.toml",
-        "path": "Cargo.toml"
-      },
-      {
-        "code": "W-001",
         "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/provenance.rs' does not exist",
         "path": "crates/aicortex-types/src/provenance.rs"
       }
@@ -73,7 +68,12 @@
     "dependsOn": [
       "010-chassis-adoption-and-workspace"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -175,7 +175,15 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 42,
+              "startLine": 17
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -198,5 +206,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "82497002eaa6f7ebef12dc3fb4abe63fac0aa1cd999a6aa7e1bbd48588beea6f"
+  "shardHash": "58c27948fe72b7948141e766c118405d70ef64015d70641f575ee3f57f5dd212"
 }

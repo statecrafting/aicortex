@@ -66,11 +66,6 @@
         "code": "W-001",
         "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/tests/authz.rs' does not exist",
         "path": "crates/aicortex-api/tests/authz.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'apps/aicortex/src/cell.rs' does not exist",
-        "path": "apps/aicortex/src/cell.rs"
       }
     ]
   },
@@ -78,7 +73,12 @@
     "dependsOn": [
       "019-untrusted-content-boundary"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -198,7 +198,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "apps/aicortex/src/cell.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -224,5 +228,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "cfd8668ad3ad4b9adbca1e4f1e67f5b2deffd92dde47e31164f4761b4e832661"
+  "shardHash": "3b1924d3d4d04810d5eac50227db5b66849a407a0549fe13978785441bf40dbe"
 }

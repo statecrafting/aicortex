@@ -69,6 +69,10 @@ extra_hashed_inputs = [
   "CLAUDE.md",
   "README.md",
   "Makefile",
+  # The toolchain and supply-chain pins (spec 010 D-5). A pin moves rarely,
+  # and when it does every shard should say so.
+  "rust-toolchain.toml",
+  "deny.toml",
   "scripts/**/*",
   ".mcp.json",
   ".github/dependabot.yml",
@@ -95,6 +99,22 @@ governance = [
 ]
 deployment = ["docker/**/*", "deploy/**/*"]
 evaluation = ["eval/**/*"]
+
+[lint]
+# Claimed source this corpus deliberately keeps out of every content hash
+# (spec 010 D-5, following spec-spine spec 057). A bare `file` unit has no
+# span, so its bytes never enter a shard hash; hashing the source tree
+# instead would stale every shard on every code edit and give up the
+# sharding that keeps two specs' changes from conflicting. The coupling gate
+# and `require_ownership` still refuse an unowned or uncoupled edit. What is
+# given up is written down: `check` does not call the index stale for an
+# edit to one of these files. This silences the warning, not the count,
+# which `check` reports on every run.
+unwitnessed_allowed = [
+  "apps/**/*.rs",
+  "apps/*/manifest.toml",
+  "crates/**/*.rs",
+]
 
 [branding]
 compiler_id = "spec-spine"

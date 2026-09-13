@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib-bin",
+    "name": "aicortex",
+    "path": "apps/aicortex",
+    "specRef": "010-chassis-adoption-and-workspace",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "5080f8817b7efda6e8225f51b3e8fbf364ccbb67940232e3c2f57fee5a11066c"
+}
