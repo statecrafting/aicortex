@@ -51,6 +51,11 @@
         "code": "W-001",
         "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/memory_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
+        "path": "crates/aicortex-store/src/erasure.rs"
       }
     ]
   },
@@ -148,6 +153,15 @@
         "sourceField": "constrains",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-store/src/memory_repo.rs"
         }
       }
@@ -156,5 +170,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "6995786b84ad9ef27b0391edbdd179a6f73bb8c971b3648a22a89ac625b8e80d"
+  "shardHash": "b36e74a5a5548a2970b73e6f09bf77e12069854709501eee9736cd121c28b808"
 }
