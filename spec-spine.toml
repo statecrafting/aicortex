@@ -67,6 +67,7 @@ extra_hashed_inputs = [
   ".claude/settings.json",
   "AGENTS.md",
   "CLAUDE.md",
+  "README.md",
   "Makefile",
   "scripts/**/*",
   ".mcp.json",

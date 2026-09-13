@@ -55,6 +55,8 @@ human review; drafts are visible as blockers and are never scheduled.
 
 ## License
 
-Apache-2.0, see [`LICENSE`](LICENSE). The chassis and the other products in
-this family are Apache-2.0 as well, so a crate can move in either direction
-across the family without a licence review.
+Apache-2.0, see [`LICENSE`](LICENSE). The family is not under one licence.
+rahi (the chassis), spec-spine, statecraft-cli, and statecrafting are
+Apache-2.0; Statecraft and hqgit are AGPL-3.0. Moving code across that
+boundary needs a licence review, and for any other repository, read its
+`LICENSE` rather than assuming.

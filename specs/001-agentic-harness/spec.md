@@ -14,6 +14,7 @@ depends_on:
 establishes:
   - "AGENTS.md"
   - "CLAUDE.md"
+  - "README.md"
   - "Makefile"
   - "spec-spine.toml"
   - ".mcp.json"
@@ -356,6 +357,23 @@ consumes this repository as a registered target.
   the staleness gate that proves a merge is what the corpus compiles to, and
   it is claimed here so the ownership ratchet holds it. `.gitattributes` joins
   `establishes` and the hashed inputs with it.
+
+- **D-9 (2026-09-12, the licence sentence and the README's owner).** The
+  README said the chassis and every other product in this family are
+  Apache-2.0, so a crate could cross the family without a licence review.
+  That is false: at the time of this entry rahi, spec-spine, statecraft-cli,
+  and statecrafting declare Apache-2.0 in their `LICENSE` files, while
+  Statecraft and hqgit declare AGPL-3.0. The sentence now says so and
+  requires a licence review for code crossing that boundary. The maintainer
+  directed the correction on 2026-09-12 (revision-4 AI-08) and asked for it
+  to travel with the README's owning spec. `spec-spine index owner
+  README.md` answered that no spec owned it, although this spec has edited
+  it at every pin bump (D-7, D-8). So `README.md` joins `establishes` and
+  the hashed inputs here, the same instrument D-8 used for `.gitattributes`,
+  and a later README edit is coupled to this record rather than to nothing.
+  The claim is the smallest reading of the decision; if the maintainer
+  prefers a different owner, moving one `establishes` line is the whole
+  change.
 
 ## Verification
 
