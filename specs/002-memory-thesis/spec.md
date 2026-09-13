@@ -40,6 +40,7 @@ constrains:
       - "042-portability-and-migration"
       - "043-packaging-and-operations"
       - "044-reference-deployment"
+      - "045-durable-coordination-protocol"
 references:
   - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
 summary: >
@@ -146,6 +147,10 @@ The wave 2 exit condition is a real MCP client completing OAuth against a
 running instance and capturing a memory. The wave 4 exit condition is the
 reference deployment on Kubernetes with the evaluation corpus green.
 
+Durable coordination (045) is the one feature in wave 4. It comes after 044
+by ordinal and after its own prerequisites, 035 and 042, and it is
+scheduled only once a human approves it (amended 2026-09-12, D-4).
+
 ## 6. What the thesis refuses
 
 - **A static shared key.** No credential originates in this codebase. The
@@ -187,6 +192,20 @@ reference deployment on Kubernetes with the evaluation corpus green.
   the data cannot send every captured sentence to a third party by
   default, and the privacy boundary (041) must be provable from the
   manifest rather than promised.
+- **D-4 (2026-09-12, amendment, revision-4 AI-07).** Draft 045 was absent
+  from the `sequencing-plan` targets, and wave 4 had been defined as proof
+  only. Two options were put to the maintainer: keep 045 last and add it to
+  the plan, or split a deterministic coordination core into a new wave 2
+  draft at ordinal 025. The maintainer chose the first. It puts the family's
+  local slice and this repository's bootstrap ahead of early coordination,
+  and ordinal 025 stays unallocated. An earlier coordination core is
+  reopened only for a concrete adoption need, and then with a revised
+  dependency plan rather than by building a draft out of order. Adding 045
+  to the plan does not approve it: `registry plan` may list a draft as
+  ready once its dependencies finish, and that listing is never approval
+  (AGENTS.md, "Working the backlog" step 1). The maintainer adopted this on
+  2026-09-12; the agent authored the text and this entry records that
+  authority rather than assuming it.
 
 ## Verification
 
