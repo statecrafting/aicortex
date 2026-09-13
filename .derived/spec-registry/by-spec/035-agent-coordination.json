@@ -64,9 +64,9 @@
     ],
     "specPath": "specs/035-agent-coordination/spec.md",
     "status": "approved",
-    "summary": "When several agents work in one scope they need to know who did what and to avoid doing the same thing twice. Per-agent identity already exists, because each client is its own OAuth client; this spec adds the two things that build on it. A work claim is a lease over a named unit of work with a fencing token, so two agents cannot both take it. A working-memory scope is a short-lived, high-churn area where agents post what they are doing, visible to their siblings and expired automatically, so coordination does not pollute durable memory.\n",
+    "summary": "When several agents work in one scope they need to know who did what and to avoid doing the same thing twice. Per-agent identity already exists, because each client is its own OAuth client; this spec adds the two things that build on it. A work claim is a renewable, application-owned hold on a named unit of work with its own fencing token, so two agents cannot both take it. A working-memory scope is a short-lived, high-churn area where agents post what they are doing, visible to their siblings and expired automatically, so coordination does not pollute durable memory.\n",
     "title": "Agent coordination: per-agent identity, work claims, and a shared working memory"
   },
-  "shardHash": "7ae669db00f9fee23680c351d8a2a3a1ffccdccdc72e4a425411ec8b4d3c3af9",
+  "shardHash": "fa00375c26a8a995ad002c39b45dbb2bc76d75c2af6519ae2281bb3d29a6e114",
   "specVersion": "1.2.0"
 }
