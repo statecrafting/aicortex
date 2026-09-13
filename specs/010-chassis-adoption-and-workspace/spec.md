@@ -52,6 +52,12 @@ and the binary crate under `apps/aicortex`. Later specs extend `cell.rs`
 additively as they add routes and migrations; each such spec declares an
 `extends` edge on it.
 
+Operator prerequisite (amended 2026-09-12, D-2): the nine rahi crates of
+B-2, `rahi-cli` included, published to a registry at one exact version with
+a matching release tag. Preparing this spec's code may begin before that
+release exists; its acceptance cannot pass, and the spec cannot flip to
+`implementation: complete`, until it does.
+
 ## 3. Behavior
 
 - **B-1 (workspace).** A virtual workspace at the root with
@@ -63,11 +69,13 @@ additively as they add routes and migrations; each such spec declares an
   `float_arithmetic` allowed only in `aicortex-index` and
   `aicortex-recall` through one documented `allow` at each crate root.
 - **B-2 (rahi is pinned, never forked).** `rahi-types`, `rahi-store`,
-  `rahi-ledger`, `rahi-kernel`, `rahi-idp`, `rahi-edge`, `rahi-ops`, and
-  `rahi-harness` are declared with one exact `=x.y.z` version. No `[patch]`
-  section, no `path` dependency, no vendored copy, no fork. A test asserts
-  the manifest contains no `[patch]` table and no rahi dependency with a
-  `path` or `git` key.
+  `rahi-ledger`, `rahi-kernel`, `rahi-idp`, `rahi-edge`, `rahi-ops`,
+  `rahi-harness`, and `rahi-cli` are declared with one exact `=x.y.z`
+  version, the same for all nine (amended 2026-09-12, D-2: `rahi-cli` was
+  missing although B-3's `main` calls it). No `[patch]` section, no `path`
+  dependency, no `git` dependency, no vendored copy, no fork. A test asserts
+  the manifest contains no `[patch]` table, no rahi dependency with a `path`
+  or `git` key, and all nine rahi crates at one version.
 - **B-3 (the Cell).** `struct Aicortex` implements rahi's `Cell`:
   `manifest()` returns the embedded `manifest.toml`; `migrations()` returns
   the ordered migration list assembled from every crate that owns schema;
@@ -106,6 +114,9 @@ additively as they add routes and migrations; each such spec declares an
   reports the manifest hash, the empty egress list, and schema version 0.
 - **FR-004.** The B-2 and B-8 grep tests fail when a `[patch]` table or a
   stray router is introduced.
+- **FR-005.** The B-2 test fails when any of the nine rahi crates is
+  missing, carries a `git` or `path` key, or is pinned to a version that
+  differs from the other eight.
 
 ## 5. Acceptance criteria
 
@@ -128,6 +139,21 @@ manifest will eventually declare. The reference deployment (044).
   coupling that constitution VI forbids. The cost is a publish step per
   chassis change; the benefit is that a chassis bug cannot be hidden by a
   local edit.
+- **D-2 (2026-09-12, amendment, revision-4 AI-01 with rahi RH-05).** B-2
+  named eight rahi crates while B-3 requires `rahi_cli::run`, so the
+  workspace could not build as specified; `rahi-cli` joins the pinned set.
+  At the time of this amendment rahi has nine crates at `0.1.0`, no tags and
+  no publication. The maintainer kept D-1's published-crate policy rather
+  than relaxing it: rahi's RH-05 chooses registry publication of all nine
+  crates with matching release tags, and this spec waits for that release.
+  A Git revision is useful for a local spike and does not satisfy D-1;
+  there is no Git dependency waiver, stated or implied. A session may
+  prepare the workspace before the release (AGENTS.md step 7 keeps the
+  spec `in-progress` with a dated Status note naming the missing release),
+  but no acceptance criterion is reported as passed against anything other
+  than the published crates. The maintainer adopted this on 2026-09-12
+  through revision 4's aicortex decisions; the agent authored the text and
+  this entry records that authority rather than assuming it.
 
 ## Verification
 
