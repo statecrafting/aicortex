@@ -1,0 +1,5 @@
+error[E0063]: missing field `provenance` in initializer of `MemoryParts`
+ --> tests/compile_fail/memory_without_provenance.rs:9:17
+  |
+9 |     Memory::new(MemoryParts {
+  |                 ^^^^^^^^^^^ missing `provenance`

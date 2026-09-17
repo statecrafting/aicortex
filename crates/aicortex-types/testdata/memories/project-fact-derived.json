@@ -1,0 +1,57 @@
+{
+  "id": "019c4f00-0000-7000-8000-000000000002",
+  "scope": {
+    "owner": "2f1b8c4e-0f6a-4b1e-9a2c-7d3e5f8a1b90",
+    "kind": "project",
+    "project": "aicortex"
+  },
+  "kind": "fact",
+  "body": {
+    "text": "Every vector names the model that produced it.",
+    "title": "Vectors name their model",
+    "media": [
+      {
+        "digest": "sha256:9f2c1d0e4a6b8c3d5e7f90a1b2c3d4e5f60718293a4b5c6d7e8f9012a3b4c5d6",
+        "media_type": "image/png",
+        "bytes": 20481
+      }
+    ]
+  },
+  "actor": {
+    "kind": "agent",
+    "origin": {
+      "client": "claude-code",
+      "model": "claude-opus-5"
+    },
+    "id": "agent-curator-7"
+  },
+  "provenance": {
+    "source": {
+      "system": "curator"
+    },
+    "captured_at": 1789041600,
+    "ingested_at": 1789041604,
+    "derived_from": [
+      "019c4f00-0000-7000-8000-000000000001",
+      "019c4f00-0000-7000-8000-00000000000a"
+    ],
+    "extractor": {
+      "name": "fact-extractor",
+      "version": "0.3.1"
+    }
+  },
+  "trust": {
+    "class": "assertion"
+  },
+  "status": {
+    "state": "active"
+  },
+  "importance": {
+    "base": 0.75,
+    "last_used": 1789041604,
+    "uses": 3
+  },
+  "schema_version": 1,
+  "created": 1789041604,
+  "updated": 1789041604
+}

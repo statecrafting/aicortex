@@ -1,0 +1,28 @@
+[package]
+name = "aicortex-types"
+version = "0.1.0"
+description = "What a memory is: scope, trust class, actor, provenance, and the states a memory can be in"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "011-memory-model"
+
+# The whole territory (spec 011 section 2): rahi's substrate and serde, plus
+# the v7 identifier of B-1. No I/O crate, no SQL crate, no async runtime;
+# AC-2 asserts that over the resolved tree rather than trusting this list.
+[dependencies]
+rahi-types = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+trybuild = { workspace = true }
+
+[lints]
+workspace = true

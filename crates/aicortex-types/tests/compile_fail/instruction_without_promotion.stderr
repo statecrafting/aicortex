@@ -1,0 +1,13 @@
+error[E0603]: tuple variant `Instruction` is private
+ --> tests/compile_fail/instruction_without_promotion.rs:8:25
+  |
+8 |     let _ = TrustClass::Instruction;
+  |                         ^^^^^^^^^^^ private tuple variant
+  |
+note: the tuple variant `Instruction` is defined here
+ --> src/trust.rs
+  |
+  |     #[non_exhaustive]
+  |     ----------------- cannot be constructed because it is `#[non_exhaustive]`
+  |     Instruction(Promotion),
+  |     ^^^^^^^^^^^

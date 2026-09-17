@@ -1,0 +1,9 @@
+error[E0451]: fields `by` and `decision` of struct `Promotion` are private
+  --> tests/compile_fail/promotion_literal.rs:9:9
+   |
+ 8 |     let _ = Promotion {
+   |             --------- in this type
+ 9 |         by: Sub::new("not-a-human"),
+   |         ^^ private field
+10 |         decision: DecisionRef::new("01JC5X6Q0000000000000000")?,
+   |         ^^^^^^^^ private field

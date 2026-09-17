@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-types",
+    "path": "crates/aicortex-types",
+    "specRef": "011-memory-model",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "11ae1a40baed77715e9a0ddbc62da87a8e8693924767d1520c00d95f7403384d"
+}

@@ -6,11 +6,6 @@
         "code": "W-001",
         "message": "spec '019-untrusted-content-boundary' file unit 'crates/aicortex-recall/src/lib.rs' does not exist",
         "path": "crates/aicortex-recall/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '019-untrusted-content-boundary' file unit 'crates/aicortex-types/src/trust.rs' does not exist",
-        "path": "crates/aicortex-types/src/trust.rs"
       }
     ]
   },
@@ -18,7 +13,12 @@
     "dependsOn": [
       "018-retrieval-and-recall-trace"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-types/src/trust.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -30,7 +30,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/trust.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {

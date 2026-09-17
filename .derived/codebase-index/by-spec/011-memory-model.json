@@ -1,69 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/Cargo.toml' does not exist",
-        "path": "crates/aicortex-types/Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/lib.rs' does not exist",
-        "path": "crates/aicortex-types/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/id.rs' does not exist",
-        "path": "crates/aicortex-types/src/id.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/memory.rs' does not exist",
-        "path": "crates/aicortex-types/src/memory.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/scope.rs' does not exist",
-        "path": "crates/aicortex-types/src/scope.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/trust.rs' does not exist",
-        "path": "crates/aicortex-types/src/trust.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/actor.rs' does not exist",
-        "path": "crates/aicortex-types/src/actor.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/provenance.rs' does not exist",
-        "path": "crates/aicortex-types/src/provenance.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/error.rs' does not exist",
-        "path": "crates/aicortex-types/src/error.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/tests/model.rs' does not exist",
-        "path": "crates/aicortex-types/tests/model.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/testdata/memories/' does not exist",
-        "path": "crates/aicortex-types/testdata/memories/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '011-memory-model' file unit 'crates/aicortex-types/src/provenance.rs' does not exist",
-        "path": "crates/aicortex-types/src/provenance.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "010-chassis-adoption-and-workspace"
@@ -72,11 +7,67 @@
       {
         "path": "Cargo.toml",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/aicortex-types/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/actor.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/error.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/id.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/memory.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/provenance.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/scope.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/trust.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/testdata/memories/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/tests/compile_fail/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/tests/model.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -85,7 +76,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/actor.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -94,7 +89,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/error.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -103,7 +102,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/id.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -112,7 +115,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -121,7 +128,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/memory.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -130,7 +141,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/provenance.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -139,7 +154,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/scope.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -148,7 +167,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/trust.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -157,7 +180,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/testdata/memories/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -166,7 +193,24 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/tests/compile_fail/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/tests/compile_fail/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/tests/model.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -179,8 +223,26 @@
           {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 42,
-              "startLine": 17
+              "endLine": 68,
+              "startLine": 6
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 57,
+              "startLine": 20
             }
           }
         ],
@@ -193,7 +255,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/provenance.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -206,5 +272,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "119923ea7a70fbeb9a01a9010d2e9292633a72f1f04a1c41bb8b7872a983f7f6"
+  "shardHash": "8ecd4fa0522dbd1244c1d644651e7b8849483a66cca7c4d5f75bda43b81d48de"
 }
