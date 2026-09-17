@@ -58,6 +58,14 @@
       {
         "kind": "file",
         "path": "crates/aicortex-store/tests/repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/common/"
+      },
+      {
+        "kind": "file",
+        "path": "apps/aicortex/tests/migrate.rs"
       }
     ],
     "extends": [
@@ -77,13 +85,29 @@
           "file": "Cargo.toml",
           "kind": "section"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/cell.rs"
+        }
       }
     ],
     "extraFrontmatter": {
       "wave": 1
     },
     "id": "012-store-schema-and-repositories",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "kernel",
     "risk": "critical",
     "sectionHeadings": [
@@ -102,6 +126,6 @@
     "summary": "The tables and the only code allowed to touch them. Schema arrives as an ordered list of rahi migrations with versions, never as SQL a user pastes from a guide. Every repository call takes a scope and puts it in the SQL, so an unscoped read is not expressible. Aggregates are maintained counters updated in the writing transaction, because the predecessor's statistics call read every row's metadata into memory. Listing is keyset-paged; there is no offset pagination and no unbounded select.\n",
     "title": "Schema and repositories: versioned migrations, scope in the predicate, counters instead of scans"
   },
-  "shardHash": "dc11702b1422693016fc1dc8f39f6a083cdb00cb6168fcb2103002d35e10f16d",
+  "shardHash": "132909b16d986c40c9e30459a7a2f61d410a4ef4dc2eee7b014ba02479155fdf",
   "specVersion": "1.3.0"
 }

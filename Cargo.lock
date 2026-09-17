@@ -126,6 +126,7 @@ dependencies = [
 name = "aicortex"
 version = "0.1.0"
 dependencies = [
+ "aicortex-store",
  "axum",
  "rahi-cli",
  "rahi-edge",
@@ -135,6 +136,22 @@ dependencies = [
  "rahi-types",
  "tempfile",
  "toml 1.1.6+spec-1.1.0",
+]
+
+[[package]]
+name = "aicortex-store"
+version = "0.1.0"
+dependencies = [
+ "aicortex-types",
+ "base64 0.22.1",
+ "rahi-store",
+ "rahi-types",
+ "ring",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "uuid",
 ]
 
 [[package]]

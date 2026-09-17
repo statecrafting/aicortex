@@ -1,0 +1,2 @@
+- [Coherence guard: extends vs waiver](coherence_guard_extends_vs_waiver.md): an `extends`/D-n entry is not a `Spec-Drift-Waiver:`; check it when a diff edits another complete spec's owned test.
+- [Vacuous test guard pattern](vacuous_test_guard_pattern.md): this repo's good text-scan tests assert the scan found input first; flag scans that skip that guard.

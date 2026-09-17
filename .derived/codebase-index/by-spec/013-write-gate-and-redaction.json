@@ -44,11 +44,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
-        "path": "crates/aicortex-store/src/memory_repo.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
         "path": "crates/aicortex-store/src/erasure.rs"
       }
@@ -61,6 +56,10 @@
     "implementingPaths": [
       {
         "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/memory_repo.rs",
         "source": "spec-edge"
       }
     ],
@@ -142,7 +141,7 @@
           {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 57,
+              "endLine": 79,
               "startLine": 20
             }
           }
@@ -165,7 +164,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -178,5 +181,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "26dde9f828b2ae92b2a5c0e71353dca5ab5aed9b2a870f90dc81b6cf24e9c3e9"
+  "shardHash": "2c1039ec9c07ee393ffe856737bc2078bb281a7795e913d0a1caf5197062dc2e"
 }

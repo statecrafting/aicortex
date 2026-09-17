@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-store",
+    "path": "crates/aicortex-store",
+    "specRef": "012-store-schema-and-repositories",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "47eb4ff16e7fc537182dadfe404b6bbcb4cd7b917c0790640eb273cde9cb7d03"
+}
