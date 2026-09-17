@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 1
 depends_on:
@@ -20,6 +20,11 @@ establishes:
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/repo.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/erasure.rs", note: "erasure reaches every derivative; memory content never enters the ledger" }
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/erasure.rs", note: "erasure destroys the B-9 digest key of every Decision about the erased memory or scope" }
@@ -199,6 +204,99 @@ which are deployment configuration.
   `Spec-Drift-Waiver:`, which records a contradiction rather than resolving
   it; and amending the contract's lifecycle table to exempt `constrains`
   generally, which the maintainer explicitly declined to authorize.
+- **D-3 (2026-09-17, build session).** `valid_until` (B-5) is a column this
+  spec adds to the memory table, not a field of the record. The record of
+  011 has no such field, and adding one would amend another spec's type and
+  bump the record's schema version for a value no reader of the record
+  needs. It is read by the expiry predicate and by nothing else, which is
+  exactly the test 012 D-3 sets for a column existing at all. The same
+  reasoning covers `origin_erased` (B-8) and the `fence` column the chassis
+  requires on any table a leased pass writes.
+  Rejected: a field on `Memory`, which is 011's to add; and a side table
+  keyed by memory id, which would make the sweep a join for no gain.
+- **D-4 (2026-09-17, build session).** FR-001's "two provenance rows" are
+  two rows of a new `memory_source` table, one per capture, and *not* two
+  rows of 012's `provenance` table. 012 B-2 says `provenance` is one row
+  per memory and that stays true: that row is the projection of the
+  provenance the record carries, and a merge does not change what the
+  record says about its own origin. What a merge does create, for the first
+  time, is a second *source* for one row, which is the words B-2 uses
+  ("appended as an additional source row"). Without the table the second
+  capture's origin would simply be lost, which is the thing constitution IX
+  forbids.
+  Rejected: rebuilding `provenance` without its primary key, which would
+  rewrite a sibling spec's table shape to satisfy a reading its own text
+  contradicts.
+- **D-5 (2026-09-17, build session).** B-7 requires erasure to reach every
+  chunk, embedding and index entry. Those tables belong to specs 015 and
+  016 and do not exist at this ordinal, and this spec does not create them:
+  015 section 2 and 016 section 2 name them as their own territory. The
+  sweep is a declared list of derivative tables in `erasure.rs`
+  (`DERIVATIVES`) plus a second list naming the ones still to come
+  (`PLANNED`), which 015 and 016 move across in the same change as the
+  migration that creates them, under an `extends` edge on that file.
+  FR-003 is asserted, not deferred: the test creates the future tables
+  under their declared names and columns, registers them with
+  `Eraser::also`, and reads zero rows for the erased id afterwards, having
+  first read one row for each before.
+  Rejected: creating the tables here, which would take another spec's
+  territory; and sweeping them unconditionally, which would fail every
+  erasure until 015 lands, because SQLite rolls the whole transaction back
+  on a `DELETE` against a table that does not exist.
+- **D-6 (2026-09-17, build session).** The erasure's Decision is appended
+  *after* its transaction commits, not before and not inside it. The chain
+  is append-only, so a Decision appended first and then not carried out
+  would be a permanent and unretractable claim that content was destroyed
+  when it was not. The other order loses, on a crash between the two, the
+  record of an erasure that did happen; a rerun reports it and nobody is
+  ever misled about what the store holds. The chain and the application
+  store are separate commit domains and the chassis offers no transaction
+  spanning them, so one of the two orders had to be chosen.
+- **D-7 (2026-09-17, build session).** The re-digest 012 D-4 promised this
+  spec would carry is a bounded backfill (`Lifecycle::redigest`), not a SQL
+  migration. BLAKE3 has no spelling in SQLite, so the digest of B-1 cannot
+  be computed by a migration at all; it is computed in process from each
+  row's own record, which is the source of truth for what a memory says
+  (012 D-3), and written back in one transaction. It is resumable by
+  construction and converges when it reports zero.
+- **D-10 (2026-09-17, build session, wants a human look).** B-1 mixes the
+  scope into the content digest, and that changed the value spec 012's
+  `tests/repo.rs` reads in
+  `b3_b9_fr003_a_read_for_one_scope_never_returns_another`. That test
+  computed one fingerprint from alice's row and asserted it also resolved
+  bob's, which was true only because the placeholder digest 012 D-4
+  installed did not mix the scope in. 012 D-4 says in so many words that
+  "014 replaces the function", so the change of value is authorized; what
+  is not automatic is touching a sibling spec's test, so it is recorded
+  here and declared as an `extends` edge on that unit.
+  The adaptation is strictly stronger on the invariant the test names.
+  Before: one assertion, that each scope resolves a holder for the shared
+  value. After: that the two scopes' fingerprints differ, that each
+  resolves its own, *and* that neither resolves the other's. Nothing that
+  was asserted has stopped being asserted; two refusals were added.
+  This is flagged rather than quietly done because a build session adapting
+  another spec's test is the shape of a weakened gate even when it is not
+  one, and a human should confirm the reading of 012 D-4.
+- **D-9 (2026-09-17, build session).** `erase_scope` holds one lease for the
+  whole drain rather than re-acquiring one per batch. B-9 says "under a
+  lease", and one lease is the reading that works against this chassis
+  version: hiqlite releases a lock on a task of its own and acknowledges
+  nothing (`rahi_store::Lease::release`), so a tight release-then-acquire on
+  one key races into its queue path, where its client reaches an
+  `unreachable!()` and takes the node's locking subsystem down. That was
+  observed, not assumed, while building this spec.
+  Losing the lease late in a long drain is safe here rather than merely
+  tolerated, which is why the design has no cursor: a batch is defined by
+  what is *left*, every statement in it is idempotent, and the tombstone a
+  second holder would write is the one the first holder already wrote. What
+  exclusivity buys is avoided duplicate work, not correctness.
+  The chassis hazard belongs to rahi and is reported rather than worked
+  around here; this spec does not fork the chassis to fix it (constitution
+  VI).
+- **D-8 (2026-09-17, build session).** Every write in this spec takes the
+  time from its caller rather than reading a clock. The crate reads no
+  clock anywhere else either, and a pass whose timestamps a test could not
+  choose is a pass a test could not assert about.
 - **D-1 (2026-09-03, this spec).** Erasure retains a tombstone row rather
   than deleting it outright. A hard delete breaks referential integrity
   from derived memories and from recall traces, and produces a system that

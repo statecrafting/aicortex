@@ -176,8 +176,9 @@ async fn b3_b9_fr003_a_read_for_one_scope_never_returns_another() {
     let alice = common::scope("alice");
     let bob = common::scope("bob");
 
-    // Identical content in both scopes: the fingerprint is the same, and the
-    // unique index is per scope, so both land.
+    // Identical content in both scopes. Both land: the unique index is per
+    // scope, and since spec 014 B-1 the digest mixes the scope in as well, so
+    // the two rows do not even contend for the same value.
     let mut ids = Vec::new();
     for scope in [&alice, &bob] {
         let memory = common::memory(scope, "the same sentence in both scopes", 5_000);
@@ -219,21 +220,50 @@ async fn b3_b9_fr003_a_read_for_one_scope_never_returns_another() {
         "alice read bob's provenance"
     );
 
-    // The same fingerprint resolves to each scope's own holder, never the
-    // other's.
-    let fingerprint =
+    // A fingerprint resolves to its own scope's holder and to nothing in the
+    // other scope.
+    //
+    // Until spec 014 landed, the digest was over the kind and the body alone
+    // (012 D-4), so identical content in two scopes produced one value and
+    // this read asserted that the *column predicate* kept the scopes apart.
+    // 014 B-1 mixes the scope into the digest itself, which makes the same
+    // isolation hold one layer earlier, so the assertion is made at both
+    // layers here rather than only at the one that still applies: each scope
+    // resolves its own, and neither resolves the other's, which is strictly
+    // more than the read this replaces asked for (014 D-10).
+    let alice_fingerprint =
         aicortex_store::fingerprint(&repo.get(&store, &alice, alice_id).await.unwrap().unwrap());
+    let bob_fingerprint =
+        aicortex_store::fingerprint(&repo.get(&store, &bob, bob_id).await.unwrap().unwrap());
+    assert_ne!(
+        alice_fingerprint, bob_fingerprint,
+        "the same sentence in two scopes is two fingerprints (014 B-1)"
+    );
     assert_eq!(
-        repo.fingerprint_holder(&store, &alice, &fingerprint)
+        repo.fingerprint_holder(&store, &alice, &alice_fingerprint)
             .await
             .unwrap(),
         Some(alice_id)
     );
     assert_eq!(
-        repo.fingerprint_holder(&store, &bob, &fingerprint)
+        repo.fingerprint_holder(&store, &bob, &bob_fingerprint)
             .await
             .unwrap(),
         Some(bob_id)
+    );
+    assert_eq!(
+        repo.fingerprint_holder(&store, &bob, &alice_fingerprint)
+            .await
+            .unwrap(),
+        None,
+        "bob's scope resolved alice's fingerprint"
+    );
+    assert_eq!(
+        repo.fingerprint_holder(&store, &alice, &bob_fingerprint)
+            .await
+            .unwrap(),
+        None,
+        "alice's scope resolved bob's fingerprint"
     );
 
     assert_eq!(Counters::stats(&store, &alice).await.unwrap().total, 1);

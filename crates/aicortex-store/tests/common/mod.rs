@@ -27,6 +27,7 @@ use aicortex_types::{
     Actor, ActorId, Importance, Memory, MemoryBody, MemoryId, MemoryKind, MemoryParts, Provenance,
     Scope, SourceRef, SourceSystem, TrustClass,
 };
+use rahi_ledger::{Hash, Ledger, LedgerSigner};
 use rahi_store::{EncKey, EncKeys, Envelope, Store, StoreConfig, StoreSecrets};
 use rahi_types::{Revision, Sub, UnixSeconds};
 
@@ -95,6 +96,62 @@ fn config(data_dir: &Path) -> StoreConfig {
     }
 }
 
+/// A node with the crate's schema and a fresh decision chain (spec 014).
+///
+/// The erasure of 014 B-7 appends a Decision, so its tests need a chain as
+/// well as a store. The chain is rahi's, opened exactly as the cell opens it:
+/// there is no second ledger here and no test double for one, because what
+/// AC-2 asserts is that a real chain still verifies after a real erasure.
+pub struct Node {
+    pub store: Store,
+    pub ledger: Ledger,
+    pub dir: tempfile::TempDir,
+}
+
+impl Node {
+    /// The handle every repository call takes.
+    pub fn handle(&self) -> rahi_store::StoreHandle {
+        self.store.handle()
+    }
+
+    /// Stop the node.
+    pub async fn shutdown(self) {
+        self.store.shutdown().await.expect("the node stops");
+    }
+}
+
+/// Open a single-voter node with the schema applied and a chain at genesis.
+pub async fn node() -> Node {
+    let fixture = Fixture::migrated().await;
+    let ledger = Ledger::open(
+        fixture.handle(),
+        LedgerSigner::from_seed([7u8; 32]),
+        Hash::parse(format!("sha256:{}", "ab".repeat(32))).expect("a legal manifest hash"),
+    )
+    .await
+    .expect("a fresh chain opens");
+    Node {
+        store: fixture.store,
+        ledger,
+        dir: fixture.dir,
+    }
+}
+
+/// How many rows a statement counts, for a test asserting about the tables
+/// directly rather than through a repository.
+pub async fn count(node: &Node, sql: &str, params: Vec<rahi_store::Value>) -> u64 {
+    #[derive(serde::Deserialize)]
+    struct Count {
+        count: i64,
+    }
+    let rows: Vec<Count> = node
+        .handle()
+        .query_consistent(sql.to_owned(), params)
+        .await
+        .expect("a count reads");
+    u64::try_from(rows.first().map_or(0, |row| row.count)).expect("a non-negative count")
+}
+
 /// A subject, as rauthy would have issued it.
 pub fn sub(name: &str) -> Sub {
     Sub::new(format!("sub-{name}"))
@@ -108,6 +165,31 @@ pub fn scope(name: &str) -> Scope {
 /// A memory: the smallest one the record of 011 admits, in `scope`.
 pub fn memory(scope: &Scope, text: &str, created: u64) -> Memory {
     memory_of_kind(scope, text, created, MemoryKind::Observation)
+}
+
+/// The same, naming the memories it was derived from (spec 014 B-4, B-8).
+pub fn derived_memory(
+    scope: &Scope,
+    text: &str,
+    created: u64,
+    kind: MemoryKind,
+    parents: Vec<MemoryId>,
+) -> Memory {
+    let mut memory = memory_of_kind(scope, text, created, kind);
+    let at = UnixSeconds::new(created);
+    memory.provenance = Provenance::captured(
+        SourceRef::new(SourceSystem::new("test").expect("a legal source system")),
+        at,
+        at,
+    )
+    .derived(
+        parents,
+        aicortex_types::ExtractorVersion {
+            name: "test-extractor".to_owned(),
+            version: "1".to_owned(),
+        },
+    );
+    memory
 }
 
 /// The same, of a chosen kind.
@@ -177,7 +259,7 @@ pub fn admit(memory: &Memory) -> Admitted {
 }
 
 /// A memory taken apart into the parts a candidate is offered as.
-fn parts_of(memory: &Memory) -> MemoryParts {
+pub fn parts_of(memory: &Memory) -> MemoryParts {
     MemoryParts {
         id: memory.id,
         scope: memory.scope.clone(),
