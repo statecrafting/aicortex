@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 1
 depends_on:
@@ -23,6 +23,7 @@ establishes:
   - "crates/aicortex-store/tests/schema.rs"
   - "crates/aicortex-store/tests/repo.rs"
   - "crates/aicortex-store/tests/common/"
+  - "apps/aicortex/tests/migrate.rs"
 extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
@@ -219,9 +220,18 @@ edges (017), ingest state (030), review queue (023).
   here rather than resolved there. Rejected: editing 010 FR-003, which is
   an amendment reserved to a human; and leaving the assertion, which would
   have made 010's own acceptance fail against the tree.
+- **D-8 (2026-09-17, build session).** The `## Verification` block declared
+  only `cargo test -p aicortex-store`, which cannot reach AC-2: the verbs
+  AC-2 names live on the binary, and `CARGO_BIN_EXE_aicortex` exists only
+  in that package's tests. `apps/aicortex/tests/migrate.rs` runs
+  `first-boot`, then `serve` against the unmigrated store (exit 2), then
+  `migrate` twice, and the block now runs it. A green command is not
+  evidence for a criterion it does not exercise. The file is claimed by
+  this spec rather than by 010, because it proves 012's acceptance.
 
 ## Verification
 
 ```verify:cli
 cargo test -p aicortex-store --locked
+cargo test -p aicortex --locked --test migrate
 ```

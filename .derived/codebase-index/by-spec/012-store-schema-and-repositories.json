@@ -21,6 +21,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "apps/aicortex/tests/migrate.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store",
         "source": "manifest-metadata"
       },
@@ -70,6 +74,19 @@
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/migrate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      },
       {
         "locations": [
           {
@@ -288,5 +305,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "8d8721ee0aa0769e9ec93cba694e151a807f300dff21b9bc3a17001b83bd505f"
+  "shardHash": "b7366935ecbe832eafa531e7f9e89ead2a8887ffc30b8106741e8bd9ffe362ad"
 }
