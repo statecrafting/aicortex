@@ -89,8 +89,12 @@ pub fn scan(text: &str, rules: &SecretRules) -> Option<Finding> {
                     .then(|| json_web_token(token))
                     .flatten()
             })
+            .map(|detector| (detector, 0usize))
             .or_else(|| rules.entropy.and_then(|rule| high_entropy(token, &rule)))
-            .map(|detector| Finding { detector, offset })
+            .map(|(detector, within)| Finding {
+                detector,
+                offset: offset.saturating_add(within),
+            })
     });
 
     match (armour, token_finding) {
@@ -181,20 +185,53 @@ fn base64url_decode(part: &str) -> Option<Vec<u8>> {
     Some(out)
 }
 
-/// Whether `token` is an unbroken run of high-entropy characters (B-4).
-fn high_entropy(token: &str, rule: &EntropyRule) -> Option<DetectorId> {
-    if token.len() < rule.min_len || !token.chars().all(|c| Charset::Token.admits(c)) {
-        return None;
+/// The first unbroken high-entropy run inside `token`, and where it starts
+/// (B-4).
+///
+/// A *run* rather than the whole token, and the difference is a real evasion
+/// rather than a nicety. The token boundaries of [`DELIMITERS`] are the
+/// characters prose puts *around* a pasted value; a person who writes
+/// `secret:<value>` or `token~<value>` has glued a character that is neither
+/// a boundary nor part of any credential alphabet onto one. A detector that
+/// asked whether the *whole* token was made of [`Charset::Token`] characters
+/// would answer no and let the credential through, which review found by
+/// trying it. Measuring each maximal run instead means the punctuation a
+/// human types around a secret cannot hide it, while the URL and JWT
+/// detectors above keep their own view of the whole token, because a URL and
+/// a JWT are made of characters this split would otherwise break apart
+/// (D-12).
+fn high_entropy(token: &str, rule: &EntropyRule) -> Option<(DetectorId, usize)> {
+    let mut start = 0usize;
+    for run in token.split(|c: char| !Charset::Token.admits(c)) {
+        if is_high_entropy(run, rule) {
+            return Some((crate::rules::HIGH_ENTROPY, start));
+        }
+        // Past this run, then past the one character that ended it. The
+        // separator is whatever `split` matched, so its own width is what
+        // advances the cursor; a multi-byte one advances by more than one.
+        let after_run = start.saturating_add(run.len());
+        start = token
+            .get(after_run..)
+            .and_then(|rest| rest.chars().next())
+            .map_or(after_run, |sep| after_run.saturating_add(sep.len_utf8()));
+    }
+    None
+}
+
+/// Whether one unbroken run is a credential by the threshold rule.
+fn is_high_entropy(run: &str, rule: &EntropyRule) -> bool {
+    if run.len() < rule.min_len {
+        return false;
     }
     if rule.require_mixed_case_and_digit {
-        let mixed = token.chars().any(|c| c.is_ascii_uppercase())
-            && token.chars().any(|c| c.is_ascii_lowercase())
-            && token.chars().any(|c| c.is_ascii_digit());
+        let mixed = run.chars().any(|c| c.is_ascii_uppercase())
+            && run.chars().any(|c| c.is_ascii_lowercase())
+            && run.chars().any(|c| c.is_ascii_digit());
         if !mixed {
-            return None;
+            return false;
         }
     }
-    (shannon_bits(token) >= rule.threshold).then_some(crate::rules::HIGH_ENTROPY)
+    shannon_bits(run) >= rule.threshold
 }
 
 /// The Shannon entropy of `token` in bits per character, in Q16 fixed point.

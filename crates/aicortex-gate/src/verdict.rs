@@ -35,8 +35,9 @@ pub struct Admitted {
 
 impl Admitted {
     /// Wrap a memory the gate has just cleared. Crate-private: this function
-    /// is the admission boundary, and it has exactly two call sites, both in
-    /// [`crate::Gate`].
+    /// is the admission boundary, and its only call sites are the three in
+    /// [`crate::Gate`] that a verdict can come out of, which are
+    /// `Gate::admit`, `Gate::quarantine` and `Gate::evaluate_overridden`.
     pub(crate) const fn new(memory: Memory) -> Self {
         Self { memory }
     }

@@ -165,9 +165,23 @@ const DESTROY_MEMORY_SQL: &str = "DELETE FROM decision_key WHERE scope_id = $1 A
 
 const DESTROY_SCOPE_SQL: &str = "DELETE FROM decision_key WHERE scope_id = $1";
 
-#[derive(Debug, Deserialize)]
+/// One key row, read back.
+///
+/// [`Debug`] is written by hand for the same reason [`DecisionKey`]'s is, one
+/// struct above: a derived one would put the key bytes into the first log
+/// line somebody adds, and a private struct is no protection against that
+/// because the log line is written by whoever holds the value.
+#[derive(Deserialize)]
 struct SecretRow {
     secret: Vec<u8>,
+}
+
+impl core::fmt::Debug for SecretRow {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("SecretRow")
+            .field("secret", &"<redacted>")
+            .finish()
+    }
 }
 
 impl DecisionKeyRepo {

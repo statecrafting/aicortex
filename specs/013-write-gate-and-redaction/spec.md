@@ -41,7 +41,7 @@ extends:
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/memory_repo.rs", note: "no insert path exists that has not passed a Verdict" }
 references:
-  - { unit: { kind: file, path: "specs/014-memory-lifecycle-and-erasure/spec.md" }, role: context }
+  - { unit: { kind: file, path: "specs/014-memory-lifecycle-and-erasure/spec.md" }, role: evidence }
 summary: >
   Everything that enters the store passes one gate, and the gate runs before
   the transaction opens. It refuses credentials rather than redacting them,
@@ -366,6 +366,25 @@ the chassis's (`rahi://020`, `rahi://025`). Promotion out of quarantine
   signal in the direction that matters, from the spec being built to the
   spec that constrains it. FR-008 is untouched and still lives here.
 
+- **D-12 (2026-09-17, build session, from independent review).** The
+  entropy detector of B-4 measures each maximal run of credential-alphabet
+  characters inside a token, not the token as a whole. The first
+  implementation asked whether the *whole* token was made of
+  [`Charset::Token`] characters and skipped it otherwise, which review
+  defeated by writing `this:<secret>!`: the colon and the bang are neither
+  token boundaries (the boundary table holds the quotes and brackets prose
+  puts *around* a value) nor members of any credential alphabet, so the
+  guard answered "not a credential shape" and the value was **admitted**.
+  Confirmed by restoring the old predicate against the new fixture, which
+  admits the credential; `secret-high-entropy-token-glued` is the committed
+  regression case. The published-prefix detectors were never affected,
+  because they only require `min_tail` admitted characters after the
+  literal prefix; the gap was specific to the no-published-prefix catch-all
+  that B-4 justifies as the backstop for exactly this shape. The URL and
+  JWT detectors keep their whole-token view, because a URL and a JWT are
+  built from the characters this split separates on. Rejected: adding the
+  punctuation to the boundary table, which would have split
+  `scheme://user:password@host` into pieces and blinded the URL detector.
 ## Verification
 
 ```verify:cli

@@ -175,7 +175,7 @@
     "kind": "kernel",
     "references": [
       {
-        "role": "context",
+        "role": "evidence",
         "unit": {
           "kind": "file",
           "path": "specs/014-memory-lifecycle-and-erasure/spec.md"
@@ -199,6 +199,6 @@
     "summary": "Everything that enters the store passes one gate, and the gate runs before the transaction opens. It refuses credentials rather than redacting them, because a redacted secret is still a secret that was transmitted, stored in a log, and possibly embedded. It caps size, requires an establishable origin, and quarantines rather than admits when origin is doubtful. Every refusal is a ledgered Decision with a reason code and never the offending content. The rule set is data, the corpus of fixtures is committed, and the gate is a pure function so its verdicts are reproducible in review.\n",
     "title": "The write gate: refuse secrets, cap size, establish origin, quarantine the rest"
   },
-  "shardHash": "1cbf7bf12f5ce7b410b1a319448c6da2901989c0ca89a025c9f4a8e8ddbb1b3d",
+  "shardHash": "c959b02fffd3ed478c37dd43f61d178826a5e3d75bf45867ae161bdb6d37b6a3",
   "specVersion": "1.3.0"
 }
