@@ -923,6 +923,26 @@ fn walkdir(root: &std::path::Path) -> Vec<std::path::PathBuf> {
     out
 }
 
+/// Resolve once the scope holds at least `at_least` tombstones, and fewer
+/// than `below`.
+///
+/// Polled rather than timed, so the moment a scope erasure is dropped is a
+/// fact about the work it had done and not about how fast the machine is.
+async fn erased_reaches(node: &common::Node, scope: &Scope, at_least: u64, below: u64) -> u64 {
+    loop {
+        let erased = common::count(
+            node,
+            "SELECT COUNT(*) AS count FROM memory WHERE scope_id = $1 AND status = 'erased'",
+            vec![Value::from(&ScopeId::of(scope))],
+        )
+        .await;
+        if erased >= at_least && erased < below {
+            return erased;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+    }
+}
+
 /// Whether `haystack` contains `needle` as a contiguous byte sequence.
 fn contains(haystack: &[u8], needle: &[u8]) -> bool {
     !needle.is_empty()
@@ -1064,18 +1084,29 @@ async fn fr005_a_scope_erasure_of_five_thousand_memories_is_bounded_and_resumabl
     let eraser = eraser_with_future_tables();
 
     // The induced crash: the pass is dropped mid-flight, part way through.
-    // A dropped future is exactly what a process that dies does to the work
-    // it was running, and surviving it is what "resumable" has to mean. The
-    // batch is tiny so the pass takes many round trips and the drop lands
-    // inside it rather than after it.
-    let interrupted = tokio::time::timeout(
-        std::time::Duration::from_millis(250),
-        eraser.erase_scope(&node.handle(), &node.ledger, &alice, &authority(), 25, now),
-    )
-    .await;
+    // A dropped future is exactly what a process that dies does to the work it
+    // was running, and surviving it is what "resumable" has to mean.
+    //
+    // The drop is triggered by observed progress rather than by a stopwatch. A
+    // fixed delay would be a race on a slower machine, where the window can
+    // close before the first batch commits and the test would then be
+    // asserting about an interruption that interrupted nothing.
+    // `select!` borrows its branches, so the handle and the authority are
+    // bound rather than built inline: a temporary would be dropped at the end
+    // of the statement that borrows it.
+    let handle = node.handle();
+    let who = authority();
+    let interrupted = tokio::select! {
+        finished = eraser.erase_scope(&handle, &node.ledger, &alice, &who, 25, now)
+            => Some(finished),
+        partial = erased_reaches(&node, &alice, 50, total as u64) => {
+            assert!(partial >= 50, "the pass made no progress before it was dropped");
+            None
+        }
+    };
     assert!(
-        interrupted.is_err(),
-        "the pass was meant to be interrupted, not to finish: {interrupted:?}"
+        interrupted.is_none(),
+        "the pass was meant to be dropped part way through, not to finish"
     );
     let partial = common::count(
         &node,
