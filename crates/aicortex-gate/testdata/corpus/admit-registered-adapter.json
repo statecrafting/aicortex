@@ -1,0 +1,12 @@
+{
+  "kind": "verdict",
+  "name": "admit-registered-adapter",
+  "why": "B-7: an adapter the deployment registered is an established source",
+  "origin": "registered_adapter",
+  "body": {
+    "text": "Ticket OPS-4120 was closed as a duplicate of OPS-4098."
+  },
+  "expect": {
+    "verdict": "admit"
+  }
+}

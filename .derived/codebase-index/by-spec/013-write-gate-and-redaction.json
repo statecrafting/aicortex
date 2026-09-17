@@ -4,46 +4,6 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/Cargo.toml' does not exist",
-        "path": "crates/aicortex-gate/Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/lib.rs' does not exist",
-        "path": "crates/aicortex-gate/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/rules.rs' does not exist",
-        "path": "crates/aicortex-gate/src/rules.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/secrets.rs' does not exist",
-        "path": "crates/aicortex-gate/src/secrets.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/limits.rs' does not exist",
-        "path": "crates/aicortex-gate/src/limits.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/src/verdict.rs' does not exist",
-        "path": "crates/aicortex-gate/src/verdict.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/tests/gate.rs' does not exist",
-        "path": "crates/aicortex-gate/tests/gate.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-gate/testdata/corpus/' does not exist",
-        "path": "crates/aicortex-gate/testdata/corpus/"
-      },
-      {
-        "code": "W-001",
         "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
         "path": "crates/aicortex-store/src/erasure.rs"
       }
@@ -59,13 +19,113 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-gate",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/aicortex-gate/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/candidate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/limits.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/normalize.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/rules.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/secrets.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/verdict.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/testdata/corpus/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/capture.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/common/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/compile_fail/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/gate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/decision_key.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/memory_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/provenance_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/common/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/schema.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/provenance.rs",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -74,7 +134,24 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/candidate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/candidate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -83,7 +160,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/limits.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -92,7 +173,24 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/normalize.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/normalize.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/rules.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -101,7 +199,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/secrets.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -110,7 +212,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/verdict.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -119,7 +225,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/testdata/corpus/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -128,7 +238,50 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/capture.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/capture.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/common/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/common/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/compile_fail/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/compile_fail/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/gate.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -139,9 +292,152 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/decision_key.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/decision_key.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/provenance_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/provenance_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/common/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/common/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/provenance.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 79,
+              "endLine": 87,
               "startLine": 20
             }
           }
@@ -181,5 +477,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "689de25f5f1f4251606ae59be1693fa17ae75af8cd7bd0b18580f3d53771cf37"
+  "shardHash": "0092eaa54ddbad5add3564b7886a6cbf6cebf109e08d1025e1303ae67db26e78"
 }

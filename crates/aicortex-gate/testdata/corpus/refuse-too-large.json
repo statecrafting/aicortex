@@ -1,0 +1,14 @@
+{
+  "kind": "verdict",
+  "name": "refuse-too-large",
+  "why": "B-6: one byte over the 64 KiB ceiling is refused before any detector runs",
+  "origin": "authenticated",
+  "body": {
+    "text": "x",
+    "repeat": 65537
+  },
+  "expect": {
+    "verdict": "refuse",
+    "code": "too_large"
+  }
+}

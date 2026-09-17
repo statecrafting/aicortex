@@ -184,6 +184,14 @@ impl ProvenanceRepo {
 }
 
 /// Rebuild a [`Provenance`] from its row and the parents already read.
+///
+/// The operator-override marker of spec 013 B-5 is not among the columns and
+/// comes back `None` here. That is the projection behaving as spec 012 D-3
+/// describes every column: the memory's own record is the single source of
+/// truth for what it says, and this table exists for the facts that are
+/// *queried* (which import produced this, what was derived from what). A
+/// reviewer looking for memories admitted over a refusal reads the record
+/// through `MemoryRepo::get`, where the marker is (013 D-6).
 fn row_to_provenance(
     memory: MemoryId,
     row: ProvenanceRow,
@@ -218,5 +226,6 @@ fn row_to_provenance(
         ingested_at: seconds(row.ingested_at, "ingested_at")?,
         derived_from,
         extractor,
+        admission: None,
     })
 }

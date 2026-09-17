@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-gate",
+    "path": "crates/aicortex-gate",
+    "specRef": "013-write-gate-and-redaction",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "7898b291ea2ea39a171123bb0d0a2dc9dc233fa70a6b80c92bb50d7c2f2d0a12"
+}

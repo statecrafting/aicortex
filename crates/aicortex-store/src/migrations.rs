@@ -29,11 +29,19 @@ pub const COORDINATION_VERSION: u32 = 1;
 /// shape of one record; this versions the shape of the database.
 pub const MEMORY_TABLES_VERSION: u32 = 2;
 
+/// The digest-key table of spec 013 B-9, appended by that spec under an
+/// `extends` edge on this file.
+///
+/// Its own migration rather than a column on an existing table: the keys are
+/// a different object with a different lifetime from every memory row, and
+/// erasure destroys them on their own terms (013 FR-007, 014 B-7, B-9).
+pub const DECISION_KEY_VERSION: u32 = 3;
+
 /// The version an up-to-date store records, which is the highest below.
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = MEMORY_TABLES_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = DECISION_KEY_VERSION;
 
 /// The scope a memory lives in (B-2).
 ///
@@ -142,6 +150,31 @@ const FINGERPRINT_INDEX: &str = "CREATE UNIQUE INDEX IF NOT EXISTS memory_scope_
 const CURATOR_INDEX: &str = "CREATE INDEX IF NOT EXISTS memory_status_updated
     ON memory (status, updated)";
 
+/// One Decision's digest key (spec 013 B-9).
+///
+/// `secret` is the HMAC key and `algorithm` is the identifier stamped beside
+/// the digest, so a later construction can be told from this one rather than
+/// having to be guessed. `memory_id` is present exactly when the Decision
+/// covers a stored row, which is how the erasure of a quarantined memory
+/// finds the key to destroy; a refusal stores no row and its key is reachable
+/// through the scope alone.
+const DECISION_KEY_TABLE: &str = "CREATE TABLE IF NOT EXISTS decision_key (
+    key_id TEXT PRIMARY KEY,
+    scope_id TEXT NOT NULL,
+    memory_id TEXT,
+    algorithm TEXT NOT NULL,
+    secret BLOB NOT NULL,
+    created INTEGER NOT NULL
+)";
+
+/// Erasure's index: every key of a scope, and every key of a memory.
+///
+/// Leading with `scope_id` for the same reason every other index here does: a
+/// destruction names its scope in the predicate, and the index that serves it
+/// must not invite a statement that does not (spec 012 B-3).
+const DECISION_KEY_INDEX: &str = "CREATE INDEX IF NOT EXISTS decision_key_scope_memory
+    ON decision_key (scope_id, memory_id)";
+
 /// The migrations, in version order (B-1).
 ///
 /// Each is idempotent (`IF NOT EXISTS` throughout), so a rerun against a
@@ -152,7 +185,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 2]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 3]> = std::sync::LazyLock::new(|| {
     [
         rahi_store::coordination_migration(COORDINATION_VERSION),
         Migration::new(
@@ -169,6 +202,11 @@ static LIST: std::sync::LazyLock<[Migration; 2]> = std::sync::LazyLock::new(|| {
                 CURATOR_INDEX,
             ]
             .join(";\n"),
+        ),
+        Migration::new(
+            DECISION_KEY_VERSION,
+            "aicortex decision digest keys",
+            [DECISION_KEY_TABLE, DECISION_KEY_INDEX].join(";\n"),
         ),
     ]
 });

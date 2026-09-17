@@ -1,0 +1,5 @@
+error[E0451]: field `memory` of struct `Admitted` is private
+  --> tests/compile_fail/admitted_is_not_constructible.rs:31:29
+   |
+31 |     let forged = Admitted { memory };
+   |                             ^^^^^^ private field

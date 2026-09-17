@@ -1,0 +1,44 @@
+[package]
+name = "aicortex-gate"
+version = "0.1.0"
+description = "The write gate: a pure function from a candidate to a verdict, refusing credentials rather than redacting them"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "013-write-gate-and-redaction"
+
+# The territory (spec 013 section 2): the record of 011, the wire a ledger
+# payload is written in, and the Unicode normalization of B-8. No store, no
+# ledger, no runtime, no clock and no randomness: `Gate::evaluate` is a pure
+# function, which is what makes the committed corpus a regression suite
+# (B-10).
+[dependencies]
+aicortex-types = { workspace = true }
+rahi-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+unicode-normalization = { workspace = true }
+
+# Tests only. `aicortex-store` depends on this crate, so this edge is a
+# development cycle, which Cargo permits and resolves: the store links the
+# gate, and the gate's *tests* link the store. It is here because AC-2 is a
+# claim about the composition (gate, store, ledger) rather than about the
+# gate, and the composition has no other home until the surface of spec 020
+# exists. `trybuild` runs the compile-fail cases of FR-004.
+[dev-dependencies]
+aicortex-store = { workspace = true }
+rahi-ledger = { workspace = true }
+rahi-store = { workspace = true }
+ring = { workspace = true }
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true }
+trybuild = { workspace = true }
+
+[lints]
+workspace = true

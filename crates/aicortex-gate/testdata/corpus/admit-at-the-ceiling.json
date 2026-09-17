@@ -1,0 +1,13 @@
+{
+  "kind": "verdict",
+  "name": "admit-at-the-ceiling",
+  "why": "B-6: exactly at the ceiling is admitted, so the comparison is not off by one",
+  "origin": "authenticated",
+  "body": {
+    "text": "x",
+    "repeat": 65536
+  },
+  "expect": {
+    "verdict": "admit"
+  }
+}

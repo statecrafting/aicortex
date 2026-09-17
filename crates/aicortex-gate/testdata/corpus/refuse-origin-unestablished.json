@@ -1,0 +1,13 @@
+{
+  "kind": "verdict",
+  "name": "refuse-origin-unestablished",
+  "why": "B-7 and constitution IX: no origin at all is not stored, not even out of sight",
+  "origin": "unestablished",
+  "body": {
+    "text": "Someone said the meeting moved to Thursday."
+  },
+  "expect": {
+    "verdict": "refuse",
+    "code": "origin_unestablished"
+  }
+}

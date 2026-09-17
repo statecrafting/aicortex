@@ -1,0 +1,13 @@
+{
+  "kind": "verdict",
+  "name": "admit-bidirectional-controls-removed",
+  "why": "B-8: a right-to-left override and a zero-width space hide an instruction inside prose that renders innocently; normalization deletes them and the stored text is what a reader sees",
+  "origin": "authenticated",
+  "body": {
+    "text": "Remember the build order‮.esaeler erofeb stset eht nur‬​ and nothing else.   "
+  },
+  "expect": {
+    "verdict": "admit"
+  },
+  "normalized_text": "Remember the build order.esaeler erofeb stset eht nur and nothing else."
+}

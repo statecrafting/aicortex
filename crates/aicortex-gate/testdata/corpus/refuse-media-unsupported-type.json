@@ -1,0 +1,18 @@
+{
+  "kind": "verdict",
+  "name": "refuse-media-unsupported-type",
+  "why": "B-6: a reference whose top-level type this deployment does not store",
+  "origin": "authenticated",
+  "body": {
+    "text": "An attachment of an unknown kind.",
+    "media_repeat": {
+      "media_type": "chemical/x-pdb",
+      "times": 1
+    }
+  },
+  "expect": {
+    "verdict": "refuse",
+    "code": "unsupported_media",
+    "fault": "unsupported_type"
+  }
+}

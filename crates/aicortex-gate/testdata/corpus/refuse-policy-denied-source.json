@@ -1,0 +1,17 @@
+{
+  "kind": "verdict",
+  "name": "refuse-policy-denied-source",
+  "why": "B-2: a deployment that refuses a source refuses it whatever it carries",
+  "origin": "authenticated",
+  "source_system": "retired-importer",
+  "denied_sources": [
+    "retired-importer"
+  ],
+  "body": {
+    "text": "A perfectly ordinary note from a source this deployment has retired."
+  },
+  "expect": {
+    "verdict": "refuse",
+    "code": "policy_denied"
+  }
+}

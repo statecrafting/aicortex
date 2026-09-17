@@ -42,6 +42,6 @@ pub use memory::{
     Importance, MEMORY_SCHEMA_VERSION, MediaDigest, MediaRef, Memory, MemoryBody, MemoryKind,
     MemoryParts, Status,
 };
-pub use provenance::{ExtractorVersion, Provenance, SourceRef, SourceSystem};
+pub use provenance::{AdmissionOverride, ExtractorVersion, Provenance, SourceRef, SourceSystem};
 pub use scope::{ProjectKey, Scope, ScopeKind, ShareKey};
 pub use trust::{DecisionRef, Promotion, TrustClass};
