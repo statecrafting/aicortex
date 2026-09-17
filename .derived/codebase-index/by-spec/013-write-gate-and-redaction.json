@@ -44,13 +44,13 @@
       },
       {
         "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' section unit 'workspace.dependencies' not found in Cargo.toml",
-        "path": "Cargo.toml"
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/memory_repo.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
-        "path": "crates/aicortex-store/src/memory_repo.rs"
+        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
+        "path": "crates/aicortex-store/src/erasure.rs"
       }
     ]
   },
@@ -58,7 +58,12 @@
     "dependsOn": [
       "012-store-schema-and-repositories"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -133,13 +138,30 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 42,
+              "startLine": 17
+            }
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "anchor": "workspace.dependencies",
           "file": "Cargo.toml",
           "kind": "section"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
         }
       },
       {
@@ -156,5 +178,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "46fc9e832f5a9c895e0491ba46443a25543593c166e3d7db4c23c6c9110ea138"
+  "shardHash": "f06e8e5689db5f900251bd083496ebadfd1fd84ce3af4383f6f72525695b960a"
 }

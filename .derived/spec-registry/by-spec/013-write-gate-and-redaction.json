@@ -11,6 +11,14 @@
           "kind": "file",
           "path": "crates/aicortex-store/src/memory_repo.rs"
         }
+      },
+      {
+        "flavor": "invariant-freeze",
+        "note": "erasure destroys the B-9 digest key of every Decision about the erased memory or scope",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
       }
     ],
     "created": "2026-09-03",
@@ -86,6 +94,6 @@
     "summary": "Everything that enters the store passes one gate, and the gate runs before the transaction opens. It refuses credentials rather than redacting them, because a redacted secret is still a secret that was transmitted, stored in a log, and possibly embedded. It caps size, requires an establishable origin, and quarantines rather than admits when origin is doubtful. Every refusal is a ledgered Decision with a reason code and never the offending content. The rule set is data, the corpus of fixtures is committed, and the gate is a pure function so its verdicts are reproducible in review.\n",
     "title": "The write gate: refuse secrets, cap size, establish origin, quarantine the rest"
   },
-  "shardHash": "ecfbeccc25b60f6206f3e3aafea5224a9a6d36ad58966e7f21cc17ef08fff168",
-  "specVersion": "1.2.0"
+  "shardHash": "6f6ac2eff3e7cd27f0c35c80b2c0c2ec0ea136ca61583f59e72406de0e845f78",
+  "specVersion": "1.3.0"
 }

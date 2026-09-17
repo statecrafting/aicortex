@@ -24,6 +24,7 @@ extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/memory_repo.rs", note: "no insert path exists that has not passed a Verdict" }
+  - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/erasure.rs", note: "erasure destroys the B-9 digest key of every Decision about the erased memory or scope" }
 summary: >
   Everything that enters the store passes one gate, and the gate runs before
   the transaction opens. It refuses credentials rather than redacting them,
@@ -57,6 +58,11 @@ limits, and the verdict type. It has no I/O and no async; it is a pure
 function from a candidate to a `Verdict`, which makes it exhaustively
 testable against a committed corpus. It freezes on the store's insert path
 the property that no write happens without a verdict.
+
+B-9's digest keys are not the gate's: they are minted where the Decision is
+appended and held in the application store under 012's schema, so the gate
+stays pure. This spec also freezes on 014's erasure path the property that
+erasure destroys those keys (amended 2026-09-12, D-2).
 
 ## 3. Behavior
 
@@ -105,8 +111,18 @@ the property that no write happens without a verdict.
   to a model.
 - **B-9 (ledger).** Every `Refuse` and every `Quarantine` appends a
   Decision through rahi's ledger with the reason code, the scope, the
-  actor, and a content hash, never the content. The request path does not
-  await the append.
+  actor, and a keyed digest of the normalized content, never the content
+  and never an unkeyed hash of it (amended 2026-09-12, D-2). The digest is
+  HMAC-SHA-256 under a key minted for that one Decision. The Decision
+  carries the digest, the algorithm identifier, and the key id; the key
+  lives only in an application-store row naming the scope and, for a
+  quarantine, the memory id. There is no shared or permanent digest key.
+  Erasure destroys a key together with the object it covers: erasing a
+  quarantined memory (014 B-7) destroys its Decision's key, and erasing a
+  scope (014 B-9) destroys every key in the scope. A destroyed key leaves
+  the chained digest as an opaque value that cannot be confirmed against a
+  guessed body, which is what lets an append-only chain and constitution
+  XIII both hold. The request path does not await the append.
 - **B-10 (determinism).** The gate is pure and has no clock, no randomness,
   and no network. The same candidate and rule set always yield the same
   verdict, so a fixture corpus is a regression suite.
@@ -128,6 +144,20 @@ the property that no write happens without a verdict.
   called with a candidate that has not been through the gate.
 - **FR-005.** The entropy detector's false-positive rate on a committed
   corpus of benign identifiers is zero at the shipped threshold.
+- **FR-006.** A refusal's Decision carries the keyed digest, the algorithm
+  identifier, and the key id. Neither the SHA-256 of the fixture body nor
+  any substring of it appears in the serialized Decision; recomputing the
+  keyed digest with the stored key reproduces it.
+- **FR-007.** Two refusals of the same candidate mint two keys and two
+  different digests, so a replayed candidate never recovers an earlier
+  Decision's key. After a key row is destroyed, no store operation
+  recomputes or returns that Decision's digest input.
+- **FR-008.** No surface or document claims that erasure reaches refusal
+  and quarantine records until 014's erasure tests show the key destroyed,
+  a backup taken after the erasure holding no key, and no replay (capture,
+  outbox, or import) restoring it. A backup taken before the erasure still
+  holds the key until that backup is discarded; the erasure result says so
+  rather than implying otherwise.
 
 ## 5. Acceptance criteria
 
@@ -149,6 +179,26 @@ the chassis's (`rahi://020`, `rahi://025`). Promotion out of quarantine
   attractive because it preserves the surrounding note. It loses because
   the secret has already been transmitted and logged by then, and because
   a stored placeholder invites a future feature to "recover" the original.
+- **D-2 (2026-09-12, amendment, revision-4 AI-03).** B-9 appended an
+  unkeyed content hash for every refusal and quarantine. For a short or
+  predictable body that hash can be confirmed by guessing, and because the
+  chain is append-only it can never be erased, which contradicts
+  constitution XIII's "memory content never enters the decision chain" in
+  effect if not in letter. Draft 045 surfaced the conflict when its own
+  erasure rule refused to keep digests of erased bodies. The maintainer
+  chose keyed digests with an erasure-scoped key lifecycle in the
+  application store, for memories and coordination alike. Rejected: one
+  deployment-wide digest key, which would make every digest confirmable
+  for as long as the deployment exists and so defeat per-object erasure;
+  and keeping the unkeyed hash while narrowing 045's rule, which leaves the
+  guessing problem in place for memories. HMAC-SHA-256 and a key per
+  Decision are this amendment's concrete choice; a later decision may
+  change the construction only by recording the new algorithm identifier
+  beside new digests and never by reinterpreting old ones. Erasure is not
+  claimed for these records until key destruction, backups, and replay are
+  tested (FR-008). The maintainer adopted this on 2026-09-12; the agent
+  authored the text and this entry records that authority rather than
+  assuming it.
 
 ## Verification
 

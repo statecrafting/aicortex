@@ -1,0 +1,6 @@
+# The toolchain (spec 010 B-1), the same one the rahi chassis pins so the
+# workspace and the crates it consumes are built by one compiler. A bump is
+# a change to this line and a decision entry in 010.
+[toolchain]
+channel = "1.96.0"
+components = ["rustfmt", "clippy"]

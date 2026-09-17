@@ -46,8 +46,9 @@ cargo test -p aicortex-recall --locked --test fusion
 
 Exit codes of `spec-spine`: `0` ok, `1` validation failure or drift, `2`
 stale, `3` I/O, parse, schema, or config. Since 0.18.0 a usage error is `3`,
-not `2`, so `2` means staleness and nothing else. The `aicortex` binary
-adopts rahi's four (`rahi://010`).
+not `2`, and since 0.20.0 a blocking unresolved claim is `1` rather than `2`,
+so `2` means staleness and nothing else. The `aicortex` binary adopts rahi's
+four (`rahi://010`).
 
 ## Architecture in one screen
 

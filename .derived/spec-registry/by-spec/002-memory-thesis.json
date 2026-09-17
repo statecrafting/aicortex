@@ -32,7 +32,8 @@
           "041-privacy-and-egress-boundary",
           "042-portability-and-migration",
           "043-packaging-and-operations",
-          "044-reference-deployment"
+          "044-reference-deployment",
+          "045-durable-coordination-protocol"
         ]
       }
     ],
@@ -73,6 +74,6 @@
     "summary": "What aicortex is, what it refuses, and the order it is built in. It is persistent memory for AI clients, delivered as a governed cell on the rahi chassis, reached by any client that speaks MCP over streamable HTTP. Nine responsibilities across eight domains, thirteen crates and one binary, four build waves. The refusals are as load-bearing as the claims: no second store, no static key, no fork-per-feature, no local stdio server, and no memory that a model may treat as an instruction unless a human promoted it.\n",
     "title": "Memory thesis: nine responsibilities, one governed cell, provider agnostic by protocol"
   },
-  "shardHash": "493efb0042c70a4e8ff12fb473c0f2b7a7f4f0db6e9bfcb67308387c910c6c8f",
-  "specVersion": "1.2.0"
+  "shardHash": "0a81411ca1f675f03579b43b532d9c1511d50ee2f8d2a0df84c3a8cdc9091d52",
+  "specVersion": "1.3.0"
 }

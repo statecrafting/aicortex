@@ -41,7 +41,7 @@ make ci         # spine + coverage (--fail-on-untraced once Cargo.toml exists) +
 make verify SPEC=018-retrieval-and-recall-trace
 ```
 
-Governance is `spec-spine` 0.18.0 on `PATH`; CI pins the same version, and
+Governance is `spec-spine` 0.20.0 on `PATH`; CI pins the same version, and
 `spec-spine.toml [meta] required_version` makes the CLI refuse to run below
 it. Derived shards are committed and read only through the `spec-spine` CLI.
 
@@ -55,6 +55,8 @@ human review; drafts are visible as blockers and are never scheduled.
 
 ## License
 
-Apache-2.0, see [`LICENSE`](LICENSE). The chassis and the other products in
-this family are Apache-2.0 as well, so a crate can move in either direction
-across the family without a licence review.
+Apache-2.0, see [`LICENSE`](LICENSE). The family is not under one licence.
+rahi (the chassis), spec-spine, statecraft-cli, and statecrafting are
+Apache-2.0; Statecraft and hqgit are AGPL-3.0. Moving code across that
+boundary needs a licence review, and for any other repository, read its
+`LICENSE` rather than assuming.

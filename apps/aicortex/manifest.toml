@@ -1,0 +1,44 @@
+# The aicortex ceiling (spec 010 B-4). What is not declared is denied, and
+# the chassis ledgers every denial.
+#
+# It starts closed: nothing is addressable, no capability exists, no service
+# holds a grant, and no egress host is declared. The spec that first needs a
+# table, a namespace, a secret, or a host adds it here and gives the reason
+# in its own Behavior, so every widening of the ceiling is visible in review.
+
+# The manifest schema this document is written for. The chassis refuses a
+# manifest that names none, and refuses a different major outright
+# (rahi://039 B-8): a ceiling outlives the binary that first read it.
+schema_version = "1.0.0"
+
+capabilities = []
+
+[app]
+name = "aicortex"
+org = "statecrafting"
+
+[resources]
+tables = []
+kv = []
+counters = []
+secrets = []
+egress = []
+
+[services]
+
+[gate]
+checks = []
+
+[ledger]
+schema_version = "1.0.0"
+max_record_bytes = 65536
+
+[observability]
+metrics_path = "/metrics"
+otel = false
+
+[auth]
+operator_role = "aicortex_operator"
+
+[contract]
+version = "0.1.0"

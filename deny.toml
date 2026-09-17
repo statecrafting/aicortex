@@ -1,0 +1,87 @@
+# Supply-chain policy for the aicortex workspace (spec 010 B-7), checked by
+# `cargo deny check`.
+
+[graph]
+all-features = true
+
+[advisories]
+# Unmaintained crates anywhere in the tree are refused, yanked versions are
+# refused, and a vulnerability is an error unless it is ignored below with
+# the reason it cannot reach this product.
+version = 2
+unmaintained = "all"
+yanked = "deny"
+ignore = [
+  # Each of these reaches aicortex only through the pinned chassis, whose
+  # tree this workspace may not patch (constitution VI); the fix lands in
+  # rahi or upstream of it, and each entry goes when that release does
+  # (spec 010 D-6).
+  #
+  # bincode 2 under rahi-store -> hiqlite 0.14 -> cryptr 0.10.
+  { id = "RUSTSEC-2025-0141", reason = "bincode is unmaintained; reached only through the chassis's hiqlite -> cryptr" },
+  # quick-xml 0.39 under s3-simple 0.8, reached from hiqlite -> cryptr and
+  # from rahi-ledger. Both are denial of service while parsing XML, and the
+  # only XML in this tree is the listing of the operator's own backup bucket.
+  { id = "RUSTSEC-2026-0194", reason = "quick-xml duplicate-attribute check; parses only the operator's own S3 listing, through the chassis" },
+  { id = "RUSTSEC-2026-0195", reason = "quick-xml NsReader allocation; parses only the operator's own S3 listing, through the chassis" },
+]
+
+[licenses]
+# Permissive licences compatible with Apache-2.0 distribution. A crate under
+# anything else fails the check until this list changes in a reviewed spec
+# change that names the crate and the reason.
+version = 2
+allow = [
+  "Apache-2.0",
+  "MIT",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "ISC",
+  "Zlib",
+  "Unicode-3.0",
+  "MIT-0",
+  # webpki-root-certs: the Mozilla root store as data, a permissive data
+  # licence, reached through the chassis's hiqlite TLS stack (spec 010 D-6).
+  "CDLA-Permissive-2.0",
+]
+confidence-threshold = 0.8
+unused-allowed-license = "allow"
+
+[bans]
+# Duplicate versions are reported everywhere and refused outright for the
+# cryptographic and HTTP stacks, where two copies mean two sets of
+# behaviour to audit and two places a fix has to land.
+multiple-versions = "warn"
+wildcards = "deny"
+highlight = "all"
+deny = [
+  # Cryptography.
+  { crate = "ring", deny-multiple-versions = true },
+  { crate = "rustls", deny-multiple-versions = true },
+  { crate = "aws-lc-rs", deny-multiple-versions = true },
+  { crate = "ed25519-dalek", deny-multiple-versions = true },
+  # HTTP.
+  { crate = "http", deny-multiple-versions = true },
+  { crate = "hyper", deny-multiple-versions = true },
+  { crate = "h2", deny-multiple-versions = true },
+  { crate = "axum", deny-multiple-versions = true },
+  { crate = "tower", deny-multiple-versions = true },
+  { crate = "tower-http", deny-multiple-versions = true },
+  { crate = "reqwest", deny-multiple-versions = true },
+]
+# Not refused, and so still reported as warnings: at the published rahi
+# 0.1.0 the chassis carries two copies of aws-lc-sys (0.39.1 under s3-simple,
+# 0.45.0 under rustls -> aws-lc-rs) and of the lower primitives digest,
+# curve25519-dalek, chacha20, block-buffer, and crypto-common, the same set
+# the spike saw. They are rahi's to converge; refusing them here would fail a
+# check this workspace cannot fix (spec 010 D-6, revisited in D-8). The
+# remaining duplicates the report names are ordinary build-graph forks
+# (base64, syn, toml, winnow, rand, hashbrown and the like), all reached
+# through the chassis and none in a stack this policy audits.
+
+[sources]
+# The registry only (D-1): no other index and no git source.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

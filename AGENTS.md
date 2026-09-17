@@ -19,7 +19,7 @@ is `approved` and `implementation: pending`, and spec ordinals are the build
 order. Code arrives one spec per session under `crates/`, `apps/`, `eval/`,
 `docker/`, and `deploy/`.
 
-Governance is `spec-spine` **0.18.0** on your `PATH` (CI pins the same
+Governance is `spec-spine` **0.20.0** on your `PATH` (CI pins the same
 version, and `spec-spine.toml [meta] required_version` makes the CLI refuse
 to run below it). All governed reads of `.derived/` go through its CLI.
 
@@ -82,7 +82,9 @@ report and continue.
   rather than presenting them as current.
 - **`1`:** the corpus fails validation. Surface the violations and report the
   counts as unverified. This outranks `2`: staleness is not meaningful
-  against a corpus that does not compile.
+  against a corpus that does not compile. Since 0.20.0 a blocking unresolved
+  claim answers `1` too, not `2` (spec-spine spec 101): re-indexing never
+  cleared one, so it was never staleness.
 - **`3`:** the read was not performed. Treat freshness as unknown for both
   trees and report stderr verbatim. Most often a binary predating the verb,
   which is what the `--version` read above exists to tell you apart from

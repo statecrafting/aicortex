@@ -53,6 +53,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "README.md",
+        "source": "spec-edge"
+      },
+      {
         "path": "scripts/spec-dag.sh",
         "source": "spec-edge"
       },
@@ -229,6 +233,19 @@
       {
         "locations": [
           {
+            "file": "README.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "README.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "scripts/spec-dag.sh"
           }
         ],
@@ -296,5 +313,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "39b363dd98fc2208a6dc138f1e6cfa9fb9f5b710284d7b7063b5124a23820c51"
+  "shardHash": "27869885fcf7c3679c5023463cbf215590b9cbd525599af2ce63a77c0ccc2875"
 }
