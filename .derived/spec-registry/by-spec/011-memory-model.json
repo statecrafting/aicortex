@@ -92,7 +92,7 @@
       "wave": 1
     },
     "id": "011-memory-model",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "kernel",
     "risk": "critical",
     "sectionHeadings": [
@@ -111,6 +111,6 @@
     "summary": "What a memory is, as types, before anything can store one. A memory is a claim by a named actor, from a named source, at a known time, inside a scope owned by a rauthy subject, carrying a trust class that decides whether a client may act on it and a status that decides whether it is still true. The type system enforces the parts that matter: there is no way to construct a memory without provenance, and no way to promote one to instruction grade without an authority token that only a human decision produces.\n",
     "title": "The memory record: scope, trust class, actor, provenance, and the states a memory can be in"
   },
-  "shardHash": "8e5653ae7c14747a87b7998a49ab21e16f9bd21cf74b5344015c87ffa116dbbb",
+  "shardHash": "49f86c302d41c56abfb0dd6d1afdf16cf3f72cc69ff01f68117e1d1cb1bb0468",
   "specVersion": "1.3.0"
 }
