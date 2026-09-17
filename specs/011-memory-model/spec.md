@@ -22,9 +22,11 @@ establishes:
   - "crates/aicortex-types/src/provenance.rs"
   - "crates/aicortex-types/src/error.rs"
   - "crates/aicortex-types/tests/model.rs"
+  - "crates/aicortex-types/tests/compile_fail/"
   - "crates/aicortex-types/testdata/memories/"
 extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace" }, nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-types/src/provenance.rs", note: "a memory without provenance cannot be constructed; constitution IX" }
 summary: >
@@ -139,6 +141,55 @@ which are their own records (017).
   place and is forgotten by the next session that adds a write path; a
   type that cannot be built is checked by the compiler on every path
   forever. This is the mechanism that makes constitution X hold.
+- **D-2 (2026-09-17, build session).** `Promotion` carries a local
+  `DecisionRef` newtype rather than `rahi_ledger::DecisionId`. B-5 names
+  the ledger's type, but section 2 confines this crate to `rahi-types` and
+  serde and AC-2 refuses any I/O or async dependency, which `rahi-ledger`
+  is through `rahi-store` and tokio. `DecisionRef` carries the ledger's own
+  transparent-string wire shape, so the conversion at the seam is a rename
+  and not a re-encoding. Rejected: depending on `rahi-ledger` here, which
+  would fail this spec's own acceptance. Consequence: this crate validates
+  the shape of a decision id and cannot confirm the decision is in the
+  chain; that check belongs to spec 024, where the ledger is reachable, and
+  spec 024 should state it. The same boundary applies to deserialization: a
+  stored row reconstructs a promotion a human already made, and nothing in
+  this crate re-verifies it.
+- **D-3 (2026-09-17, build session).** `SourceSystem` is an open newtype
+  held to a shape (lowercase ascii with `-`, `_`, `.`, and `:`) rather than
+  a closed enum. B-8 names `SourceRef` without fixing its vocabulary, and
+  the registry of legal sources is the adapter registry of spec 030; a
+  closed enum here would make every new adapter an amendment to this spec.
+  Rejected: a closed enum now, and a bare `String` with no shape at all.
+- **D-4 (2026-09-17, build session).** B-9's decay is floating-point
+  arithmetic, and spec 010 B-1 denies `clippy::float_arithmetic` across the
+  workspace, allowing it only at the crate roots of `aicortex-index` and
+  `aicortex-recall`. The two approved specs conflict. This build takes the
+  narrowest action available to it: one `#[expect(clippy::float_arithmetic)]`
+  on `Importance::decayed_at` alone, carrying its reason, rather than a
+  crate-root allow. Rejected: an integer or fixed-point spelling of the
+  decay, which is harder to verify than the property it computes, and
+  expressing the same arithmetic through `mul_add` and `powf` to slip past
+  the lint, which would satisfy a governance control by evading it.
+  Outstanding: 010 B-1's enumeration is now incomplete. Widening it is an
+  amendment to a `complete` spec that this session has no authority to
+  make, and it is carried to review rather than taken here.
+- **D-5 (2026-09-17, build session).** FR-005's property is checked by a
+  deterministic sweep (six base weights, ten years in six-hour steps, plus
+  the boundaries and a clock that ran backwards) rather than by a
+  randomized generator. The property is a statement about a one-argument
+  monotone function, so a dense walk proves as much as a generator would
+  and fails at the same input on every machine, which a shrinking
+  randomized failure does not. Rejected: adding `proptest`, whose tree is
+  supply-chain surface this crate would carry for one test.
+- **D-6 (2026-09-17, build session).** The three taxonomies that carry a
+  payload (`trust`, `status`, `scope.kind`, `actor.kind`) serialize as an
+  object with a string discriminant rather than as a bare string, because
+  `Instruction` carries a `Promotion` and `Superseded` carries a
+  `MemoryId`. Each is deserialized through a wire struct that reads the
+  discriminant as a string first, which is what lets FR-002's refusal name
+  the field rather than only the variant. Spec 012 B-2's `trust` and
+  `status` columns store the discriminant, which is `label()` on both
+  types.
 
 ## Verification
 

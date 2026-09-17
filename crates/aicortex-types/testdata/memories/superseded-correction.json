@@ -1,0 +1,38 @@
+{
+  "id": "019c4f00-0000-7000-8000-000000000005",
+  "scope": {
+    "owner": "2f1b8c4e-0f6a-4b1e-9a2c-7d3e5f8a1b90",
+    "kind": "personal"
+  },
+  "kind": "correction",
+  "body": {
+    "text": "The half-life is thirty days, not seven."
+  },
+  "actor": {
+    "kind": "human",
+    "id": "sub-bartek",
+    "label": "Bartek"
+  },
+  "provenance": {
+    "source": {
+      "system": "claude-code"
+    },
+    "captured_at": 1789041600,
+    "ingested_at": 1789041604
+  },
+  "trust": {
+    "class": "evidence"
+  },
+  "status": {
+    "state": "superseded",
+    "by": "019c4f00-0000-7000-8000-000000000006"
+  },
+  "importance": {
+    "base": 0.5,
+    "last_used": 1789041604,
+    "uses": 1
+  },
+  "schema_version": 1,
+  "created": 1789041604,
+  "updated": 1789042500
+}

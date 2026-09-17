@@ -64,11 +64,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-types/src/lib.rs' does not exist",
-        "path": "crates/aicortex-types/src/lib.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/lib.rs' does not exist",
         "path": "crates/aicortex-store/src/lib.rs"
       },
@@ -140,6 +135,10 @@
       "042-portability-and-migration"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-types/src/lib.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "docs/design/01-coordination-and-local-integration.md",
         "source": "spec-edge"
@@ -402,7 +401,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
