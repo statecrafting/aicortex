@@ -90,9 +90,10 @@ release exists; its acceptance cannot pass, and the spec cannot flip to
   the reason in that spec's Behavior. Deny by default is the chassis's
   (`rahi://015`), and the ceiling being empty at the start is what makes
   additions visible in review.
-- **B-5 (state).** `AppState` holds the rahi `Store`, `Ledger`, `Kernel`,
-  and the product's own handles. It is constructed once by `cell.rs` and
-  cloned into handlers. No global, no lazy static holding a connection.
+- **B-5 (state, amended 2026-09-17, D-9).** The chassis constructs
+  `rahi_edge::AppState` once and supplies it to the cell's routers for
+  cloning into handlers. Later specs define how product handles reach
+  handlers. No global or lazy static holds a connection.
 - **B-6 (exit codes and errors).** The product's error type maps onto
   rahi's `Error` variants and inherits its exit codes; no new top-level
   exit code is invented.
@@ -261,6 +262,29 @@ manifest will eventually declare. The reference deployment (044).
   duplicated, so no `deny-multiple-versions` entry fires. `cargo deny check`
   reports advisories, bans, licences, and sources ok. Nothing was relaxed to
   get there; the next revisit is the next chassis bump.
+- **D-9 (2026-09-17, amendment of B-5).** B-5 said `AppState` holds the
+  product's own handles and "is constructed once by `cell.rs`". The chassis
+  was not built that way, and at rahi `0.1.0` cannot be: `Cell` is a trait of
+  associated functions with no receiver, and `routes` and `operator_routes`
+  each *receive* an `AppState` the chassis built at boot around the store,
+  the ledger, and the kernel. So `cell.rs` constructs nothing and there is no
+  seam at which it could. D-4 recorded that discrepancy at build time but did
+  not authorize changing an approved requirement, and the code shipped
+  against a clause it does not satisfy as written. B-5 now states what the
+  seam actually is: the chassis constructs the one state value and supplies
+  it to the cell's routers, later specs decide how product handles reach
+  handlers, and the invariant the clause exists for, that no global and no
+  lazy static holds a connection, is unchanged and still binding. The
+  enumeration of what `AppState` holds is dropped with it: that type is the
+  chassis's, `rahi://015` specifies its contents, and restating them here
+  would be a second description of someone else's structure to drift from.
+  Rejected: leaving B-5 as approved and letting D-4 stand as a note on an
+  unsatisfied clause, which leaves the corpus asserting something the code
+  contradicts; and holding the product handles clause for a later spec to
+  delete, which would amend B-5 twice for one fact. The maintainer approved
+  this wording on 2026-09-17 and directed the amendment; the agent applied
+  the approved text and this entry records that authority rather than
+  assuming it.
 
 ## Status (2026-09-17, complete: the chassis release landed)
 
@@ -271,14 +295,11 @@ green, and D-6 was revisited in D-8. The three acceptance criteria hold on
 the published crates, which is what D-2 required before any of them could be
 reported as passed.
 
-One thing a human decides, not this session: B-5's sentence that `AppState`
-"is constructed once by `cell.rs`" still describes an API the chassis does
-not have. The published `Cell` trait has associated functions with no
-receiver and hands each router the chassis's own `rahi_edge::AppState`, so
-`cell.rs` constructs nothing. D-4 recorded that at build time and the
-invariant B-5 exists for (no global, no lazy static holding a connection)
-holds. The text is left as approved rather than rewritten to match the code;
-amending it the way D-2 and D-3 were amended is a maintainer's call.
+B-5 was the one clause the code did not satisfy as written, and the
+maintainer amended it on 2026-09-17 (D-9) rather than leaving D-4's note
+standing against an approved requirement. It now describes the seam the
+chassis actually offers; the invariant it exists for is unchanged, and
+`cell.rs` holds no state.
 
 ## Verification
 

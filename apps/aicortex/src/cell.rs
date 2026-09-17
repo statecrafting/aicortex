@@ -17,7 +17,7 @@ use rahi_store::Migration;
 ///
 /// It holds no state. The chassis builds one [`AppState`] (the store, the
 /// ledger, the kernel) and hands it to the routers, which clone it into
-/// their handlers; no handle lives in a global (B-5, D-4).
+/// their handlers; no handle lives in a global (B-5 as amended, D-9).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub struct Aicortex;
 

@@ -76,6 +76,6 @@
     "summary": "The workspace and the seam to the chassis. rahi crates are pinned to one exact version in the workspace manifest and are never vendored or patched. The application is a `Cell`: it returns a manifest, a migration list, a router, and an operator router, and `main` hands it to rahi's runner, which owns argument parsing, boot, the verbs, and the exit codes. The manifest is the capability ceiling, and it starts closed: no egress host is declared until a spec needs one.\n",
     "title": "The cell: a Cargo workspace, pinned rahi crates, a declared manifest, and one line of main"
   },
-  "shardHash": "d18a39097be45aab0dce4ccce2d356792575d5e4859c84f17fdfd7bc7e32f470",
+  "shardHash": "8ca8d793c3bb8d74d5a5908d854789f247902b7e37dcd650b838012af9a66fde",
   "specVersion": "1.3.0"
 }
