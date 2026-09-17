@@ -194,14 +194,46 @@ async fn refusal_key(
     scope: &Scope,
     at: UnixSeconds,
 ) -> aicortex_store::DecisionKeyId {
+    let gate = Gate::standard();
+    let memory = common::memory(scope, &format!("ghp_{}", "x".repeat(36)), at.get());
+    let candidate = Candidate::new(common::parts_of(&memory), Origin::Asserted);
+    let Verdict::Refuse(reason) = gate.evaluate(&candidate) else {
+        panic!("the credential fixture must be refused");
+    };
     let key = aicortex_store::DecisionKey::mint().expect("a key mints");
     let key_id = key.id().clone();
+    let material = gate.digest_material(&candidate);
+    let digest = DigestRef {
+        digest: key.digest(&material),
+        algorithm: aicortex_store::DIGEST_ALGORITHM.to_owned(),
+        key_id: key_id.to_string(),
+    };
     let mut txn = TxnBuilder::new();
     aicortex_store::DecisionKeyRepo::stage(&mut txn, scope, &key, None, at);
     node.handle()
         .txn(txn.into_statements())
         .await
         .expect("the refusal key commits");
+    let entry = aicortex_gate::ledger_entry(
+        aicortex_gate::KIND_REFUSE,
+        &reason,
+        scope,
+        &scope.owner,
+        &digest,
+        None,
+    );
+    let decision_id = format!("refusal-{key_id}");
+    append(node, &entry, &decision_id).await;
+    assert!(
+        record_json(node, &decision_id)
+            .await
+            .contains(key_id.as_str())
+    );
+    let stored = aicortex_store::DecisionKeyRepo::get(&node.handle(), scope, &key_id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(stored.digest(&material), digest.digest);
     key_id
 }
 
@@ -706,13 +738,27 @@ async fn fr007_erasing_a_quarantined_memory_destroys_the_key_its_decision_names(
         1_700_300_000,
     );
     capture(&node, &reimport).await;
-    // And quarantining it again, which mints a *new* key rather than
-    // recovering the destroyed one.
+    // Quarantining the exact erased body also mints a new key. First erase
+    // the admitted recapture so the original scope can
+    // exercise an exact-body quarantine without violating uniqueness.
+    Eraser::new()
+        .erase(
+            &node.handle(),
+            &node.ledger,
+            &Erasure::new(
+                &alice,
+                reimport.id,
+                &authority(),
+                UnixSeconds::new(1_700_350_000),
+            ),
+        )
+        .await
+        .expect("the recapture erases");
     let second = quarantine(
         &node,
         &common::memory(
             &alice,
-            "an unattributable note about a person, again",
+            "an unattributable note about a person",
             1_700_400_000,
         ),
     )
@@ -777,12 +823,8 @@ async fn key_secret(node: &common::Node, key_id: &aicortex_store::DecisionKeyId)
 /// The positive control for the test below, and the caveat FR-007 requires
 /// the result of an erasure to state in so many words.
 ///
-/// hiqlite writes one snapshot per node, so a single test cannot take a
-/// backup on each side of an erasure; the two halves are two tests over two
-/// nodes instead. This half establishes that a backup taken *before* an
-/// erasure really does hold the key, which is what makes the absence asserted
-/// in the other half a fact about erasure rather than a fact about a backup
-/// format that never held the bytes in the first place.
+/// Recover the actual pre-erasure snapshot after erasing its source. The key
+/// must return: FR-007 requires this limitation to be stated, not hidden.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr007_a_backup_taken_before_the_erasure_still_holds_the_key() {
     let node = common::node().await;
@@ -802,6 +844,39 @@ async fn fr007_a_backup_taken_before_the_erasure_still_holds_the_key() {
         "a backup taken before the erasure holds the key, which is exactly what \
          Erased::caveat() says it does"
     );
+
+    Eraser::new()
+        .erase(
+            &node.handle(),
+            &node.ledger,
+            &Erasure::new(
+                &alice,
+                memory.id,
+                &authority(),
+                UnixSeconds::new(1_700_100_000),
+            ),
+        )
+        .await
+        .expect("the source is erased after its backup");
+    assert_eq!(
+        aicortex_store::DecisionKeyRepo::get(&node.handle(), &alice, &quarantined.key_id)
+            .await
+            .unwrap(),
+        None
+    );
+    let recovered = common::recover_snapshot(&backup).await;
+    let key =
+        aicortex_store::DecisionKeyRepo::get(&recovered.handle(), &alice, &quarantined.key_id)
+            .await
+            .unwrap()
+            .expect("a pre-erasure backup restores the old key");
+    assert_eq!(key.digest(&quarantined.material), quarantined.digest.digest);
+    recovered
+        .ledger
+        .verify()
+        .await
+        .expect("the recovered chain verifies");
+    recovered.shutdown().await;
 
     // And the caveat says so, rather than leaving somebody to find out.
     let caveat = Erased::caveat();
@@ -847,6 +922,45 @@ async fn fr007_a_backup_taken_after_the_erasure_holds_no_key() {
         contains(&backup, quarantined.memory.to_string().as_bytes()),
         "the snapshot really is this store's"
     );
+
+    let recovered = common::recover_snapshot(&backup).await;
+    let tombstone = MemoryRepo::new()
+        .get(&recovered.handle(), &alice, memory.id)
+        .await
+        .unwrap()
+        .expect("the post-erasure snapshot restores the tombstone");
+    assert_eq!(tombstone.status, Status::Erased);
+    assert_eq!(
+        aicortex_store::DecisionKeyRepo::get(&recovered.handle(), &alice, &quarantined.key_id)
+            .await
+            .unwrap(),
+        None
+    );
+    Outbox::drain(&recovered.handle(), 100)
+        .await
+        .expect("recovered work redrives");
+    let recaptured = quarantine(
+        &recovered,
+        &common::memory(
+            &alice,
+            "an unattributable note about a person",
+            1_700_400_000,
+        ),
+    )
+    .await;
+    assert_ne!(recaptured.key_id, quarantined.key_id);
+    assert_eq!(
+        aicortex_store::DecisionKeyRepo::get(&recovered.handle(), &alice, &quarantined.key_id)
+            .await
+            .unwrap(),
+        None
+    );
+    recovered
+        .ledger
+        .verify()
+        .await
+        .expect("the recovered chain verifies after replay");
+    recovered.shutdown().await;
 
     node.shutdown().await;
 }
@@ -966,6 +1080,8 @@ async fn fr007_erasing_a_scope_destroys_every_key_in_it_including_a_refusal_s() 
     // A refusal stores no row at all, so its key is reachable only through
     // the scope. It is the case a per-memory sweep would miss entirely.
     let refused = refusal_key(&node, &alice, UnixSeconds::new(1_700_000_100)).await;
+    let bob = common::scope("bob");
+    let bobs_key = refusal_key(&node, &bob, UnixSeconds::new(1_700_000_200)).await;
 
     // The presence, established first.
     for key_id in [&quarantined.key_id, &refused] {
@@ -992,7 +1108,7 @@ async fn fr007_erasing_a_scope_destroys_every_key_in_it_including_a_refusal_s() 
         .await
         .expect("the scope erasure runs");
     assert_eq!(erased.memories, 1);
-    assert!(erased.keys_destroyed >= 2, "{erased:?}");
+    assert_eq!(erased.keys_destroyed, 2, "{erased:?}");
 
     // The absence, for both kinds of key.
     for key_id in [&quarantined.key_id, &refused] {
@@ -1015,15 +1131,13 @@ async fn fr007_erasing_a_scope_destroys_every_key_in_it_including_a_refusal_s() 
     );
 
     // A scope that holds only refusals still has its keys destroyed.
-    let bob = common::scope("bob");
-    let bobs_key = refusal_key(&node, &bob, UnixSeconds::new(1_700_000_200)).await;
     assert!(
         aicortex_store::DecisionKeyRepo::get(&node.handle(), &bob, &bobs_key)
             .await
             .expect("the read succeeds")
             .is_some()
     );
-    Eraser::new()
+    let erased = Eraser::new()
         .erase_scope(
             &node.handle(),
             &node.ledger,
@@ -1034,12 +1148,45 @@ async fn fr007_erasing_a_scope_destroys_every_key_in_it_including_a_refusal_s() 
         )
         .await
         .expect("a scope of refusals erases");
+    assert_eq!(erased.keys_destroyed, 1);
+    assert_eq!(erased.memories, 0);
+    assert_eq!(erased.removed_derivatives, 1);
+    assert_eq!(erased.batches, 1, "the key-only batch is journaled");
+    let json = record_json(&node, erased.decision.as_str()).await;
+    assert!(json.contains("\"keys_destroyed\":1"), "{json}");
+    assert!(json.contains("\"derivatives_removed\":1"), "{json}");
     assert_eq!(
         aicortex_store::DecisionKeyRepo::get(&node.handle(), &bob, &bobs_key)
             .await
             .expect("the read succeeds"),
         None
     );
+
+    let backup = backup_bytes(&node).await;
+    let recovered = common::recover_snapshot(&backup).await;
+    for (scope, key_id) in [
+        (&alice, &quarantined.key_id),
+        (&alice, &refused),
+        (&bob, &bobs_key),
+    ] {
+        assert_eq!(
+            aicortex_store::DecisionKeyRepo::get(&recovered.handle(), scope, key_id)
+                .await
+                .unwrap(),
+            None
+        );
+    }
+    Outbox::drain(&recovered.handle(), 100).await.unwrap();
+    let replay = refusal_key(&recovered, &bob, UnixSeconds::new(1_700_400_000)).await;
+    assert_ne!(replay, bobs_key);
+    assert_eq!(
+        aicortex_store::DecisionKeyRepo::get(&recovered.handle(), &bob, &bobs_key)
+            .await
+            .unwrap(),
+        None
+    );
+    recovered.ledger.verify().await.unwrap();
+    recovered.shutdown().await;
 
     node.shutdown().await;
 }

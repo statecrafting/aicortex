@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: complete
+implementation: in-progress
 risk: critical
 wave: 1
 depends_on:
@@ -173,6 +173,54 @@ which are deployment configuration.
 
 ## 7. Resolved decisions
 
+- **D-11 (2026-09-17, review remediation).** D-9's claim that every
+  erasure statement was idempotent was false for counter deltas and for
+  tombstone timestamps. Counter moves now select the current live row
+  inside the erasure transaction, before a guarded tombstone update. A
+  second batch built from the same earlier read moves no counter and does
+  not replace the first tombstone. A concurrent expiry moves the source
+  bucket before erasure observes it, so erasure decrements that bucket.
+  Tests force both commit orders against the real store rather than hoping
+  concurrent tasks overlap. A key-only final batch also records its actual
+  destruction in the journal and completion Decision.
+
+  The same review found that a staged merge could restore an erased body,
+  and a staged supersession could move counters after erasure. These
+  read-modify-write paths compare the record at commit and abort the whole
+  transaction on disagreement, including source, successor and outbox
+  inserts. Supersession also rechecks reachability inside the transaction,
+  because two individually acyclic reads can otherwise commit a cycle.
+  Rejected: a zero-row update with unconditional follow-on writes, or a
+  lock assumed to protect a transaction the caller has not committed yet.
+  These are implementation repairs to B-2, B-3 and B-7, not changes to
+  their requirements.
+- **Status (2026-09-17, review remediation).** The SQL overlap defects are
+  repaired, but the broader lease-handoff safety claim in D-9 remains
+  unproved and has a reproduced chassis blocker. With pinned rahi 0.1.0
+  and hiqlite 0.14.0, acquire a lease, wait 11 seconds, acquire a newer
+  lease on that key, and release the old lease without a fenced write.
+  The lock handler panics at `dlock_handler.rs:154`; acquiring a lease on
+  another key then times out. `erase_scope` uses ordinary transactions
+  and releases its lease this way. The local diagnostic failed with exit
+  101; its log is retained in untracked
+  `data/014-stale-lease-diagnostic.log`.
+
+  `rahi_store::Lease` suppresses stale release only after `fenced_txn`
+  detects supersession. That API accepts only UPDATE and DELETE against
+  tables carrying a fence column; the erasure transaction also contains
+  counter upserts and tables without that column. A separate fencing probe
+  would leave a race before release and is not an atomic repair. The next
+  action is a chassis fix and release supporting safe lease handoff, then
+  a reviewed pin update and a rerun of 014 acceptance including TTL
+  takeover. No chassis fork, shared-binary replacement, waiver, or contract
+  relaxation is adopted here. Keep 014 in progress and do not start 015.
+
+  FR-007 recovery evidence now boots each real pre- or post-erasure app
+  database snapshot into an isolated rahi store. The former restores the
+  original digest key, as the required caveat says; the latter retains
+  tombstones and no destroyed key, including after outbox redrive and
+  exact-body recapture. This exercises app-store snapshot recovery, not
+  the operator's encrypted archive or identity-store restore.
 - **D-2 (2026-09-17, amendment, human-authorized).** Spec 013 originally
   froze "erasure destroys the B-9 digest key of every Decision about the
   erased memory or scope" on `crates/aicortex-store/src/erasure.rs`, a file
@@ -308,4 +356,5 @@ which are deployment configuration.
 ```verify:cli
 cargo test -p aicortex-store --locked --test lifecycle
 cargo test -p aicortex-store --locked --test erasure
+cargo test -p aicortex-store --locked --lib erasure::tests
 ```

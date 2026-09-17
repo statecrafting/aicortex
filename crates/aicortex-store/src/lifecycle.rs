@@ -108,8 +108,15 @@ pub struct Lifecycle {
     repo: MemoryRepo,
 }
 
-const MERGE_SQL: &str = "UPDATE memory SET record = $1, updated = $2
-    WHERE scope_id = $3 AND id = $4";
+// A failed comparison writes NULL into a NOT NULL column, aborting the
+// entire transaction including source and outbox rows. A zero-row UPDATE
+// alone would silently commit those side effects after an erasure.
+// ?N is a numbered SQLite binding even when first mentioned out of order;
+// $N is a named binding whose position is its first occurrence.
+const MERGE_SQL: &str = "UPDATE memory
+    SET record = CASE WHEN record = ?5 AND status <> 'erased' THEN ?1 ELSE NULL END,
+        updated = ?2
+    WHERE scope_id = ?3 AND id = ?4";
 
 /// One source of a memory, appended at the next free ordinal (B-2).
 ///
@@ -129,8 +136,15 @@ const SOURCE_SQL: &str = "INSERT INTO memory_source (
     )";
 
 const SUPERSEDE_SQL: &str = "UPDATE memory
-    SET status = 'superseded', superseded_by = $1, record = $2, updated = $3
-    WHERE scope_id = $4 AND id = $5 AND status <> 'erased'";
+    SET status = 'superseded', superseded_by = ?1,
+        record = CASE WHEN record = ?6 AND status <> 'erased' AND NOT EXISTS (
+            WITH RECURSIVE successors(id) AS (
+                VALUES (?1) UNION
+                SELECT m.superseded_by FROM memory m JOIN successors s ON m.id = s.id
+                WHERE m.scope_id = ?4 AND m.superseded_by IS NOT NULL
+            ) SELECT 1 FROM successors WHERE id = ?5
+        ) THEN ?2 ELSE NULL END, updated = ?3
+    WHERE scope_id = ?4 AND id = ?5";
 
 const SUCCESSOR_SQL: &str = "SELECT superseded_by AS id FROM memory
     WHERE scope_id = $1 AND id = $2 AND superseded_by IS NOT NULL";
@@ -155,7 +169,7 @@ const REDIGEST_READ_SQL: &str = "SELECT id, record FROM memory
     WHERE scope_id = $1 AND status <> 'erased' AND fingerprint <> $2 LIMIT $3";
 
 const REDIGEST_WRITE_SQL: &str = "UPDATE memory SET fingerprint = $1
-    WHERE scope_id = $2 AND id = $3";
+    WHERE scope_id = $2 AND id = $3 AND status <> 'erased'";
 
 #[derive(Debug, Deserialize)]
 struct IdRow {
@@ -204,6 +218,8 @@ impl Lifecycle {
     ///
     /// Nothing is executed. Everything lands in `txn`, so a capture is one
     /// transaction whichever way it went (constitution XI).
+    /// A concurrent record change aborts that transaction at commit; the
+    /// caller must re-read and stage a fresh capture before retrying.
     ///
     /// # Errors
     ///
@@ -237,6 +253,14 @@ impl Lifecycle {
                 "memory {existing_id} holds a fingerprint but not a row"
             )));
         };
+        if existing.status == Status::Erased {
+            return Err(Error::Conflict(format!(
+                "memory {existing_id} was erased before merge"
+            )));
+        }
+        let expected = serde_json::to_string(&existing).map_err(|error| {
+            Error::Validation(format!("memory {existing_id} does not serialize: {error}"))
+        })?;
         merge_into(&mut existing, memory);
         let record = serde_json::to_string(&existing).map_err(|error| {
             Error::Validation(format!("memory {existing_id} does not serialize: {error}"))
@@ -248,6 +272,7 @@ impl Lifecycle {
                 Value::Integer(seconds_to_sql(existing.updated)),
                 Value::from(&scope_id),
                 Value::from(existing_id.to_string()),
+                Value::from(expected),
             ],
         ));
         stage_source(txn, &scope_id, existing_id, &memory.provenance)?;
@@ -272,6 +297,9 @@ impl Lifecycle {
     /// inserting and so has no successor at all, in which case the walk is one
     /// read that finds nothing; the check costs what it costs on the path
     /// where a cycle is actually possible.
+    /// The committing statement repeats the reachability check and compares
+    /// the old record, so concurrent erasure or supersession cannot make the
+    /// staged update silently corrupt the row or its counters.
     ///
     /// # Errors
     ///
@@ -321,6 +349,9 @@ impl Lifecycle {
                 "memory {old} has been erased and cannot be superseded"
             )));
         }
+        let expected = serde_json::to_string(&memory).map_err(|error| {
+            Error::Validation(format!("memory {old} does not serialize: {error}"))
+        })?;
         let was = memory.status;
         memory.status = Status::Superseded(new);
         memory.updated = at;
@@ -336,6 +367,7 @@ impl Lifecycle {
                 Value::Integer(seconds_to_sql(at)),
                 Value::from(&scope_id),
                 Value::from(old.to_string()),
+                Value::from(expected),
             ],
         ));
         Counters::adjust(txn, &scope_id, memory.kind, &was, -1);

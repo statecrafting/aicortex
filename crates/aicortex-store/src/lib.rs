@@ -61,6 +61,9 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+#[cfg(test)]
+extern crate self as aicortex_store;
+
 pub mod counters;
 pub mod cursor;
 pub mod decision_key;

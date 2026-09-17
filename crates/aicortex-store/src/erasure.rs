@@ -53,7 +53,6 @@ use rahi_store::{ExecuteResult, Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, Sub, UnixSeconds};
 use serde::Deserialize;
 
-use crate::counters::Counters;
 use crate::decision_key::DecisionKeyRepo;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
@@ -315,7 +314,23 @@ impl Default for Eraser {
 const TOMBSTONE_SQL: &str = "UPDATE memory
     SET status = 'erased', superseded_by = NULL, fingerprint = '', body_bytes = 0,
         valid_until = NULL, updated = $1, record = $2
-    WHERE scope_id = $3 AND id = $4";
+    WHERE scope_id = $3 AND id = $4 AND status <> 'erased'";
+
+/// Move only a row that is still live when this transaction executes. The
+/// source bucket comes from the row, not from the earlier shell read: expiry
+/// or another erasure may have committed in between. Both counter statements
+/// precede the tombstone, inside the same SQLite transaction.
+const DECREMENT_SQL: &str = "INSERT INTO scope_counter (scope_id, kind, status, count)
+    SELECT scope_id, kind, status, -1 FROM memory
+    WHERE scope_id = $1 AND id = $2 AND status <> 'erased'
+    ON CONFLICT (scope_id, kind, status)
+    DO UPDATE SET count = scope_counter.count - 1";
+
+const INCREMENT_ERASED_SQL: &str = "INSERT INTO scope_counter (scope_id, kind, status, count)
+    SELECT scope_id, kind, 'erased', 1 FROM memory
+    WHERE scope_id = $1 AND id = $2 AND status <> 'erased'
+    ON CONFLICT (scope_id, kind, status)
+    DO UPDATE SET count = scope_counter.count + 1";
 
 /// Mark every memory derived from the erased one (B-8).
 ///
@@ -473,7 +488,7 @@ impl Eraser {
             DecisionKeyRepo::stage_destroy_for_memory(&mut txn, scope, shell.id);
         }
         let keys = keys_at..txn.len();
-        stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
+        let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
         // B-8: a derivative that is not being erased is marked, never erased.
         // The mark runs after the tombstones, and skips a row that is already
         // one, so a cascaded derivative is reported as erased rather than as
@@ -485,6 +500,11 @@ impl Eraser {
         ));
 
         let results = store.txn(txn.into_statements()).await?;
+        if span_rows(&results, tombstones) == 0 {
+            return Err(Error::Conflict(format!(
+                "memory {id} was erased by another writer"
+            )));
+        }
         let keys_destroyed = span_rows(&results, keys.clone());
         let removed = span_rows(&results, sweep).saturating_add(keys_destroyed);
         let marked = results.get(mark_at).map_or(0, |row| row.rows_affected);
@@ -548,8 +568,11 @@ impl Eraser {
     /// # Errors
     ///
     /// [`Error::Validation`] when `batch` is zero or above
-    /// [`MAX_ERASURE_BATCH`]; [`Error::Conflict`] when the lease is
-    /// superseded; the store's or the ledger's error.
+    /// [`MAX_ERASURE_BATCH`]; the store's or the ledger's error.
+    ///
+    /// The pinned chassis has a stale-lease release defect. Spec 014's dated
+    /// Status note records the reproduced TTL-handoff blocker; SQL batch
+    /// idempotency does not establish safety of the lock subsystem itself.
     pub async fn erase_scope(
         &self,
         store: &StoreHandle,
@@ -616,26 +639,20 @@ impl Eraser {
     ) -> Result<u64, Error> {
         let mut keys_destroyed = 0_u64;
         loop {
-            let Some(progress) = self
+            let progress = match self
                 .drain_one_batch(store, scope, scope_id, batch, now)
                 .await?
-            else {
-                return Ok(keys_destroyed);
+            {
+                Batch::Drained { keys } => return Ok(keys_destroyed.saturating_add(keys)),
+                Batch::Erased(progress) => progress,
             };
             keys_destroyed = keys_destroyed.saturating_add(progress.keys);
-            if progress.memories == 0 {
-                // The batch read rows that were not erased and then erased
-                // none of them. Looping again would read the same rows and do
-                // the same nothing, so this stops instead: a pass that cannot
-                // make progress is a defect to report, not a spin to hide.
-                return Err(Error::Integrity(format!(
-                    "the erasure of scope {scope_id} claimed a batch and erased nothing"
-                )));
-            }
+            // Zero is valid when another eraser committed the selected rows
+            // first. Re-read what remains; never count those tombstones twice.
         }
     }
 
-    /// One batch of a scope erasure, or `None` when the scope is drained.
+    /// One batch of a scope erasure, including the final key-only pass.
     ///
     /// Called under the caller's lease and inside it: everything a batch
     /// removes is one transaction, and the journal line describing it follows.
@@ -646,7 +663,7 @@ impl Eraser {
         scope_id: &ScopeId,
         batch: u32,
         now: UnixSeconds,
-    ) -> Result<Option<Progress>, Error> {
+    ) -> Result<Batch, Error> {
         {
             let rows: Vec<ShellRow> = store
                 .query_consistent(
@@ -658,12 +675,26 @@ impl Eraser {
                 // The scope holds no live memory. Its keys are still destroyed:
                 // a refusal stores no row, so its key is reachable only here,
                 // and a scope of nothing but refusals is the case a per-memory
-                // sweep would miss entirely.
+                // sweep would miss entirely. What this pass destroys is counted
+                // like everything else: it is the *only* destruction in such a
+                // scope, so discarding it would make the Decision report zero
+                // keys for an erasure that destroyed several.
                 let mut txn = TxnBuilder::new();
                 DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
+                // Keep the final key-only removal in the durable report too.
+                // changes() observes the immediately preceding DELETE in this
+                // same transaction. A no-op completion adds no journal row.
+                txn.push(Statement::with_params(
+                    "INSERT INTO erasure_journal (scope_id, batch, memories, derivatives, at)
+                     SELECT $1, (SELECT COALESCE(MAX(batch), -1) + 1
+                         FROM erasure_journal WHERE scope_id = $1), 0, changes(), $2
+                     WHERE changes() > 0",
+                    vec![Value::from(scope_id), Value::Integer(seconds_to_sql(now))],
+                ));
                 let results = store.txn(txn.into_statements()).await?;
-                let _ = span_rows(&results, 0..results.len());
-                return Ok(None);
+                return Ok(Batch::Drained {
+                    keys: span_rows(&results, 0..1),
+                });
             }
             let shells = rows
                 .into_iter()
@@ -689,18 +720,20 @@ impl Eraser {
             // produced rather than the counts it was expected to produce. A
             // crash between the two loses a line of a report, never a row the
             // erasure was supposed to remove.
-            store
-                .txn(vec![Statement::with_params(
-                    JOURNAL_SQL,
-                    vec![
-                        Value::from(scope_id),
-                        Value::Integer(i64::try_from(erased).unwrap_or(i64::MAX)),
-                        Value::Integer(i64::try_from(removed).unwrap_or(i64::MAX)),
-                        Value::Integer(seconds_to_sql(now)),
-                    ],
-                )])
-                .await?;
-            Ok(Some(Progress {
+            if erased > 0 || removed > 0 {
+                store
+                    .txn(vec![Statement::with_params(
+                        JOURNAL_SQL,
+                        vec![
+                            Value::from(scope_id),
+                            Value::Integer(i64::try_from(erased).unwrap_or(i64::MAX)),
+                            Value::Integer(i64::try_from(removed).unwrap_or(i64::MAX)),
+                            Value::Integer(seconds_to_sql(now)),
+                        ],
+                    )])
+                    .await?;
+            }
+            Ok(Batch::Erased(Progress {
                 memories: erased,
                 keys: destroyed,
             }))
@@ -801,6 +834,23 @@ struct Progress {
     keys: u64,
 }
 
+/// What one turn of the drain found to do.
+///
+/// An enum rather than an `Option<Progress>` because the end of the drain is
+/// not "nothing happened": the pass that finds no live memory left is the one
+/// that reaches the keys of refusals, which stored no row and are therefore in
+/// no batch. Returning `None` there lost that count.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Batch {
+    /// A batch was claimed and erased.
+    Erased(Progress),
+    /// Nothing live was left. The scope's remaining keys were destroyed.
+    Drained {
+        /// Digest keys destroyed by the final pass.
+        keys: u64,
+    },
+}
+
 /// The lease key a scope's erasure serialises on.
 ///
 /// Per scope rather than global: two subjects' erasures have nothing to say
@@ -866,7 +916,7 @@ impl TryFrom<ShellRow> for Shell {
     }
 }
 
-/// Stage the tombstone row of every shell, then their counter moves.
+/// Stage counter moves from current rows, then their guarded tombstones.
 ///
 /// The two are staged in two passes rather than interleaved so that the
 /// tombstone statements are a contiguous span of the batch, and the number of
@@ -882,6 +932,14 @@ fn stage_tombstones(
     shells: &[Shell],
     now: UnixSeconds,
 ) -> Result<core::ops::Range<usize>, Error> {
+    for shell in shells {
+        for sql in [DECREMENT_SQL, INCREMENT_ERASED_SQL] {
+            txn.push(Statement::with_params(
+                sql,
+                vec![Value::from(scope_id), Value::from(shell.id.to_string())],
+            ));
+        }
+    }
     let start = txn.len();
     for shell in shells {
         let record = serde_json::to_string(&tombstone(scope, shell, now)?).map_err(|error| {
@@ -900,12 +958,7 @@ fn stage_tombstones(
             ],
         ));
     }
-    let span = start..txn.len();
-    for shell in shells {
-        Counters::adjust(txn, scope_id, shell.kind, &shell.status, -1);
-        Counters::adjust(txn, scope_id, shell.kind, &Status::Erased, 1);
-    }
-    Ok(span)
+    Ok(start..txn.len())
 }
 
 /// The record that replaces an erased memory's own (B-7, D-1).
@@ -951,4 +1004,131 @@ fn span_rows(results: &[ExecuteResult], span: core::ops::Range<usize>) -> u64 {
         .unwrap_or_default()
         .iter()
         .fold(0_u64, |total, row| total.saturating_add(row.rows_affected))
+}
+
+#[cfg(test)]
+#[path = "../tests/common/mod.rs"]
+mod test_support;
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)]
+mod tests {
+    use super::*;
+    use crate::{Counters, Lifecycle, MemoryRepo, StatusFilter};
+    use test_support as common;
+
+    // Force the read/read/commit/commit interleaving of overlapping erasers.
+    // A timing-based concurrent test could pass without ever hitting it.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn overlapping_batches_move_each_counter_once_and_keep_the_first_tombstone() {
+        let node = common::node().await;
+        let alice = common::scope("alice");
+        let bob = common::scope("bob");
+        let eraser = Eraser::new();
+        let scope_id = ScopeId::of(&alice);
+        let mut shells = Vec::new();
+        for (scope, body) in [(&alice, "first"), (&alice, "second"), (&bob, "other scope")] {
+            let memory = common::memory(scope, body, 1_700_000_000);
+            let mut txn = TxnBuilder::new();
+            MemoryRepo::new()
+                .insert(
+                    &mut txn,
+                    &common::admit(&memory),
+                    &memory.provenance,
+                    &common::work(&memory),
+                )
+                .unwrap();
+            node.handle().txn(txn.into_statements()).await.unwrap();
+            if scope == &alice {
+                shells.push(
+                    eraser
+                        .shell(&node.handle(), &scope_id, memory.id)
+                        .await
+                        .unwrap()
+                        .unwrap(),
+                );
+            }
+        }
+        let mut first = TxnBuilder::new();
+        let first_span = stage_tombstones(
+            &mut first,
+            &alice,
+            &scope_id,
+            &shells,
+            UnixSeconds::new(1_700_100_000),
+        )
+        .unwrap();
+        let mut second = TxnBuilder::new();
+        let second_span = stage_tombstones(
+            &mut second,
+            &alice,
+            &scope_id,
+            &shells,
+            UnixSeconds::new(1_700_200_000),
+        )
+        .unwrap();
+        let committed = node.handle().txn(first.into_statements()).await.unwrap();
+        assert_eq!(span_rows(&committed, first_span), 2);
+        let repeated = node.handle().txn(second.into_statements()).await.unwrap();
+        assert_eq!(span_rows(&repeated, second_span), 0);
+        let stats = Counters::stats(&node.handle(), &alice).await.unwrap();
+        assert_eq!(stats.total, 2);
+        assert_eq!(stats.by_status.get(StatusFilter::Erased.label()), Some(&2));
+        assert_eq!(stats.by_status.get(StatusFilter::Active.label()), Some(&0));
+        let other = Counters::stats(&node.handle(), &bob).await.unwrap();
+        assert_eq!(other.total, 1);
+        assert_eq!(other.by_status.get(StatusFilter::Active.label()), Some(&1));
+        for shell in shells {
+            let row = MemoryRepo::new()
+                .get(&node.handle(), &alice, shell.id)
+                .await
+                .unwrap()
+                .unwrap();
+            assert_eq!(row.updated, UnixSeconds::new(1_700_100_000));
+            assert_eq!(row.status, Status::Erased);
+        }
+        node.shutdown().await;
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn erasure_moves_the_current_counter_when_expiry_commits_after_the_shell_read() {
+        let node = common::node().await;
+        let alice = common::scope("alice");
+        let scope_id = ScopeId::of(&alice);
+        let memory = common::memory(&alice, "expires before erasure commits", 1_700_000_000);
+        let now = UnixSeconds::new(1_700_100_000);
+        let mut txn = TxnBuilder::new();
+        MemoryRepo::new()
+            .insert(
+                &mut txn,
+                &common::admit(&memory),
+                &memory.provenance,
+                &common::work(&memory),
+            )
+            .unwrap();
+        Lifecycle::set_valid_until(&mut txn, &alice, memory.id, Some(now));
+        node.handle().txn(txn.into_statements()).await.unwrap();
+        let shell = Eraser::new()
+            .shell(&node.handle(), &scope_id, memory.id)
+            .await
+            .unwrap()
+            .unwrap();
+        let mut erase = TxnBuilder::new();
+        stage_tombstones(&mut erase, &alice, &scope_id, &[shell], now).unwrap();
+        assert_eq!(
+            Lifecycle::new()
+                .expire_due(&node.handle(), &alice, now, 10)
+                .await
+                .unwrap()
+                .memories,
+            1
+        );
+        node.handle().txn(erase.into_statements()).await.unwrap();
+        let stats = Counters::stats(&node.handle(), &alice).await.unwrap();
+        assert_eq!(stats.total, 1);
+        assert_eq!(stats.by_status.get(StatusFilter::Active.label()), Some(&0));
+        assert_eq!(stats.by_status.get(StatusFilter::Expired.label()), Some(&0));
+        assert_eq!(stats.by_status.get(StatusFilter::Erased.label()), Some(&1));
+        node.shutdown().await;
+    }
 }

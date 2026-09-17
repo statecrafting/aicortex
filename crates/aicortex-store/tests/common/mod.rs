@@ -137,6 +137,28 @@ pub async fn node() -> Node {
     }
 }
 
+/// Boot an isolated store from the app database snapshot, using the same
+/// on-disk placement as rahi-ops 0.1.0's restore. This tests database recovery,
+/// not the operator archive, identity-store restore, or production deployment.
+pub async fn recover_snapshot(bytes: &[u8]) -> Node {
+    let dir = tempfile::tempdir().expect("a recovery directory");
+    let data_dir = dir.path().join("hiqlite");
+    let db_dir = data_dir.join("state_machine/db");
+    std::fs::create_dir_all(&db_dir).expect("the database directory");
+    std::fs::write(db_dir.join("hiqlite.db"), bytes).expect("the snapshot is placed");
+    let store = Store::open(&config(&data_dir))
+        .await
+        .expect("the snapshot boots");
+    let ledger = Ledger::open(
+        store.handle(),
+        LedgerSigner::from_seed([7u8; 32]),
+        Hash::parse(format!("sha256:{}", "ab".repeat(32))).unwrap(),
+    )
+    .await
+    .expect("the recovered chain opens");
+    Node { store, ledger, dir }
+}
+
 /// How many rows a statement counts, for a test asserting about the tables
 /// directly rather than through a repository.
 pub async fn count(node: &Node, sql: &str, params: Vec<rahi_store::Value>) -> u64 {

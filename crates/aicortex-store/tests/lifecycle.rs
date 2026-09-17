@@ -54,6 +54,150 @@ async fn rows_for(node: &common::Node, table: &str, id: MemoryId) -> u64 {
     .await
 }
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn staged_merge_and_supersession_cannot_restore_an_erased_body_or_its_sources() {
+    let node = common::node().await;
+    let scope = common::scope("alice");
+    let memory = common::memory(&scope, "erase this body permanently", 1_700_000_000);
+    capture(&node, &memory).await;
+    let repeat = common::memory(&scope, "erase this body permanently", 1_700_000_100);
+    let next = common::memory(&scope, "replacement", 1_700_000_200);
+    let mut merge = TxnBuilder::new();
+    Lifecycle::new()
+        .capture(
+            &node.handle(),
+            &mut merge,
+            &common::admit(&repeat),
+            &common::work(&repeat),
+        )
+        .await
+        .unwrap();
+    let mut supersede = TxnBuilder::new();
+    Lifecycle::new()
+        .capture(
+            &node.handle(),
+            &mut supersede,
+            &common::admit(&next),
+            &common::work(&next),
+        )
+        .await
+        .unwrap();
+    Lifecycle::new()
+        .supersede(
+            &node.handle(),
+            &mut supersede,
+            &scope,
+            memory.id,
+            next.id,
+            next.created,
+        )
+        .await
+        .unwrap();
+    aicortex_store::Eraser::new()
+        .erase(
+            &node.handle(),
+            &node.ledger,
+            &aicortex_store::Erasure::new(
+                &scope,
+                memory.id,
+                &aicortex_store::Authority::of(scope.owner.clone()),
+                UnixSeconds::new(1_700_100_000),
+            ),
+        )
+        .await
+        .unwrap();
+    let work_before = common::count(&node, "SELECT COUNT(*) AS count FROM outbox", vec![]).await;
+    for txn in [merge, supersede] {
+        node.handle()
+            .txn(txn.into_statements())
+            .await
+            .expect_err("a stale write rolls the entire batch back");
+        let row = MemoryRepo::new()
+            .get(&node.handle(), &scope, memory.id)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(row.status, Status::Erased);
+        assert!(row.body.text.is_empty());
+        assert_eq!(rows_for(&node, "memory_source", memory.id).await, 0);
+        assert_eq!(
+            common::count(&node, "SELECT COUNT(*) AS count FROM outbox", vec![]).await,
+            work_before
+        );
+        assert_eq!(
+            Counters::stats(&node.handle(), &scope).await.unwrap().total,
+            1
+        );
+    }
+    assert!(
+        MemoryRepo::new()
+            .get(&node.handle(), &scope, next.id)
+            .await
+            .unwrap()
+            .is_none(),
+        "the successor insert rolled back too"
+    );
+    node.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn concurrent_supersessions_recheck_the_cycle_inside_the_committing_transaction() {
+    let node = common::node().await;
+    let scope = common::scope("alice");
+    let first = common::memory(&scope, "first", 1_700_000_000);
+    let second = common::memory(&scope, "second", 1_700_000_100);
+    capture(&node, &first).await;
+    capture(&node, &second).await;
+    let mut forward = TxnBuilder::new();
+    let mut backward = TxnBuilder::new();
+    Lifecycle::new()
+        .supersede(
+            &node.handle(),
+            &mut forward,
+            &scope,
+            first.id,
+            second.id,
+            second.created,
+        )
+        .await
+        .unwrap();
+    Lifecycle::new()
+        .supersede(
+            &node.handle(),
+            &mut backward,
+            &scope,
+            second.id,
+            first.id,
+            second.created,
+        )
+        .await
+        .unwrap();
+    node.handle().txn(forward.into_statements()).await.unwrap();
+    node.handle()
+        .txn(backward.into_statements())
+        .await
+        .expect_err("the second commit would close a cycle");
+    assert_eq!(
+        Lifecycle::new()
+            .successor(&node.handle(), &scope, first.id)
+            .await
+            .unwrap(),
+        Some(second.id)
+    );
+    assert_eq!(
+        Lifecycle::new()
+            .successor(&node.handle(), &scope, second.id)
+            .await
+            .unwrap(),
+        None
+    );
+    assert_eq!(
+        Counters::stats(&node.handle(), &scope).await.unwrap().total,
+        2
+    );
+    node.shutdown().await;
+}
+
 // ---------------------------------------------------------------- B-1
 
 #[test]

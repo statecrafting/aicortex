@@ -111,7 +111,7 @@
       "wave": 1
     },
     "id": "014-memory-lifecycle-and-erasure",
-    "implementation": "complete",
+    "implementation": "in-progress",
     "kind": "kernel",
     "references": [
       {
@@ -139,6 +139,6 @@
     "summary": "A memory store that can only append becomes wrong over time and then confidently recalls the wrong thing. This spec gives a memory the rest of its life: an exact fingerprint that merges a repeated capture instead of duplicating it, supersession that keeps the old row readable but unretrievable, correction that records who said the old value was wrong, expiry for memories that were true until a date, and erasure that removes content, chunks, embeddings, and index entries in one transaction while the ledger records only that it happened.\n",
     "title": "Lifecycle: supersession, correction, expiry, deduplication, and erasure that reaches the vectors"
   },
-  "shardHash": "52367a494fa893c694ad1ee745cc4d0da1009fe229990f93eec659c07de9b1d4",
+  "shardHash": "f22c369e6dcdc84f41465cc3130f3fb67f6f11504145d39617ed5a44d17a0d38",
   "specVersion": "1.3.0"
 }
