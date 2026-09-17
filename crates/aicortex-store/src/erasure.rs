@@ -1428,6 +1428,335 @@ mod tests {
     }
 
     #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    // Diagnostic of the pinned chassis, not passing evidence for B-7. The
+    // original one-copy assertion failed with two; retain that observation
+    // until a published lifetime-idempotent append API can replace this path.
+    async fn pinned_archived_retry_duplicates_after_reopen() {
+        use rahi_ledger::{Archive, Depth, FsArchive, SealPolicy, Segment};
+
+        tokio::time::timeout(std::time::Duration::from_secs(30), async {
+            let mut node = common::node().await;
+            let archive_dir = tempfile::tempdir().unwrap();
+            let archive = FsArchive::open(archive_dir.path()).unwrap();
+            let scope = common::scope("alice");
+            let memory = seed(&node, &scope, 0, true).await;
+            let who = Authority::of(scope.owner.clone());
+            let now = UnixSeconds::new(1_700_100_000);
+            let eraser = Eraser {
+                fault: Some(Fault::AfterLedger),
+                ..Eraser::new()
+            };
+            assert!(
+                eraser
+                    .erase(
+                        &node.handle(),
+                        &node.ledger,
+                        &Erasure::new(&scope, memory.id, &who, now)
+                    )
+                    .await
+                    .is_err()
+            );
+            let receipt = eraser
+                .required_receipt(&node.handle(), &ScopeId::of(&scope), &memory.id.to_string())
+                .await
+                .unwrap();
+            assert_eq!(receipt.delivered, 0);
+            assert_decision(&node, &DecisionId::new(&receipt.decision_id), 1, 2).await;
+            node.ledger
+                .append(Decision::new(
+                    DecisionId::new("archive-fixture-tail"),
+                    DecisionKind::new("fixture"),
+                    scope.owner.clone(),
+                    Outcome::Allow,
+                    "keep a resident head",
+                ))
+                .await
+                .unwrap();
+            let header = node
+                .ledger
+                .seal_if_needed(&archive, &SealPolicy::new(2, 2).unwrap())
+                .await
+                .unwrap()
+                .unwrap();
+            let segment = Segment::from_bytes(&archive.get(&header.key()).await.unwrap()).unwrap();
+            segment.verify().unwrap();
+            assert_eq!(segment.header, header);
+            assert!(
+                segment
+                    .records
+                    .iter()
+                    .any(|r| r.decision().unwrap().id.as_str() == receipt.decision_id)
+            );
+            node.ledger
+                .verify_chain(Depth::Full(&archive))
+                .await
+                .unwrap();
+            node = node.reopen().await;
+            let original = segment
+                .records
+                .iter()
+                .map(|r| r.decision().unwrap())
+                .find(|d| d.id.as_str() == receipt.decision_id)
+                .unwrap();
+            let different_authority = Authority::of(common::sub("retrying-operator"));
+            assert!(
+                !node.ledger.records().await.unwrap().iter().any(|r| r
+                    .decision()
+                    .unwrap()
+                    .id
+                    .as_str()
+                    == receipt.decision_id)
+            );
+            let recovered = Eraser::new()
+                .erase(
+                    &node.handle(),
+                    &node.ledger,
+                    &Erasure::new(
+                        &scope,
+                        memory.id,
+                        &different_authority,
+                        UnixSeconds::new(1_700_200_000),
+                    ),
+                )
+                .await
+                .unwrap();
+            assert_eq!(recovered.decision.as_str(), receipt.decision_id);
+            assert_eq!(recovered.keys_destroyed, 1);
+            assert_eq!(recovered.removed_derivatives, 2);
+            let mut duplicate = node
+                .ledger
+                .records()
+                .await
+                .unwrap()
+                .into_iter()
+                .map(|r| r.decision().unwrap())
+                .find(|d| d.id == recovered.decision)
+                .unwrap();
+            duplicate.prev_hash = original.prev_hash.clone();
+            assert_eq!(
+                duplicate, original,
+                "all content except the assigned parent is identical"
+            );
+            let tombstone = MemoryRepo::new()
+                .get(&node.handle(), &scope, memory.id)
+                .await
+                .unwrap()
+                .unwrap();
+            assert_eq!(tombstone.status, Status::Erased);
+            assert_eq!(tombstone.updated, now);
+            assert_eq!(
+                eraser
+                    .required_receipt(&node.handle(), &ScopeId::of(&scope), &memory.id.to_string())
+                    .await
+                    .unwrap()
+                    .delivered,
+                1
+            );
+            node.ledger
+                .verify_chain(Depth::Full(&archive))
+                .await
+                .unwrap();
+            let copies = segment
+                .records
+                .iter()
+                .chain(node.ledger.records().await.unwrap().iter())
+                .filter(|r| r.decision().unwrap().id == recovered.decision)
+                .count();
+            node.shutdown().await;
+            assert_eq!(
+                copies, 2,
+                "pinned API blocker: retry duplicated an archived Decision"
+            );
+        })
+        .await
+        .expect("durable archive diagnostic is bounded");
+    }
+
+    // Read only in a quiescent fixture. This composes chassis verification
+    // APIs for evidence; it is deliberately not an application lookup or a
+    // claim that these separate reads form a consistent snapshot.
+    async fn diagnostic_history(
+        ledger: &Ledger,
+        archive: &rahi_ledger::FsArchive,
+    ) -> Result<Vec<Decision>, Error> {
+        use rahi_ledger::{Archive, Depth, Segment};
+        ledger.verify_chain(Depth::Full(archive)).await?;
+        let mut decisions = Vec::new();
+        for header in ledger.segments().await? {
+            let segment = Segment::from_bytes(&archive.get(&header.key()).await?)?;
+            segment.verify()?;
+            assert_eq!(segment.header, header);
+            for record in segment.records {
+                decisions.push(record.decision()?);
+            }
+        }
+        for record in ledger.records().await? {
+            decisions.push(record.decision()?);
+        }
+        Ok(decisions)
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn pinned_archive_failure_is_not_proven_absence() {
+        use rahi_ledger::{FsArchive, SealPolicy};
+        tokio::time::timeout(std::time::Duration::from_secs(30), async {
+            let node = common::node().await;
+            let archive_dir = tempfile::tempdir().unwrap();
+            let archive = FsArchive::open(archive_dir.path()).unwrap();
+            let decision = Decision::new(
+                DecisionId::new("archived-decision"),
+                DecisionKind::new(KIND_ERASE),
+                common::sub("alice"),
+                Outcome::Allow,
+                "diagnostic fixture",
+            );
+            node.ledger.append(decision.clone()).await.unwrap();
+            node.ledger
+                .append(Decision::new(
+                    DecisionId::new("resident-tail"),
+                    DecisionKind::new("fixture"),
+                    common::sub("alice"),
+                    Outcome::Allow,
+                    "keep a resident head",
+                ))
+                .await
+                .unwrap();
+            let header = node
+                .ledger
+                .seal_if_needed(&archive, &SealPolicy::new(2, 2).unwrap())
+                .await
+                .unwrap()
+                .unwrap();
+            let mut found = diagnostic_history(&node.ledger, &archive)
+                .await
+                .unwrap()
+                .into_iter()
+                .find(|d| d.id == decision.id)
+                .unwrap();
+            found.prev_hash = decision.prev_hash.clone();
+            assert_eq!(
+                found, decision,
+                "the healthy archive proves complete content"
+            );
+            assert!(!decision_resident(&node.ledger, &decision).await.unwrap());
+
+            let missing_dir = tempfile::tempdir().unwrap();
+            let missing = FsArchive::open(missing_dir.path()).unwrap();
+            assert!(
+                matches!(
+                    diagnostic_history(&node.ledger, &missing).await,
+                    Err(Error::NotFound(_))
+                ),
+                "missing archive data must not mean absent Decision"
+            );
+            // Damage only this disposable archive file, never chassis tables.
+            std::fs::write(archive.root().join(header.key()), b"corrupt archive body").unwrap();
+            assert!(
+                matches!(
+                    diagnostic_history(&node.ledger, &archive).await,
+                    Err(Error::Integrity(_))
+                ),
+                "corrupt archive data must not mean absent Decision"
+            );
+            let object = archive.root().join(header.key());
+            std::fs::remove_file(&object).unwrap();
+            std::fs::create_dir(&object).unwrap();
+            assert!(
+                matches!(
+                    diagnostic_history(&node.ledger, &archive).await,
+                    Err(Error::Io(_))
+                ),
+                "unreadable archive data must not mean absent Decision"
+            );
+            // Resident-only reads cannot distinguish either failure from absence.
+            assert!(!decision_resident(&node.ledger, &decision).await.unwrap());
+            node.shutdown().await;
+        })
+        .await
+        .expect("archive diagnostic is bounded");
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn pinned_verified_lookup_does_not_fence_concurrent_append_and_seal() {
+        use rahi_ledger::{FsArchive, SealPolicy};
+        tokio::time::timeout(std::time::Duration::from_secs(30), async {
+            let node = common::node().await;
+            let archive_dir = tempfile::tempdir().unwrap();
+            let archive = FsArchive::open(archive_dir.path()).unwrap();
+            let filler = |id| {
+                Decision::new(
+                    DecisionId::new(id),
+                    DecisionKind::new("fixture"),
+                    common::sub("alice"),
+                    Outcome::Allow,
+                    "keep a resident head",
+                )
+            };
+            node.ledger.append(filler("initial-tail")).await.unwrap();
+            node.ledger
+                .seal_if_needed(&archive, &SealPolicy::new(1, 1).unwrap())
+                .await
+                .unwrap()
+                .unwrap();
+            let decision = Decision::new(
+                DecisionId::new("concurrent-erasure"),
+                DecisionKind::new(KIND_ERASE),
+                common::sub("alice"),
+                Outcome::Allow,
+                "diagnostic fixture",
+            );
+            let (looked_up, observed) = tokio::sync::oneshot::channel();
+            let (resume, paused) = tokio::sync::oneshot::channel();
+            let rival_ledger = node.ledger.clone();
+            let rival_archive = archive.clone();
+            let rival_decision = decision.clone();
+            let rival = tokio::spawn(async move {
+                // Even a complete, verified negative read cannot reserve the id.
+                assert!(
+                    !diagnostic_history(&rival_ledger, &rival_archive)
+                        .await
+                        .unwrap()
+                        .iter()
+                        .any(|d| d.id == rival_decision.id)
+                );
+                looked_up.send(()).unwrap();
+                paused.await.unwrap();
+                rival_ledger.append(rival_decision).await.unwrap()
+            });
+            observed.await.unwrap();
+            let first_hash = node.ledger.append(decision.clone()).await.unwrap();
+            node.ledger.append(filler("final-tail")).await.unwrap();
+            node.ledger
+                .seal_if_needed(&archive, &SealPolicy::new(2, 2).unwrap())
+                .await
+                .unwrap()
+                .unwrap();
+            assert!(!decision_resident(&node.ledger, &decision).await.unwrap());
+            resume.send(()).unwrap();
+            let second_hash = rival.await.unwrap();
+            assert_ne!(first_hash, second_hash);
+            let copies: Vec<_> = diagnostic_history(&node.ledger, &archive)
+                .await
+                .unwrap()
+                .into_iter()
+                .filter(|d| d.id == decision.id)
+                .collect();
+            assert_eq!(
+                copies.len(),
+                2,
+                "pinned API blocker: verified absence did not fence append"
+            );
+            for mut copy in copies {
+                copy.prev_hash = decision.prev_hash.clone();
+                assert_eq!(copy, decision);
+            }
+            node.shutdown().await;
+        })
+        .await
+        .expect("concurrent diagnostic is bounded");
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
     async fn single_receipt_survives_every_commit_and_ledger_boundary() {
         // None means a real ledger INSERT failure, not a simulated return.
         for fault in [

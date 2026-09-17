@@ -173,6 +173,47 @@ which are deployment configuration.
 
 ## 7. Resolved decisions
 
+- **Status (2026-09-17, archived retry diagnostic).** D-12's no-duplicate
+  claim is disproved beyond the resident window. A bounded regression on
+  the actual pinned ledger appends an erasure Decision, interrupts delivery
+  before receipt acknowledgement, seals genesis and that Decision through
+  `Ledger::seal_if_needed` into `FsArchive`, reopens the same durable node,
+  and retries. The one-copy assertion failed: two copies, not one. Both
+  copies carry identical full Decision content except their assigned chain
+  parent, including the original authority and actual counts. The tombstone
+  timestamp is unchanged, but the receipt is marked delivered despite the
+  duplicate. Full-chain verification still succeeds. The initial failing
+  run is retained in `data/014-archived-retry-before.log`.
+
+  Three `pinned_` diagnostic tests now preserve the counterexamples and
+  archive evidence. Their success means the blocker is reproduced, not that
+  B-7 or B-9 is satisfied. The healthy archive permits full-content recovery
+  for inspection through the chassis verifier and segment APIs. Missing,
+  corrupt and unreadable archive bodies return `NotFound`, `Integrity` and
+  `Io`, respectively; resident-only lookup reports absence in all cases.
+  A deterministic concurrent test pauses a retry after a complete verified
+  negative lookup, appends and seals the same Decision in another task,
+  then resumes the retry: both appends succeed at different hashes. Every
+  test has a 30-second bound; none writes chassis tables or uses a fake
+  ledger. Only a disposable archive object is damaged for refusal testing.
+
+  This is a diagnostic-only change. Adding an archive scan or checking
+  segment counts before append would still leave that demonstrated race.
+  A process-local lock cannot cover another node or sealing. An application
+  attempt marker could refuse recovery but cannot make the chassis's own
+  append retry atomic with sealing, and refusing every uncertain receipt
+  does not fulfill resumable delivery. No new refusal policy, successful
+  archived delivery, or lifetime-idempotence repair is claimed. The concrete
+  chassis need is an atomic lifetime-idempotent append/recovery API that
+  keeps Decision identity across sealing, compares all content except the
+  assigned parent, returns the original result for an identical retry,
+  rejects conflicting content, and distinguishes unavailable or corrupt
+  archive evidence from proven absence while handling concurrent appends
+  and sealers. Existing receipts must remain recoverable through that API.
+  No ratified requirement is changed. 014 stays in progress, 015 stays
+  blocked, and the full-node restart and stale-release/TTL prerequisites
+  above the application remain blocked pending published chassis repair.
+
 - **D-12 (2026-09-17, durable review remediation).** D-6's post-commit
   ordering stays intact, but its claim that a retry could report a lost
   erasure needed durable state. Schema migration 5 adds an erasure receipt
