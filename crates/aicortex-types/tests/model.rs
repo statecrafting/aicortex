@@ -418,6 +418,56 @@ fn fr002_an_unknown_variant_is_refused_and_names_its_field() -> Outcome {
     Ok(())
 }
 
+/// D-6: a variant that carries a payload is refused when the payload is
+/// absent, by a message that names the field.
+///
+/// `instruction` without its promotion is the dangerous one: a wire form that
+/// let the discriminant stand alone would be a way to instruction grade with
+/// no authority behind it.
+#[test]
+fn d006_a_variant_without_its_payload_is_refused() -> Outcome {
+    let cases = [("trust.promotion", r#"{"class":"instruction"}"#)];
+    for (field, json) in cases {
+        match serde_json::from_str::<TrustClass>(json) {
+            Ok(trust) => {
+                return Err(format!("{field}: {json} deserialized as {trust:?}"));
+            }
+            Err(error) if error.to_string().contains(field) => {}
+            Err(error) => {
+                return Err(format!("{field}: the refusal does not name it: {error}"));
+            }
+        }
+    }
+
+    let owner = "\"2f1b8c4e-0f6a-4b1e-9a2c-7d3e5f8a1b90\"";
+    let scope_cases = [
+        (
+            "scope.project",
+            format!(r#"{{"owner":{owner},"kind":"project"}}"#),
+        ),
+        (
+            "scope.share",
+            format!(r#"{{"owner":{owner},"kind":"shared"}}"#),
+        ),
+    ];
+    for (field, json) in &scope_cases {
+        match serde_json::from_str::<Scope>(json) {
+            Ok(scope) => return Err(format!("{field}: {json} deserialized as {scope}")),
+            Err(error) if error.to_string().contains(field) => {}
+            Err(error) => {
+                return Err(format!("{field}: the refusal does not name it: {error}"));
+            }
+        }
+    }
+
+    // And a superseded status with no successor.
+    match serde_json::from_str::<Status>(r#"{"state":"superseded"}"#) {
+        Ok(status) => Err(format!("a superseded status deserialized as {status:?}")),
+        Err(error) if error.to_string().contains("status.by") => Ok(()),
+        Err(error) => Err(format!("the refusal does not name status.by: {error}")),
+    }
+}
+
 /// B-8: provenance is required on the deserialization path too.
 #[test]
 fn b008_a_memory_without_provenance_does_not_deserialize() -> Outcome {
