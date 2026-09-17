@@ -69,12 +69,15 @@ deny = [
   { crate = "tower-http", deny-multiple-versions = true },
   { crate = "reqwest", deny-multiple-versions = true },
 ]
-# Not refused, and so still reported as warnings: the chassis at rahi
-# 444bcf8 already carries two copies of aws-lc-sys (0.39 directly under
-# s3-simple, 0.45 under rustls -> aws-lc-rs) and of the lower primitives
-# digest, curve25519-dalek, chacha20, block-buffer, and crypto-common. They
-# are rahi's to converge; refusing them here would fail a check this
-# workspace cannot fix (spec 010 D-6).
+# Not refused, and so still reported as warnings: at the published rahi
+# 0.1.0 the chassis carries two copies of aws-lc-sys (0.39.1 under s3-simple,
+# 0.45.0 under rustls -> aws-lc-rs) and of the lower primitives digest,
+# curve25519-dalek, chacha20, block-buffer, and crypto-common, the same set
+# the spike saw. They are rahi's to converge; refusing them here would fail a
+# check this workspace cannot fix (spec 010 D-6, revisited in D-8). The
+# remaining duplicates the report names are ordinary build-graph forks
+# (base64, syn, toml, winnow, rand, hashbrown and the like), all reached
+# through the chassis and none in a stack this policy audits.
 
 [sources]
 # The registry only (D-1): no other index and no git source.

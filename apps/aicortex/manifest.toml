@@ -6,6 +6,11 @@
 # table, a namespace, a secret, or a host adds it here and gives the reason
 # in its own Behavior, so every widening of the ceiling is visible in review.
 
+# The manifest schema this document is written for. The chassis refuses a
+# manifest that names none, and refuses a different major outright
+# (rahi://039 B-8): a ceiling outlives the binary that first read it.
+schema_version = "1.0.0"
+
 capabilities = []
 
 [app]

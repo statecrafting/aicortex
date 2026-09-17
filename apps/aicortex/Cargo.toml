@@ -29,6 +29,7 @@ axum = { workspace = true }
 
 [dev-dependencies]
 rahi-kernel = { workspace = true }
+rahi-types = { workspace = true }
 rahi-ops = { workspace = true }
 tempfile = { workspace = true }
 toml = { workspace = true }

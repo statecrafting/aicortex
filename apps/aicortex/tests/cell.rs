@@ -21,6 +21,7 @@ use std::process::{Command, Output};
 use aicortex::Aicortex;
 use rahi_cli::Cell;
 use rahi_kernel::Manifest;
+use rahi_types::MANIFEST_SCHEMA_VERSION;
 
 type Outcome = Result<(), String>;
 
@@ -292,6 +293,11 @@ fn b4_fr003_the_manifest_is_closed_and_the_schema_version_is_zero() -> Outcome {
     let hash = manifest.hash().map_err(|err| err.to_string())?;
     assert_eq!(hash, again.hash().map_err(|err| err.to_string())?);
 
+    assert_eq!(
+        manifest.schema_version.as_deref(),
+        Some(MANIFEST_SCHEMA_VERSION),
+        "B-4: the ceiling names the schema the pinned chassis speaks"
+    );
     assert_eq!(manifest.app.name.as_str(), "aicortex");
     assert!(
         manifest.resources.egress.is_empty(),

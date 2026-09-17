@@ -16,9 +16,9 @@ authors = ["Bartek Kus"]
 
 [workspace.dependencies]
 # The chassis (B-2): all nine crates at one exact version, from the registry
-# only. No [patch], no path, no git (D-1, D-2). The version is the one rahi's
-# sources carry today; the bump that names the published release is a
-# single change to these nine lines.
+# only. No [patch], no path, no git (D-1, D-2). 0.1.0 is rahi's first
+# published release, tagged v0.1.0; a chassis bump is a single change to
+# these nine lines that revisits deny.toml with it (D-8).
 rahi-types = "=0.1.0"
 rahi-store = "=0.1.0"
 rahi-ledger = "=0.1.0"

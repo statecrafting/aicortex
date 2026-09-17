@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "chassis"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 1
 depends_on:
@@ -229,31 +229,56 @@ manifest will eventually declare. The reference deployment (044).
   and are recorded in `deny.toml` as rahi's to converge. MPL-2.0 is not
   allowed, because nothing in the tree needs it. Every ignore and gap is
   revisited at the version bump that names the published release.
+- **D-7 (2026-09-17, build: the ceiling names its schema version).** The
+  published chassis refuses a manifest that does not say which manifest
+  schema it was written for, and refuses a different major outright
+  (`rahi://039` B-8; `rahi_types::MANIFEST_SCHEMA_VERSION` is `1.0.0` at
+  rahi `0.1.0`). D-2's spike ran against rahi `main` at `52ad1a7`, which did
+  not require it, so `manifest.toml` named only `ledger.schema_version` and
+  `Manifest::parse` refused it at the release. B-4 lists what the ceiling
+  declares and says nothing about the document's own schema, so the field is
+  added rather than any requirement changed: `schema_version = "1.0.0"` at
+  the top of `manifest.toml`, asserted in `tests/cell.rs` against the
+  chassis's own constant so a chassis bump that moves the major fails in
+  this test rather than at boot. `rahi-types` joins the crate's
+  dev-dependencies for that constant, inheriting the workspace pin like the
+  other eight. Rejected: asserting a literal `"1.0.0"` in the test, which
+  lets the ceiling and the chassis drift apart silently.
+- **D-8 (2026-09-17, build: D-6 revisited at the published release).** D-6
+  requires every ignore and gap to be revisited when the pins name a
+  published release. rahi `0.1.0` is published for all nine crates, none
+  yanked, with a matching `v0.1.0` tag, and the nine pins already read
+  `=0.1.0`, so no version moved and the revisit runs against the tree
+  `Cargo.lock` resolves (509 packages). Every waiver still earns its place:
+  removing the three advisory ignores fails the check again (RUSTSEC-2025-0141
+  for `bincode` under hiqlite and cryptr, RUSTSEC-2026-0194 and
+  RUSTSEC-2026-0195 for `quick-xml` under s3-simple), and removing
+  CDLA-Permissive-2.0 rejects `webpki-root-certs`. Each arrives by the path
+  D-6 recorded and none is reachable except through the chassis. The
+  duplicate pairs D-6 named are unchanged (`aws-lc-sys` 0.39.1 and 0.45.0,
+  and `digest`, `curve25519-dalek`, `chacha20`, `block-buffer`,
+  `crypto-common`), and no entry crate of either refused stack is
+  duplicated, so no `deny-multiple-versions` entry fires. `cargo deny check`
+  reports advisories, bans, licences, and sources ok. Nothing was relaxed to
+  get there; the next revisit is the next chassis bump.
 
-## Status (2026-09-13, in progress: waiting on the published rahi release)
+## Status (2026-09-17, complete: the chassis release landed)
 
-Prepared: the eight files this spec establishes, and D-4 to D-6.
+rahi published all nine crates at `0.1.0`, none yanked, tagged `v0.1.0`. The
+pins already read `=0.1.0`, so no version moved: `Cargo.lock` resolves and is
+committed, the workspace builds, the seven tests pass, `cargo deny check` is
+green, and D-6 was revisited in D-8. The three acceptance criteria hold on
+the published crates, which is what D-2 required before any of them could be
+reported as passed.
 
-- In this repository `cargo build --workspace --locked` exits 101 with "no
-  matching package named `rahi-cli` found" in the crates.io index. No
-  `Cargo.lock` is committed, because none can be resolved against a
-  registry that does not carry the crates. So `make ci`'s cargo steps and
-  this spec's Verification block fail until the release; the governance
-  half of the gate passes.
-- Spike evidence, which D-2 says is not acceptance: a scratch copy of these
-  files, with an uncommitted `[patch.crates-io]` in a parent
-  `.cargo/config.toml` pointing at a `git archive` of rahi `main` at
-  `52ad1a7`, passes `cargo build --locked`, `cargo test --locked` (7 of 7),
-  `cargo clippy --all-targets -- -D warnings`, `cargo fmt --check`, and
-  `cargo deny check`. Negative controls on real files each fail the test
-  that owns them: a `[patch]` table in `Cargo.toml` fails B-2, a stray
-  router and a direct hiqlite use fail B-8, and a declared egress host
-  fails B-4.
-- Remaining: rahi's RH-05 release of the nine crates with a matching tag.
-  Then one change bumps the nine pins to that version, commits the
-  `Cargo.lock` it resolves, revisits D-6, and runs `make ci` and
-  `spec-spine verify 010-chassis-adoption-and-workspace`. Only then does
-  this spec flip to `complete`.
+One thing a human decides, not this session: B-5's sentence that `AppState`
+"is constructed once by `cell.rs`" still describes an API the chassis does
+not have. The published `Cell` trait has associated functions with no
+receiver and hands each router the chassis's own `rahi_edge::AppState`, so
+`cell.rs` constructs nothing. D-4 recorded that at build time and the
+invariant B-5 exists for (no global, no lazy static holding a connection)
+holds. The text is left as approved rather than rewritten to match the code;
+amending it the way D-2 and D-3 were amended is a maintainer's call.
 
 ## Verification
 
