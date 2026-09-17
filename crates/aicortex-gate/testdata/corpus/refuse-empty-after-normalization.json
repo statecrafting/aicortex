@@ -1,0 +1,13 @@
+{
+  "kind": "verdict",
+  "name": "refuse-empty-after-normalization",
+  "why": "B-6: a body of nothing but invisible characters and spaces is not a memory",
+  "origin": "authenticated",
+  "body": {
+    "text": "​​   ‪‬  ﻿\t  "
+  },
+  "expect": {
+    "verdict": "refuse",
+    "code": "empty_after_normalization"
+  }
+}

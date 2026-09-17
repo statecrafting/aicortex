@@ -11,14 +11,6 @@
           "kind": "file",
           "path": "crates/aicortex-store/src/memory_repo.rs"
         }
-      },
-      {
-        "flavor": "invariant-freeze",
-        "note": "erasure destroys the B-9 digest key of every Decision about the erased memory or scope",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/src/erasure.rs"
-        }
       }
     ],
     "created": "2026-09-03",
@@ -34,6 +26,14 @@
       {
         "kind": "file",
         "path": "crates/aicortex-gate/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/src/candidate.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/src/normalize.rs"
       },
       {
         "kind": "file",
@@ -57,7 +57,23 @@
       },
       {
         "kind": "file",
+        "path": "crates/aicortex-gate/tests/capture.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/tests/common/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/tests/compile_fail/"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-gate/testdata/corpus/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/decision_key.rs"
       }
     ],
     "extends": [
@@ -69,14 +85,103 @@
           "file": "Cargo.toml",
           "kind": "section"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/provenance_repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/common/"
+        }
       }
     ],
     "extraFrontmatter": {
       "wave": 1
     },
     "id": "013-write-gate-and-redaction",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "kernel",
+    "references": [
+      {
+        "role": "evidence",
+        "unit": {
+          "kind": "file",
+          "path": "specs/014-memory-lifecycle-and-erasure/spec.md"
+        }
+      }
+    ],
     "risk": "critical",
     "sectionHeadings": [
       "013: The write gate",
@@ -94,6 +199,6 @@
     "summary": "Everything that enters the store passes one gate, and the gate runs before the transaction opens. It refuses credentials rather than redacting them, because a redacted secret is still a secret that was transmitted, stored in a log, and possibly embedded. It caps size, requires an establishable origin, and quarantines rather than admits when origin is doubtful. Every refusal is a ledgered Decision with a reason code and never the offending content. The rule set is data, the corpus of fixtures is committed, and the gate is a pure function so its verdicts are reproducible in review.\n",
     "title": "The write gate: refuse secrets, cap size, establish origin, quarantine the rest"
   },
-  "shardHash": "6f6ac2eff3e7cd27f0c35c80b2c0c2ec0ea136ca61583f59e72406de0e845f78",
+  "shardHash": "c959b02fffd3ed478c37dd43f61d178826a5e3d75bf45867ae161bdb6d37b6a3",
   "specVersion": "1.3.0"
 }

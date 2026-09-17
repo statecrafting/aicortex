@@ -1,0 +1,27 @@
+{
+  "kind": "benign-identifiers",
+  "name": "benign-identifiers",
+  "why": "FR-005: the entropy detector's false-positive rate on these is zero at the shipped threshold. Each is an identifier a real note carries, and each is measured on its own as well as inside one note that must be admitted.",
+  "identifiers": [
+    "6f1c0b8a2d94e7135ab0c9f4e8d271635ac0be92",
+    "3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855e",
+    "01932b7e-4f2a-7c31-9d55-0a1b2c3d4e5f",
+    "01JBQ9T4XW7K3ZR2MHVCE5P8QD",
+    "sha256:3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855e",
+    "getUserAccountSettingsByIdentifier",
+    "crates/aicortex-gate/src/secrets.rs",
+    "aicortex-store-0.1.0+build.20260917",
+    "2026-09-17T11:42:53.318374Z",
+    "urn:uuid:01932b7e-4f2a-7c31-9d55-0a1b2c3d4e5f",
+    "AAAAB3NzaC1yc2EAAAADAQABAAABgQ",
+    "fe80:0000:0000:0000:0204:61ff:fe9d:f156",
+    "ThisIsALongCamelCaseIdentifier2026",
+    "SCREAMING_SNAKE_CASE_CONSTANT_NAME_2",
+    "memory_scope_status_created_index",
+    "0x1f2e3d4c5b6a798807162534435261708",
+    "v1.24.0-rc.3+linux-arm64",
+    "Migration0003AddDecisionKeyTable",
+    "docs/design/00-lineage.md#what-was-carried",
+    "Q1FY2027PlanningOffsiteAgenda"
+  ]
+}

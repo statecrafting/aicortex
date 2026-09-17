@@ -1,0 +1,13 @@
+{
+  "kind": "verdict",
+  "name": "quarantine-origin-asserted",
+  "why": "B-7: a pasted export whose source cannot be checked is stored out of sight, not refused and not admitted",
+  "origin": "asserted",
+  "body": {
+    "text": "Imported from a chat export: the customer prefers email over phone."
+  },
+  "expect": {
+    "verdict": "quarantine",
+    "code": "origin_unestablished"
+  }
+}

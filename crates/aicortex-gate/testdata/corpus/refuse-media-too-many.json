@@ -1,0 +1,18 @@
+{
+  "kind": "verdict",
+  "name": "refuse-media-too-many",
+  "why": "B-6: more media references than the ceiling allows",
+  "origin": "authenticated",
+  "body": {
+    "text": "Screenshots from the incident.",
+    "media_repeat": {
+      "media_type": "image/png",
+      "times": 17
+    }
+  },
+  "expect": {
+    "verdict": "refuse",
+    "code": "unsupported_media",
+    "fault": "too_many"
+  }
+}

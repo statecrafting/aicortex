@@ -41,13 +41,22 @@ async fn fr001_the_migrations_apply_in_order_and_a_rerun_applies_nothing() {
     let first = store.migrate(aicortex_store::migrations()).await.unwrap();
     assert_eq!(first.previous, 0, "an empty store is at the baseline");
     assert_eq!(first.current, aicortex_store::EXPECTED_SCHEMA_VERSION);
+    let declared: Vec<u32> = aicortex_store::migrations()
+        .iter()
+        .map(|migration| migration.version)
+        .collect();
     assert_eq!(
-        first.applied,
-        vec![
-            aicortex_store::migrations::COORDINATION_VERSION,
-            aicortex_store::migrations::MEMORY_TABLES_VERSION
-        ],
+        first.applied, declared,
         "every migration applied, in version order"
+    );
+    assert!(
+        declared.windows(2).all(|pair| pair[0] < pair[1]),
+        "the migration list is not strictly ascending: {declared:?}"
+    );
+    assert!(
+        declared.len() >= 3,
+        "the scan found {} migrations, so it proved nothing",
+        declared.len()
     );
 
     let second = store.migrate(aicortex_store::migrations()).await.unwrap();
@@ -82,6 +91,7 @@ async fn b2_the_tables_and_indexes_are_the_ones_the_spec_names() {
         "provenance",
         "scope",
         "scope_counter",
+        "decision_key",
     ] {
         assert!(
             names.contains(&expected),
@@ -103,6 +113,7 @@ async fn b2_the_tables_and_indexes_are_the_ones_the_spec_names() {
             .unwrap_or_else(|| panic!("{wanted} is missing"))
     };
     by_name("memory_scope_status_created");
+    by_name("decision_key_scope_memory");
     by_name("memory_status_updated");
     let fingerprint = by_name("memory_scope_fingerprint");
     let sql = fingerprint.sql.as_deref().unwrap_or_default();
@@ -122,12 +133,17 @@ async fn b2_the_tables_and_indexes_are_the_ones_the_spec_names() {
 // over them.
 
 /// The tables a read of which is a read of somebody's memory.
-const SCOPED_TABLES: [&str; 5] = [
+///
+/// `decision_key` is one of them (spec 013 B-9): a key is an object of
+/// somebody's scope, and a read that could reach across scopes would be a way
+/// to confirm another subject's refusal digests.
+const SCOPED_TABLES: [&str; 6] = [
     "memory",
     "memory_derivation",
     "provenance",
     "scope",
     "scope_counter",
+    "decision_key",
 ];
 
 /// The predicate column every such statement must name.

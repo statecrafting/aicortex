@@ -22,6 +22,7 @@
 use std::net::{SocketAddr, TcpListener};
 use std::path::Path;
 
+use aicortex_gate::{Admitted, Candidate, Gate, Origin, Verdict};
 use aicortex_types::{
     Actor, ActorId, Importance, Memory, MemoryBody, MemoryId, MemoryKind, MemoryParts, Provenance,
     Scope, SourceRef, SourceSystem, TrustClass,
@@ -142,4 +143,50 @@ pub fn work(memory: &Memory) -> Envelope {
         memory.id.to_string(),
         Revision::new(1),
     )
+}
+
+/// The verdict the shipped gate returns for `memory`, offered over an
+/// authenticated channel (spec 013 B-1, B-7).
+///
+/// `MemoryRepo::insert` takes an `Admitted`, and the only way to one is a
+/// verdict, so every capture in this crate's tests goes through the real gate
+/// rather than around it. That is the point of B-1: there is no test-only
+/// door, because a test-only door is a door.
+pub fn verdict(memory: &Memory) -> Verdict {
+    Gate::standard().evaluate(&Candidate::new(parts_of(memory), Origin::Authenticated))
+}
+
+/// `memory`, admitted by the real gate.
+///
+/// Panics when the gate does not admit it, and when the gate changed it:
+/// these fixtures are plain ASCII with no trailing whitespace, so
+/// normalization is the identity on them and every assertion the tests make
+/// about the memory they built still holds of the memory that is stored.
+pub fn admit(memory: &Memory) -> Admitted {
+    match verdict(memory) {
+        Verdict::Admit(admitted) => {
+            assert_eq!(
+                admitted.memory(),
+                memory,
+                "the gate normalized a fixture, so the test is asserting about a different memory"
+            );
+            admitted
+        }
+        other => panic!("the gate did not admit a fixture: {other:?}"),
+    }
+}
+
+/// A memory taken apart into the parts a candidate is offered as.
+fn parts_of(memory: &Memory) -> MemoryParts {
+    MemoryParts {
+        id: memory.id,
+        scope: memory.scope.clone(),
+        kind: memory.kind,
+        body: memory.body.clone(),
+        actor: memory.actor.clone(),
+        provenance: memory.provenance.clone(),
+        trust: memory.trust.clone(),
+        importance: memory.importance,
+        created: memory.created,
+    }
 }

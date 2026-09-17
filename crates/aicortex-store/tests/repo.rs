@@ -72,7 +72,7 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
         let mut txn = TxnBuilder::new();
         repo.insert(
             &mut txn,
-            &parent,
+            &common::admit(&parent),
             &parent.provenance,
             &common::work(&parent),
         )
@@ -100,7 +100,7 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
     let mut txn = TxnBuilder::new();
     repo.insert(
         &mut txn,
-        &derived,
+        &common::admit(&derived),
         &derived.provenance,
         &common::work(&derived),
     )
@@ -139,7 +139,7 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
     let mut txn = TxnBuilder::new();
     repo.insert(
         &mut txn,
-        &derived,
+        &common::admit(&derived),
         &derived.provenance,
         &common::work(&derived),
     )
@@ -184,7 +184,7 @@ async fn b3_b9_fr003_a_read_for_one_scope_never_returns_another() {
         let mut txn = TxnBuilder::new();
         repo.insert(
             &mut txn,
-            &memory,
+            &common::admit(&memory),
             &memory.provenance,
             &common::work(&memory),
         )
@@ -253,8 +253,13 @@ async fn b3_b9_fr003_a_read_for_one_scope_never_returns_another() {
         ExtractorVersion::new("test-extractor", "1").unwrap(),
     );
     let mut txn = TxnBuilder::new();
-    repo.insert(&mut txn, &cross, &cross.provenance, &common::work(&cross))
-        .unwrap();
+    repo.insert(
+        &mut txn,
+        &common::admit(&cross),
+        &cross.provenance,
+        &common::work(&cross),
+    )
+    .unwrap();
     store.txn(txn.into_statements()).await.unwrap();
     assert_eq!(
         ProvenanceRepo::parents(&store, &alice, cross.id)
@@ -289,7 +294,7 @@ async fn b7_fr004_five_thousand_rows_page_exactly_once_each() {
         );
         repo.insert(
             &mut txn,
-            &memory,
+            &common::admit(&memory),
             &memory.provenance,
             &common::work(&memory),
         )
@@ -322,8 +327,13 @@ async fn b7_fr004_five_thousand_rows_page_exactly_once_each() {
         if pages == 3 {
             let late = common::memory(&scope, "landed while paging", 100_250);
             let mut txn = TxnBuilder::new();
-            repo.insert(&mut txn, &late, &late.provenance, &common::work(&late))
-                .unwrap();
+            repo.insert(
+                &mut txn,
+                &common::admit(&late),
+                &late.provenance,
+                &common::work(&late),
+            )
+            .unwrap();
             store.txn(txn.into_statements()).await.unwrap();
         }
 
@@ -383,7 +393,7 @@ async fn b7_fr005_a_cursor_is_bound_to_its_scope_and_its_filter() {
             let mut txn = TxnBuilder::new();
             repo.insert(
                 &mut txn,
-                &memory,
+                &common::admit(&memory),
                 &memory.provenance,
                 &common::work(&memory),
             )
@@ -497,7 +507,7 @@ async fn b6_fr006_stats_is_one_bounded_statement_over_the_counters() {
         let mut txn = TxnBuilder::new();
         repo.insert(
             &mut txn,
-            &memory,
+            &common::admit(&memory),
             &memory.provenance,
             &common::work(&memory),
         )
@@ -553,26 +563,22 @@ async fn b8_a_body_over_the_ceiling_is_refused_at_the_storage_boundary() {
         aicortex_store::DEFAULT_MAX_BODY_BYTES
     );
 
+    // Over the default ceiling there is no `Admitted` to offer: the write gate
+    // of spec 013 carries the same 64 KiB ceiling and refuses first, so this
+    // branch of B-8 is now unreachable from outside rather than merely
+    // guarded. That is what B-8 wanted ("a second check at the storage
+    // boundary ... catches a future caller that bypassed the gate"): the
+    // bypass no longer typechecks, and the storage check below still fires
+    // against a caller who narrowed the repository under an already admitted
+    // body.
     let oversized = common::memory(
         &scope,
         &"x".repeat(aicortex_store::DEFAULT_MAX_BODY_BYTES + 1),
         8_000,
     );
-    let mut txn = TxnBuilder::new();
-    let refused = repo.insert(
-        &mut txn,
-        &oversized,
-        &oversized.provenance,
-        &common::work(&oversized),
-    );
     assert!(
-        matches!(refused, Err(Error::Validation(_))),
-        "an oversized body was staged: {refused:?}"
-    );
-    assert!(
-        txn.is_empty(),
-        "a refused capture staged {} statements",
-        txn.len()
+        common::verdict(&oversized).admitted().is_none(),
+        "the gate admitted a body over the store's own ceiling"
     );
 
     // Exactly at the ceiling is admitted.
@@ -584,7 +590,7 @@ async fn b8_a_body_over_the_ceiling_is_refused_at_the_storage_boundary() {
     let mut txn = TxnBuilder::new();
     repo.insert(
         &mut txn,
-        &at_ceiling,
+        &common::admit(&at_ceiling),
         &at_ceiling.provenance,
         &common::work(&at_ceiling),
     )
@@ -596,18 +602,23 @@ async fn b8_a_body_over_the_ceiling_is_refused_at_the_storage_boundary() {
     let mut txn = TxnBuilder::new();
     let refused = strict.insert(
         &mut txn,
-        &at_ceiling,
+        &common::admit(&at_ceiling),
         &at_ceiling.provenance,
         &common::work(&at_ceiling),
     );
     assert!(matches!(refused, Err(Error::Validation(_))));
+    assert!(
+        txn.is_empty(),
+        "a refused capture staged {} statements",
+        txn.len()
+    );
 
     // And the provenance offered must be the record's own (D-2).
     let other = common::memory(&scope, "another memory", 8_002);
     let mut txn = TxnBuilder::new();
     let refused = repo.insert(
         &mut txn,
-        &at_ceiling,
+        &common::admit(&at_ceiling),
         &other.provenance,
         &common::work(&at_ceiling),
     );
@@ -628,8 +639,13 @@ async fn b2_the_fingerprint_index_refuses_a_duplicate_within_a_scope() {
 
     let first = common::memory(&scope, "one sentence, written twice", 9_500);
     let mut txn = TxnBuilder::new();
-    repo.insert(&mut txn, &first, &first.provenance, &common::work(&first))
-        .unwrap();
+    repo.insert(
+        &mut txn,
+        &common::admit(&first),
+        &first.provenance,
+        &common::work(&first),
+    )
+    .unwrap();
     store.txn(txn.into_statements()).await.unwrap();
 
     // The uniqueness read finds it through the leader before the write is
@@ -648,7 +664,7 @@ async fn b2_the_fingerprint_index_refuses_a_duplicate_within_a_scope() {
     let mut txn = TxnBuilder::new();
     repo.insert(
         &mut txn,
-        &second,
+        &common::admit(&second),
         &second.provenance,
         &common::work(&second),
     )

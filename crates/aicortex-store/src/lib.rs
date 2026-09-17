@@ -36,15 +36,21 @@
 //! # use rahi_store::{Envelope, StoreHandle, TxnBuilder};
 //! # async fn capture(
 //! #     store: &StoreHandle,
-//! #     memory: &aicortex_types::Memory,
+//! #     admitted: &aicortex_gate::Admitted,
 //! #     work: &Envelope,
 //! # ) -> Result<(), rahi_types::Error> {
 //! let mut txn = TxnBuilder::new();
-//! MemoryRepo::new().insert(&mut txn, memory, &memory.provenance, work)?;
+//! let provenance = admitted.memory().provenance.clone();
+//! MemoryRepo::new().insert(&mut txn, admitted, &provenance, work)?;
 //! store.txn(txn.into_statements()).await?;
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! The memory arrives as an `aicortex_gate::Admitted`, which no code outside
+//! the write gate can construct (spec 013 B-1). That is why this crate
+//! depends on the gate: the admission boundary is a type, and a type has to
+//! be nameable at the seam it guards.
 //!
 //! # Reading
 //!
@@ -57,6 +63,7 @@
 
 pub mod counters;
 pub mod cursor;
+pub mod decision_key;
 pub mod memory_repo;
 pub mod migrations;
 pub mod provenance_repo;
@@ -64,6 +71,7 @@ pub mod scope_repo;
 
 pub use counters::{Counters, ScopeStats};
 pub use cursor::{Cursor, CursorKey};
+pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
 pub use memory_repo::{
     DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, Listing, MAX_PAGE_ROWS, MemoryFilter, MemoryRepo,
     StatusFilter, fingerprint,

@@ -31,6 +31,11 @@
         "code": "W-001",
         "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
         "path": "crates/aicortex-store/src/erasure.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
+        "path": "crates/aicortex-store/src/erasure.rs"
       }
     ]
   },
@@ -128,11 +133,33 @@
           "kind": "file",
           "path": "crates/aicortex-store/src/erasure.rs"
         }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/013-write-gate-and-redaction/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
+        }
       }
     ],
     "specId": "014-memory-lifecycle-and-erasure",
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "26ccdad54e434f5e64f990123820e264b6a8a35a74546fd6ea6cefcdd459e90b"
+  "shardHash": "a61dfac172b0cfc9a1440fdf3bf0c59e53e87fec75422735ce8d94b88dd7c152"
 }

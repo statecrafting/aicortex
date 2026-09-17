@@ -12,11 +12,12 @@
 
 use core::fmt;
 
-use rahi_types::UnixSeconds;
+use rahi_types::{Sub, UnixSeconds};
 use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::error::{Result, TypeError, validate_key};
 use crate::id::MemoryId;
+use crate::trust::DecisionRef;
 
 /// The system a claim came from: a client, an adapter, an importer.
 ///
@@ -159,6 +160,43 @@ impl fmt::Display for ExtractorVersion {
     }
 }
 
+/// The record of an operator admitting a candidate the write gate refused
+/// (spec 013 B-5, an additive extension of this file).
+///
+/// The gate refuses credentials rather than redacting them, and a detector
+/// with no false positive is a detector that misses. B-5's answer is an
+/// operator-authenticated override per candidate, and this is the mark it
+/// leaves on the memory that was admitted anyway: which refusal was
+/// overridden, who overrode it, and the decision in rahi's ledger that
+/// records the act. A memory carrying one is a memory a reviewer can find.
+///
+/// There is no variant of this for "the gate was off". There is no way to
+/// turn the gate off.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+pub struct AdmissionOverride {
+    /// The stable reason code of the refusal that was overridden.
+    pub reason_code: String,
+    /// The human who overrode it. Agents do not have a subject of their own,
+    /// so an agent cannot override its own refusal, for the same reason it
+    /// cannot promote its own memory.
+    pub by: Sub,
+    /// The decision in rahi's ledger that records the override.
+    pub decision: DecisionRef,
+}
+
+impl AdmissionOverride {
+    /// Record an override of the refusal `reason_code` by `by`, as `decision`
+    /// in the ledger.
+    #[must_use]
+    pub const fn new(reason_code: String, by: Sub, decision: DecisionRef) -> Self {
+        Self {
+            reason_code,
+            by,
+            decision,
+        }
+    }
+}
+
 /// What makes a memory a claim rather than a floating string.
 ///
 /// There is no `Default` and no builder that finishes without a source and
@@ -184,6 +222,14 @@ pub struct Provenance {
     /// The extractor that derived it, when it was derived.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub extractor: Option<ExtractorVersion>,
+    /// The operator override that admitted this memory past a refusal, when
+    /// one did (spec 013 B-5).
+    ///
+    /// Additive and absent from every record that was simply admitted, so a
+    /// memory written before this field existed reads back unchanged and the
+    /// record schema version does not move.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub admission: Option<AdmissionOverride>,
 }
 
 impl Provenance {
@@ -200,7 +246,16 @@ impl Provenance {
             ingested_at,
             derived_from: Vec::new(),
             extractor: None,
+            admission: None,
         }
+    }
+
+    /// The same provenance, marked as admitted by an operator override
+    /// (spec 013 B-5).
+    #[must_use]
+    pub fn overridden(mut self, admission: AdmissionOverride) -> Self {
+        self.admission = Some(admission);
+        self
     }
 
     /// The same provenance, naming the memories this one came from and the

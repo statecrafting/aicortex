@@ -1,0 +1,12 @@
+{
+  "kind": "verdict",
+  "name": "admit-high-entropy-but-benign",
+  "why": "FR-001: a note whose identifiers look random and are not credentials must be admitted",
+  "origin": "authenticated",
+  "body": {
+    "text": "Reverted at commit 6f1c0b8a2d94e7135ab0c9f4e8d271635ac0be92; the run id was 01JBQ9T4XW7K3ZR2MHVCE5P8QD and the object digest sha256:3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855e."
+  },
+  "expect": {
+    "verdict": "admit"
+  }
+}

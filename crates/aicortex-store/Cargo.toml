@@ -18,6 +18,12 @@ spec = "012-store-schema-and-repositories"
 # runtime: the crate is a library of statements and reads, and the runtime is
 # whoever calls it.
 [dependencies]
+# The write gate of spec 013, for its `Admitted` type alone. `MemoryRepo::insert`
+# takes one, which is how 013 B-1 makes "nothing is written that did not pass a
+# verdict" a compile-time property rather than a convention. The edge points
+# store -> gate and never back: the gate is pure and depends on the record of
+# 011 only.
+aicortex-gate = { workspace = true }
 aicortex-types = { workspace = true }
 rahi-store = { workspace = true }
 rahi-types = { workspace = true }

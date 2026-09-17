@@ -1,0 +1,14 @@
+{
+  "kind": "verdict",
+  "name": "admit-plain-note",
+  "why": "the ordinary case: prose from an authenticated client is stored as written",
+  "origin": "authenticated",
+  "body": {
+    "text": "The deploy runbook lives in docs/ops/runbook.md and the on-call rota is in the team calendar.",
+    "title": "Where the runbook is"
+  },
+  "expect": {
+    "verdict": "admit"
+  },
+  "normalized_text": "The deploy runbook lives in docs/ops/runbook.md and the on-call rota is in the team calendar."
+}

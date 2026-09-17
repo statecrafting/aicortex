@@ -19,6 +19,7 @@
 //! opens no transaction of its own and executes nothing, so a caller cannot
 //! land the row and lose the work (constitution XI).
 
+use aicortex_gate::Admitted;
 use aicortex_types::{Memory, MemoryId, MemoryKind, Provenance, Scope, Status};
 use rahi_store::{Envelope, Outbox, Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, UnixSeconds};
@@ -227,6 +228,14 @@ impl MemoryRepo {
     /// Stage a capture: the memory, its provenance, its derivation rows, its
     /// counter, and its outbox work, in the caller's transaction (B-4).
     ///
+    /// The memory arrives as an [`Admitted`], which is spec 013 B-1's
+    /// position property made into a type: `Admitted` has a private field and
+    /// no public constructor, so the only values of it in existence are the
+    /// ones `aicortex_gate::Gate::evaluate` put inside a verdict. An insert
+    /// that has not been through the write gate does not typecheck, which is
+    /// a stronger statement than a check this function could make and a much
+    /// stronger one than a convention (013 FR-004).
+    ///
     /// Nothing is executed. The caller submits the batch with
     /// [`rahi_store::StoreHandle::txn`], which is what makes the five writes
     /// one atomic unit; a repository that opened its own transaction could
@@ -246,10 +255,11 @@ impl MemoryRepo {
     pub fn insert(
         &self,
         txn: &mut TxnBuilder,
-        memory: &Memory,
+        admitted: &Admitted,
         provenance: &Provenance,
         work: &Envelope,
     ) -> Result<(), Error> {
+        let memory = admitted.memory();
         if provenance != &memory.provenance {
             return Err(Error::Validation(format!(
                 "the provenance offered for memory {} is not the one the record carries",

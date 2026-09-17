@@ -57,6 +57,7 @@ uuid = { version = "1", default-features = false, features = ["std", "v7", "serd
 # without one is a `*`.
 aicortex-types = { path = "crates/aicortex-types", version = "=0.1.0" }
 aicortex-store = { path = "crates/aicortex-store", version = "=0.1.0" }
+aicortex-gate = { path = "crates/aicortex-gate", version = "=0.1.0" }
 
 # The wire the round-trip fixtures of 011 are written in, and the canonical
 # form spec 012 D-3 stores a memory record as. The chassis locks it already.
@@ -70,6 +71,13 @@ serde_json = "1"
 # still holds.
 ring = "0.17"
 base64 = "0.22"
+
+# The gate's one shape library (spec 013 B-8). Unicode NFC is a table, not an
+# algorithm anyone should retype, and this is the crate `rustc` itself uses
+# for it. The gate takes nothing else: no regex engine, because the detectors
+# of B-4 are a data table scanned by hand, and no float, because the entropy
+# of B-4 is computed in fixed-point integers (D-4).
+unicode-normalization = "0.1"
 
 # Tests only: `trybuild` runs the compile-fail cases that prove a type cannot
 # be built (011 FR-003), and `tokio` drives the async store tests of 012
