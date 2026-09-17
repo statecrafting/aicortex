@@ -49,11 +49,33 @@ tempfile = "3"
 serde = { version = "1", features = ["derive"] }
 uuid = { version = "1", default-features = false, features = ["std", "v7", "serde"] }
 
-# Tests only: `serde_json` is the wire the round-trip fixtures are written
-# in, and `trybuild` runs the compile-fail cases that prove a type cannot
-# be built (011 FR-003).
+# The workspace's own libraries, declared here for the same reason the
+# third-party ones are: one place says what a name resolves to, and a member
+# inherits it with `workspace = true`.
+# The version is spelled out beside the path because `cargo deny`'s wildcard
+# rule refuses a dependency with no requirement at all, and a workspace member
+# without one is a `*`.
+aicortex-types = { path = "crates/aicortex-types", version = "=0.1.0" }
+aicortex-store = { path = "crates/aicortex-store", version = "=0.1.0" }
+
+# The wire the round-trip fixtures of 011 are written in, and the canonical
+# form spec 012 D-3 stores a memory record as. The chassis locks it already.
 serde_json = "1"
+
+# The store's two primitives (spec 012). `ring` signs the keyset cursor of
+# 012 B-7 and digests the scope id and the fingerprint; `base64` renders the
+# cursor as the opaque base64url string B-7 requires. Both are already in the
+# chassis's locked tree at these versions (rahi-idp and rahi-ops carry them),
+# so neither adds a tree and `deny.toml`'s single-version rule for `ring`
+# still holds.
+ring = "0.17"
+base64 = "0.22"
+
+# Tests only: `trybuild` runs the compile-fail cases that prove a type cannot
+# be built (011 FR-003), and `tokio` drives the async store tests of 012
+# against rahi's single-voter node.
 trybuild = "1"
+tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 
 [workspace.lints.rust]
 unsafe_code = "forbid"

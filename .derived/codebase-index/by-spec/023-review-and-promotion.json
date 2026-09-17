@@ -34,11 +34,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
-        "path": "crates/aicortex-store/src/migrations.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-api/src/router.rs' does not exist",
         "path": "crates/aicortex-api/src/router.rs"
       }
@@ -48,7 +43,12 @@
     "dependsOn": [
       "022-client-adapters"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -114,7 +114,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

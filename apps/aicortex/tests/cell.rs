@@ -2,8 +2,8 @@
 //!
 //! - B-2, FR-004, FR-005: all nine rahi crates pinned to one exact registry
 //!   version, with no `[patch]`, `path`, or `git` anywhere.
-//! - B-4, FR-003: the manifest parses, hashes, and is closed; the schema
-//!   version is 0.
+//! - B-4, FR-003: the manifest parses, hashes, and is closed; the migration
+//!   list is the one the crates that own schema assembled, in version order.
 //! - FR-002: the binary lends the chassis's verbs without declaring any.
 //! - FR-003, AC-3: preflight's report on an empty data directory.
 //! - B-8, FR-004: nothing reimplements the router, the store, or the
@@ -287,7 +287,7 @@ fn fr004_fr005_the_pin_check_refuses_each_defect() -> Outcome {
 }
 
 #[test]
-fn b4_fr003_the_manifest_is_closed_and_the_schema_version_is_zero() -> Outcome {
+fn b4_fr003_the_manifest_is_closed_and_the_migrations_are_assembled() -> Outcome {
     let manifest = Manifest::parse(Aicortex::manifest()).map_err(|err| err.to_string())?;
     let again = Manifest::parse(Aicortex::manifest()).map_err(|err| err.to_string())?;
     let hash = manifest.hash().map_err(|err| err.to_string())?;
@@ -309,9 +309,24 @@ fn b4_fr003_the_manifest_is_closed_and_the_schema_version_is_zero() -> Outcome {
     assert!(manifest.resources.secrets.is_empty());
     assert!(manifest.capabilities.is_empty());
     assert!(manifest.services.is_empty());
+    // FR-003 asserted an empty list while no crate owned schema. Spec 012
+    // made `aicortex-store` the first that does, so what B-1 requires of this
+    // seam is now observable: the list is exactly the one that crate
+    // assembled, and its versions ascend. 012 D-7 records the amendment 010
+    // FR-003 wants for its own wording.
+    assert_eq!(
+        Aicortex::migrations(),
+        aicortex_store::migrations(),
+        "B-1: the cell's list is the one the crates that own schema assembled"
+    );
+    let versions: Vec<u32> = Aicortex::migrations().iter().map(|m| m.version).collect();
     assert!(
-        Aicortex::migrations().is_empty(),
-        "no crate owns schema yet"
+        !versions.is_empty()
+            && versions
+                .iter()
+                .zip(versions.iter().skip(1))
+                .all(|(earlier, later)| earlier < later),
+        "B-1: migrations are ordered and strictly ascending: {versions:?}"
     );
     Ok(())
 }

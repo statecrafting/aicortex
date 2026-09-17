@@ -64,11 +64,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
-        "path": "crates/aicortex-store/src/migrations.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/worker.rs' does not exist",
         "path": "crates/aicortex-embed/src/worker.rs"
       }
@@ -85,6 +80,10 @@
       },
       {
         "path": "apps/aicortex/manifest.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
       }
     ],
@@ -211,7 +210,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -224,7 +227,7 @@
           {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 57,
+              "endLine": 79,
               "startLine": 20
             }
           }
@@ -251,5 +254,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "c2717a9b728dd07c5243500998b7e3c3a8a965e00311116304bdd99235195905"
+  "shardHash": "716414332fa13fb6c80e55494c78ecffed42cecb659af1a14d4e110802176adb"
 }

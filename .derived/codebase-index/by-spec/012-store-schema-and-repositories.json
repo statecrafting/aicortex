@@ -1,64 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/Cargo.toml' does not exist",
-        "path": "crates/aicortex-store/Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/lib.rs' does not exist",
-        "path": "crates/aicortex-store/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
-        "path": "crates/aicortex-store/src/migrations.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
-        "path": "crates/aicortex-store/src/memory_repo.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/provenance_repo.rs' does not exist",
-        "path": "crates/aicortex-store/src/provenance_repo.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/scope_repo.rs' does not exist",
-        "path": "crates/aicortex-store/src/scope_repo.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/counters.rs' does not exist",
-        "path": "crates/aicortex-store/src/counters.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/cursor.rs' does not exist",
-        "path": "crates/aicortex-store/src/cursor.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/tests/schema.rs' does not exist",
-        "path": "crates/aicortex-store/tests/schema.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/tests/repo.rs' does not exist",
-        "path": "crates/aicortex-store/tests/repo.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '012-store-schema-and-repositories' file unit 'crates/aicortex-store/src/memory_repo.rs' does not exist",
-        "path": "crates/aicortex-store/src/memory_repo.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "011-memory-model"
@@ -69,13 +9,73 @@
         "source": "spec-edge"
       },
       {
+        "path": "apps/aicortex/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/aicortex-store/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/counters.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/cursor.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/memory_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/provenance_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/scope_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/common/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/schema.rs",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -84,7 +84,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/counters.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -93,7 +97,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/cursor.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -102,7 +110,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -111,7 +123,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -120,7 +136,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -129,7 +149,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/provenance_repo.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -138,7 +162,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/scope_repo.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -147,7 +175,24 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/common/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/common/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/repo.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -156,12 +201,29 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/schema.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/Cargo.toml"
         }
       },
       {
@@ -180,9 +242,22 @@
       {
         "locations": [
           {
+            "file": "apps/aicortex/tests/cell.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/cell.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 57,
+              "endLine": 79,
               "startLine": 20
             }
           }
@@ -196,7 +271,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -209,5 +288,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "547b1ec2302cb939188de2bfccae36bffa4f1d4fbf313cc3be173c627e118ab1"
+  "shardHash": "8d8721ee0aa0769e9ec93cba694e151a807f300dff21b9bc3a17001b83bd505f"
 }

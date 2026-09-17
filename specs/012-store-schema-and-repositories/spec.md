@@ -22,9 +22,12 @@ establishes:
   - "crates/aicortex-store/src/cursor.rs"
   - "crates/aicortex-store/tests/schema.rs"
   - "crates/aicortex-store/tests/repo.rs"
+  - "crates/aicortex-store/tests/common/"
 extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/tests/cell.rs", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/memory_repo.rs", note: "every statement carries a scope predicate; no post-filtering" }
 summary: >
@@ -153,6 +156,69 @@ edges (017), ingest state (030), review queue (023).
   always read with its body, and hiqlite replicates statements, so a
   second table would double the statement count on the hot path without
   reducing the replicated bytes.
+- **D-2 (2026-09-17, build session).** B-4 gives `insert` a `&Provenance`
+  beside the `&Memory`, and the record of 011 carries its provenance
+  inline, so two values could disagree about where one memory came from.
+  The parameter is kept as B-4 writes it and a mismatch is
+  `Error::Validation`: the row that is written is always the record's own.
+  Rejected: dropping the parameter, which would change the signature B-4
+  states; and writing the passed value, which would make it possible to
+  store a memory whose row and record name different origins.
+- **D-3 (2026-09-17, build session).** The `memory` row stores the record
+  as its canonical serde JSON in a `record` column, plus one column per
+  value a predicate, an index, or a counter needs (`scope_id`, `status`,
+  `superseded_by`, `kind`, `trust`, `fingerprint`, `schema_version`,
+  `body_bytes`, `created`, `updated`). Every column is projected from the
+  record by one function in one statement, so the two cannot diverge, and
+  the record is the only source of truth on read. This is not the
+  predecessor's JSON bag (`openbrain://json-bag-schema`): that bag was
+  free-form and its shape lived in a prompt, while this is the
+  serialization of a closed type 011 already round-trips byte for byte.
+  Rejected: a column per leaf field, which would need a hand-written
+  mapping kept in step with 011 on every field it adds, would still store
+  `Vec<MediaRef>` and the promotion as documents, and cannot rebuild a
+  `Memory` at all, because 011 made the struct `#[non_exhaustive]` and
+  left deserialization as the only way back to one from another crate.
+- **D-4 (2026-09-17, build session).** The `fingerprint` column is
+  computed here over the memory's kind and its body text as written. B-2
+  names the column and says "see 014", and 014 owns `fingerprint.rs` and
+  the normalization that goes into the digest; what 012 owns is the
+  column, the partial unique index over the memories that still exist, and
+  that a duplicate is refused at the storage boundary. 014 replaces the
+  function and carries the migration that re-digests the existing rows.
+  Rejected: leaving the column empty until 014, which would make the
+  unique index of B-2 untestable and admit duplicates for a whole spec.
+- **D-5 (2026-09-17, build session).** The cursor signing key is a
+  parameter of `list`, not a field of the repository, and it is
+  deployment-wide rather than per-process. A key minted at boot would
+  refuse every cursor after a restart and every cursor issued by another
+  replica, which is a correctness bug in a three-node deployment rather
+  than a inconvenience. Where the bytes are custodied is the surface's
+  business (spec 020); this crate owns only that a cursor without them
+  cannot be minted or read.
+- **D-6 (2026-09-17, build session).** `scope_id` is the SHA-256 of the
+  owner, the kind's label and the key, separated by `0x1f`, rendered as
+  lowercase hex, rather than a generated identifier. A writer therefore
+  knows a scope's id without reading the scope table first, which is what
+  lets the scope row, the memory and its outbox work be staged into one
+  transaction (B-4). Rejected: a generated id, which would make the first
+  capture into a scope two round-trips and a lost race.
+- **D-7 (2026-09-17, build session).** Registering this crate's migrations
+  with the cell (B-1) makes `Aicortex::migrations()` non-empty, and spec
+  010 FR-003, as amended on 2026-09-13, states that `tests/cell.rs` "finds
+  `Aicortex::migrations()` empty, which is schema version 0". That clause
+  was true of a tree in which no crate owned schema, which 010 itself
+  anticipated would change ("later specs extend this file additively as
+  they add routes and migrations"). This session declared `extends` edges
+  on `apps/aicortex/Cargo.toml` and `apps/aicortex/tests/cell.rs` and
+  replaced the emptiness assertion with the property 010 B-1 states for
+  this seam: the list is exactly the one the crates that own schema
+  assembled, and its versions ascend. **010 FR-003's wording still says
+  "empty" and wants a human amendment**; a driven session has no authority
+  to amend a complete spec's acceptance, so the contradiction is recorded
+  here rather than resolved there. Rejected: editing 010 FR-003, which is
+  an amendment reserved to a human; and leaving the assertion, which would
+  have made 010's own acceptance fail against the tree.
 
 ## Verification
 

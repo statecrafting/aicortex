@@ -64,16 +64,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/lib.rs' does not exist",
-        "path": "crates/aicortex-store/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
-        "path": "crates/aicortex-store/src/migrations.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
         "path": "crates/aicortex-store/src/erasure.rs"
       },
@@ -135,6 +125,14 @@
       "042-portability-and-migration"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-types/src/lib.rs",
         "source": "spec-edge"
@@ -383,7 +381,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -392,7 +394,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

@@ -29,16 +29,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/lib.rs' does not exist",
-        "path": "crates/aicortex-store/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/migrations.rs' does not exist",
-        "path": "crates/aicortex-store/src/migrations.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
         "path": "crates/aicortex-store/src/erasure.rs"
       }
@@ -48,7 +38,16 @@
     "dependsOn": [
       "013-write-gate-and-redaction"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -96,7 +95,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -105,7 +108,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

@@ -1,0 +1,37 @@
+[package]
+name = "aicortex-store"
+version = "0.1.0"
+description = "The tables and the only code allowed to touch them: ordered migrations, scope-predicated repositories, counters, and a signed keyset cursor"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "012-store-schema-and-repositories"
+
+# The territory (spec 012 section 2): the record of 011, the chassis's store
+# and its error type, the serde wire the record is stored in (D-3), and the
+# two primitives the cursor of B-7 needs. No HTTP client, no second store, no
+# runtime: the crate is a library of statements and reads, and the runtime is
+# whoever calls it.
+[dependencies]
+aicortex-types = { workspace = true }
+rahi-store = { workspace = true }
+rahi-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+ring = { workspace = true }
+uuid = { workspace = true }
+base64 = { workspace = true }
+
+# The tests open rahi's single-voter node in a throwaway directory (FR-001)
+# and need a multi-thread runtime to drive it.
+[dev-dependencies]
+tokio = { workspace = true }
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

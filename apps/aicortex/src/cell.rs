@@ -32,9 +32,14 @@ impl Cell for Aicortex {
     }
 
     /// Every crate that owns schema contributes here, in version order.
-    /// None exists yet, so the list is empty and the schema version is 0.
+    ///
+    /// `aicortex-store` owns the memory schema (spec 012 B-1): the chassis's
+    /// coordination tables at version 1, because a capture stages outbox work
+    /// in its own transaction, and the five memory tables at version 2. A
+    /// later spec that owns a table appends to that crate's list rather than
+    /// to this one, so this seam stays a single call.
     fn migrations() -> &'static [Migration] {
-        &[]
+        aicortex_store::migrations()
     }
 
     /// The merged product router. No product route exists yet.
