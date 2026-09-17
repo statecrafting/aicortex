@@ -33,7 +33,12 @@ python3 - "$tmp" <<'PY'
 import json, sys
 
 with open(sys.argv[1], encoding="utf-8") as fh:
-    specs = json.load(fh)
+    document = json.load(fh)
+# spec-spine 0.20.0 wraps every read document in an object carrying its own
+# schemaVersion (spec-spine spec 093); before it, this read was a bare array.
+# Both shapes are accepted so the check does not depend on which side of the
+# pin bump the binary is.
+specs = document["items"] if isinstance(document, dict) else document
 deps = {s["id"]: list(s.get("dependsOn") or []) for s in specs}
 ordinal = {sid: int(sid[:3]) for sid in deps}
 violations = []

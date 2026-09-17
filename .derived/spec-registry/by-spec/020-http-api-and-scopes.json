@@ -105,5 +105,5 @@
     "title": "The HTTP API: bearer-authorized, scope-gated, streaming where it earns it"
   },
   "shardHash": "c40b8ff90acf0849a50e62d6af9711efa881750d68ffb9dfe8160ca8a91112bf",
-  "specVersion": "1.2.0"
+  "specVersion": "1.3.0"
 }

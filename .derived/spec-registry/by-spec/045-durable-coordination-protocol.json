@@ -254,5 +254,5 @@
     "title": "Coordinate repository work through durable requests, replies, and reconciled evidence"
   },
   "shardHash": "f9b5220dd52ce391c7cf33f8e410af555f83ff0642dc4279382a6d1e6a611d6f",
-  "specVersion": "1.2.0"
+  "specVersion": "1.3.0"
 }

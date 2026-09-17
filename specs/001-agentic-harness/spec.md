@@ -119,7 +119,7 @@ constitution is 000's; this spec owns the operational summary of it.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.18.0
+- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.20.0
   on `PATH`.
 - **AC-2.** `scripts/spec-dag.sh` reports the corpus acyclic with every
   dependency lower-numbered.
@@ -374,6 +374,50 @@ consumes this repository as a registered target.
   The claim is the smallest reading of the decision; if the maintainer
   prefers a different owner, moving one `establishes` line is the whole
   change.
+
+- **D-10 (2026-09-17, pin bump to 0.20.0).** The `spec-spine` pin moves from
+  0.18.0 to 0.20.0 in every site that states it (`govern.yml`, `AGENTS.md`,
+  `README.md`, the architect agent, AC-1) and in `spec-spine.toml [meta]
+  required_version`, which becomes `>=0.20.0`. Unlike D-4, D-7 and D-8 this
+  bump is not optional for an adopter that has already installed the new
+  binary: 0.20.0 and 0.18.0 do not agree on the committed tree, so whichever
+  one a session runs, the other calls that tree stale. A repository cannot
+  sit between them.
+
+  What moved, measured on an otherwise clean checkout. Every one of the 30
+  registry shards is rewritten, and the only line that changes in any of them
+  is `specVersion`, 1.2.0 to 1.3.0; every `shardHash` in them is byte
+  identical, so the corpus content the ledger commits to did not move. Every
+  one of the 31 codebase-index shards is rewritten, and the only line that
+  changes in any of them is `shardHash`; `schemaVersion` stays 1.1.0 and no
+  other byte moves, so the hashes are recomputed over content that is
+  identical. `check --fail-on-warn`, `lint --fail-on-warn` and `couple` are
+  clean under the new pin with no further change.
+
+  What forced work beyond the pin. spec-spine's spec 093 wraps four read
+  documents in an object carrying its own `schemaVersion`, and one of them,
+  `registry list --json`, is the single read `scripts/spec-dag.sh` makes: the
+  script parsed the old bare array and died with a `TypeError` on the new
+  envelope, which is AC-2 failing outright. It now accepts either shape, so
+  the check does not depend on which side of the bump the binary is. Two
+  documented facts also move: spec 101 makes a blocking unresolved claim exit
+  `1` rather than `2`, which `AGENTS.md`'s freshness table and `CLAUDE.md`'s
+  exit-code paragraph now state, and `2` still means staleness and nothing
+  else. This corpus calls `check` without `--fail-on-unresolved` (step 6),
+  so no pending spec's unresolved units become a refusal.
+
+  What this entry does not do. The release also asks adopters to re-copy
+  `.claude/settings.json` from the kit, because the hook fixes of spec-spine
+  specs 090, 099 and 104 live in the file rather than behind the version pin;
+  until that copy lands, the two session hooks still infer a freshness answer
+  from an exit code instead of reading the verdict. That file carries this
+  repository's own edits, so reconciling it against the kit is its own change
+  with its own review, not a side effect of a pin bump. Nothing else in the
+  release reaches this corpus: `index diagnostics --json` and `registry plan
+  --next --json` have no consumer here, the new `W-003` near-miss lint
+  reports nothing (`lint --fail-on-warn` is clean), and spec 092's judging of
+  mode-only and binary changes at the coupling gate changes no verdict on
+  this tree.
 
 ## Verification
 
