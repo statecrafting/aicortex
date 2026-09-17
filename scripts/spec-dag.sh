@@ -7,7 +7,9 @@
 #   - a depends_on target with a higher or equal ordinal (build order is the
 #     ordinal; claude-observatory schedules lowest-numbered-ready),
 #   - any cycle, naming the path.
-# Exit 0 clean, 1 on a violation, 3 when spec-spine (or python3) is absent.
+# Exit 0 clean, 1 on a violation, 3 when the read was not performed:
+# spec-spine or python3 absent, or a registry document this script does not
+# recognise. A shape it cannot read is never reported as a DAG violation.
 set -u
 
 if ! command -v spec-spine >/dev/null 2>&1; then
@@ -38,7 +40,17 @@ with open(sys.argv[1], encoding="utf-8") as fh:
 # schemaVersion (spec-spine spec 093); before it, this read was a bare array.
 # Both shapes are accepted so the check does not depend on which side of the
 # pin bump the binary is.
-specs = document["items"] if isinstance(document, dict) else document
+if isinstance(document, dict):
+    specs = document.get("items")
+    if specs is None:
+        print(
+            "spec-dag: registry list --json is an object with no `items` member; "
+            "this script does not recognise its shape",
+            file=sys.stderr,
+        )
+        sys.exit(3)
+else:
+    specs = document
 deps = {s["id"]: list(s.get("dependsOn") or []) for s in specs}
 ordinal = {sid: int(sid[:3]) for sid in deps}
 violations = []

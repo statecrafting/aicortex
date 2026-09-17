@@ -399,7 +399,11 @@ consumes this repository as a registered target.
   `registry list --json`, is the single read `scripts/spec-dag.sh` makes: the
   script parsed the old bare array and died with a `TypeError` on the new
   envelope, which is AC-2 failing outright. It now accepts either shape, so
-  the check does not depend on which side of the bump the binary is. Two
+  the check does not depend on which side of the bump the binary is, and a
+  third shape it does not recognise exits `3`, the read that was not
+  performed, rather than `1`: the traceback this bump produced was reported
+  as a DAG violation, which is the one thing the script had certainly not
+  found. Two
   documented facts also move: spec 101 makes a blocking unresolved claim exit
   `1` rather than `2`, which `AGENTS.md`'s freshness table and `CLAUDE.md`'s
   exit-code paragraph now state, and `2` still means staleness and nothing
