@@ -953,3 +953,170 @@ async fn d4_the_backfill_redigests_a_column_written_under_the_old_function() {
 fn common_key() -> aicortex_store::CursorKey {
     aicortex_store::CursorKey::new([3u8; aicortex_store::CursorKey::BYTES])
 }
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn redigest_resumes_after_reopen_and_converges_across_multiple_batches() {
+    let mut node = common::node().await;
+    let alice = common::scope("alice");
+    let bob = common::scope("bob");
+    let mut memories = Vec::new();
+    for i in 0..5 {
+        let memory = common::memory(&alice, &format!("backfill row {i}"), 1_700_000_000);
+        capture(&node, &memory).await;
+        node.handle()
+            .txn(vec![rahi_store::Statement::with_params(
+                "UPDATE memory SET fingerprint = $1 WHERE scope_id = $2 AND id = $3",
+                vec![
+                    Value::from(format!("old-{i}")),
+                    Value::from(&ScopeId::of(&alice)),
+                    Value::from(memory.id.to_string()),
+                ],
+            )])
+            .await
+            .unwrap();
+        memories.push(memory);
+    }
+    let other = common::memory(&bob, "other scope", 1_700_000_000);
+    capture(&node, &other).await;
+    node.handle()
+        .txn(vec![rahi_store::Statement::new(format!(
+            "CREATE TRIGGER fail_redigest BEFORE UPDATE OF fingerprint_version ON memory
+         WHEN OLD.id = '{}' BEGIN SELECT RAISE(ABORT, 'injected backfill failure'); END",
+            memories[1].id,
+        ))])
+        .await
+        .unwrap();
+    assert!(
+        Lifecycle::new()
+            .redigest(&node.handle(), &alice, 2)
+            .await
+            .is_err()
+    );
+    node = node.reopen().await;
+    assert_eq!(
+        common::count(
+            &node,
+            "SELECT COUNT(*) AS count FROM memory WHERE scope_id = $1 AND fingerprint_version = 0",
+            vec![Value::from(&ScopeId::of(&alice))]
+        )
+        .await,
+        5
+    );
+    node.handle()
+        .txn(vec![rahi_store::Statement::new(
+            "DROP TRIGGER fail_redigest",
+        )])
+        .await
+        .unwrap();
+    for expected in [2, 2, 1, 0, 0] {
+        assert_eq!(
+            Lifecycle::new()
+                .redigest(&node.handle(), &alice, 2)
+                .await
+                .unwrap(),
+            expected
+        );
+        node = node.reopen().await;
+    }
+    for memory in memories {
+        assert_eq!(
+            MemoryRepo::new()
+                .fingerprint_holder(&node.handle(), &alice, &fingerprint::of_memory(&memory))
+                .await
+                .unwrap(),
+            Some(memory.id)
+        );
+    }
+    assert_eq!(
+        common::count(
+            &node,
+            "SELECT COUNT(*) AS count FROM memory WHERE scope_id = $1 AND fingerprint_version = 0",
+            vec![Value::from(&ScopeId::of(&bob))]
+        )
+        .await,
+        1
+    );
+    for invalid in [0, 501] {
+        assert!(
+            Lifecycle::new()
+                .redigest(&node.handle(), &alice, invalid)
+                .await
+                .is_err()
+        );
+    }
+    node.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn migration_five_preserves_v4_rows_and_backfills_them_after_reopen() {
+    let fixture = common::open().await;
+    fixture
+        .handle()
+        .migrate(&aicortex_store::migrations()[..4])
+        .await
+        .unwrap();
+    let scope = common::scope("upgrade");
+    let memory = common::memory(&scope, "a pre-upgrade row", 1_700_000_000);
+    let mut txn = TxnBuilder::new();
+    MemoryRepo::new()
+        .insert(
+            &mut txn,
+            &common::admit(&memory),
+            &memory.provenance,
+            &common::work(&memory),
+        )
+        .unwrap();
+    fixture.handle().txn(txn.into_statements()).await.unwrap();
+    let report = fixture
+        .handle()
+        .migrate(aicortex_store::migrations())
+        .await
+        .unwrap();
+    assert_eq!(report.previous, 4);
+    assert_eq!(report.applied, vec![5]);
+    assert!(
+        fixture
+            .handle()
+            .migrate(aicortex_store::migrations())
+            .await
+            .unwrap()
+            .applied
+            .is_empty()
+    );
+    let ledger = rahi_ledger::Ledger::open(
+        fixture.handle(),
+        rahi_ledger::LedgerSigner::from_seed([7u8; 32]),
+        rahi_ledger::Hash::parse(format!("sha256:{}", "ab".repeat(32))).unwrap(),
+    )
+    .await
+    .unwrap();
+    let node = common::Node {
+        store: fixture.store,
+        ledger,
+        dir: fixture.dir,
+    }
+    .reopen()
+    .await;
+    assert_eq!(
+        MemoryRepo::new()
+            .get(&node.handle(), &scope, memory.id)
+            .await
+            .unwrap(),
+        Some(memory)
+    );
+    assert_eq!(
+        Lifecycle::new()
+            .redigest(&node.handle(), &scope, 1)
+            .await
+            .unwrap(),
+        1
+    );
+    assert_eq!(
+        Lifecycle::new()
+            .redigest(&node.handle(), &scope, 1)
+            .await
+            .unwrap(),
+        0
+    );
+    node.shutdown().await;
+}

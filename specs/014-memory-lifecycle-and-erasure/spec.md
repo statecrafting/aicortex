@@ -173,6 +173,63 @@ which are deployment configuration.
 
 ## 7. Resolved decisions
 
+- **D-12 (2026-09-17, durable review remediation).** D-6's post-commit
+  ordering stays intact, but its claim that a retry could report a lost
+  erasure needed durable state. Schema migration 5 adds an erasure receipt
+  carrying the original authority, request metadata and stable Decision id.
+  Destruction, its actual-row counts and receipt readiness commit together.
+  Delivery happens afterwards through the chassis ledger. A retry compares
+  the resident Decision's full content, excluding its assigned chain parent,
+  before acknowledging delivery. A failed append leaves a discoverable
+  receipt; a successful append with a lost acknowledgement is not appended
+  twice. Completed single-memory retries return the original receipt instead
+  of rejecting the tombstone. The former refusal test now asserts unchanged
+  timestamps, one Decision, and the same result; cross-scope refusal stays.
+
+  Scope receipts identify one operation across restarts. Each batch captures
+  SQLite's actual affected-row counts immediately after each mutation inside
+  the same transaction, including destroyed keys and refusal-only work. The
+  completion Decision uses those durable operation totals and the original
+  authority. A completed operation refuses a stale batch at commit; new
+  content after delivered completion starts a new operation with separate
+  totals. Accounting increases statement volume, so transactions take at
+  most 200 rows within the caller's ceiling of up to 500. A 500-row accounted
+  transaction exceeded the pinned engine's 2 MiB WAL entry limit in the
+  FR-005 fixture; 200-row transactions pass that same 5000-memory fixture.
+  This row bound does not establish or change lease safety.
+
+  D-7's backfill now stores a fingerprint version with each digest. Reads
+  select only older versions in id order. Digest and version commit together;
+  a changed record aborts the batch and an erased row cannot be restored.
+  Concurrently consumed batches do not report convergence while older
+  versions remain. Migration 5 extends migration 4 without rewriting it.
+
+  Rejected: detached in-memory receipts, journaling counts after destruction,
+  rebuilding totals from tombstones, and repeatedly selecting the first
+  nonempty fingerprints. The repair cannot reconstruct counts or authority
+  already lost by the previous implementation. Legacy scope journal rows are
+  retained and require reconciliation rather than being reported as known
+  zero key destruction. These are implementation choices satisfying B-7,
+  B-9, B-11 and D-7; no approved requirement is changed.
+- **Status (2026-09-17, durable review remediation).** Single-memory tests
+  reopen the same node after journal rollback, destructive commit, ledger
+  failure, and ledger append before delivery acknowledgement. Scope tests
+  restore real app-database snapshots into fresh nodes at those boundaries,
+  asserting exact totals, including refusal-only keys, and one Decision.
+  A full-node scope restart diagnostic remained blocked after asynchronous
+  release: both the rollback and completed-operation cases retained
+  `lease_fence.token = 1` while the next call waited to acquire its second
+  lease. The run was terminated, not passed. Evidence is retained in
+  `data/014-full-node-restart-blocker.log`. Cached-lease restart safety must
+  be verified alongside the known TTL-release blocker; the app-snapshot
+  tests do not claim it. The backfill test spans multiple batches, a rolled-back batch,
+  repeated reopen, and zero-work convergence. The literal current
+  `aicortex ledger verify` command has also run against a real erased fixture
+  with the cell's own genesis: exit 0, two resident records, no sealed
+  segments. The separate stale-lease release blocker below is unchanged:
+  014 remains in progress, 015 remains blocked, and a published chassis fix
+  and reviewed pin update are still prerequisites to completion.
+
 - **D-11 (2026-09-17, review remediation).** D-9's claim that every
   erasure statement was idempotent was false for counter deltas and for
   tombstone timestamps. Counter moves now select the current live row

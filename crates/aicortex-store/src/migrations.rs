@@ -47,11 +47,14 @@ pub const DECISION_KEY_VERSION: u32 = 3;
 /// to (014 B-9).
 pub const LIFECYCLE_VERSION: u32 = 4;
 
+/// Durable erasure accounting and resumable fingerprint progress (spec 014).
+pub const ERASURE_RECEIPTS_VERSION: u32 = 5;
+
 /// The version an up-to-date store records, which is the highest below.
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = LIFECYCLE_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = ERASURE_RECEIPTS_VERSION;
 
 /// The scope a memory lives in (B-2).
 ///
@@ -261,7 +264,9 @@ const SOURCE_INDEX: &str = "CREATE INDEX IF NOT EXISTS memory_source_scope_memor
 /// the next memories in the scope that are not erased yet, so a crash loses
 /// at most the batch that was in flight and a rerun is idempotent. What the
 /// journal adds is the per-batch progress B-9 requires to be reportable, and
-/// the batch number the single completion Decision counts.
+/// the batch number the single completion Decision counts. Version 5 adds
+/// operation identity and key counts; all progress then commits atomically
+/// with the destructive statements.
 const ERASURE_JOURNAL_TABLE: &str = "CREATE TABLE IF NOT EXISTS erasure_journal (
     scope_id TEXT NOT NULL,
     batch INTEGER NOT NULL,
@@ -281,7 +286,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 4]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 5]> = std::sync::LazyLock::new(|| {
     [
         rahi_store::coordination_migration(COORDINATION_VERSION),
         Migration::new(
@@ -324,6 +329,24 @@ static LIST: std::sync::LazyLock<[Migration; 4]> = std::sync::LazyLock::new(|| {
                 ERASURE_JOURNAL_TABLE,
             ]
             .join(";\n"),
+        ),
+        Migration::new(
+            ERASURE_RECEIPTS_VERSION,
+            "aicortex durable erasure receipts and fingerprint progress",
+            "CREATE TABLE erasure_receipt (
+                scope_id TEXT NOT NULL,
+                target TEXT NOT NULL,
+                decision_id TEXT NOT NULL UNIQUE,
+                decision TEXT NOT NULL,
+                ready INTEGER NOT NULL DEFAULT 0,
+                delivered INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (scope_id, target)
+            );
+            ALTER TABLE erasure_journal ADD COLUMN operation TEXT NOT NULL DEFAULT 'legacy';
+            ALTER TABLE erasure_journal ADD COLUMN keys_destroyed INTEGER NOT NULL DEFAULT 0;
+            ALTER TABLE erasure_journal ADD COLUMN marked INTEGER NOT NULL DEFAULT 0;
+            ALTER TABLE memory ADD COLUMN fingerprint_version INTEGER NOT NULL DEFAULT 0;
+            CREATE INDEX memory_redigest ON memory (scope_id, fingerprint_version, id);",
         ),
     ]
 });

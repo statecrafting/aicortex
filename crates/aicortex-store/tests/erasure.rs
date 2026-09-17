@@ -24,6 +24,8 @@
 
 mod common;
 
+use common::backup_bytes;
+
 use aicortex_gate::{Candidate, DigestRef, Gate, KIND_QUARANTINE, Origin, Verdict};
 use aicortex_store::{
     Authority, Counters, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE,
@@ -451,7 +453,7 @@ async fn b7_erasure_leaves_a_tombstone_that_carries_no_content() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn b7_a_second_erasure_of_the_same_memory_is_refused() {
+async fn b7_a_retry_returns_the_receipt_without_erasing_twice() {
     let node = common::node().await;
     let alice = common::scope("alice");
     let now = UnixSeconds::new(1_700_100_000);
@@ -459,7 +461,7 @@ async fn b7_a_second_erasure_of_the_same_memory_is_refused() {
     let memory = common::memory(&alice, "the badge number is on the card", 1_700_000_000);
     capture(&node, &memory).await;
     let eraser = Eraser::new();
-    eraser
+    let first = eraser
         .erase(
             &node.handle(),
             &node.ledger,
@@ -468,15 +470,29 @@ async fn b7_a_second_erasure_of_the_same_memory_is_refused() {
         .await
         .expect("the first erasure runs");
 
-    let error = eraser
+    let repeated = eraser
         .erase(
             &node.handle(),
             &node.ledger,
             &Erasure::new(&alice, memory.id, &authority(), now),
         )
         .await
-        .expect_err("a tombstone is not erasable");
-    assert!(error.message().contains("not an erasable row"), "{error}");
+        .expect("the receipt is replayed");
+    assert_eq!(first, repeated);
+    assert_eq!(
+        node.ledger.count().await.unwrap(),
+        2,
+        "genesis and one erasure"
+    );
+    assert_eq!(
+        MemoryRepo::new()
+            .get(&node.handle(), &alice, memory.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .updated,
+        now
+    );
 
     // A memory of another scope is not reachable either, which is 012 B-3
     // holding on the one path where crossing scopes would be irreversible.
@@ -965,78 +981,6 @@ async fn fr007_a_backup_taken_after_the_erasure_holds_no_key() {
     node.shutdown().await;
 }
 
-/// Take a backup and read back every byte of the file it wrote.
-///
-/// The trigger is the chassis's `backup`, and the file is then found on disk
-/// rather than trusted to be listed by the time that call returns: hiqlite
-/// writes the snapshot on a task of its own, so the listing rahi compares
-/// against can legitimately race it and answer "no new file". Whether that
-/// call reports the name or not, the snapshot is the one that lands in the
-/// backup directory, and waiting for its size to settle is what makes reading
-/// it deterministic.
-async fn backup_bytes(node: &common::Node) -> Vec<u8> {
-    let before = backup_files(node);
-    let reported = node.handle().backup().await;
-    for _ in 0..200_u32 {
-        let fresh: Vec<std::path::PathBuf> = backup_files(node)
-            .into_iter()
-            .filter(|path| !before.contains(path))
-            .collect();
-        if let Some(path) = fresh.first() {
-            return settled(path).await;
-        }
-        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-    }
-    panic!("no backup file appeared; the trigger reported {reported:?}");
-}
-
-/// The snapshots hiqlite has written under this node's data directory.
-fn backup_files(node: &common::Node) -> Vec<std::path::PathBuf> {
-    let mut files: Vec<std::path::PathBuf> = walkdir(node.dir.path())
-        .into_iter()
-        .filter(|path| {
-            path.file_name()
-                .is_some_and(|name| name.to_string_lossy().starts_with("backup_"))
-        })
-        .collect();
-    files.sort();
-    files
-}
-
-/// Read a file once its size has stopped changing.
-async fn settled(path: &std::path::Path) -> Vec<u8> {
-    let mut last = 0_u64;
-    for _ in 0..200_u32 {
-        let size = std::fs::metadata(path).map(|meta| meta.len()).unwrap_or(0);
-        if size > 0 && size == last {
-            return std::fs::read(path).expect("the backup file reads");
-        }
-        last = size;
-        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
-    }
-    panic!("the backup file {} never stopped growing", path.display());
-}
-
-/// Every file under `root`, depth first.
-fn walkdir(root: &std::path::Path) -> Vec<std::path::PathBuf> {
-    let mut out = Vec::new();
-    let mut stack = vec![root.to_path_buf()];
-    while let Some(dir) = stack.pop() {
-        let Ok(entries) = std::fs::read_dir(&dir) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir() {
-                stack.push(path);
-            } else {
-                out.push(path);
-            }
-        }
-    }
-    out
-}
-
 /// Resolve once the scope holds at least `at_least` tombstones, and fewer
 /// than `below`.
 ///
@@ -1280,6 +1224,9 @@ async fn fr005_a_scope_erasure_of_five_thousand_memories_is_bounded_and_resumabl
         .await
         .expect("the resumed erasure completes");
     assert!(erased.batches >= 1, "{erased:?}");
+    assert_eq!(erased.memories, total as u64);
+    assert_eq!(erased.removed_derivatives, total as u64 + 6);
+    assert_eq!(erased.keys_destroyed, 0);
 
     // Nothing is left un-erased.
     assert_eq!(
@@ -1454,4 +1401,129 @@ fn the_sweep_names_every_table_a_later_spec_will_add() {
     // per registration and count the same removal more than once.
     let eraser = eraser.also(Derivative::new("chunk", "memory_id", "scope_id"));
     assert_eq!(eraser.derivatives().len(), DERIVATIVES.len() + 1);
+}
+
+/// Run explicitly after building the current cell binary. This invokes the
+/// actual chassis CLI against a real erasure, with the cell's own genesis.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+#[ignore = "requires AICORTEX_VERIFY_BINARY built from the current tree"]
+async fn ac2_literal_cli_verifies_a_real_erased_fixture() {
+    use base64::Engine as _;
+    use std::os::unix::fs::PermissionsExt;
+    let binary = std::env::var("AICORTEX_VERIFY_BINARY").expect("the current cell binary");
+    let fixture = common::Fixture::migrated().await;
+    let cfg = fixture.store.config().clone();
+    let keys = fixture.dir.path().join("keys");
+    std::fs::create_dir(&keys).unwrap();
+    std::fs::set_permissions(&keys, std::fs::Permissions::from_mode(0o700)).unwrap();
+    let files = [
+        (
+            "ledger.key",
+            base64::engine::general_purpose::STANDARD
+                .encode([7u8; 32])
+                .into_bytes(),
+        ),
+        ("hiqlite.json", serde_json::to_vec(&cfg.secrets).unwrap()),
+        ("session.key", vec![8u8; 32]),
+        ("backup.key", b"unused-by-ledger-verification".to_vec()),
+        (
+            "rauthy_admin_token",
+            b"unused-by-ledger-verification".to_vec(),
+        ),
+    ];
+    for (name, bytes) in files {
+        let path = keys.join(name);
+        std::fs::write(&path, bytes).unwrap();
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600)).unwrap();
+    }
+    let verify = || {
+        std::process::Command::new(&binary)
+            .args(["ledger", "verify"])
+            .env("RAHI_PUBLIC_URL", "http://localhost:8080")
+            .env("RAHI_DATA_DIR", fixture.dir.path())
+            .env("RAHI_HIQLITE_RAFT_ADDR", cfg.raft_addr.to_string())
+            .env("RAHI_HIQLITE_API_ADDR", cfg.api_addr.to_string())
+            .output()
+            .unwrap()
+    };
+    fixture.store.shutdown().await.unwrap();
+    drop(fixture.store);
+    let initial = verify();
+    assert!(
+        initial.status.success(),
+        "{}",
+        String::from_utf8_lossy(&initial.stderr)
+    );
+    let store = rahi_store::Store::open(&cfg).await.unwrap();
+    #[derive(serde::Deserialize)]
+    struct Genesis {
+        record: Vec<u8>,
+    }
+    let rows: Vec<Genesis> = store
+        .handle()
+        .query_consistent("SELECT record FROM kernel_decisions", vec![])
+        .await
+        .unwrap();
+    assert_eq!(rows.len(), 1);
+    let genesis = rahi_ledger::SignedRecord::from_bytes(&rows[0].record)
+        .unwrap()
+        .decision()
+        .unwrap();
+    let ledger = rahi_ledger::Ledger::open(
+        store.handle(),
+        rahi_ledger::LedgerSigner::from_seed([7u8; 32]),
+        genesis.prev_hash,
+    )
+    .await
+    .unwrap();
+    let scope = common::scope("cli-fixture");
+    let memory = common::memory(&scope, "distinctive CLI erasure fixture", 1_700_000_000);
+    let mut txn = TxnBuilder::new();
+    MemoryRepo::new()
+        .insert(
+            &mut txn,
+            &common::admit(&memory),
+            &memory.provenance,
+            &common::work(&memory),
+        )
+        .unwrap();
+    store.handle().txn(txn.into_statements()).await.unwrap();
+    Eraser::new()
+        .erase(
+            &store.handle(),
+            &ledger,
+            &Erasure::new(
+                &scope,
+                memory.id,
+                &Authority::of(scope.owner.clone()),
+                UnixSeconds::new(1_700_100_000),
+            ),
+        )
+        .await
+        .unwrap();
+    assert_eq!(
+        MemoryRepo::new()
+            .get(&store.handle(), &scope, memory.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .status,
+        Status::Erased
+    );
+    assert_eq!(ledger.count().await.unwrap(), 2);
+    drop(ledger);
+    store.shutdown().await.unwrap();
+    drop(store);
+    let result = verify();
+    let stdout = String::from_utf8_lossy(&result.stdout);
+    println!(
+        "aicortex ledger verify: exit {:?}\n{stdout}",
+        result.status.code()
+    );
+    assert!(
+        result.status.success(),
+        "{}",
+        String::from_utf8_lossy(&result.stderr)
+    );
+    assert!(stdout.contains("2 resident record(s)"), "{stdout}");
 }

@@ -49,7 +49,9 @@ use aicortex_types::{
     Scope, SourceRef, SourceSystem, Status, TrustClass,
 };
 use rahi_ledger::{Decision, DecisionId, DecisionKind, Ledger, Outcome};
-use rahi_store::{ExecuteResult, Statement, StoreHandle, TxnBuilder, Value};
+#[cfg(test)]
+use rahi_store::ExecuteResult;
+use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, Sub, UnixSeconds};
 use serde::Deserialize;
 
@@ -69,6 +71,11 @@ pub const KIND_ERASE_SCOPE: &str = "memory.erase_scope";
 /// bound also keeps one transaction's statement count to something a store
 /// can commit without a long stall on every other writer of the scope.
 pub const MAX_ERASURE_BATCH: u32 = 500;
+
+// Accounting adds statements to each row's sweep. Keep the current sweep
+// below the pinned engine's 2 MiB WAL entry ceiling even when the caller's
+// row ceiling is 500. This is a row bound, not a lease timing assumption.
+const MAX_ACCOUNTED_BATCH: u32 = 200;
 
 /// The source system a tombstone's stripped provenance names.
 const ERASED: &str = "erased";
@@ -301,12 +308,16 @@ pub struct ScopeErased {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Eraser {
     derivatives: Vec<Derivative>,
+    #[cfg(test)]
+    fault: Option<Fault>,
 }
 
 impl Default for Eraser {
     fn default() -> Self {
         Self {
             derivatives: DERIVATIVES.to_vec(),
+            #[cfg(test)]
+            fault: None,
         }
     }
 }
@@ -357,24 +368,29 @@ const SHELL_SQL: &str = "SELECT id, kind, status, created FROM memory
 const BATCH_SQL: &str = "SELECT id, kind, status, created FROM memory
     WHERE scope_id = $1 AND status <> 'erased' ORDER BY id LIMIT $2";
 
-/// One line of per-batch progress (B-9).
-///
-/// The batch number is computed by the statement for the same reason the
-/// source log's ordinal is: a value read before the write could be stale by
-/// the time it lands, and a resumed run would then overwrite the progress of
-/// the run it is resuming.
-const JOURNAL_SQL: &str = "INSERT INTO erasure_journal (
-        scope_id, batch, memories, derivatives, at
-    ) VALUES (
-        $1,
-        (SELECT COALESCE(MAX(batch), -1) + 1 FROM erasure_journal WHERE scope_id = $1),
-        $2, $3, $4
-    )";
-
+/// Totals are scoped to one durable operation, including all resumed runs.
 const JOURNAL_READ_SQL: &str = "SELECT COUNT(*) AS batches,
         COALESCE(SUM(memories), 0) AS memories,
-        COALESCE(SUM(derivatives), 0) AS derivatives
-    FROM erasure_journal WHERE scope_id = $1";
+        COALESCE(SUM(derivatives), 0) AS derivatives,
+        COALESCE(SUM(keys_destroyed), 0) AS keys_destroyed,
+        COALESCE(SUM(marked), 0) AS marked
+    FROM erasure_journal WHERE scope_id = $1 AND operation = $2";
+
+#[derive(Debug, Deserialize)]
+struct Receipt {
+    decision_id: String,
+    decision: String,
+    ready: i64,
+    delivered: i64,
+}
+
+#[cfg(test)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Fault {
+    Journal,
+    AfterCommit,
+    AfterLedger,
+}
 
 #[derive(Debug, Deserialize)]
 struct ShellRow {
@@ -394,6 +410,8 @@ struct JournalRow {
     batches: i64,
     memories: i64,
     derivatives: i64,
+    keys_destroyed: i64,
+    marked: i64,
 }
 
 impl Eraser {
@@ -438,14 +456,13 @@ impl Eraser {
     /// order is deliberate. The chain is append-only: a Decision appended
     /// first and then not carried out would be a permanent, unretractable
     /// claim that content was destroyed when it was not. The other way round,
-    /// a crash between the two loses the record of an erasure that did
-    /// happen, which a rerun re-reports and which never misleads anybody
-    /// about what the store holds.
+    /// a durable receipt commits with destruction, so a retry delivers the
+    /// original Decision without repeating the destructive transaction.
     ///
     /// # Errors
     ///
     /// [`Error::Validation`] when the memory is not a row of this scope or is
-    /// already a tombstone; the store's error; the ledger's error when the
+    /// a tombstone without a receipt; the store's error; the ledger's error when the
     /// Decision cannot be appended.
     pub async fn erase(
         &self,
@@ -461,7 +478,18 @@ impl Eraser {
             at: now,
         } = *request;
         let scope_id = ScopeId::of(scope);
+        let target = id.to_string();
+        if let Some(receipt) = self.receipt(store, &scope_id, &target).await? {
+            return self
+                .deliver_memory(store, ledger, &scope_id, &target, receipt)
+                .await;
+        }
         let Some(shell) = self.shell(store, &scope_id, id).await? else {
+            if let Some(receipt) = self.receipt(store, &scope_id, &target).await? {
+                return self
+                    .deliver_memory(store, ledger, &scope_id, &target, receipt)
+                    .await;
+            }
             return Err(Error::Validation(format!(
                 "memory {id} is not an erasable row of this scope"
             )));
@@ -499,49 +527,52 @@ impl Eraser {
             vec![Value::from(&scope_id), Value::from(id.to_string())],
         ));
 
-        let results = store.txn(txn.into_statements()).await?;
-        if span_rows(&results, tombstones) == 0 {
-            return Err(Error::Conflict(format!(
-                "memory {id} was erased by another writer"
-            )));
+        let decision = Decision::new(
+            DecisionId::new(format!("{KIND_ERASE}-{id}")),
+            DecisionKind::new(KIND_ERASE),
+            authority.subject().clone(),
+            Outcome::Allow,
+            "a memory was erased and its derivatives removed",
+        )
+        .with_payload(serde_json::json!({
+            "scope": scope.to_string(), "memory_id": target,
+            "authority": authority.subject().as_str(), "reason_code": authority.reason_code(),
+            "cascade": cascade,
+            "cascaded": cascaded.iter().map(ToString::to_string).collect::<Vec<_>>(),
+            "caveat": Erased::caveat(),
+        }));
+        let mut statements = vec![receipt_insert(&scope_id, &target, &decision)?];
+        statements.extend(accounted_batch(
+            txn,
+            &scope_id,
+            decision.id.as_str(),
+            now,
+            &Counts {
+                sweep,
+                keys,
+                tombstones,
+                marked: Some(mark_at),
+            },
+        ));
+        statements.push(Statement::with_params(
+            "UPDATE erasure_receipt SET ready = 1 WHERE scope_id = $1 AND target = $2",
+            vec![Value::from(&scope_id), Value::from(target.clone())],
+        ));
+        self.inject_journal_failure(&mut statements);
+        if let Err(error) = store.txn(statements).await {
+            // A racing request may have committed the same receipt. Only
+            // that durable receipt can turn this failure into a safe retry.
+            if let Some(receipt) = self.receipt(store, &scope_id, &target).await? {
+                return self
+                    .deliver_memory(store, ledger, &scope_id, &target, receipt)
+                    .await;
+            }
+            return Err(error);
         }
-        let keys_destroyed = span_rows(&results, keys.clone());
-        let removed = span_rows(&results, sweep).saturating_add(keys_destroyed);
-        let marked = results.get(mark_at).map_or(0, |row| row.rows_affected);
-
-        let decision = DecisionId::new(format!("{KIND_ERASE}-{id}-{}", now.get()));
-        ledger
-            .append(
-                Decision::new(
-                    decision.clone(),
-                    DecisionKind::new(KIND_ERASE),
-                    authority.subject().clone(),
-                    Outcome::Allow,
-                    "a memory was erased and its derivatives removed",
-                )
-                .with_payload(serde_json::json!({
-                    "scope": scope.to_string(),
-                    "memory_id": id.to_string(),
-                    "authority": authority.subject().as_str(),
-                    "reason_code": authority.reason_code(),
-                    "derivatives_removed": removed,
-                    "keys_destroyed": keys_destroyed,
-                    "derivatives_marked": marked,
-                    "cascade": cascade,
-                    "cascaded": cascaded.iter().map(ToString::to_string).collect::<Vec<String>>(),
-                    "caveat": Erased::caveat(),
-                })),
-            )
-            .await?;
-
-        Ok(Erased {
-            memory: id,
-            removed_derivatives: removed,
-            keys_destroyed,
-            marked,
-            cascaded,
-            decision,
-        })
+        self.after_commit()?;
+        let receipt = self.required_receipt(store, &scope_id, &target).await?;
+        self.deliver_memory(store, ledger, &scope_id, &target, receipt)
+            .await
     }
 
     /// Erase every memory in a scope, in bounded batches under a lease (B-9).
@@ -551,7 +582,8 @@ impl Eraser {
     /// crash without a cursor, because the next batch is whatever is not a
     /// tombstone yet; rerunning after an interruption picks up exactly the
     /// memories the interrupted batch did not commit, and rerunning after
-    /// completion erases nothing and says so.
+    /// completion returns its original receipt. New captures or keys start a
+    /// new operation once the earlier Decision has been delivered.
     ///
     /// Every batch destroys the scope's digest keys, not only the keys of the
     /// memories in that batch, and a final destruction runs after the last
@@ -589,176 +621,306 @@ impl Eraser {
         }
         let scope_id = ScopeId::of(scope);
         let lease = store.lease(&erasure_lease_key(&scope_id)).await?;
-        let drained = self.drain_scope(store, scope, &scope_id, batch, now).await;
+        let result = self
+            .scope_under_lease(store, ledger, scope, authority, batch, now)
+            .await;
         lease.release().await;
-        let keys_destroyed = drained?;
+        result
+    }
 
-        let (batches, memories, removed) = self.journal(store, &scope_id).await?;
-        let decision = DecisionId::new(format!("{KIND_ERASE_SCOPE}-{scope_id}-{}", now.get()));
-        ledger
-            .append(
-                Decision::new(
-                    decision.clone(),
-                    DecisionKind::new(KIND_ERASE_SCOPE),
-                    authority.subject().clone(),
-                    Outcome::Allow,
-                    "a scope was erased and its derivatives removed",
-                )
-                .with_payload(serde_json::json!({
-                    "scope": scope.to_string(),
-                    "authority": authority.subject().as_str(),
-                    "reason_code": authority.reason_code(),
-                    "batches": batches,
-                    "memories": memories,
-                    "derivatives_removed": removed,
-                    "keys_destroyed": keys_destroyed,
-                    "caveat": Erased::caveat(),
-                })),
+    async fn scope_under_lease(
+        &self,
+        store: &StoreHandle,
+        ledger: &Ledger,
+        scope: &Scope,
+        authority: &Authority,
+        batch: u32,
+        now: UnixSeconds,
+    ) -> Result<ScopeErased, Error> {
+        let scope_id = ScopeId::of(scope);
+        let previous = self.receipt(store, &scope_id, "").await?;
+        let has_work: Vec<IdRow> = store
+            .query_consistent(
+                "SELECT id FROM memory WHERE scope_id = $1 AND status <> 'erased' LIMIT 1",
+                vec![Value::from(&scope_id)],
             )
             .await?;
-
+        let keys: Vec<IdRow> = store
+            .query_consistent(
+                "SELECT key_id AS id FROM decision_key WHERE scope_id = $1 LIMIT 1",
+                vec![Value::from(&scope_id)],
+            )
+            .await?;
+        // A completed operation is replayed unless new content or keys arrived.
+        // Pending delivery always wins over starting another operation.
+        let start = previous
+            .as_ref()
+            .is_none_or(|r| r.delivered == 1 && (!has_work.is_empty() || !keys.is_empty()));
+        if start {
+            let legacy: Vec<IdRow> = store
+                .query_consistent(
+                    "SELECT operation AS id FROM erasure_journal
+                 WHERE scope_id = $1 AND operation = 'legacy' LIMIT 1",
+                    vec![Value::from(&scope_id)],
+                )
+                .await?;
+            if !legacy.is_empty() {
+                return Err(Error::Integrity(
+                    "legacy erasure progress has no durable key totals; reconcile it before resuming".into()));
+            }
+            let decision = Decision::new(
+                DecisionId::new(format!("{KIND_ERASE_SCOPE}-{}", MemoryId::now_v7())),
+                DecisionKind::new(KIND_ERASE_SCOPE),
+                authority.subject().clone(),
+                Outcome::Allow,
+                "a scope was erased and its derivatives removed",
+            )
+            .with_payload(serde_json::json!({
+                "scope": scope.to_string(), "authority": authority.subject().as_str(),
+                "reason_code": authority.reason_code(), "caveat": Erased::caveat(),
+            }));
+            store.txn(vec![
+                Statement::with_params(
+                    "DELETE FROM erasure_receipt WHERE scope_id = $1 AND target = '' AND delivered = 1",
+                    vec![Value::from(&scope_id)]),
+                receipt_insert(&scope_id, "", &decision)?,
+            ]).await?;
+        }
+        let mut receipt = self.required_receipt(store, &scope_id, "").await?;
+        if receipt.ready == 0 {
+            loop {
+                let drained = self
+                    .drain_one_batch(store, scope, &receipt.decision_id, batch, now)
+                    .await?;
+                self.after_commit()?;
+                if drained {
+                    break;
+                }
+            }
+            receipt = self.required_receipt(store, &scope_id, "").await?;
+        }
+        let totals = self.journal(store, &scope_id, &receipt.decision_id).await?;
+        let decision = self
+            .deliver(store, ledger, &scope_id, "", &receipt, &totals)
+            .await?;
         Ok(ScopeErased {
-            batches,
-            memories,
-            removed_derivatives: removed,
-            keys_destroyed,
-            decision,
+            batches: nonnegative(totals.batches),
+            memories: nonnegative(totals.memories),
+            removed_derivatives: nonnegative(totals.derivatives),
+            keys_destroyed: nonnegative(totals.keys_destroyed),
+            decision: decision.id,
         })
     }
 
-    /// Erase batch after batch until the scope holds nothing but tombstones.
-    ///
-    /// Returns how many digest keys were destroyed across the run.
-    async fn drain_scope(
-        &self,
-        store: &StoreHandle,
-        scope: &Scope,
-        scope_id: &ScopeId,
-        batch: u32,
-        now: UnixSeconds,
-    ) -> Result<u64, Error> {
-        let mut keys_destroyed = 0_u64;
-        loop {
-            let progress = match self
-                .drain_one_batch(store, scope, scope_id, batch, now)
-                .await?
-            {
-                Batch::Drained { keys } => return Ok(keys_destroyed.saturating_add(keys)),
-                Batch::Erased(progress) => progress,
-            };
-            keys_destroyed = keys_destroyed.saturating_add(progress.keys);
-            // Zero is valid when another eraser committed the selected rows
-            // first. Re-read what remains; never count those tombstones twice.
-        }
-    }
-
-    /// One batch of a scope erasure, including the final key-only pass.
-    ///
-    /// Called under the caller's lease and inside it: everything a batch
-    /// removes is one transaction, and the journal line describing it follows.
+    /// Destruction, actual-row accounting and completion readiness commit
+    /// together. A crash cannot leave a tombstone without its batch report.
     async fn drain_one_batch(
         &self,
         store: &StoreHandle,
         scope: &Scope,
-        scope_id: &ScopeId,
+        operation: &str,
         batch: u32,
         now: UnixSeconds,
-    ) -> Result<Batch, Error> {
-        {
-            let rows: Vec<ShellRow> = store
-                .query_consistent(
-                    BATCH_SQL,
-                    vec![Value::from(scope_id), Value::Integer(i64::from(batch))],
-                )
-                .await?;
-            if rows.is_empty() {
-                // The scope holds no live memory. Its keys are still destroyed:
-                // a refusal stores no row, so its key is reachable only here,
-                // and a scope of nothing but refusals is the case a per-memory
-                // sweep would miss entirely. What this pass destroys is counted
-                // like everything else: it is the *only* destruction in such a
-                // scope, so discarding it would make the Decision report zero
-                // keys for an erasure that destroyed several.
-                let mut txn = TxnBuilder::new();
-                DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
-                // Keep the final key-only removal in the durable report too.
-                // changes() observes the immediately preceding DELETE in this
-                // same transaction. A no-op completion adds no journal row.
-                txn.push(Statement::with_params(
-                    "INSERT INTO erasure_journal (scope_id, batch, memories, derivatives, at)
-                     SELECT $1, (SELECT COALESCE(MAX(batch), -1) + 1
-                         FROM erasure_journal WHERE scope_id = $1), 0, changes(), $2
-                     WHERE changes() > 0",
-                    vec![Value::from(scope_id), Value::Integer(seconds_to_sql(now))],
-                ));
-                let results = store.txn(txn.into_statements()).await?;
-                return Ok(Batch::Drained {
-                    keys: span_rows(&results, 0..1),
-                });
-            }
-            let shells = rows
-                .into_iter()
-                .map(Shell::try_from)
-                .collect::<Result<Vec<Shell>, Error>>()?;
-
-            let mut txn = TxnBuilder::new();
-            let sweep = self.stage_sweep(&mut txn, scope_id, &shells);
-            let keys_at = txn.len();
-            DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
-            let keys = keys_at..txn.len();
-            let tombstones = stage_tombstones(&mut txn, scope, scope_id, &shells, now)?;
-
-            let results = store.txn(txn.into_statements()).await?;
-            let destroyed = span_rows(&results, keys);
-            let removed = span_rows(&results, sweep).saturating_add(destroyed);
-            // Counted from the tombstone statements rather than from the rows
-            // that were read, so the number is what the transaction did.
-            let erased = span_rows(&results, tombstones);
-
-            // The journal is progress, not part of the erasure: it is written
-            // after the batch it describes, with the counts the batch actually
-            // produced rather than the counts it was expected to produce. A
-            // crash between the two loses a line of a report, never a row the
-            // erasure was supposed to remove.
-            if erased > 0 || removed > 0 {
-                store
-                    .txn(vec![Statement::with_params(
-                        JOURNAL_SQL,
-                        vec![
-                            Value::from(scope_id),
-                            Value::Integer(i64::try_from(erased).unwrap_or(i64::MAX)),
-                            Value::Integer(i64::try_from(removed).unwrap_or(i64::MAX)),
-                            Value::Integer(seconds_to_sql(now)),
-                        ],
-                    )])
-                    .await?;
-            }
-            Ok(Batch::Erased(Progress {
-                memories: erased,
-                keys: destroyed,
-            }))
-        }
+    ) -> Result<bool, Error> {
+        let scope_id = ScopeId::of(scope);
+        let rows: Vec<ShellRow> = store
+            .query_consistent(
+                BATCH_SQL,
+                vec![
+                    Value::from(&scope_id),
+                    Value::Integer(i64::from(batch.min(MAX_ACCOUNTED_BATCH))),
+                ],
+            )
+            .await?;
+        let shells = rows
+            .into_iter()
+            .map(Shell::try_from)
+            .collect::<Result<Vec<_>, _>>()?;
+        let mut txn = TxnBuilder::new();
+        let sweep = self.stage_sweep(&mut txn, &scope_id, &shells);
+        let keys_at = txn.len();
+        DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
+        let keys = keys_at..txn.len();
+        let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
+        let mut statements = vec![Statement::with_params(
+            "UPDATE erasure_receipt SET ready = CASE
+                WHEN decision_id = $1 AND ready = 0 THEN 0 ELSE NULL END
+             WHERE scope_id = $2 AND target = ''",
+            vec![Value::from(operation), Value::from(&scope_id)],
+        )];
+        statements.extend(accounted_batch(
+            txn,
+            &scope_id,
+            operation,
+            now,
+            &Counts {
+                sweep,
+                keys,
+                tombstones,
+                marked: None,
+            },
+        ));
+        // Recheck at commit, including captures arriving after the batch read.
+        statements.push(Statement::with_params(
+            "UPDATE erasure_receipt SET ready = 1
+             WHERE scope_id = $1 AND target = '' AND decision_id = $2
+             AND NOT EXISTS (SELECT 1 FROM memory WHERE scope_id = $1 AND status <> 'erased')
+             AND NOT EXISTS (SELECT 1 FROM decision_key WHERE scope_id = $1)",
+            vec![Value::from(&scope_id), Value::from(operation)],
+        ));
+        self.inject_journal_failure(&mut statements);
+        let results = store.txn(statements).await?;
+        Ok(results.last().is_some_and(|r| r.rows_affected == 1))
     }
 
-    /// The journal's totals for one scope: batches, memories, derivatives.
     async fn journal(
         &self,
         store: &StoreHandle,
         scope: &ScopeId,
-    ) -> Result<(u64, u64, u64), Error> {
+        operation: &str,
+    ) -> Result<JournalRow, Error> {
         let rows: Vec<JournalRow> = store
-            .query_consistent(JOURNAL_READ_SQL, vec![Value::from(scope)])
+            .query_consistent(
+                JOURNAL_READ_SQL,
+                vec![Value::from(scope), Value::from(operation)],
+            )
             .await?;
-        let row = rows.into_iter().next().unwrap_or(JournalRow {
-            batches: 0,
-            memories: 0,
-            derivatives: 0,
-        });
-        Ok((
-            u64::try_from(row.batches).unwrap_or(0),
-            u64::try_from(row.memories).unwrap_or(0),
-            u64::try_from(row.derivatives).unwrap_or(0),
-        ))
+        rows.into_iter()
+            .next()
+            .ok_or_else(|| Error::Integrity("missing erasure totals".into()))
+    }
+
+    async fn receipt(
+        &self,
+        store: &StoreHandle,
+        scope: &ScopeId,
+        target: &str,
+    ) -> Result<Option<Receipt>, Error> {
+        let rows: Vec<Receipt> = store
+            .query_consistent(
+                "SELECT decision_id, decision, ready, delivered FROM erasure_receipt
+             WHERE scope_id = $1 AND target = $2",
+                vec![Value::from(scope), Value::from(target)],
+            )
+            .await?;
+        Ok(rows.into_iter().next())
+    }
+
+    async fn required_receipt(
+        &self,
+        store: &StoreHandle,
+        scope: &ScopeId,
+        target: &str,
+    ) -> Result<Receipt, Error> {
+        self.receipt(store, scope, target)
+            .await?
+            .ok_or_else(|| Error::Integrity("committed erasure has no durable receipt".into()))
+    }
+
+    async fn deliver_memory(
+        &self,
+        store: &StoreHandle,
+        ledger: &Ledger,
+        scope: &ScopeId,
+        target: &str,
+        receipt: Receipt,
+    ) -> Result<Erased, Error> {
+        let totals = self.journal(store, scope, &receipt.decision_id).await?;
+        let decision = self
+            .deliver(store, ledger, scope, target, &receipt, &totals)
+            .await?;
+        let value = serde_json::to_value(&decision).map_err(json_error)?;
+        let cascaded_value = value
+            .get("payload")
+            .and_then(|payload| payload.get("cascaded"))
+            .cloned()
+            .ok_or_else(|| Error::Integrity("erasure receipt has no cascade list".into()))?;
+        let cascaded = serde_json::from_value(cascaded_value).map_err(json_error)?;
+        Ok(Erased {
+            memory: MemoryId::parse(target).map_err(|e| Error::Integrity(e.to_string()))?,
+            removed_derivatives: nonnegative(totals.derivatives),
+            keys_destroyed: nonnegative(totals.keys_destroyed),
+            marked: nonnegative(totals.marked),
+            cascaded,
+            decision: decision.id,
+        })
+    }
+
+    /// The receipt survives both a failed append and an append whose caller
+    /// never receives its acknowledgement. Compare the complete Decision,
+    /// ignoring only the chain parent the ledger assigns, before accepting
+    /// an existing id. Never treat an arbitrary id conflict as success.
+    async fn deliver(
+        &self,
+        store: &StoreHandle,
+        ledger: &Ledger,
+        scope: &ScopeId,
+        target: &str,
+        receipt: &Receipt,
+        totals: &JournalRow,
+    ) -> Result<Decision, Error> {
+        if receipt.ready != 1 {
+            return Err(Error::Conflict("erasure is still draining".into()));
+        }
+        let mut value: serde_json::Value =
+            serde_json::from_str(&receipt.decision).map_err(json_error)?;
+        let payload = value
+            .get_mut("payload")
+            .and_then(serde_json::Value::as_object_mut)
+            .ok_or_else(|| Error::Integrity("erasure receipt payload is not an object".into()))?;
+        payload.insert("derivatives_removed".into(), totals.derivatives.into());
+        payload.insert("keys_destroyed".into(), totals.keys_destroyed.into());
+        if target.is_empty() {
+            payload.insert("memories".into(), totals.memories.into());
+            payload.insert("batches".into(), totals.batches.into());
+        } else {
+            payload.insert("derivatives_marked".into(), totals.marked.into());
+        }
+        let decision: Decision = serde_json::from_value(value).map_err(json_error)?;
+        if receipt.delivered == 0
+            && !decision_resident(ledger, &decision).await?
+            && let Err(error) = ledger.append(decision.clone()).await
+            && !decision_resident(ledger, &decision).await?
+        {
+            return Err(error);
+        }
+        #[cfg(test)]
+        if self.fault == Some(Fault::AfterLedger) {
+            return Err(Error::Integrity(
+                "injected failure after ledger append".into(),
+            ));
+        }
+        store
+            .txn(vec![Statement::with_params(
+                "UPDATE erasure_receipt SET delivered = 1
+             WHERE scope_id = $1 AND target = $2 AND decision_id = $3",
+                vec![
+                    Value::from(scope),
+                    Value::from(target),
+                    Value::from(receipt.decision_id.clone()),
+                ],
+            )])
+            .await?;
+        Ok(decision)
+    }
+
+    fn inject_journal_failure(&self, _statements: &mut Vec<Statement>) {
+        #[cfg(test)]
+        if self.fault == Some(Fault::Journal) {
+            _statements.push(Statement::new(
+                "INSERT INTO missing_erasure_fault_table VALUES (1)",
+            ));
+        }
+    }
+
+    fn after_commit(&self) -> Result<(), Error> {
+        #[cfg(test)]
+        if self.fault == Some(Fault::AfterCommit) {
+            return Err(Error::Integrity(
+                "injected failure after destructive commit".into(),
+            ));
+        }
+        Ok(())
     }
 
     /// Stage one `DELETE` per swept table per memory, and report their span
@@ -825,30 +987,98 @@ impl Eraser {
     }
 }
 
-/// What one batch of a scope erasure got through.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-struct Progress {
-    /// Memories that became tombstones.
-    memories: u64,
-    /// Digest keys destroyed.
-    keys: u64,
+/// Ranges refer to the original destructive transaction, before accounting
+/// statements are interleaved. changes() is captured immediately after each
+/// mutation, in the same SQLite transaction, including zero-row overlaps.
+struct Counts {
+    sweep: core::ops::Range<usize>,
+    keys: core::ops::Range<usize>,
+    tombstones: core::ops::Range<usize>,
+    marked: Option<usize>,
 }
 
-/// What one turn of the drain found to do.
-///
-/// An enum rather than an `Option<Progress>` because the end of the drain is
-/// not "nothing happened": the pass that finds no live memory left is the one
-/// that reaches the keys of refusals, which stored no row and are therefore in
-/// no batch. Returning `None` there lost that count.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum Batch {
-    /// A batch was claimed and erased.
-    Erased(Progress),
-    /// Nothing live was left. The scope's remaining keys were destroyed.
-    Drained {
-        /// Digest keys destroyed by the final pass.
-        keys: u64,
-    },
+fn accounted_batch(
+    txn: TxnBuilder,
+    scope: &ScopeId,
+    operation: &str,
+    now: UnixSeconds,
+    counts: &Counts,
+) -> Vec<Statement> {
+    let mut statements = vec![Statement::with_params(
+        "INSERT INTO erasure_journal (scope_id, batch, memories, derivatives, at, operation)
+         VALUES ($1, (SELECT COALESCE(MAX(batch), -1) + 1 FROM erasure_journal
+             WHERE scope_id = $1), 0, 0, $2, $3)",
+        vec![
+            Value::from(scope),
+            Value::Integer(seconds_to_sql(now)),
+            Value::from(operation),
+        ],
+    )];
+    for (index, statement) in txn.into_statements().into_iter().enumerate() {
+        statements.push(statement);
+        let update = if counts.keys.contains(&index) {
+            "keys_destroyed = keys_destroyed + changes(), derivatives = derivatives + changes()"
+        } else if counts.sweep.contains(&index) {
+            "derivatives = derivatives + changes()"
+        } else if counts.tombstones.contains(&index) {
+            "memories = memories + changes()"
+        } else if counts.marked == Some(index) {
+            "marked = marked + changes()"
+        } else {
+            continue;
+        };
+        statements.push(Statement::with_params(
+            format!(
+                "UPDATE erasure_journal SET {update} WHERE scope_id = $1 AND operation = $2
+             AND batch = (SELECT MAX(batch) FROM erasure_journal WHERE scope_id = $1)"
+            ),
+            vec![Value::from(scope), Value::from(operation)],
+        ));
+    }
+    statements.push(Statement::with_params(
+        "DELETE FROM erasure_journal WHERE scope_id = $1 AND operation = $2
+         AND memories = 0 AND derivatives = 0 AND marked = 0",
+        vec![Value::from(scope), Value::from(operation)],
+    ));
+    statements
+}
+
+fn receipt_insert(scope: &ScopeId, target: &str, decision: &Decision) -> Result<Statement, Error> {
+    Ok(Statement::with_params(
+        "INSERT INTO erasure_receipt (scope_id, target, decision_id, decision)
+         VALUES ($1,$2,$3, CASE WHEN $2 = '' OR EXISTS
+             (SELECT 1 FROM memory WHERE scope_id = $1 AND id = $2 AND status <> 'erased')
+             THEN $4 ELSE NULL END)",
+        vec![
+            Value::from(scope),
+            Value::from(target),
+            Value::from(decision.id.as_str()),
+            Value::from(serde_json::to_string(decision).map_err(json_error)?),
+        ],
+    ))
+}
+
+async fn decision_resident(ledger: &Ledger, decision: &Decision) -> Result<bool, Error> {
+    for record in ledger.records().await? {
+        let mut resident = record.decision()?;
+        if resident.id == decision.id {
+            resident.prev_hash = decision.prev_hash.clone();
+            if resident != *decision {
+                return Err(Error::Integrity(
+                    "erasure Decision id has different content".into(),
+                ));
+            }
+            return Ok(true);
+        }
+    }
+    Ok(false)
+}
+
+fn json_error(error: serde_json::Error) -> Error {
+    Error::Integrity(error.to_string())
+}
+fn nonnegative(value: i64) -> u64 {
+    u64::try_from(value).unwrap_or(0)
 }
 
 /// The lease key a scope's erasure serialises on.
@@ -998,6 +1228,7 @@ fn tombstone(scope: &Scope, shell: &Shell, now: UnixSeconds) -> Result<Memory, E
 }
 
 /// Add up the rows a contiguous span of the batch affected.
+#[cfg(test)]
 fn span_rows(results: &[ExecuteResult], span: core::ops::Range<usize>) -> u64 {
     results
         .get(span)
@@ -1129,6 +1360,380 @@ mod tests {
         assert_eq!(stats.by_status.get(StatusFilter::Active.label()), Some(&0));
         assert_eq!(stats.by_status.get(StatusFilter::Expired.label()), Some(&0));
         assert_eq!(stats.by_status.get(StatusFilter::Erased.label()), Some(&1));
+        node.shutdown().await;
+    }
+    async fn seed(node: &common::Node, scope: &Scope, number: usize, with_key: bool) -> Memory {
+        let memory = common::memory(
+            scope,
+            &format!("durable erasure fixture {number}"),
+            1_700_000_000,
+        );
+        let mut txn = TxnBuilder::new();
+        MemoryRepo::new()
+            .insert(
+                &mut txn,
+                &common::admit(&memory),
+                &memory.provenance,
+                &common::work(&memory),
+            )
+            .unwrap();
+        if with_key {
+            DecisionKeyRepo::stage(
+                &mut txn,
+                scope,
+                &crate::DecisionKey::mint().unwrap(),
+                Some(memory.id),
+                memory.created,
+            );
+        }
+        node.handle().txn(txn.into_statements()).await.unwrap();
+        memory
+    }
+
+    async fn block_ledger(node: &common::Node) {
+        node.handle()
+            .txn(vec![Statement::new(
+                "CREATE TRIGGER fail_erasure_ledger BEFORE INSERT ON kernel_decisions
+             BEGIN SELECT RAISE(ABORT, 'injected ledger failure'); END",
+            )])
+            .await
+            .unwrap();
+    }
+
+    async fn unblock_ledger(node: &common::Node) {
+        node.handle()
+            .txn(vec![Statement::new(
+                "DROP TRIGGER IF EXISTS fail_erasure_ledger",
+            )])
+            .await
+            .unwrap();
+    }
+
+    async fn assert_decision(node: &common::Node, id: &DecisionId, keys: u64, removed: u64) {
+        let decisions: Vec<_> = node
+            .ledger
+            .records()
+            .await
+            .unwrap()
+            .into_iter()
+            .map(|r| r.decision().unwrap())
+            .filter(|d| d.id == *id)
+            .collect();
+        assert_eq!(decisions.len(), 1);
+        let value = serde_json::to_value(&decisions[0]).unwrap();
+        assert_eq!(value["payload"]["keys_destroyed"], keys);
+        assert_eq!(value["payload"]["derivatives_removed"], removed);
+        assert!(!value.to_string().contains("durable erasure fixture"));
+        node.ledger.verify().await.unwrap();
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn single_receipt_survives_every_commit_and_ledger_boundary() {
+        // None means a real ledger INSERT failure, not a simulated return.
+        for fault in [
+            Some(Fault::Journal),
+            Some(Fault::AfterCommit),
+            None,
+            Some(Fault::AfterLedger),
+        ] {
+            let mut node = common::node().await;
+            let scope = common::scope("alice");
+            let memory = seed(&node, &scope, 0, true).await;
+            let who = Authority::of(scope.owner.clone());
+            let now = UnixSeconds::new(1_700_100_000);
+            if fault.is_none() {
+                block_ledger(&node).await;
+            }
+            let eraser = Eraser {
+                fault,
+                ..Eraser::new()
+            };
+            assert!(
+                eraser
+                    .erase(
+                        &node.handle(),
+                        &node.ledger,
+                        &Erasure::new(&scope, memory.id, &who, now)
+                    )
+                    .await
+                    .is_err()
+            );
+            node = node.reopen().await;
+            let row = MemoryRepo::new()
+                .get(&node.handle(), &scope, memory.id)
+                .await
+                .unwrap()
+                .unwrap();
+            if fault == Some(Fault::Journal) {
+                assert_eq!(row, memory, "journal failure rolls back destruction");
+                assert!(
+                    eraser
+                        .receipt(&node.handle(), &ScopeId::of(&scope), &memory.id.to_string())
+                        .await
+                        .unwrap()
+                        .is_none()
+                );
+                assert_eq!(
+                    common::count(
+                        &node,
+                        "SELECT COUNT(*) AS count FROM decision_key WHERE scope_id = $1",
+                        vec![Value::from(&ScopeId::of(&scope))]
+                    )
+                    .await,
+                    1
+                );
+            } else {
+                assert_eq!(row.status, Status::Erased);
+                assert_eq!(row.updated, now);
+            }
+            unblock_ledger(&node).await;
+            let retry_at = UnixSeconds::new(1_700_200_000);
+            let recovered = Eraser::new()
+                .erase(
+                    &node.handle(),
+                    &node.ledger,
+                    &Erasure::new(&scope, memory.id, &who, retry_at),
+                )
+                .await
+                .unwrap();
+            assert_eq!(recovered.keys_destroyed, 1);
+            assert_eq!(recovered.removed_derivatives, 2);
+            assert_decision(&node, &recovered.decision, 1, 2).await;
+            node = node.reopen().await;
+            let repeated = Eraser::new()
+                .erase(
+                    &node.handle(),
+                    &node.ledger,
+                    &Erasure::new(&scope, memory.id, &who, UnixSeconds::new(1_700_300_000)),
+                )
+                .await
+                .unwrap();
+            assert_eq!(repeated, recovered);
+            let tombstone = MemoryRepo::new()
+                .get(&node.handle(), &scope, memory.id)
+                .await
+                .unwrap()
+                .unwrap();
+            assert_eq!(
+                tombstone.updated,
+                if fault == Some(Fault::Journal) {
+                    retry_at
+                } else {
+                    now
+                }
+            );
+            let stats = Counters::stats(&node.handle(), &scope).await.unwrap();
+            assert_eq!(stats.total, 1);
+            assert_eq!(stats.by_status.get("erased"), Some(&1));
+            assert_decision(&node, &recovered.decision, 1, 2).await;
+            node.shutdown().await;
+        }
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn scope_receipt_recovers_exact_app_snapshot_totals_at_every_boundary_including_key_only()
+    {
+        for count in [0, 5] {
+            for fault in [
+                Some(Fault::Journal),
+                Some(Fault::AfterCommit),
+                None,
+                Some(Fault::AfterLedger),
+            ] {
+                let mut node = common::node().await;
+                let scope = common::scope("alice");
+                let bob = common::scope("bob");
+                seed(&node, &bob, 99, true).await;
+                for number in 0..count {
+                    seed(&node, &scope, number, true).await;
+                }
+                let mut txn = TxnBuilder::new();
+                DecisionKeyRepo::stage(
+                    &mut txn,
+                    &scope,
+                    &crate::DecisionKey::mint().unwrap(),
+                    None,
+                    UnixSeconds::new(1_700_000_000),
+                );
+                node.handle().txn(txn.into_statements()).await.unwrap();
+                let who = Authority::of(scope.owner.clone());
+                let now = UnixSeconds::new(1_700_100_000);
+                if fault.is_none() {
+                    block_ledger(&node).await;
+                }
+                let eraser = Eraser {
+                    fault,
+                    ..Eraser::new()
+                };
+                assert!(
+                    eraser
+                        .erase_scope(&node.handle(), &node.ledger, &scope, &who, 2, now)
+                        .await
+                        .is_err()
+                );
+                node = node.recover_app_snapshot().await;
+                let scope_id = ScopeId::of(&scope);
+                let receipt = eraser
+                    .required_receipt(&node.handle(), &scope_id, "")
+                    .await
+                    .unwrap();
+                let totals = eraser
+                    .journal(&node.handle(), &scope_id, &receipt.decision_id)
+                    .await
+                    .unwrap();
+                match fault {
+                    Some(Fault::Journal) => {
+                        assert_eq!(
+                            (totals.batches, totals.memories, totals.keys_destroyed),
+                            (0, 0, 0)
+                        );
+                        assert_eq!(
+                            common::count(
+                                &node,
+                                "SELECT COUNT(*) AS count FROM decision_key WHERE scope_id = $1",
+                                vec![Value::from(&scope_id)]
+                            )
+                            .await,
+                            count as u64 + 1
+                        );
+                    }
+                    Some(Fault::AfterCommit) => {
+                        assert_eq!(totals.batches, 1);
+                        assert_eq!(totals.memories, count.min(2) as i64);
+                        assert_eq!(totals.keys_destroyed, count as i64 + 1);
+                        assert_eq!(totals.derivatives, (count + count.min(2) + 1) as i64);
+                    }
+                    _ => assert_eq!(totals.memories, count as i64),
+                }
+                unblock_ledger(&node).await;
+                let result = Eraser::new()
+                    .erase_scope(
+                        &node.handle(),
+                        &node.ledger,
+                        &scope,
+                        &who,
+                        2,
+                        UnixSeconds::new(1_700_200_000),
+                    )
+                    .await
+                    .unwrap();
+                assert_eq!(result.memories, count as u64);
+                assert_eq!(result.keys_destroyed, count as u64 + 1);
+                assert_eq!(result.removed_derivatives, count as u64 * 2 + 1);
+                assert_eq!(result.batches, if count == 0 { 1 } else { 3 });
+                assert_decision(
+                    &node,
+                    &result.decision,
+                    result.keys_destroyed,
+                    result.removed_derivatives,
+                )
+                .await;
+                assert_eq!(
+                    common::count(
+                        &node,
+                        "SELECT COUNT(*) AS count FROM decision_key WHERE scope_id = $1",
+                        vec![Value::from(&ScopeId::of(&bob))]
+                    )
+                    .await,
+                    1
+                );
+                node = node.recover_app_snapshot().await;
+                let repeated = Eraser::new()
+                    .erase_scope(&node.handle(), &node.ledger, &scope, &who, 2, now)
+                    .await
+                    .unwrap();
+                assert_eq!(repeated, result);
+                assert_decision(
+                    &node,
+                    &result.decision,
+                    result.keys_destroyed,
+                    result.removed_derivatives,
+                )
+                .await;
+                node.shutdown().await;
+            }
+        }
+    }
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn completed_scope_batches_are_fenced_and_new_operations_have_their_own_totals() {
+        let mut node = common::node().await;
+        let scope = common::scope("alice");
+        let who = Authority::of(scope.owner.clone());
+        let now = UnixSeconds::new(1_700_100_000);
+        seed(&node, &scope, 0, true).await;
+        let first = Eraser::new()
+            .erase_scope(&node.handle(), &node.ledger, &scope, &who, 2, now)
+            .await
+            .unwrap();
+        node = node.recover_app_snapshot().await;
+        let new = seed(&node, &scope, 1, true).await;
+        assert!(
+            Eraser::new()
+                .drain_one_batch(&node.handle(), &scope, first.decision.as_str(), 2, now)
+                .await
+                .is_err(),
+            "a completed operation cannot consume new content"
+        );
+        assert_eq!(
+            MemoryRepo::new()
+                .get(&node.handle(), &scope, new.id)
+                .await
+                .unwrap(),
+            Some(new)
+        );
+        let second = Eraser::new()
+            .erase_scope(&node.handle(), &node.ledger, &scope, &who, 2, now)
+            .await
+            .unwrap();
+        assert_ne!(first.decision, second.decision);
+        for result in [first, second] {
+            assert_eq!(
+                (
+                    result.batches,
+                    result.memories,
+                    result.keys_destroyed,
+                    result.removed_derivatives
+                ),
+                (1, 1, 1, 2)
+            );
+            assert_decision(&node, &result.decision, 1, 2).await;
+        }
+        node.shutdown().await;
+    }
+
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn legacy_progress_is_not_reported_as_known_zero_key_destruction() {
+        let node = common::node().await;
+        let scope = common::scope("alice");
+        let memory = seed(&node, &scope, 0, true).await;
+        node.handle()
+            .txn(vec![Statement::with_params(
+                "INSERT INTO erasure_journal (scope_id, batch, memories, derivatives, at)
+             VALUES ($1, 0, 1, 2, 1)",
+                vec![Value::from(&ScopeId::of(&scope))],
+            )])
+            .await
+            .unwrap();
+        let error = Eraser::new()
+            .erase_scope(
+                &node.handle(),
+                &node.ledger,
+                &scope,
+                &Authority::of(scope.owner.clone()),
+                2,
+                UnixSeconds::new(2),
+            )
+            .await
+            .unwrap_err();
+        assert!(error.message().contains("no durable key totals"));
+        assert_eq!(
+            MemoryRepo::new()
+                .get(&node.handle(), &scope, memory.id)
+                .await
+                .unwrap(),
+            Some(memory)
+        );
+        assert_eq!(node.ledger.count().await.unwrap(), 1);
         node.shutdown().await;
     }
 }

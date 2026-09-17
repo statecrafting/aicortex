@@ -114,6 +114,40 @@ impl Node {
         self.store.handle()
     }
 
+    /// Close every handle and reopen the same durable node, with its persisted Raft addresses.
+    pub async fn reopen(self) -> Self {
+        let Self { store, ledger, dir } = self;
+        let cfg = store.config().clone();
+        drop(ledger);
+        store
+            .shutdown()
+            .await
+            .expect("the node stops before reopen");
+        drop(store);
+        let store = tokio::time::timeout(std::time::Duration::from_secs(30), Store::open(&cfg))
+            .await
+            .expect("reopen finishes within 30 seconds")
+            .expect("the durable node reopens");
+        let ledger = Ledger::open(
+            store.handle(),
+            LedgerSigner::from_seed([7u8; 32]),
+            Hash::parse(format!("sha256:{}", "ab".repeat(32))).unwrap(),
+        )
+        .await
+        .expect("the durable chain reopens");
+        Self { store, ledger, dir }
+    }
+
+    /// Restore committed app data into a fresh node. The cached lease state
+    /// is outside this recovery boundary: a full-node scope restart can wait
+    /// indefinitely while reacquiring a lease in the pinned chassis.
+    /// This proves durable SQL recovery, not lease restart or TTL safety.
+    pub async fn recover_app_snapshot(self) -> Self {
+        let bytes = backup_bytes(&self).await;
+        self.shutdown().await;
+        recover_snapshot(&bytes).await
+    }
+
     /// Stop the node.
     pub async fn shutdown(self) {
         self.store.shutdown().await.expect("the node stops");
@@ -293,4 +327,76 @@ pub fn parts_of(memory: &Memory) -> MemoryParts {
         importance: memory.importance,
         created: memory.created,
     }
+}
+
+/// Take a backup and read back every byte of the file it wrote.
+///
+/// The trigger is the chassis's `backup`, and the file is then found on disk
+/// rather than trusted to be listed by the time that call returns: hiqlite
+/// writes the snapshot on a task of its own, so the listing rahi compares
+/// against can legitimately race it and answer "no new file". Whether that
+/// call reports the name or not, the snapshot is the one that lands in the
+/// backup directory, and waiting for its size to settle is what makes reading
+/// it deterministic.
+pub async fn backup_bytes(node: &Node) -> Vec<u8> {
+    let before = backup_files(node);
+    let reported = node.handle().backup().await;
+    for _ in 0..200_u32 {
+        let fresh: Vec<std::path::PathBuf> = backup_files(node)
+            .into_iter()
+            .filter(|path| !before.contains(path))
+            .collect();
+        if let Some(path) = fresh.first() {
+            return settled(path).await;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+    panic!("no backup file appeared; the trigger reported {reported:?}");
+}
+
+/// The snapshots hiqlite has written under this node's data directory.
+fn backup_files(node: &Node) -> Vec<std::path::PathBuf> {
+    let mut files: Vec<std::path::PathBuf> = walkdir(node.dir.path())
+        .into_iter()
+        .filter(|path| {
+            path.file_name()
+                .is_some_and(|name| name.to_string_lossy().starts_with("backup_"))
+        })
+        .collect();
+    files.sort();
+    files
+}
+
+/// Read a file once its size has stopped changing.
+async fn settled(path: &std::path::Path) -> Vec<u8> {
+    let mut last = 0_u64;
+    for _ in 0..200_u32 {
+        let size = std::fs::metadata(path).map(|meta| meta.len()).unwrap_or(0);
+        if size > 0 && size == last {
+            return std::fs::read(path).expect("the backup file reads");
+        }
+        last = size;
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+    }
+    panic!("the backup file {} never stopped growing", path.display());
+}
+
+/// Every file under `root`, depth first.
+fn walkdir(root: &std::path::Path) -> Vec<std::path::PathBuf> {
+    let mut out = Vec::new();
+    let mut stack = vec![root.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                stack.push(path);
+            } else {
+                out.push(path);
+            }
+        }
+    }
+    out
 }

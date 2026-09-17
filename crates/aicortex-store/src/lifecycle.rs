@@ -166,10 +166,12 @@ const DUE_SQL: &str = "SELECT id, kind FROM memory
 
 /// The rows a scope holds that are not erased, for the re-digest of 012 D-4.
 const REDIGEST_READ_SQL: &str = "SELECT id, record FROM memory
-    WHERE scope_id = $1 AND status <> 'erased' AND fingerprint <> $2 LIMIT $3";
+    WHERE scope_id = $1 AND status <> 'erased' AND fingerprint_version < 1 ORDER BY id LIMIT $2";
 
-const REDIGEST_WRITE_SQL: &str = "UPDATE memory SET fingerprint = $1
-    WHERE scope_id = $2 AND id = $3 AND status <> 'erased'";
+const REDIGEST_WRITE_SQL: &str = "UPDATE memory SET fingerprint = $1,
+        fingerprint_version = CASE WHEN record = $2 THEN 1 ELSE NULL END
+    WHERE scope_id = $3 AND id = $4 AND status <> 'erased'
+      AND fingerprint_version < 1";
 
 #[derive(Debug, Deserialize)]
 struct IdRow {
@@ -616,9 +618,9 @@ impl Lifecycle {
     /// record, which is the source of truth for what the memory says (012
     /// D-3), and written back in one transaction.
     ///
-    /// Bounded and resumable by construction: a row whose column already
-    /// holds the right value is not selected, so running this until it
-    /// reports zero converges, and a crash costs at most one batch.
+    /// Bounded and resumable: a row at the current fingerprint version is
+    /// not selected. The digest and version commit together, and a changed
+    /// record aborts the batch instead of reporting false convergence.
     ///
     /// # Errors
     ///
@@ -631,21 +633,18 @@ impl Lifecycle {
         batch: u32,
     ) -> Result<u64, Error> {
         let scope_id = ScopeId::of(scope);
-        // `fingerprint <> $2` with an impossible value selects every row; the
-        // parameter is there so the statement is the same shape as the one a
-        // narrower resumption would use.
+        if batch == 0 || batch > crate::memory_repo::MAX_PAGE_ROWS {
+            return Err(Error::Validation(
+                "redigest requires a batch between 1 and 500".into(),
+            ));
+        }
         let rows: Vec<RecordRow> = store
             .query_consistent(
                 REDIGEST_READ_SQL,
-                vec![
-                    Value::from(&scope_id),
-                    Value::from(""),
-                    Value::Integer(i64::from(batch)),
-                ],
+                vec![Value::from(&scope_id), Value::Integer(i64::from(batch))],
             )
             .await?;
         let mut txn = TxnBuilder::new();
-        let mut changed = 0_u64;
         for row in rows {
             let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
                 Error::Integrity(format!("a stored memory does not read back: {error}"))
@@ -655,16 +654,31 @@ impl Lifecycle {
                 REDIGEST_WRITE_SQL,
                 vec![
                     Value::from(digest),
+                    Value::from(row.record),
                     Value::from(&scope_id),
                     Value::from(row.id),
                 ],
             ));
-            changed = changed.saturating_add(1);
         }
         if !txn.is_empty() {
-            store.txn(txn.into_statements()).await?;
+            let results = store.txn(txn.into_statements()).await?;
+            let changed = results.iter().map(|result| result.rows_affected).sum();
+            if changed == 0 {
+                let pending: Vec<RecordRow> = store
+                    .query_consistent(
+                        REDIGEST_READ_SQL,
+                        vec![Value::from(&scope_id), Value::Integer(1)],
+                    )
+                    .await?;
+                if !pending.is_empty() {
+                    return Err(Error::Conflict(
+                        "redigest batch moved concurrently; retry remaining work".into(),
+                    ));
+                }
+            }
+            return Ok(changed);
         }
-        Ok(changed)
+        Ok(0)
     }
 }
 
