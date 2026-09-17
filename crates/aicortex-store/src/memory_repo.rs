@@ -41,7 +41,13 @@ pub const DEFAULT_MAX_BODY_BYTES: usize = 64 * 1024;
 /// load.
 pub const MAX_PAGE_ROWS: u32 = 500;
 
-/// The page size a caller gets by asking for none.
+/// The page size a surface uses when its client names none.
+///
+/// [`MemoryRepo::list`] takes its limit explicitly and applies no default of
+/// its own: a storage call that silently chose a page size would hide the
+/// cost of the read from the caller that pays it. The number is published
+/// here so the surfaces of specs 020 and 021 share one default instead of
+/// each inventing its own.
 pub const DEFAULT_PAGE_ROWS: u32 = 100;
 
 /// Which stored state a listing wants, as the column holds it.

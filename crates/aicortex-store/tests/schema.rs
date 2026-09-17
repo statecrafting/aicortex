@@ -160,60 +160,57 @@ fn unscoped_selects(source: &str) -> Vec<String> {
     problems
 }
 
-/// The Rust string literals of `source`, with line comments removed.
+/// The Rust string literals of `source`, with comments skipped.
 ///
-/// A line comment is dropped only when an even number of unescaped quotes
-/// precedes it, so a `//` inside a literal stays part of the literal.
+/// One state machine over the whole file rather than a heuristic per line: a
+/// SQL constant may span lines, and a scanner that reset its notion of "am I
+/// inside a string" at every newline would cut a continuation line short at a
+/// `//` that is part of the statement. A guard that silently reads less than
+/// it thinks it does is worse than no guard, so this tracks the three states
+/// it needs and nothing else.
+///
+/// It reads plain `"..."` literals, which is every literal this crate holds
+/// (asserted below). A block comment carrying a quote would open a phantom
+/// literal, which can only add a false positive and so fails loudly rather
+/// than quietly, which is the right direction for a guard to be wrong in.
 fn string_literals(source: &str) -> Vec<String> {
-    let mut code = String::with_capacity(source.len());
-    for line in source.lines() {
-        let mut quotes = 0usize;
-        let mut escaped = false;
-        let mut cut = line.len();
-        let bytes = line.as_bytes();
-        let mut at = 0;
-        while at < bytes.len() {
-            let byte = bytes[at];
-            if escaped {
-                escaped = false;
-            } else if byte == b'\\' {
-                escaped = true;
-            } else if byte == b'"' {
-                quotes += 1;
-            } else if byte == b'/'
-                && at + 1 < bytes.len()
-                && bytes[at + 1] == b'/'
-                && quotes.is_multiple_of(2)
-            {
-                cut = at;
-                break;
-            }
-            at += 1;
-        }
-        code.push_str(&line[..cut]);
-        code.push('\n');
+    enum State {
+        Code,
+        Literal(String),
+        Comment,
     }
 
-    let mut literals = Vec::new();
-    let mut current: Option<String> = None;
+    let mut state = State::Code;
     let mut escaped = false;
-    for character in code.chars() {
-        match current.as_mut() {
-            None => {
+    let mut literals = Vec::new();
+    let mut characters = source.chars().peekable();
+    while let Some(character) = characters.next() {
+        match &mut state {
+            State::Code => {
                 if character == '"' {
-                    current = Some(String::new());
+                    state = State::Literal(String::new());
+                } else if character == '/' && characters.peek() == Some(&'/') {
+                    characters.next();
+                    state = State::Comment;
                 }
             }
-            Some(literal) => {
+            State::Literal(literal) => {
                 if escaped {
                     literal.push(character);
                     escaped = false;
                 } else if character == '\\' {
                     escaped = true;
                 } else if character == '"' {
-                    literals.push(current.take().unwrap_or_default());
+                    if let State::Literal(finished) = std::mem::replace(&mut state, State::Code) {
+                        literals.push(finished);
+                    }
                 } else {
                     literal.push(character);
+                }
+            }
+            State::Comment => {
+                if character == '\n' {
+                    state = State::Code;
                 }
             }
         }
@@ -252,6 +249,37 @@ fn b3_fr007_no_statement_selects_a_scoped_table_without_its_scope() {
         sources.iter().any(|(name, _)| name == "memory_repo.rs"),
         "the scan found no sources, so it proved nothing"
     );
+
+    // An empty violations list is only evidence if the scanner actually read
+    // the crate's statements. These two assertions are what stand between a
+    // pass and a scanner that silently returned nothing: the `SELECT`s this
+    // crate holds are found, and every literal it holds is of the one shape
+    // `string_literals` reads.
+    let reads: Vec<String> = sources
+        .iter()
+        .flat_map(|(_, source)| string_literals(source))
+        .filter(|literal| literal.to_lowercase().contains("select"))
+        .collect();
+    assert!(
+        reads.len() >= 5,
+        "the scanner found only {} SELECT statements in the crate: {reads:#?}",
+        reads.len()
+    );
+    assert!(
+        reads
+            .iter()
+            .any(|literal| literal.contains("FROM memory WHERE scope_id")),
+        "the scanner did not read the memory detail statement: {reads:#?}"
+    );
+    for (name, source) in &sources {
+        for hazard in ["r#\"", "/*", "'\"'"] {
+            assert!(
+                !source.contains(hazard),
+                "{name} holds {hazard}, which `string_literals` does not read"
+            );
+        }
+    }
+
     let problems: Vec<String> = sources
         .iter()
         .flat_map(|(name, source)| {
@@ -288,6 +316,26 @@ fn fr007_the_check_refuses_an_unscoped_select() {
     assert!(
         unscoped_selects(commented).is_empty(),
         "a comment was read as code"
+    );
+    let doc_commented = r#"/// SELECT record FROM memory WHERE id = $1"#;
+    assert!(
+        unscoped_selects(doc_commented).is_empty(),
+        "a doc comment was read as code"
+    );
+
+    // The case a per-line scanner gets wrong: a literal spanning lines whose
+    // continuation carries `//`. The statement must be read whole, so its
+    // scope predicate on the first line still counts for the second.
+    let multiline = "const OK: &str = \"SELECT record FROM memory\n    WHERE scope_id = $1 AND locator = 'https://x'\";";
+    assert!(
+        unscoped_selects(multiline).is_empty(),
+        "a multi-line literal was cut at its //"
+    );
+    let multiline_bad =
+        "const BAD: &str = \"SELECT record FROM memory\n    WHERE locator = 'https://x'\";";
+    assert!(
+        !unscoped_selects(multiline_bad).is_empty(),
+        "a multi-line unscoped statement slipped through"
     );
     let with_slashes = r#"const OK: &str = "SELECT record FROM memory WHERE scope_id = $1 AND locator = 'https://x'";"#;
     assert!(
