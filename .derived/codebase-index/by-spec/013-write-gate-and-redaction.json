@@ -1,14 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '013-write-gate-and-redaction' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
-        "path": "crates/aicortex-store/src/erasure.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "012-store-schema-and-repositories"
@@ -451,15 +441,6 @@
         }
       },
       {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "constrains",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/src/erasure.rs"
-        }
-      },
-      {
         "locations": [
           {
             "file": "crates/aicortex-store/src/memory_repo.rs"
@@ -471,11 +452,24 @@
           "kind": "file",
           "path": "crates/aicortex-store/src/memory_repo.rs"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/014-memory-lifecycle-and-erasure/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/014-memory-lifecycle-and-erasure/spec.md"
+        }
       }
     ],
     "specId": "013-write-gate-and-redaction",
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0092eaa54ddbad5add3564b7886a6cbf6cebf109e08d1025e1303ae67db26e78"
+  "shardHash": "df17aba55c93798b2cfe538b9206561cdbcd235f6711907a884c31c91ada3186"
 }

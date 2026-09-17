@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 1
 depends_on:
@@ -40,7 +40,8 @@ extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/memory_repo.rs", note: "no insert path exists that has not passed a Verdict" }
-  - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/erasure.rs", note: "erasure destroys the B-9 digest key of every Decision about the erased memory or scope" }
+references:
+  - { unit: { kind: file, path: "specs/014-memory-lifecycle-and-erasure/spec.md" }, role: context }
 summary: >
   Everything that enters the store passes one gate, and the gate runs before
   the transaction opens. It refuses credentials rather than redacting them,
@@ -77,8 +78,13 @@ the property that no write happens without a verdict.
 
 B-9's digest keys are not the gate's: they are minted where the Decision is
 appended and held in the application store under 012's schema, so the gate
-stays pure. This spec also freezes on 014's erasure path the property that
-erasure destroys those keys (amended 2026-09-12, D-2).
+stays pure. The property that erasure destroys those keys was frozen here on
+014's erasure path (amended 2026-09-12, D-2) and now lives with spec 014,
+which establishes that unit and which carries the invariant verbatim in its
+own `constrains` list, as its B-11 and its FR-007 (amended 2026-09-17,
+D-11). What stays here is FR-008: no surface and no document of this
+repository claims that erasure reaches refusal and quarantine records until
+014's FR-007 shows it.
 
 ## 3. Behavior
 
@@ -299,48 +305,66 @@ the chassis's (`rahi://020`, `rahi://025`). Promotion out of quarantine
   claim ("a second check at the storage boundary ... catches a future
   caller that bypassed the gate") is proved at both layers rather than one.
 
-- **D-10 (2026-09-17, build session).** Every acceptance criterion of this
-  spec holds and is verified on this tree: `cargo test -p aicortex-gate
-  --locked` is green over the whole corpus (AC-1), and `capture.rs` refuses
-  an API-key fixture end to end, leaving no row in `memory`, `provenance`,
-  `memory_derivation`, `scope`, `scope_counter` or `outbox` and one Decision
-  in the chain (AC-2). The lifecycle flip to `implementation: complete` is
-  nevertheless **not** made, and the reason is a corpus-level contradiction
-  this session has no authority to resolve.
+- **D-10 (2026-09-17, build session; resolved the same day by D-11).**
+  Every acceptance criterion of this spec holds and is verified on this
+  tree: `cargo test -p aicortex-gate --locked` is green over the whole
+  corpus (AC-1), and `capture.rs` refuses an API-key fixture end to end,
+  leaving no row in `memory`, `provenance`, `memory_derivation`, `scope`,
+  `scope_counter` or `outbox` and one Decision in the chain (AC-2). The
+  lifecycle flip was nevertheless blocked, by a corpus-level contradiction
+  the build session had no authority to resolve.
 
-  Section 2 of this spec deliberately freezes an invariant on a file spec 014
-  will create: `constrains: { flavor: invariant-freeze, unit:
+  Section 2 froze an invariant on a file spec 014 will create:
+  `constrains: { flavor: invariant-freeze, unit:
   "crates/aicortex-store/src/erasure.rs", note: "erasure destroys the B-9
-  digest key of every Decision about the erased memory or scope" }`, added by
-  the D-2 amendment. `crates/aicortex-store/src/erasure.rs` is spec 014's to
-  establish and does not exist yet. The corpus contract
-  (`standards/spec/contract.md`, "Lifecycle in a specify-first corpus") makes
-  an unresolved *owned* unit an error rather than a warning once a spec is
-  `approved` + `complete`, and `constrains` is an owning edge there
-  (`references` is named as the only non-owning one). So flipping this spec
-  to `complete` turns `I-004` into a blocking diagnostic and `spec-spine
-  check` into exit 1, which reddens `make gate` for whoever comes next.
+  digest key of every Decision about the erased memory or scope" }`, added
+  by the D-2 amendment. That file is spec 014's to establish and does not
+  exist yet. The corpus contract (`standards/spec/contract.md`, "Lifecycle
+  in a specify-first corpus") makes an unresolved *owned* unit an error
+  rather than a warning once a spec is `approved` + `complete`, and
+  `constrains` is an owning edge there (`references` is named as the only
+  non-owning one). Flipping this spec to `complete` therefore turned
+  `I-004` into a blocking diagnostic and `spec-spine check` into exit 1.
 
-  This session held the spec at `in-progress` rather than take any of the
-  three edits that would clear it, because each is reserved:
+  The build session held the spec at `in-progress` and reported the
+  contradiction rather than take any of the three edits that would have
+  cleared it, because each was reserved: retargeting or dropping the edge
+  changes what this spec requires of 014; a `Spec-Drift-Waiver:` is a human
+  instrument a driven session never self-approves; and amending the
+  contract's lifecycle table is a standards change. D-11 records what the
+  maintainer authorized.
+- **D-11 (2026-09-17, amendment, human-authorized).** The maintainer
+  authorized one narrowly scoped corpus amendment to resolve D-10: place
+  the erasure constraint with spec 014, which establishes `erasure.rs`,
+  preserving the security requirement whole and its traceability to this
+  spec. The authorization was explicit that this is that amendment and not
+  a general relaxation of `constrains`-edge validation, and that a
+  placeholder `erasure.rs`, an early implementation of 014, a suppression
+  of validation, and a waiver were all out of bounds.
 
-  - Retargeting or dropping the `constrains` edge changes what this spec
-    *requires of spec 014*, which is an amendment, not a build decision.
-  - A `Spec-Drift-Waiver:` is a human instrument and a driven session never
-    self-approves one.
-  - Amending the contract's lifecycle table so a forward `constrains` edge
-    stays a warning for a complete spec is a standards change.
+  What was done. The invariant-freeze moved to spec 014's `constrains`
+  list, on the same unit, with its note carried across verbatim. Spec 014
+  gained B-11, which makes destroying the keys a behavior it owns, and
+  FR-007, which makes the three things FR-008 below demands (the key
+  destroyed, a backup taken after the erasure holding none, and no replay
+  restoring one) into evidence 014's acceptance must produce. Spec 014
+  gained `references: { unit: specs/013-write-gate-and-redaction/spec.md,
+  role: constraint }`, the corpus's existing idiom for "bound by that
+  spec", which spec 045 already uses against this one; this spec gained the
+  matching `references` edge to 014's spec so the deferred obligation is
+  reachable from here. Spec 014 records the same authorization as its D-2.
 
-  **The smallest human decision:** decide whether a `constrains` edge may
-  point at a unit a later spec will establish. If it may, the contract's
-  lifecycle rule needs to say so and exempt `constrains` from the
-  `complete`-tier error; this spec then flips to `complete` unchanged. If it
-  may not, this spec's D-2 amendment needs a different instrument for the
-  same guarantee (FR-008 already states it in prose, and spec 014 already
-  constrains its own `erasure.rs`), and the edge is removed by amendment.
-  Either way the code is done: nothing is waiting on an implementation
-  choice, and no work of this spec was routed around while the question is
-  open.
+  Why this is not a weakening. A `constrains` note is prose the registry
+  carries and the coupling gate resolves as authority over a unit; the
+  mechanical check is the same whichever spec declares it, because it is
+  the unit that is frozen, not the declarer. What the move *adds* is
+  enforcement the note alone could never give: a constrains edge cannot
+  compel a test, and FR-007 can, so `spec-spine verify 014` now fails if
+  `erase` and `erase_scope` leave a key behind. The one thing given up is
+  that an edit to `erasure.rs` no longer surfaces this spec as an
+  authority; the `references: role: constraint` edge on 014 restores that
+  signal in the direction that matters, from the spec being built to the
+  spec that constrains it. FR-008 is untouched and still lives here.
 
 ## Verification
 

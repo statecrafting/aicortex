@@ -22,6 +22,9 @@ extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/erasure.rs", note: "erasure reaches every derivative; memory content never enters the ledger" }
+  - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/erasure.rs", note: "erasure destroys the B-9 digest key of every Decision about the erased memory or scope" }
+references:
+  - { unit: { kind: file, path: "specs/013-write-gate-and-redaction/spec.md" }, role: constraint }
 summary: >
   A memory store that can only append becomes wrong over time and then
   confidently recalls the wrong thing. This spec gives a memory the rest of
@@ -51,6 +54,15 @@ Both are satisfiable at once, provided content never enters the chain.
 
 Three modules and two tests inside `aicortex-store`, plus the migrations
 they add. Extends 012's `lib.rs` and migration list.
+
+This spec also carries spec 013's erasure obligation, because `erasure.rs`
+is this spec's file to write. Spec 013 B-9 mints a keyed digest per
+Decision and holds the key in an application-store row; the property that
+erasure destroys those keys is frozen here, on the unit that implements it,
+and is discharged by B-11 and FR-007 (amended 2026-09-17, D-2). Spec 013
+FR-008 forbids any surface or document from claiming that erasure reaches
+refusal and quarantine records until FR-007 below shows it, and that
+prohibition stays 013's.
 
 ## 3. Behavior
 
@@ -96,6 +108,18 @@ they add. Extends 012's `lib.rs` and migration list.
   memory in a scope, run in bounded batches under a lease, resumable, and
   reported by a single Decision at completion with the per-batch progress
   in the work journal.
+- **B-11 (digest keys).** Erasure destroys the B-9 digest key of every
+  Decision about the erased memory or scope. This is spec 013 B-9's
+  requirement, frozen on this spec's unit and carried here verbatim
+  (amended 2026-09-17, D-2): erasing a quarantined memory (B-7) destroys
+  its Decision's key, and erasing a scope (B-9) destroys every key in the
+  scope, in the same transaction as the rest of the erasure. The staging
+  calls exist already, as `DecisionKeyRepo::stage_destroy_for_memory` and
+  `stage_destroy_for_scope` in the `decision_key.rs` spec 013 established;
+  what this spec adds is that `erase` and `erase_scope` call them and that
+  FR-007 proves they did. A destroyed key leaves the chained digest an
+  opaque value that cannot be confirmed against a guessed body, which is
+  what lets an append-only chain and constitution XIII both hold.
 - **B-10 (near-duplicates are not handled here).** Semantic deduplication
   requires embeddings and is a curator concern (034). This spec handles
   exact repeats only, and says so rather than half-solving it.
@@ -117,6 +141,17 @@ they add. Extends 012's `lib.rs` and migration list.
   batches, is resumable after an induced crash, and leaves no orphaned
   embedding or chunk row.
 - **FR-006.** A supersession that would create a cycle is rejected.
+- **FR-007.** The three things spec 013 FR-008 requires before erasure may
+  be claimed to reach refusal and quarantine records, each asserted rather
+  than described. After erasing a quarantined memory, and after erasing a
+  scope, no `decision_key` row covering the erased object remains and
+  `DecisionKeyRepo::get` returns `None` for the key id the Decision names.
+  A backup taken after the erasure holds no such key. No replay path
+  restores one: neither redriving the outbox, nor re-importing the same
+  content, nor a capture of the same body mints a row under the destroyed
+  key id. The result of an erasure says in so many words that a backup
+  taken *before* it still holds the key until that backup is discarded,
+  rather than implying otherwise.
 
 ## 5. Acceptance criteria
 
@@ -133,6 +168,37 @@ which are deployment configuration.
 
 ## 7. Resolved decisions
 
+- **D-2 (2026-09-17, amendment, human-authorized).** Spec 013 originally
+  froze "erasure destroys the B-9 digest key of every Decision about the
+  erased memory or scope" on `crates/aicortex-store/src/erasure.rs`, a file
+  this spec establishes and which does not exist until this spec is built.
+  That forward `constrains` edge made 013 unable to reach
+  `implementation: complete` without a blocking `I-004`: the corpus
+  contract makes an unresolved *owned* unit an error at the `complete`
+  tier, and `constrains` is an owning edge there. The maintainer authorized
+  this specific amendment on 2026-09-17: move the constraint to the spec
+  that establishes the unit, preserving the requirement and its
+  traceability, and explicitly not a general relaxation of `constrains`
+  validation.
+
+  The invariant is carried here verbatim, on the same unit, in this spec's
+  `constrains` list. What the move adds is enforcement a note by itself
+  could not give: B-11 makes the obligation a behavior of this spec, and
+  FR-007 makes it evidence this spec's acceptance must produce, so
+  `spec-spine verify 014` fails if `erase` and `erase_scope` do not destroy
+  the keys. The `references` edge to `specs/013-write-gate-and-redaction/
+  spec.md` with `role: constraint` is the corpus's existing idiom for "this
+  spec is bound by that one" (spec 045 uses it against 013 already), and it
+  keeps 013 surfaced as an authority over this work. Spec 013 keeps FR-008,
+  which forbids claiming the erasure reaches these records until FR-007
+  shows it.
+
+  Rejected: a placeholder `erasure.rs` in 013's session, which would have
+  put this spec's file in another spec's change; implementing this spec
+  early to make the unit exist, which is a second spec in one session; a
+  `Spec-Drift-Waiver:`, which records a contradiction rather than resolving
+  it; and amending the contract's lifecycle table to exempt `constrains`
+  generally, which the maintainer explicitly declined to authorize.
 - **D-1 (2026-09-03, this spec).** Erasure retains a tombstone row rather
   than deleting it outright. A hard delete breaks referential integrity
   from derived memories and from recall traces, and produces a system that
