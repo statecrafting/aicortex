@@ -61,9 +61,15 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+#[cfg(test)]
+extern crate self as aicortex_store;
+
 pub mod counters;
 pub mod cursor;
 pub mod decision_key;
+pub mod erasure;
+pub mod fingerprint;
+pub mod lifecycle;
 pub mod memory_repo;
 pub mod migrations;
 pub mod provenance_repo;
@@ -72,6 +78,11 @@ pub mod scope_repo;
 pub use counters::{Counters, ScopeStats};
 pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
+pub use erasure::{
+    Authority, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE, KIND_ERASE_SCOPE,
+    MAX_ERASURE_BATCH, PLANNED, ScopeErased, erasure_lease_key,
+};
+pub use lifecycle::{Captured, Expired, Lifecycle, MAX_EXPIRY_BATCH, lifecycle_lease_key};
 pub use memory_repo::{
     DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, Listing, MAX_PAGE_ROWS, MemoryFilter, MemoryRepo,
     StatusFilter, fingerprint,
@@ -82,11 +93,16 @@ pub use scope_repo::{ScopeId, ScopeRepo, ScopeRow};
 
 /// The lowercase hex SHA-256 of `material`.
 ///
-/// One digest function for the three derived identities this crate mints:
-/// the scope id, the content fingerprint, and the filter digest a cursor is
-/// signed over. They share a function so they share a hash: a second one
-/// added later for convenience is how two parts of a schema end up disagreeing
-/// about what a digest of the same bytes is.
+/// One digest function for the two derived identities this crate mints with
+/// SHA-256: the scope id and the filter digest a cursor is signed over. They
+/// share a function so they share a hash: a second one added later for
+/// convenience is how two parts of a schema end up disagreeing about what a
+/// digest of the same bytes is.
+///
+/// The content fingerprint was a third of these until spec 014 landed, which
+/// owns what content is normalized to before it is digested and specifies
+/// BLAKE3 over it (014 B-1). It lives in the `fingerprint` module and shares
+/// nothing with this function but the column it is written to.
 #[must_use]
 pub(crate) fn hex_digest(material: &[u8]) -> String {
     let digest = ring::digest::digest(&ring::digest::SHA256, material);

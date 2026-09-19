@@ -72,6 +72,14 @@ serde_json = "1"
 ring = "0.17"
 base64 = "0.22"
 
+# The content fingerprint of spec 014 B-1. BLAKE3 rather than a second call
+# into `ring`, because B-1 names it: it is a tree hash with a published,
+# stable definition, and the value it produces is written into a unique index
+# that a later version may not silently reinterpret. It is not a keyed digest
+# and never reaches the decision chain; the chain's digests are the HMAC of
+# spec 013 B-9, whose key erasure destroys.
+blake3 = { version = "1", default-features = false, features = ["std"] }
+
 # The gate's one shape library (spec 013 B-8). Unicode NFC is a table, not an
 # algorithm anyone should retype, and this is the crate `rustc` itself uses
 # for it. The gate takes nothing else: no regex engine, because the detectors

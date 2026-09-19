@@ -27,6 +27,13 @@ aicortex-gate = { workspace = true }
 aicortex-types = { workspace = true }
 rahi-store = { workspace = true }
 rahi-types = { workspace = true }
+# The chassis's hash-chained decision ledger, for the one Decision spec 014
+# B-7 appends when a memory or a scope is erased. The chain is the chassis's
+# and is consumed, never reimplemented: this crate names `Ledger::append` and
+# owns nothing about how a record is signed, linked or verified.
+rahi-ledger = { workspace = true }
+# The content fingerprint of spec 014 B-1.
+blake3 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 ring = { workspace = true }
