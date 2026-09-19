@@ -173,6 +173,53 @@ which are deployment configuration.
 
 ## 7. Resolved decisions
 
+- **Status (2026-09-19, prerequisite re-check).** The three chassis
+  prerequisites the entries below leave open were re-read against the
+  registry and the sibling checkout rather than against the earlier
+  reports, and all three are still unmet.
+
+  The crates.io index carries exactly one version of every rahi crate,
+  `0.1.0`, and the only tag in `statecrafting/rahi` (local and on the
+  remote) is `v0.1.0`. Spec 042, the lifetime-identity work of rahi PR #65,
+  is `implementation: complete` on rahi's `main` at `9b38b34` and is in no
+  published release, so the chassis API this spec's archived-retry blocker
+  needs cannot be depended on yet. rahi's own consumer contract states the
+  same: "implemented in the repository and published in no release", and
+  "every published version still behaves as the limitation describes".
+
+  The stale-lease-release repair is upstream hiqlite PR #352, merged and
+  unreleased; the newest published hiqlite is `0.14.0` of 2026-07-06, which
+  predates the merge. rahi obtains the fix only through a
+  `[patch.crates-io]` at its workspace root (rahi 011 D-12), which is
+  workspace metadata that no consumer inherits over either a registry or a
+  git dependency edge. This repository's registry-only policy (010 D-1,
+  D-2) stands, so a green run inside rahi's patched workspace is evidence
+  about that workspace and is not read here as evidence about a published
+  consumer.
+
+  Full-node restart followed by a second lease acquisition remains
+  unverified in rahi as well: its consumer contract names it as an open
+  limitation, and the restart property in its evidence table is proven only
+  as a reboot on a restored volume. That is application snapshot recovery,
+  which is the same thing FR-007's recovery evidence already exercises
+  here, and it is not the cached-lease property
+  `data/014-full-node-restart-blocker.log` records as blocked.
+
+  Contradictory release documentation was reconciled rather than averaged:
+  rahi's `README.md` heading calls 0.2.0 a release candidate and its
+  consumer contract cites a `v0.2.0` source tree, while the same documents
+  say plainly that 0.2.0 is unpublished, that the tag link "does not assert
+  that the tag or release exists yet", and that a version declaration is
+  not publication. The registry and the remote tag list settle it: nothing
+  past 0.1.0 exists to depend on.
+
+  Consequently no chassis adoption, pin change, API migration or blocker
+  conversion is performed in this session. The remaining chassis
+  implementation, validation and release work is written up as a handoff in
+  `docs/design/02-rahi-chassis-prerequisites-handoff.md`, naming the rahi
+  spec that owns each item. 014 stays `implementation: in-progress`, 015
+  stays blocked, and the diagnostics below stay diagnostics.
+
 - **Status (2026-09-17, archived retry diagnostic).** D-12's no-duplicate
   claim is disproved beyond the resident window. A bounded regression on
   the actual pinned ledger appends an erasure Decision, interrupts delivery
@@ -405,7 +452,8 @@ which are deployment configuration.
   row's own record, which is the source of truth for what a memory says
   (012 D-3), and written back in one transaction. It is resumable by
   construction and converges when it reports zero.
-- **D-10 (2026-09-17, build session, wants a human look).** B-1 mixes the
+- **D-10 (2026-09-17, build session; accepted by the maintainer
+  2026-09-19).** B-1 mixes the
   scope into the content digest, and that changed the value spec 012's
   `tests/repo.rs` reads in
   `b3_b9_fr003_a_read_for_one_scope_never_returns_another`. That test
@@ -423,6 +471,17 @@ which are deployment configuration.
   This is flagged rather than quietly done because a build session adapting
   another spec's test is the shape of a weakened gate even when it is not
   one, and a human should confirm the reading of 012 D-4.
+
+  **Accepted 2026-09-19 (maintainer).** The look this entry asked for was
+  taken and the adaptation is accepted as narrow. The fingerprint of B-1
+  includes the scope, and
+  `b3_b9_fr003_a_read_for_one_scope_never_returns_another` retains both
+  halves of the property it names: each scope resolves its own holder, and
+  neither scope resolves the other's, alongside the by-id, listing and
+  provenance refusals it already carried. No acceptance criterion of this
+  spec or of 012 changes, no requirement is relaxed, and 012 D-4's reading
+  is unchanged; the `extends` edge on
+  `crates/aicortex-store/tests/repo.rs` remains the record of the touch.
 - **D-9 (2026-09-17, build session).** `erase_scope` holds one lease for the
   whole drain rather than re-acquiring one per batch. B-9 says "under a
   lease", and one lease is the reading that works against this chassis
