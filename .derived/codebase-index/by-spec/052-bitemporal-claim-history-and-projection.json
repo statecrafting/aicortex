@@ -4,84 +4,84 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/history.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/history.rs' does not exist",
         "path": "crates/aicortex-claims/src/history.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/asof.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/asof.rs' does not exist",
         "path": "crates/aicortex-claims/src/asof.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/policy.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/policy.rs' does not exist",
         "path": "crates/aicortex-claims/src/policy.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/projection.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/projection.rs' does not exist",
         "path": "crates/aicortex-claims/src/projection.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/tests/projection.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/tests/projection.rs' does not exist",
         "path": "crates/aicortex-claims/tests/projection.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/tests/reorder.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/tests/reorder.rs' does not exist",
         "path": "crates/aicortex-claims/tests/reorder.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/testdata/travel/' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/testdata/travel/' does not exist",
         "path": "crates/aicortex-claims/testdata/travel/"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/claim_repo.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/claim_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/claim_repo.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/tests/claim_history.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/tests/claim_history.rs' does not exist",
         "path": "crates/aicortex-store/tests/claim_history.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/tests/claim_erasure.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/tests/claim_erasure.rs' does not exist",
         "path": "crates/aicortex-store/tests/claim_erasure.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/lib.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/lib.rs' does not exist",
         "path": "crates/aicortex-claims/src/lib.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/Cargo.toml' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/Cargo.toml' does not exist",
         "path": "crates/aicortex-claims/Cargo.toml"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
         "path": "crates/aicortex-store/src/erasure.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/claim_repo.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/claim_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/claim_repo.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '049-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/projection.rs' does not exist",
+        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/projection.rs' does not exist",
         "path": "crates/aicortex-claims/src/projection.rs"
       }
     ]
   },
   "mapping": {
     "dependsOn": [
-      "048-claim-admission-and-authority"
+      "051-claim-admission-and-authority"
     ],
     "implementingPaths": [
       {
@@ -295,9 +295,9 @@
         }
       }
     ],
-    "specId": "049-bitemporal-claim-history-and-projection",
+    "specId": "052-bitemporal-claim-history-and-projection",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ec1923cef736dcd9e15d60cfe37d386e50a81f5c6e2cd074b54a4d9333577a56"
+  "shardHash": "0888bce6366973496bd2a6352a0ffe9424ab9bcb923e088ed5ae546912baae07"
 }

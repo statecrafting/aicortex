@@ -23,7 +23,7 @@
     ],
     "created": "2026-09-24",
     "dependsOn": [
-      "048-claim-admission-and-authority"
+      "051-claim-admission-and-authority"
     ],
     "domain": "memory",
     "establishes": [
@@ -71,7 +71,7 @@
     "extends": [
       {
         "nature": "additive",
-        "spec": "047-typed-claims-and-predicate-registry",
+        "spec": "050-typed-claims-and-predicate-registry",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-claims/src/lib.rs"
@@ -79,7 +79,7 @@
       },
       {
         "nature": "additive",
-        "spec": "047-typed-claims-and-predicate-registry",
+        "spec": "050-typed-claims-and-predicate-registry",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-claims/Cargo.toml"
@@ -111,9 +111,9 @@
       }
     ],
     "extraFrontmatter": {
-      "wave": 4
+      "wave": 5
     },
-    "id": "049-bitemporal-claim-history-and-projection",
+    "id": "052-bitemporal-claim-history-and-projection",
     "implementation": "pending",
     "kind": "kernel",
     "references": [
@@ -141,7 +141,7 @@
     ],
     "risk": "critical",
     "sectionHeadings": [
-      "049: Bitemporal claim history and projection",
+      "052: Bitemporal claim history and projection",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -157,11 +157,11 @@
       "9. Obligations",
       "Verification"
     ],
-    "specPath": "specs/049-bitemporal-claim-history-and-projection/spec.md",
+    "specPath": "specs/052-bitemporal-claim-history-and-projection/spec.md",
     "status": "draft",
     "summary": "A claim has three times: when it holds in the world (valid time, with precision, zone, open ends, and uncertainty), when the source said so (source-declared time), and when this store learned it (transaction time). History is append-only on the transaction axis; retraction, correction, and supersession are appended records, and only erasure removes content, leaving a tombstone. Supersession is scoped to one subject, predicate, and slot, so a schedule change to one segment supersedes that attribute alone. The current view is a deterministic projection of history under an explicit as-of on both axes and a policy version, ordered by the source's own time and the claim's authority, never by arrival, so reordered email delivery yields the same answer.\n",
     "title": "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
   },
-  "shardHash": "0228ad2f505dcb09ef7f69f44af9eaf70332d1cf193da8f076239b69d67bd1d3",
+  "shardHash": "079868d78ee61f4ac1bb8dd6796d9b78dadcb345f49a061873acd0c2712a97f4",
   "specVersion": "1.3.0"
 }

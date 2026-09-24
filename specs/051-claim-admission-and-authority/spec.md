@@ -1,5 +1,5 @@
 ---
-id: "048-claim-admission-and-authority"
+id: "051-claim-admission-and-authority"
 title: "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
 status: draft
 kind: "kernel"
@@ -8,9 +8,9 @@ created: "2026-09-24"
 authors: ["Bartek Kus"]
 implementation: pending
 risk: critical
-wave: 4
+wave: 5
 depends_on:
-  - "047-typed-claims-and-predicate-registry"
+  - "050-typed-claims-and-predicate-registry"
 establishes:
   - "crates/aicortex-types/src/claim_evidence.rs"
   - "crates/aicortex-gate/src/claim_gate.rs"
@@ -45,7 +45,7 @@ summary: >
   carrying an authority level, and it is appended, never an edit.
 ---
 
-# 048: Claim admission and authority
+# 051: Claim admission and authority
 
 ## 1. Purpose
 
@@ -69,7 +69,7 @@ levels). `claim_gate.rs` in `aicortex-gate`, the claim verdict and the
 admission policy, extending 013's crate root and its compile-fail suite.
 Two repositories in `aicortex-store`: proposals and admission records,
 with their migration. The claim history table itself, into which an
-admitted claim is appended, is 049's.
+admitted claim is appended, is 052's.
 
 ## 3. Behavior
 
@@ -79,16 +79,16 @@ admitted claim is appended, is 049's.
   email, a PDF attachment, a calendar file, a user message. It is stored as
   a memory of kind `Observation` through 013's gate, unchanged. Secret
   refusal, size limits, normalization, and origin quarantine apply to it
-  exactly as to any memory. A claim's source spans (047 B-12) point into an
+  exactly as to any memory. A claim's source spans (050 B-12) point into an
   observation.
 - **B-2 (proposal).** `ClaimProposal { id, claim: Claim, proposer: Actor,
   evidence: Vec<Evidence>, proposed_at }` is a claim some actor suggests.
   Proposals are appended to `claim_proposal` and are never visible to
-  049's projection. A proposal whose source observation is quarantined or
+  052's projection. A proposal whose source observation is quarantined or
   erased cannot be admitted.
 - **B-3 (admitted claim).** An admitted claim is a proposal the gate
   accepted. Only an `AdmittedClaim` value can be appended to claim history
-  (049), and only `ClaimVerdict::Admit` produces one, by the same
+  (052), and only `ClaimVerdict::Admit` produces one, by the same
   type-level construction as 013's `Admitted` (013 D-5).
 
 ### 3.2 Evidence and authority
@@ -105,7 +105,10 @@ admitted claim is appended, is 049's.
   - `UserStatement { by: Sub, authority: AuthorityLevel }`: a human said
     so, directly or as a correction (B-8);
   - `Corroboration { claims: Vec<ClaimId> }`: other admitted claims that
-    agree.
+    agree;
+  - `ReviewApproval { by: Sub, decision: DecisionRef }`: a human reviewer
+    approved admission of this proposal (B-13). It satisfies review; it
+    does not by itself raise the authority level.
   Evidence is stored with the proposal and, on admission, with the
   admission record. It is never discarded when a claim is superseded.
 - **B-5 (authority levels).** `AuthorityLevel` is a closed, totally
@@ -125,7 +128,7 @@ admitted claim is appended, is 049's.
   that changing every score in the corpus changes no admitted claim's
   authority and no admit-versus-hold outcome that was not a floor refusal.
 - **B-7 (epistemic status is not authority).** A source that says
-  `Confirmed` (047 B-10) is a stance recorded in the claim. It does not
+  `Confirmed` (050 B-10) is a stance recorded in the claim. It does not
   raise the claim's authority level; a model-extracted "confirmed" status
   is still `Extracted` until verified.
 
@@ -133,7 +136,7 @@ admitted claim is appended, is 049's.
 
 - **B-8 (user corrections).** A correction is a proposal by a human actor
   whose evidence includes `UserStatement` and which names the claim it
-  corrects. On admission it is appended with a `Supersedes` relation (047
+  corrects. On admission it is appended with a `Supersedes` relation (050
   B-11) to the corrected claim at `UserCorrected` authority. The corrected
   claim's row is unchanged. A correction by an agent is admitted, if at
   all, at the level its other evidence earns and never supersedes a claim
@@ -145,7 +148,7 @@ admitted claim is appended, is 049's.
   ClaimReason)` for a proposal that needs review (023), or
   `Refuse(ClaimReason)`. `ClaimReason` is a closed enum of its own, so 013
   B-2's closed `Reason` list is not amended: `UnregisteredPredicate`,
-  `InvalidValue` (from 047 B-14), `SecretDetected` (every `Text` value and
+  `InvalidValue` (from 050 B-14), `SecretDetected` (every `Text` value and
   every string qualifier passes 013's detectors), `SourceUnavailable`
   (quarantined or erased observation), `NoProvenance`,
   `AuthorityInsufficient`, `BelowScoreFloor`, and `PolicyDenied`.
@@ -155,17 +158,30 @@ admitted claim is appended, is 049's.
   lower-authority extraction from overriding a traveler's correction.
 - **B-11 (every admission is recorded).** An admission writes a
   `claim_admission` row in the same transaction as the claim's append
-  (049): the claim id, the proposal id, the policy id and version, the
+  (052): the claim id, the proposal id, the policy id and version, the
   authority level assigned, the evidence ids considered, and the verdict.
-  Every `Refuse` and every `Hold` appends a ledger Decision as 013 B-9
-  does, with a keyed digest and never the content. Whether each `Admit`
-  also appends a ledger Decision, or only the store record, is open (Q-1).
+  The ledger receives (D-4): one Decision per admission batch, listing the
+  admitted claim ids, the policy version, and the batch's count, where a
+  batch is the set of claims admitted in one transaction; and one Decision
+  per refusal, per hold, per user correction, and per policy change. Every
+  Decision carries ids, reason codes, and, where 013 B-9 requires one, a
+  keyed digest, and never a claim value or source content.
 - **B-12 (policy is data and versioned).** `AdmissionPolicy` is a
   versioned document with a digest: the score floor, which evidence
-  combinations reach which authority level, and which predicates require
-  `Verified` or above to be admitted without review. A change of policy is
-  a new version; an admission record names the version it was judged
-  under, so a past admission is reproducible by re-running the gate.
+  combinations reach which authority level, and the set of predicates
+  qualified for admission without review, each with the minimum authority
+  level it requires and the owner decision that qualified it. A change of
+  policy is a new version; an admission record names the version it was
+  judged under, so a past admission is reproducible by re-running the gate.
+- **B-13 (review before admission).** The initial policy qualifies no
+  predicate (D-6): every proposal the gate does not refuse is `Hold`, and
+  is admitted only when re-evaluated with a `ReviewApproval` from a human
+  reviewer (023). An authenticated human's own `UserStatement` about a
+  claim in a scope they own is that human's review of it, so a traveler's
+  correction is admitted without a second reviewer (Q-6). A predicate joins
+  the qualified set only after it passes qualification against
+  independently labeled data, recorded as a later owner decision, and only
+  by a new policy version.
 
 ## 4. Functional requirements
 
@@ -190,6 +206,11 @@ admitted claim is appended, is 049's.
 - **FR-008.** A forced failure on the last statement of an admission
   leaves no claim, relation, admission record, or outbox row (constitution
   XI).
+- **FR-009.** Under the initial policy, a proposal with `SpanVerified`
+  evidence and a perfect model score is `Hold`; the same proposal
+  re-evaluated with a `ReviewApproval` is `Admit` at `Verified`, and an
+  admission of three such claims in one transaction appends exactly one
+  batch Decision naming the three ids and no value.
 
 ## 5. Acceptance criteria
 
@@ -204,7 +225,7 @@ The review queue a held proposal enters (023). The extraction of proposals
 from email, which is travel-memory's. Instruction-grade promotion of a
 claim, which stays 011's `Promotion` and 023's human act: a claim is at most
 `Assertion` or `Evidence` trust, whatever its authority level. Valid time,
-supersession ordering, and projection (049).
+supersession ordering, and projection (052).
 
 ## 7. Resolved decisions
 
@@ -215,34 +236,42 @@ supersession ordering, and projection (049).
   evidence and never serve as authority.
 - **D-3 (2026-09-24, owner).** User corrections are first-class evidence
   with an authority level.
+- **D-4 (2026-09-24, owner decision).** Recorded from the owner's answer
+  to this draft's questions: "I agree with all your suggestions and
+  recommendations." The ledger records one Decision per admission batch
+  listing the claim ids, plus one per refusal, hold, correction, and policy
+  change (B-11). The application store keeps the per-claim admission
+  record. This resolves Q-1.
+- **D-5 (2026-09-24, owner decision).** The five-level authority ladder of
+  B-5 is adopted as drafted. The owner's words: "I would like to include it
+  but I trust your judgement." This resolves Q-2.
+- **D-6 (2026-09-24, owner decision).** The initial admission policy
+  admits no predicate without review. Auto-admission is per predicate and
+  only after that predicate passes qualification with independently
+  labeled data, recorded as a later owner decision (B-12, B-13). Model
+  scores can never admit or raise authority (B-6). This resolves Q-3.
 
 ## 8. Open questions
 
-- **Q-1 (where an admission is recorded).** B-11 writes an application
-  store row for every admission and a ledger Decision for every refusal
-  and hold. A ledger Decision per admitted claim would make every travel
-  email several chain records. Is the store row sufficient for an
-  admission, with ledger Decisions reserved for refusals, holds, user
-  corrections, and policy changes?
-- **Q-2 (the authority ladder).** Are five levels right, and is
-  `UserCorrected` above `UserAsserted`, or equal with the later statement
-  winning? Does an operator or a trusted domain rule need a level of its
-  own?
-- **Q-3 (automatic admission).** Which predicates may a domain admit
-  without review at `Extracted`? The draft lets the policy name predicates
-  that require `Verified`; the owner may prefer the reverse default.
+Q-1 to Q-3 were resolved by D-4 to D-6.
+
 - **Q-4 (proposal retention).** Are proposals kept forever, or erased on a
   retention schedule once admitted or refused? They hold extracted values,
   which are content under constitution XIII.
 - **Q-5 (quarantine for claims).** 013 stores a quarantined memory with a
   status. This draft holds a claim as a proposal instead of storing a
   quarantined claim. Is a quarantined-claim status needed for recall?
+- **Q-6 (a user's own statement as review).** B-13 treats an
+  authenticated human's statement about their own scope as that human's
+  review. This is this draft's reading of D-6, not an owner decision; the
+  stricter reading holds user corrections for a second reviewer.
 
 ## 9. Obligations
 
 Declared in the spec-spine 106 grammar, to be lifted into the frontmatter
-`obligations` key when the repository's spec-spine pin reaches 0.25.0
-(below it, the key is a compile error, `V-002`).
+`obligations` key when this repository's spec-spine pin moves to 0.25.0,
+which is a separate follow-up (050 D-8; below 0.25.0 the key is a compile
+error, `V-002`).
 
 ```yaml
 obligations:
@@ -251,6 +280,8 @@ obligations:
   - { id: "I-3", kind: invariant, text: "A model score never admits a proposal, raises its authority, or lets it supersede another claim.", anchor: "3-2-evidence-and-authority" }
   - { id: "I-4", kind: invariant, text: "A lower-authority proposal never supersedes a higher-authority claim without review.", anchor: "3-3-the-gate-and-the-record" }
   - { id: "I-5", kind: invariant, text: "A correction is appended; it never edits or deletes the corrected claim.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "I-6", kind: invariant, text: "Under the initial policy no proposal is admitted without a human review.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "R-2", kind: requirement, text: "The ledger receives one Decision per admission batch listing claim ids, and one per refusal, hold, correction and policy change, never a claim value.", anchor: "3-3-the-gate-and-the-record" }
   - { id: "R-1", kind: requirement, text: "Claim admission is pure and reproducible from the proposal, the registry snapshot, and the policy version.", anchor: "3-3-the-gate-and-the-record" }
 ```
 

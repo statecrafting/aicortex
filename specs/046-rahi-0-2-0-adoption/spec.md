@@ -29,7 +29,7 @@ summary: >
   lifetime decision identity. This spec moves all nine pins in one change,
   keeps the exact-pin rule of spec 010, decides for each shipped migration
   whether it is additive, and re-runs spec 010's supply-chain revisit against
-  the new tree. It must land before any claim-history migration (047 to 049)
+  the new tree. It must land before any claim-history migration (050 to 052)
   is written, so those migrations are authored against the 0.2.0 contract.
 ---
 
@@ -96,7 +96,8 @@ exercise boot and migrate (`apps/aicortex/tests/cell.rs`,
   version in section 7 by the build session. A migration that only creates a
   new table or index, and whose absence an older binary tolerates, is a
   candidate for `additive`; a migration that rewrites or re-digests rows (for
-  example the fingerprint re-digest spec 014 carries) is not.
+  example the fingerprint re-digest spec 014 carries) is not. D-2 records
+  the review of versions 1 to 3.
 - **B-3 (the checksum is the shipped SQL).** No shipped migration's SQL is
   edited to adopt 0.2.0. rahi 0.2.0 records the binary's checksum on the
   first `migrate` for a row written before it, and refuses a later mismatch
@@ -151,12 +152,28 @@ spec 024 may adopt when it is built.
   a caret requirement would let a later 0.2.x patch arrive without review,
   which spec 010 refuses.
 
+- **D-2 (2026-09-24, owner decision).** Recorded from the owner's answer
+  to this draft's questions: "I agree with all your suggestions and
+  recommendations." The owner chose the conservative rule for B-2: declare
+  an existing migration additive only if reading it verifies it. This
+  session read all three against rahi 0.2.0's definition (a migration that
+  "only creates tables, indexes, or nullable or defaulted columns", rahi
+  spec 036 B-8), and each qualifies:
+  - version 1, `rahi_store::coordination_migration`: `CREATE TABLE IF NOT
+    EXISTS` for `lease_fence` and `outbox`, nothing else;
+  - version 2, "aicortex memory schema": `CREATE TABLE IF NOT EXISTS` for
+    `scope`, `memory`, `provenance`, `memory_derivation`, and
+    `scope_counter`, and `CREATE [UNIQUE] INDEX IF NOT EXISTS` for three
+    indexes, with no `UPDATE`, `DELETE`, `INSERT`, or `ALTER`;
+  - version 3, "aicortex decision digest keys": `CREATE TABLE IF NOT
+    EXISTS decision_key` and one `CREATE INDEX IF NOT EXISTS`.
+  The build session declares all three with `.additive()`. The declaration
+  does not change a migration's SQL, so rahi's checksum (over the SQL) is
+  unchanged and B-3 holds. The re-digest migration spec 014 carries is not
+  additive and must not be declared so.
+
 ## 8. Open questions
 
-- **Q-1.** Should the three shipped migrations (schema versions 1 to 3) be
-  declared additive? They create tables and indexes only, but declaring them
-  additive changes what `serve` tolerates on a store ahead of the binary.
-  The owner decides the policy; the build session applies it.
 - **Q-2.** Should the per-crate dependabot branches be closed in favor of
   this change, and should `.github/dependabot.yml` group the nine `rahi-*`
   crates so the next bump arrives as one pull request? The dependabot file
@@ -165,8 +182,9 @@ spec 024 may adopt when it is built.
 ## 9. Obligations
 
 Declared here in the spec-spine 106 grammar and to be lifted into the
-frontmatter `obligations` key when the repository's spec-spine pin reaches
-0.25.0 (below it, the key is a compile error, `V-002`).
+frontmatter `obligations` key when this repository's spec-spine pin moves
+to 0.25.0, which is a separate follow-up (below it, the key is a compile
+error, `V-002`).
 
 ```yaml
 obligations:

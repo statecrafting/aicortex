@@ -138,9 +138,9 @@
       }
     ],
     "extraFrontmatter": {
-      "wave": 4
+      "wave": 5
     },
-    "id": "047-typed-claims-and-predicate-registry",
+    "id": "050-typed-claims-and-predicate-registry",
     "implementation": "pending",
     "kind": "kernel",
     "references": [
@@ -168,7 +168,7 @@
     ],
     "risk": "critical",
     "sectionHeadings": [
-      "047: Typed claims and the predicate registry",
+      "050: Typed claims and the predicate registry",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -183,13 +183,14 @@
       "7. Resolved decisions",
       "8. Open questions",
       "9. Obligations",
+      "10. Amendment of spec 002",
       "Verification"
     ],
-    "specPath": "specs/047-typed-claims-and-predicate-registry/spec.md",
+    "specPath": "specs/050-typed-claims-and-predicate-registry/spec.md",
     "status": "draft",
-    "summary": "aicortex becomes the family's canonical owner of claim history with provenance. This spec defines what one claim says, as types, before any claim is admitted or stored: a subject reference, a predicate from a namespaced, versioned registry that a domain supplies, a typed value (text, integer, fixed-point decimal with a unit or currency, date, datetime with zone, interval, entity reference, enumeration), an epistemic status taken from the source's own stance, typed claim-to-claim relations, and source span references that extend 011's Provenance with a part, a byte or character span, and a content digest. aicortex stays domain agnostic: travel, the first consumer, registers its own predicates. Who may admit a claim is 048; when it holds and how history is kept is 049.\n",
+    "summary": "aicortex becomes the family's canonical owner of claim history with provenance. This spec defines what one claim says, as types, before any claim is admitted or stored: a subject reference, a predicate from a namespaced, versioned registry that a domain supplies, a typed value (text, integer, fixed-point decimal with a unit or currency, date, datetime with zone, interval, entity reference, enumeration), an epistemic status taken from the source's own stance, typed claim-to-claim relations, and source span references that extend 011's Provenance with a part, a byte or character span, and a content digest. aicortex stays domain agnostic: travel, the first consumer, registers its own predicates. Who may admit a claim is 051; when it holds and how history is kept is 052.\n",
     "title": "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
   },
-  "shardHash": "5b61760c0c478b26ccd8aa297efcc8dc0945b7b9ba3d4cddf30085070e1a2642",
+  "shardHash": "4385eaa21df85c50c5a58ca2dcaf78faeb6262e4232569ce238f0dd195ba17be",
   "specVersion": "1.3.0"
 }

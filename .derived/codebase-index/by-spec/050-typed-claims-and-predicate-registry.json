@@ -4,77 +4,77 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim.rs' does not exist",
         "path": "crates/aicortex-types/src/claim.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim_value.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim_value.rs' does not exist",
         "path": "crates/aicortex-types/src/claim_value.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim_time.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim_time.rs' does not exist",
         "path": "crates/aicortex-types/src/claim_time.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/predicate.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/predicate.rs' does not exist",
         "path": "crates/aicortex-types/src/predicate.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/span.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/span.rs' does not exist",
         "path": "crates/aicortex-types/src/span.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/tests/claim.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/tests/claim.rs' does not exist",
         "path": "crates/aicortex-types/tests/claim.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/testdata/claims/' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/testdata/claims/' does not exist",
         "path": "crates/aicortex-types/testdata/claims/"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/Cargo.toml' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/Cargo.toml' does not exist",
         "path": "crates/aicortex-claims/Cargo.toml"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/src/lib.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/src/lib.rs' does not exist",
         "path": "crates/aicortex-claims/src/lib.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/src/registry.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/src/registry.rs' does not exist",
         "path": "crates/aicortex-claims/src/registry.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/tests/registry.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/tests/registry.rs' does not exist",
         "path": "crates/aicortex-claims/tests/registry.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/testdata/registries/' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/testdata/registries/' does not exist",
         "path": "crates/aicortex-claims/testdata/registries/"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-store/src/predicate_registry_repo.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-store/src/predicate_registry_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/predicate_registry_repo.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-store/tests/predicate_registry.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-store/tests/predicate_registry.rs' does not exist",
         "path": "crates/aicortex-store/tests/predicate_registry.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim.rs' does not exist",
+        "message": "spec '050-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim.rs' does not exist",
         "path": "crates/aicortex-types/src/claim.rs"
       }
     ]
@@ -373,9 +373,9 @@
         }
       }
     ],
-    "specId": "047-typed-claims-and-predicate-registry",
+    "specId": "050-typed-claims-and-predicate-registry",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "fe92293074cf039b323503a13cd41005fe42c7708a225c71ced27a8623a3a284"
+  "shardHash": "95e968e85610435a7e9be57e763cbb107e73b5d4109474e556c08ed6997694bd"
 }

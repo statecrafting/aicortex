@@ -4,49 +4,49 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-types/src/claim_evidence.rs' does not exist",
+        "message": "spec '051-claim-admission-and-authority' file unit 'crates/aicortex-types/src/claim_evidence.rs' does not exist",
         "path": "crates/aicortex-types/src/claim_evidence.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-gate/src/claim_gate.rs' does not exist",
+        "message": "spec '051-claim-admission-and-authority' file unit 'crates/aicortex-gate/src/claim_gate.rs' does not exist",
         "path": "crates/aicortex-gate/src/claim_gate.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-gate/tests/claim_admission.rs' does not exist",
+        "message": "spec '051-claim-admission-and-authority' file unit 'crates/aicortex-gate/tests/claim_admission.rs' does not exist",
         "path": "crates/aicortex-gate/tests/claim_admission.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-gate/testdata/claims/' does not exist",
+        "message": "spec '051-claim-admission-and-authority' file unit 'crates/aicortex-gate/testdata/claims/' does not exist",
         "path": "crates/aicortex-gate/testdata/claims/"
       },
       {
         "code": "W-001",
-        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-store/src/claim_proposal_repo.rs' does not exist",
+        "message": "spec '051-claim-admission-and-authority' file unit 'crates/aicortex-store/src/claim_proposal_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/claim_proposal_repo.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-store/src/claim_admission_repo.rs' does not exist",
+        "message": "spec '051-claim-admission-and-authority' file unit 'crates/aicortex-store/src/claim_admission_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/claim_admission_repo.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-store/tests/claim_admission.rs' does not exist",
+        "message": "spec '051-claim-admission-and-authority' file unit 'crates/aicortex-store/tests/claim_admission.rs' does not exist",
         "path": "crates/aicortex-store/tests/claim_admission.rs"
       },
       {
         "code": "W-001",
-        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-gate/src/claim_gate.rs' does not exist",
+        "message": "spec '051-claim-admission-and-authority' file unit 'crates/aicortex-gate/src/claim_gate.rs' does not exist",
         "path": "crates/aicortex-gate/src/claim_gate.rs"
       }
     ]
   },
   "mapping": {
     "dependsOn": [
-      "047-typed-claims-and-predicate-registry"
+      "050-typed-claims-and-predicate-registry"
     ],
     "implementingPaths": [
       {
@@ -278,9 +278,9 @@
         }
       }
     ],
-    "specId": "048-claim-admission-and-authority",
+    "specId": "051-claim-admission-and-authority",
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "349f85fa916ea3d43530f85f8f25622eb989868c4deb1e87e4528065e81205fd"
+  "shardHash": "83a5cb3781cff7368394d6d82f99b6c51841ce1a78dc3e9e2e1e2c01647e9278"
 }

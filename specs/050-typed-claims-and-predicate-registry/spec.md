@@ -1,5 +1,5 @@
 ---
-id: "047-typed-claims-and-predicate-registry"
+id: "050-typed-claims-and-predicate-registry"
 title: "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
 status: draft
 kind: "kernel"
@@ -8,7 +8,7 @@ created: "2026-09-24"
 authors: ["Bartek Kus"]
 implementation: pending
 risk: critical
-wave: 4
+wave: 5
 depends_on:
   - "014-memory-lifecycle-and-erasure"
   - "046-rahi-0-2-0-adoption"
@@ -57,10 +57,10 @@ summary: >
   and source span references that extend 011's Provenance with a part, a
   byte or character span, and a content digest. aicortex stays domain
   agnostic: travel, the first consumer, registers its own predicates. Who may
-  admit a claim is 048; when it holds and how history is kept is 049.
+  admit a claim is 051; when it holds and how history is kept is 052.
 ---
 
-# 047: Typed claims and the predicate registry
+# 050: Typed claims and the predicate registry
 
 ## 1. Purpose
 
@@ -89,17 +89,24 @@ values into a fixed structure. The predecessor's free-form metadata bag
 - `aicortex-types` gains five modules: `claim.rs` (the claim content and
   its identifiers, relations, and epistemic status), `claim_value.rs` (the
   typed values), `claim_time.rs` (time points, precision, zones, intervals,
-  and uncertainty, shared by values and by 049's valid time), `predicate.rs`
+  and uncertainty, shared by values and by 052's valid time), `predicate.rs`
   (the registry document and predicate references), and `span.rs` (source
   span references). `provenance.rs` is extended additively with spans.
 - A new pure crate, `aicortex-claims`, with no I/O, no SQL, and no async,
   holding the validation of a claim against a registry snapshot. It is the
-  seam an embedding consumer can link without a store; 049 adds history and
+  seam an embedding consumer can link without a store; 052 adds history and
   projection to it.
 - `aicortex-store` gains the registry repository and its migration.
 
-The types are the contract a consumer writes against. Admission (048) and
-history (049) build on them and do not change them.
+The types are the contract a consumer writes against. Admission (051) and
+history (052) build on them and do not change them.
+
+The consumer links these crates as libraries inside its own rahi cell
+(D-4). Every repository in 050 to 052 therefore stages into a caller's
+`TxnBuilder` (012 B-4) and never opens a transaction of its own, so a
+consumer can commit its inbound receipt (`rahi://045`, draft), the source
+observation, the admitted claims, and their outbox work in one
+transaction.
 
 ## 3. Behavior
 
@@ -110,7 +117,7 @@ history (049) build on them and do not change them.
   Option<SlotKey>, epistemic: EpistemicStatus, provenance: Provenance,
   schema_version: u16 }`. `ClaimId` wraps a UUIDv7 minted by the writer, as
   `MemoryId` does (011 B-1). Valid time and source-declared time are
-  attached by 049 around this content, not inside it, so that the content
+  attached by 052 around this content, not inside it, so that the content
   of a claim is what was said and the history is when.
 - **B-2 (no claim without provenance).** `Claim::new` takes `Provenance`
   by value. There is no `Default`, no builder that can finish without it,
@@ -126,7 +133,7 @@ history (049) build on them and do not change them.
   `EntityKind` is not widened by it (open question Q-3).
 - **B-4 (slot).** A predicate with cardinality `many` (B-9) distinguishes
   its values by a `SlotKey` the registry declares (for example a passenger
-  key for `travel:segment.seat`). Supersession (049) is scoped to one
+  key for `travel:segment.seat`). Supersession (052) is scoped to one
   `(subject, predicate, slot)`, never to the subject as a whole.
 
 ### 3.2 Typed values
@@ -154,14 +161,14 @@ history (049) build on them and do not change them.
   as a boarding pass often does). A value keeps the zone form the source
   gave. Conversion to an instant is a function of the value and a pinned
   time-zone database version, never of the host's zone; the database
-  version is part of 049's projection policy.
+  version is part of 052's projection policy.
 - **B-7 (intervals, precision, uncertainty).** A bound is `Open`,
   `Inclusive(TimePoint)`, or `Exclusive(TimePoint)`. A `TimePoint` carries
   its precision, so "2026-10-03" at day precision is not silently read as
   midnight. A time point may carry `Uncertainty`, an explicit earliest and
   latest instant, when the source states a window ("arrives between 14:00
   and 16:00"). Precision and uncertainty are preserved as given; widening a
-  day into an instant range happens only at comparison time (049).
+  day into an instant range happens only at comparison time (052).
 
 ### 3.3 Epistemic status and relations
 
@@ -170,7 +177,7 @@ history (049) build on them and do not change them.
   names the predicate, the subject kinds it applies to, its value type
   (and, for `Enum`, its variants, and for `Decimal`, the admitted units),
   its cardinality, its slot key when cardinality is `many`, its valid-time
-  mode (049 B-2), its supersession rule (049 B-5), and the epistemic
+  mode (052 B-2), its supersession rule (052 B-5), and the epistemic
   statuses it admits.
 - **B-9 (namespaces and versions).** A namespace is lowercase ascii with
   `-` and `_`. The namespace `aicortex` is reserved. A `PredicateRef` is
@@ -189,14 +196,14 @@ history (049) build on them and do not change them.
   a carrier confirmation), `Estimated` (an approximate value, for example
   an estimated arrival), `Expected` (scheduled or planned), and `Observed`
   (recorded as having happened, for example a boarding scan). Authority,
-  which is aicortex's own weighing, is a separate axis (048).
+  which is aicortex's own weighing, is a separate axis (051).
 - **B-11 (relations).** `ClaimRelation { from: ClaimId, kind:
   RelationKind, to: RelationTarget, provenance }` where `RelationKind` is
   `Supersedes`, `Contradicts`, or `DerivedFrom`, and a target is a claim
   (all three) or a memory (`DerivedFrom` only). A relation is its own
   record with its own provenance, appended beside the claim, so that a
   later observation can relate to an earlier claim without editing it. The
-  meaning of `Supersedes` over time is 049's.
+  meaning of `Supersedes` over time is 052's.
 
 ### 3.4 Source spans
 
@@ -205,9 +212,13 @@ history (049) build on them and do not change them.
   names the part of a multi-part source (a MIME part path, an attachment
   name, or `body`). `SpanRange` is `Bytes { start, end }` over the part's
   stored bytes or `Chars { start, end }` over its Unicode scalar values,
-  half-open, and says which. `ContentDigest` is the algorithm identifier
-  and the digest of the whole part, so a reader can tell whether the bytes
-  a span points into are still the bytes it was measured against.
+  half-open, and says which. `ContentDigest` is the algorithm identifier,
+  a key id, and a keyed digest of the whole part (HMAC-SHA-256 under a key
+  held per scope in the application store, as 013 B-9 holds its keys), so
+  a reader holding the scope can tell whether the bytes a span points into
+  are still the bytes it was measured against, and a digest of a short part
+  cannot be confirmed by guessing. Erasing a scope destroys its span key
+  (D-6).
 - **B-13 (Provenance gains spans).** `Provenance` gains `spans:
   Vec<SourceSpan>`, serialized only when non-empty, so every existing 011
   fixture round-trips byte-identically (011 FR-001). A span carries no
@@ -268,8 +279,8 @@ history (049) build on them and do not change them.
 
 ## 6. Out of scope
 
-Admission and authority (048). Valid time, transaction time, as-of
-queries, supersession semantics, and projection (049). An HTTP or MCP
+Admission and authority (051). Valid time, transaction time, as-of
+queries, supersession semantics, and projection (052). An HTTP or MCP
 surface for claims, which is a later extension of 020 and 021. Extraction
 of claims from email, which is travel-memory's, not aicortex's. Any travel
 vocabulary beyond the test fixture: the travel registry is authored and
@@ -283,15 +294,15 @@ versioned in travel-memory.
   closure by recursive CTEs, and graph-scoped policy by predicate
   injection. It is not a dependency of this corpus and not a peer store.
   Its transaction-time datom model and its retraction folding are prior art
-  for 049's transaction axis, and its scoped graph closure may inform spec
+  for 052's transaction axis, and its scoped graph closure may inform spec
   017's bounded walk. Neither is imported; both are cited as design input.
 - **statecraft-envelope `fact.rs`.** A content-addressed fact envelope
   `{ kind, v, body, extra }` with tombstones, used by the Statecraft
   platform's scope log. It overlaps with this spec's claim record and with
-  049's append-only history. Recorded as an overlapping model; not merged
+  052's append-only history. Recorded as an overlapping model; not merged
   or aligned here (Q-5).
 - **statecraft-review `fold.rs`.** Folds a revision's account from its
-  scope's entries and nothing else. It is the same discipline as 049's
+  scope's entries and nothing else. It is the same discipline as 052's
   projection (a view is a pure function of the log) over a different log.
   Recorded as an overlapping model; not merged here.
 
@@ -310,22 +321,57 @@ versioned in travel-memory.
   temporal claims. aicortex stays domain agnostic: the predicate registry
   is supplied by domains, and travel defines its own predicates.
 
+- **D-4 (2026-09-24, owner decision).** Recorded from the owner's answer
+  to this draft's questions: "I agree with all your suggestions and
+  recommendations." travel-memory links aicortex as a library inside its
+  own rahi cell, not over HTTP, so that its inbound receipts (rahi spec
+  045, `rahi://045`), claim writes, and outbox work commit in one
+  transaction. Constitution VIII holds per cell: the claims live in the
+  consumer's own hiqlite group through rahi's store API. A claims surface
+  in 020 is not required for the first consumer.
+- **D-5 (2026-09-24, owner decision, placement).** The owner asked for the
+  option that best fits 002 D-4 and the wave rules. The three claim specs
+  open a new wave 5 at ordinals 050 to 052; the two housekeeping specs stay
+  in wave 4 at 046 and 047. Reasoning: wave 2 (020 to 029) is defined by
+  needing a rauthy binary on loopback and holds the surfaces, which claims
+  need neither, and 002 D-4 keeps 025 unallocated for an earlier
+  coordination core, a different reservation that this should not consume.
+  Wave 4 is proof (evaluation, privacy, portability, packaging,
+  deployment) with 045 as its one feature, and claims are neither, so
+  leaving them at 047 to 049 would have placed them by free ordinal rather
+  than by meaning. A new wave keeps both existing reservations intact and
+  makes the family adoption visible in the build order. Every dependency
+  still points into the same or an earlier wave (014 is wave 1; 046 is
+  wave 4), and the scheduler's lowest-numbered-ready rule lets 050 start as
+  soon as 014 and 046 are complete. The housekeeping specs stay in wave 4
+  because they maintain wave 1 territory and 046 must precede 050. Section
+  10 states the amendment of 002 this implies.
+- **D-6 (2026-09-24, owner decision).** Span digests are keyed per scope
+  (B-12), and erasing a scope destroys the key, for the reason 013 D-2
+  gives for Decision digests. Erasing a claim removes its span digests with
+  its value (052 B-12).
+- **D-7 (2026-09-24, owner decision).** Converging `SubjectRef` with 017's
+  entities is deferred and stays open (Q-3, Q-4). Subjects are separate
+  from entities, with an optional link, until the owner decides.
+- **D-8 (2026-09-24, owner decision).** The family moves to spec-spine
+  0.25.0, and for this repository that is a separate step: the pin lives
+  in spec 001's territory (`spec-spine.toml`, `govern.yml`, `AGENTS.md`,
+  `README.md`) and moves by the same kind of change as 001 D-7. Until it
+  moves, obligations stay in section 9 of each spec rather than in
+  frontmatter.
+
 ## 8. Open questions
 
-- **Q-1 (consumption mode).** Does travel-memory link `aicortex-types`,
-  `aicortex-claims`, and `aicortex-store` as libraries inside its own cell
-  and hiqlite group, or call an aicortex deployment over HTTP? The first
-  keeps one store per cell (constitution VIII) but gives each product its
-  own claim store; the second makes aicortex a shared service and needs a
-  claims surface in 020. The territory above is written for the library
-  seam and does not preclude the service.
+Q-1 (consumption mode), Q-6 (span digests), and Q-7 (build order) were
+resolved by D-4, D-6, and D-5 and are not repeated here.
+
 - **Q-2 (who registers).** Which subject may register a namespace and a
   version: an operator only, the namespace's first registrant, or a
   subject granted per namespace? And does a domain register at its own
   `migrate`, or through an operator call?
-- **Q-3 (subjects and 017 entities).** Should `SubjectRef` and 017's
-  `Entity` converge (a subject is an entity of an open, registered kind),
-  or stay separate with an optional link? 017 is approved and pending, so
+- **Q-3 (subjects and 017 entities, deferred by D-7).** Should
+  `SubjectRef` and 017's `Entity` converge (a subject is an entity of an
+  open, registered kind), or stay separate with an optional link? 017 is approved and pending, so
   converging would be an amendment of 017 before it is built.
 - **Q-4 (017's closed vocabulary).** 017 D-1 keeps the edge predicate
   vocabulary closed and makes a new predicate an amendment. This spec's
@@ -336,22 +382,19 @@ versioned in travel-memory.
   content-addressed encoding compatible with statecraft-envelope's
   `FactEnvelope`, so a claim can be cited from a Statecraft scope by
   digest? Not decided, and not required by travel-memory.
-- **Q-6 (span digests).** A part digest in the application store is erased
-  with the claim (049 B-12), but a digest of a short part is confirmable by
-  guessing, the concern 013 D-2 answered with keyed digests. Should span
-  digests be keyed per scope?
-- **Q-7 (build order).** Spec 002 section 5 places wave 4 at 040 to 049
-  and calls it proof, with 045 as its one feature. These specs are memory
-  core by content and sit at 047 to 049 only because 040 to 049 is where
-  the next free ordinals are. The alternatives are a wave 5, or the
-  unallocated 025 to 029, which 002 D-4 reserves for "a concrete adoption
-  need ... with a revised dependency plan". travel-memory is such a need.
+- **Q-8 (composing migrations).** A consumer cell has its own migration
+  list, and 012 B-1 numbers aicortex's migrations from 1. Linking aicortex
+  as a library needs a rule for placing aicortex's migrations in the host
+  cell's single version sequence (a reserved version range, a host-supplied
+  offset, or rahi support for more than one migration namespace per store).
+  The last would be a rahi spec, not a local divergence (constitution VI).
 
 ## 9. Obligations
 
 Declared in the spec-spine 106 grammar, to be lifted into the frontmatter
-`obligations` key when the repository's spec-spine pin reaches 0.25.0
-(below it, the key is a compile error, `V-002`).
+`obligations` key when this repository's spec-spine pin moves to 0.25.0,
+which is a separate follow-up (D-8; below 0.25.0 the key is a compile
+error, `V-002`).
 
 ```yaml
 obligations:
@@ -359,9 +402,28 @@ obligations:
   - { id: "I-2", kind: invariant, text: "A claim's predicate is registered at the version it names, and an unknown predicate is refused, never stored as free text.", anchor: "3-4-source-spans" }
   - { id: "I-3", kind: invariant, text: "A registered predicate version is immutable, and no later version changes an existing predicate's value type or cardinality.", anchor: "3-3-epistemic-status-and-relations" }
   - { id: "I-4", kind: invariant, text: "No claim value is a floating-point number.", anchor: "3-2-typed-values" }
-  - { id: "I-5", kind: invariant, text: "A source span carries offsets and a digest, never content.", anchor: "3-4-source-spans" }
+  - { id: "I-5", kind: invariant, text: "A source span carries offsets and a keyed digest, never content.", anchor: "3-4-source-spans" }
   - { id: "R-1", kind: requirement, text: "Epistemic status records the source's stance and is never used as aicortex's authority.", anchor: "3-3-epistemic-status-and-relations" }
 ```
+
+## 10. Amendment of spec 002
+
+Carried by this spec's `amends` edge and effective only when a human
+approves this spec. Spec 002's text is not edited.
+
+- **Section 2 (responsibilities).** A tenth responsibility, **claim
+  history**: typed temporal claims with provenance, admitted through the
+  gate, kept as append-only bitemporal history, and projected as a pure
+  function of history, as-of, and policy, for this product and for family
+  products that link it as a library (domain `memory`).
+- **Section 4 (crate topology).** A row for `aicortex-claims` in the
+  admission layer, founded by 050, depending on `aicortex-types` only.
+- **Section 5 (build order).** Wave 5 (050 to 059) is family claim history,
+  buildable like wave 1 with no network listener. Its exit condition is
+  the travel fixture of 052 FR-001 passing in every delivery order inside a
+  consumer cell's transaction. `standards/spec/contract.md` names waves 1
+  to 4 and is updated to match when this spec is approved (a follow-up in
+  spec 001's territory).
 
 ## Verification
 

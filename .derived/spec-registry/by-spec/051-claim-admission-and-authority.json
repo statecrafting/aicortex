@@ -15,7 +15,7 @@
     ],
     "created": "2026-09-24",
     "dependsOn": [
-      "047-typed-claims-and-predicate-registry"
+      "050-typed-claims-and-predicate-registry"
     ],
     "domain": "memory",
     "establishes": [
@@ -99,9 +99,9 @@
       }
     ],
     "extraFrontmatter": {
-      "wave": 4
+      "wave": 5
     },
-    "id": "048-claim-admission-and-authority",
+    "id": "051-claim-admission-and-authority",
     "implementation": "pending",
     "kind": "kernel",
     "references": [
@@ -136,7 +136,7 @@
     ],
     "risk": "critical",
     "sectionHeadings": [
-      "048: Claim admission and authority",
+      "051: Claim admission and authority",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
@@ -151,11 +151,11 @@
       "9. Obligations",
       "Verification"
     ],
-    "specPath": "specs/048-claim-admission-and-authority/spec.md",
+    "specPath": "specs/051-claim-admission-and-authority/spec.md",
     "status": "draft",
     "summary": "Three things that ingest pipelines routinely blur are kept apart: an observation (the source as received, stored as a memory through 013's gate), a proposal (a typed claim some actor suggests, with its evidence), and an admitted claim (a proposal the gate accepted under a named policy, with a decision record). Admission reuses the existing gate crate and its purity, adds a claim verdict whose `AdmittedClaim` only the gate can mint, and records every admission. Model-produced scores are stored as evidence and never serve as authority. A user's correction is first-class evidence carrying an authority level, and it is appended, never an edit.\n",
     "title": "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
   },
-  "shardHash": "0b709530a447f08d1f3e73808e0b7ae119d21a8b5041ca2e488e8f0efdf7e68a",
+  "shardHash": "66b43409c7ad44da23f6e701604a3f5e4afe99985a9b4cba65c53e2e1fff766c",
   "specVersion": "1.3.0"
 }

@@ -1,5 +1,5 @@
 ---
-id: "049-bitemporal-claim-history-and-projection"
+id: "052-bitemporal-claim-history-and-projection"
 title: "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
 status: draft
 kind: "kernel"
@@ -8,9 +8,9 @@ created: "2026-09-24"
 authors: ["Bartek Kus"]
 implementation: pending
 risk: critical
-wave: 4
+wave: 5
 depends_on:
-  - "048-claim-admission-and-authority"
+  - "051-claim-admission-and-authority"
 establishes:
   - "crates/aicortex-claims/src/history.rs"
   - "crates/aicortex-claims/src/asof.rs"
@@ -23,8 +23,8 @@ establishes:
   - "crates/aicortex-store/tests/claim_history.rs"
   - "crates/aicortex-store/tests/claim_erasure.rs"
 extends:
-  - { spec: "047-typed-claims-and-predicate-registry", unit: "crates/aicortex-claims/src/lib.rs", nature: additive }
-  - { spec: "047-typed-claims-and-predicate-registry", unit: "crates/aicortex-claims/Cargo.toml", nature: additive }
+  - { spec: "050-typed-claims-and-predicate-registry", unit: "crates/aicortex-claims/src/lib.rs", nature: additive }
+  - { spec: "050-typed-claims-and-predicate-registry", unit: "crates/aicortex-claims/Cargo.toml", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
@@ -49,7 +49,7 @@ summary: >
   never by arrival, so reordered email delivery yields the same answer.
 ---
 
-# 049: Bitemporal claim history and projection
+# 052: Bitemporal claim history and projection
 
 ## 1. Purpose
 
@@ -78,17 +78,17 @@ additive extension of 014's erasure so erasure reaches claims.
 
 ### 3.1 Three times
 
-- **B-1 (the claim record).** `ClaimRecord { claim: Claim (047), valid:
+- **B-1 (the claim record).** `ClaimRecord { claim: Claim (050), valid:
   ValidTime, source_time: Option<TimePoint>, source_seq:
-  Option<SourceSeq>, tx: TxStamp, authority: AuthorityLevel (048),
-  admission: AdmissionRef }`. `ValidTime` is an `Interval` of 047's time
+  Option<SourceSeq>, tx: TxStamp, authority: AuthorityLevel (051),
+  admission: AdmissionRef }`. `ValidTime` is an `Interval` of 050's time
   points, half-open, either end possibly open, each bound carrying its
   precision, zone, and uncertainty. `source_time` is the time the source
   declares for its own statement (an email's `Date`, an itinerary's
   "issued"), which is distinct from valid time and from both 011
   provenance times. `source_seq` is a source-supplied revision where one
   exists (a booking revision number, a ticket reissue counter).
-- **B-2 (valid-time modes).** The predicate's registry entry (047 B-8)
+- **B-2 (valid-time modes).** The predicate's registry entry (050 B-8)
   declares one of: `Explicit` (the claim states its own validity),
   `FromSourceTime` (valid from `source_time`, open-ended until superseded:
   "the departure is now 10:05" as of the change notice), or `Timeless` (an
@@ -106,14 +106,14 @@ additive extension of 014's erasure so erasure reaches claims.
 
 ### 3.2 Append-only history
 
-- **B-4 (append, never rewrite).** A claim row, a relation row (047 B-11),
+- **B-4 (append, never rewrite).** A claim row, a relation row (050 B-11),
   and a retraction row are inserted and never updated or deleted, except
   by erasure (B-10). There is no `status` column on a claim that a later
   event rewrites. Whether a claim is current is always computed (B-7).
 - **B-5 (supersession is scoped).** Supersession relates claims in one
-  slot: the same scope, subject, predicate, and slot key (047 B-4). An
+  slot: the same scope, subject, predicate, and slot key (050 B-4). An
   explicit `Supersedes` relation across slots is refused at append. Within
-  a slot, the predicate's registered rule (047 B-8) is one of:
+  a slot, the predicate's registered rule (050 B-8) is one of:
   `BySourceOrder` (a claim with a later `(source_seq, source_time)`
   supersedes an earlier one in the overlap of their valid times),
   `ExplicitOnly` (only a `Supersedes` relation supersedes), or `Accumulate`
@@ -122,8 +122,8 @@ additive extension of 014's erasure so erasure reaches claims.
   from Wednesday leaves Monday's value current for Monday.
 - **B-6 (retraction and correction).** A retraction is an appended
   `Retraction { target: ClaimId, reason, by: Actor, provenance }`, admitted
-  through 048 like any claim-level act. A correction is a new claim plus a
-  `Supersedes` relation at `UserCorrected` authority (048 B-8). Neither
+  through 051 like any claim-level act. A correction is a new claim plus a
+  `Supersedes` relation at `UserCorrected` authority (051 B-8). Neither
   removes or edits the target row. A retracted claim stays in history and
   is excluded from views whose knowledge bound includes the retraction.
 
@@ -140,7 +140,7 @@ additive extension of 014's erasure so erasure reaches claims.
 - **B-8 (winner selection).** For each slot, among claims with `tx.seq`
   within the knowledge bound, not retracted within it, and whose valid time
   covers the valid bound, the projection applies, in order: explicit
-  `Supersedes` relations at sufficient authority (048 B-10); then higher
+  `Supersedes` relations at sufficient authority (051 B-10); then higher
   `AuthorityLevel`; then the predicate's rule (B-5) by `source_seq`, then
   `source_time`. It never orders by `tx.seq`, `recorded_at`, or `ClaimId`,
   all of which encode arrival. When two candidates remain tied and their
@@ -170,17 +170,25 @@ additive extension of 014's erasure so erasure reaches claims.
 ### 3.4 Erasure and the store
 
 - **B-12 (erasure reaches claims).** Erasing a claim (an extension of
-  014 B-7) removes its value, its spans, and its qualifiers and leaves a
-  tombstone row with its id, scope, subject, predicate, slot, times, and
-  authority, so relations and past views resolve to a tombstone rather
-  than dangle. Erasing a source observation marks every claim citing it
+  014 B-7) removes its value, its spans and their digests, its
+  qualifiers, its subject key, and its slot key, and leaves a tombstone row
+  with its id, scope, subject namespace and kind, predicate, times, and
+  authority, so relations resolve to a tombstone rather than dangle. The
+  subject and slot keys are blanked because a domain-minted key (a record
+  locator, a traveler key) can itself be personal data (D-6); a tombstone
+  is therefore no longer attributable to its subject, and a view over that
+  subject no longer sees it. Erasing a source observation marks every claim citing it
   `origin_erased`, as 014 B-8 does for derived memories, and cascades to
   those claims only when the erasure call asks. Erasing a scope erases
   every claim, relation, retraction, proposal, and admission record in it.
   The ledger Decision names counts, never values.
 - **B-13 (transactional append).** An admitted claim, its relations, its
-  admission record (048 B-11), its counter updates, and its outbox work are
-  staged into one rahi transaction (constitution XI, 012 B-4). Every
+  admission record (051 B-11), its counter updates, and its outbox work are
+  staged into one rahi transaction (constitution XI, 012 B-4). The
+  repositories stage into the caller's `TxnBuilder` and never open their
+  own, so a consumer cell that links aicortex as a library (050 D-4) also
+  commits its inbound receipt (`rahi://045`, draft) and the source
+  observation in the same transaction. Every
   repository statement carries the scope predicate (012 B-3).
 - **B-14 (history reads are bounded).** `ClaimRepo::history(scope,
   subject, predicate?, TxBound)` pages by `(tx.seq)` and is bounded by the
@@ -215,8 +223,8 @@ additive extension of 014's erasure so erasure reaches claims.
   dependency, and a test runs it twice over the same inputs on two threads
   and compares digests.
 - **FR-009.** After erasing a source observation with cascade, no claim
-  value or span from it is readable, its claims are tombstones, and a view
-  over the slot reports `Absent` or the next surviving claim; without
+  value, span, subject key, or slot key from it is readable, its claims
+  are tombstones, and a view over the slot reports `Absent` or the next surviving claim; without
   cascade, its claims are marked `origin_erased` and still project.
 
 ## 5. Acceptance criteria
@@ -238,7 +246,7 @@ a claim's end of validity is part of its valid time and is honored by
 projection, so no curator rewrites a claim when it stops holding.
 
 fact-fold's transaction-time datom log and retraction folding are prior art
-for B-3 to B-6 and are not imported (047 section 6.1). This spec adds the
+for B-3 to B-6 and are not imported (050 section 6.1). This spec adds the
 valid-time axis fact-fold does not have. statecraft-review's `fold.rs`
 applies the same rule as B-7, a view folded from the log and nothing else,
 to a different log; the two are recorded as overlapping and not merged.
@@ -256,8 +264,17 @@ to a different log; the two are recorded as overlapping and not merged.
 - **D-4 (2026-09-24, owner).** Supersession is scoped to a subject and
   predicate: a later observation supersedes one attribute of a segment
   without superseding its siblings.
+- **D-5 (2026-09-24, owner decision).** Recorded from the owner's answer
+  to this draft's questions: "I agree with all your suggestions and
+  recommendations." Claims are written by a consumer that links aicortex
+  as a library inside its own rahi cell (050 D-4), so B-13's transaction
+  includes the consumer's receipt and observation.
+- **D-6 (2026-09-24, owner decision).** Erasure blanks the subject key and
+  the slot key on a claim tombstone (B-12). This resolves Q-3.
 
 ## 8. Open questions
+
+Q-3 was resolved by D-6.
 
 - **Q-1 (source order without a source time).** When neither
   `source_seq` nor `source_time` is present, B-8 falls through to
@@ -267,9 +284,6 @@ to a different log; the two are recorded as overlapping and not merged.
 - **Q-2 (materialized views).** Compute the view on read, or maintain a
   cache keyed by policy version and high-water `seq`? The draft permits a
   cache only if it equals the projection (B-14) and does not specify one.
-- **Q-3 (tombstone content).** B-12 keeps the subject key on a tombstone.
-  A subject key minted by a domain may itself be personal data (a record
-  locator is). Should erasure also blank the subject key?
 - **Q-4 (019 framing).** A projected value returned to a model is recalled
   content under constitution X. Does the view carry 019's delimiting at
   this layer, or only at the surfaces?
@@ -277,14 +291,15 @@ to a different log; the two are recorded as overlapping and not merged.
   window, and should the time-zone database version move only with a
   policy version (as drafted) or also with the toolchain?
 - **Q-6 (memory valid_until).** 014 B-5 gives a memory a `valid_until`
-  that 011's record does not carry. Should memories adopt 047's time types
+  that 011's record does not carry. Should memories adopt 050's time types
   for it, or is that gap 014's to close on its own?
 
 ## 9. Obligations
 
 Declared in the spec-spine 106 grammar, to be lifted into the frontmatter
-`obligations` key when the repository's spec-spine pin reaches 0.25.0
-(below it, the key is a compile error, `V-002`).
+`obligations` key when this repository's spec-spine pin moves to 0.25.0,
+which is a separate follow-up (050 D-8; below 0.25.0 the key is a compile
+error, `V-002`).
 
 ```yaml
 obligations:
@@ -294,7 +309,7 @@ obligations:
   - { id: "I-4", kind: invariant, text: "Supersession never crosses a (scope, subject, predicate, slot).", anchor: "3-2-append-only-history" }
   - { id: "I-5", kind: invariant, text: "Transaction time is assigned by the store, strictly increasing per scope, and never edited.", anchor: "3-1-three-times" }
   - { id: "R-1", kind: requirement, text: "Two tied candidates with different values are reported as Conflicted and never silently resolved.", anchor: "3-3-projection" }
-  - { id: "R-2", kind: requirement, text: "Erasure reaches claim values and spans and leaves a tombstone that relations resolve to.", anchor: "3-4-erasure-and-the-store" }
+  - { id: "R-2", kind: requirement, text: "Erasure reaches claim values, spans, subject keys and slot keys, and leaves a tombstone that relations resolve to.", anchor: "3-4-erasure-and-the-store" }
 ```
 
 ## Verification
