@@ -1,0 +1,131 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "013-write-gate-and-redaction"
+    ],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/migrate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "deny.toml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/cell.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/cell.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/migrate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "deny.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "deny.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 87,
+              "startLine": 20
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/dependabot.yml"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": ".github/dependabot.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/010-chassis-adoption-and-workspace/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/010-chassis-adoption-and-workspace/spec.md"
+        }
+      }
+    ],
+    "specId": "046-rahi-0-2-0-adoption",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "55978f43f3e6572997a197653507cd61943a95dcb5e407c94b44261046a4f9eb"
+}

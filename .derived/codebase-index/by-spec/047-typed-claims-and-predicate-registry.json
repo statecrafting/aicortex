@@ -1,0 +1,381 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim.rs' does not exist",
+        "path": "crates/aicortex-types/src/claim.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim_value.rs' does not exist",
+        "path": "crates/aicortex-types/src/claim_value.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim_time.rs' does not exist",
+        "path": "crates/aicortex-types/src/claim_time.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/predicate.rs' does not exist",
+        "path": "crates/aicortex-types/src/predicate.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/span.rs' does not exist",
+        "path": "crates/aicortex-types/src/span.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/tests/claim.rs' does not exist",
+        "path": "crates/aicortex-types/tests/claim.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/testdata/claims/' does not exist",
+        "path": "crates/aicortex-types/testdata/claims/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/Cargo.toml' does not exist",
+        "path": "crates/aicortex-claims/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/src/lib.rs' does not exist",
+        "path": "crates/aicortex-claims/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/src/registry.rs' does not exist",
+        "path": "crates/aicortex-claims/src/registry.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/tests/registry.rs' does not exist",
+        "path": "crates/aicortex-claims/tests/registry.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-claims/testdata/registries/' does not exist",
+        "path": "crates/aicortex-claims/testdata/registries/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-store/src/predicate_registry_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/predicate_registry_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-store/tests/predicate_registry.rs' does not exist",
+        "path": "crates/aicortex-store/tests/predicate_registry.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '047-typed-claims-and-predicate-registry' file unit 'crates/aicortex-types/src/claim.rs' does not exist",
+        "path": "crates/aicortex-types/src/claim.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "amends": [
+      "002-memory-thesis"
+    ],
+    "dependsOn": [
+      "014-memory-lifecycle-and-erasure",
+      "046-rahi-0-2-0-adoption"
+    ],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/provenance.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/src/registry.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/testdata/registries/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/tests/registry.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/predicate_registry_repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/predicate_registry.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/claim.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/claim_time.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/claim_value.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/predicate.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/span.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/testdata/claims/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/tests/claim.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/provenance.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 98,
+              "startLine": 6
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 87,
+              "startLine": 20
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/claim.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/011-memory-model/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/011-memory-model/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/017-entities-and-typed-edges/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/017-entities-and-typed-edges/spec.md"
+        }
+      }
+    ],
+    "specId": "047-typed-claims-and-predicate-registry",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "fe92293074cf039b323503a13cd41005fe42c7708a225c71ced27a8623a3a284"
+}

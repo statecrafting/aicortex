@@ -1,0 +1,286 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-types/src/claim_evidence.rs' does not exist",
+        "path": "crates/aicortex-types/src/claim_evidence.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-gate/src/claim_gate.rs' does not exist",
+        "path": "crates/aicortex-gate/src/claim_gate.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-gate/tests/claim_admission.rs' does not exist",
+        "path": "crates/aicortex-gate/tests/claim_admission.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-gate/testdata/claims/' does not exist",
+        "path": "crates/aicortex-gate/testdata/claims/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-store/src/claim_proposal_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/claim_proposal_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-store/src/claim_admission_repo.rs' does not exist",
+        "path": "crates/aicortex-store/src/claim_admission_repo.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-store/tests/claim_admission.rs' does not exist",
+        "path": "crates/aicortex-store/tests/claim_admission.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '048-claim-admission-and-authority' file unit 'crates/aicortex-gate/src/claim_gate.rs' does not exist",
+        "path": "crates/aicortex-gate/src/claim_gate.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "047-typed-claims-and-predicate-registry"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-gate/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/compile_fail/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/lib.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/claim_gate.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/testdata/claims/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/claim_admission.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claim_admission_repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claim_proposal_repo.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/claim_admission.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/claim_evidence.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/compile_fail/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/compile_fail/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "constrains",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/claim_gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/013-write-gate-and-redaction/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/014-memory-lifecycle-and-erasure/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/014-memory-lifecycle-and-erasure/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/023-review-and-promotion/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/023-review-and-promotion/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/024-decision-and-audit-references/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/024-decision-and-audit-references/spec.md"
+        }
+      }
+    ],
+    "specId": "048-claim-admission-and-authority",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "349f85fa916ea3d43530f85f8f25622eb989868c4deb1e87e4528065e81205fd"
+}
