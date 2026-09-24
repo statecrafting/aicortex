@@ -30,7 +30,7 @@ rahi-idp = "=0.1.0"
 rahi-edge = "=0.1.0"
 rahi-ops = "=0.1.0"
 rahi-harness = "=0.1.0"
-rahi-cli = "=0.1.0"
+rahi-cli = "=0.2.0"
 
 # The router type the Cell returns (B-3). The chassis's edge is built on it,
 # and this is the version rahi locks, so the workspace adds no second copy
