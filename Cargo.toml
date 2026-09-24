@@ -24,7 +24,7 @@ authors = ["Bartek Kus"]
 # these nine lines that revisits deny.toml with it (D-8).
 rahi-types = "=0.1.0"
 rahi-store = "=0.1.0"
-rahi-ledger = "=0.1.0"
+rahi-ledger = "=0.2.0"
 rahi-kernel = "=0.1.0"
 rahi-idp = "=0.1.0"
 rahi-edge = "=0.1.0"
