@@ -130,10 +130,10 @@ dependencies = [
  "axum",
  "rahi-cli",
  "rahi-edge",
- "rahi-kernel",
- "rahi-ops",
- "rahi-store",
- "rahi-types",
+ "rahi-kernel 0.1.0",
+ "rahi-ops 0.2.0",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
  "tempfile",
  "toml 1.1.6+spec-1.1.0",
 ]
@@ -144,9 +144,9 @@ version = "0.1.0"
 dependencies = [
  "aicortex-store",
  "aicortex-types",
- "rahi-ledger",
- "rahi-store",
- "rahi-types",
+ "rahi-ledger 0.1.0",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
  "ring",
  "serde",
  "serde_json",
@@ -163,8 +163,8 @@ dependencies = [
  "aicortex-gate",
  "aicortex-types",
  "base64 0.22.1",
- "rahi-store",
- "rahi-types",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
  "ring",
  "serde",
  "serde_json",
@@ -177,7 +177,7 @@ dependencies = [
 name = "aicortex-types"
 version = "0.1.0"
 dependencies = [
- "rahi-types",
+ "rahi-types 0.1.0",
  "serde",
  "serde_json",
  "trybuild",
@@ -3229,12 +3229,12 @@ checksum = "02a6f4924b3545e7f1ba485432839c2df329071eb5f506ab2a689ca90573a305"
 dependencies = [
  "axum",
  "rahi-edge",
- "rahi-idp",
- "rahi-kernel",
- "rahi-ledger",
- "rahi-ops",
- "rahi-store",
- "rahi-types",
+ "rahi-idp 0.1.0",
+ "rahi-kernel 0.1.0",
+ "rahi-ledger 0.1.0",
+ "rahi-ops 0.1.0",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
  "serde_json",
  "tokio",
 ]
@@ -3253,10 +3253,10 @@ dependencies = [
  "opentelemetry-otlp",
  "opentelemetry_sdk",
  "prometheus",
- "rahi-kernel",
- "rahi-ledger",
- "rahi-store",
- "rahi-types",
+ "rahi-kernel 0.1.0",
+ "rahi-ledger 0.1.0",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
  "serde_json",
  "tokio",
  "tower-http",
@@ -3274,9 +3274,29 @@ dependencies = [
  "axum",
  "base64 0.22.1",
  "getrandom 0.4.3",
- "rahi-kernel",
- "rahi-store",
- "rahi-types",
+ "rahi-kernel 0.1.0",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
+ "reqwest",
+ "ring",
+ "serde",
+ "serde_json",
+ "tokio",
+ "url",
+]
+
+[[package]]
+name = "rahi-idp"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4753514d621f5c9c3b63d0c2f6bdfa8a16cd96f41bd2322df8a36f9ea8ed3ccd"
+dependencies = [
+ "axum",
+ "base64 0.22.1",
+ "getrandom 0.4.3",
+ "rahi-kernel 0.2.0",
+ "rahi-store 0.2.0",
+ "rahi-types 0.2.0",
  "reqwest",
  "ring",
  "serde",
@@ -3294,9 +3314,28 @@ dependencies = [
  "action-gate-core",
  "action-gate-types",
  "canonical-keysort-json",
- "rahi-ledger",
- "rahi-store",
- "rahi-types",
+ "rahi-ledger 0.1.0",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
+ "serde",
+ "serde_json",
+ "tokio",
+ "toml 1.1.6+spec-1.1.0",
+ "tracing",
+]
+
+[[package]]
+name = "rahi-kernel"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8d548f598fac22e0dd0d9d473358cbc5b25560d922ef317f5af9493f407fd462"
+dependencies = [
+ "action-gate-core",
+ "action-gate-types",
+ "canonical-keysort-json",
+ "rahi-ledger 0.2.0",
+ "rahi-store 0.2.0",
+ "rahi-types 0.2.0",
  "serde",
  "serde_json",
  "tokio",
@@ -3316,12 +3355,34 @@ dependencies = [
  "base64 0.22.1",
  "canonical-keysort-json",
  "ed25519-dalek",
- "rahi-store",
- "rahi-types",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
  "s3-simple",
  "serde",
  "serde_json",
  "tokio",
+ "url",
+]
+
+[[package]]
+name = "rahi-ledger"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "80ea30933e645d0a543e1fdbb7559ef2b0c1611cf84d3a0d569bf34bc84f82e6"
+dependencies = [
+ "async-trait",
+ "attest-ledger-core",
+ "attest-ledger-types",
+ "base64 0.22.1",
+ "canonical-keysort-json",
+ "ed25519-dalek",
+ "rahi-store 0.2.0",
+ "rahi-types 0.2.0",
+ "s3-simple",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
  "url",
 ]
 
@@ -3336,13 +3397,39 @@ dependencies = [
  "fs4",
  "getrandom 0.4.3",
  "nix",
- "rahi-idp",
- "rahi-kernel",
- "rahi-ledger",
- "rahi-store",
- "rahi-types",
+ "rahi-idp 0.1.0",
+ "rahi-kernel 0.1.0",
+ "rahi-ledger 0.1.0",
+ "rahi-store 0.1.0",
+ "rahi-types 0.1.0",
  "reqwest",
  "ring",
+ "serde",
+ "serde_json",
+ "tar",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
+name = "rahi-ops"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5013d4155318f34f3a96b2800e140f73b5ec34a5406ef87bfc9eeffdd287183f"
+dependencies = [
+ "age",
+ "base64 0.22.1",
+ "fs4",
+ "getrandom 0.4.3",
+ "nix",
+ "rahi-idp 0.2.0",
+ "rahi-kernel 0.2.0",
+ "rahi-ledger 0.2.0",
+ "rahi-store 0.2.0",
+ "rahi-types 0.2.0",
+ "reqwest",
+ "ring",
+ "rusqlite",
  "serde",
  "serde_json",
  "tar",
@@ -3358,9 +3445,24 @@ checksum = "5bf499a79f435e445242abeb87bb03a6eef01bda5aeefcbe6dffc0b82bddb7b4"
 dependencies = [
  "futures-core",
  "hiqlite",
- "rahi-types",
+ "rahi-types 0.1.0",
  "serde",
  "serde_json",
+]
+
+[[package]]
+name = "rahi-store"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "33054b010c5c5c583f1210cb751b57f7e4b8b046a787bb8bd21cb75dae7c953e"
+dependencies = [
+ "attest-ledger-core",
+ "futures-core",
+ "hiqlite",
+ "rahi-types 0.2.0",
+ "serde",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
@@ -3368,6 +3470,15 @@ name = "rahi-types"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c97a0686e97cc3cf97fa4934edebe9c17421d49cfb57f6d13991ff73f97c66a2"
+dependencies = [
+ "serde",
+]
+
+[[package]]
+name = "rahi-types"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f8e7a2cb790d68ce0da3bed73b31f72a7b9b96261380aa3699f47e24525bf281"
 dependencies = [
  "serde",
 ]

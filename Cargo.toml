@@ -28,7 +28,7 @@ rahi-ledger = "=0.1.0"
 rahi-kernel = "=0.1.0"
 rahi-idp = "=0.1.0"
 rahi-edge = "=0.1.0"
-rahi-ops = "=0.1.0"
+rahi-ops = "=0.2.0"
 rahi-harness = "=0.1.0"
 rahi-cli = "=0.1.0"
 
