@@ -136,11 +136,20 @@ admitted claim is appended, is 052's.
 
 - **B-8 (user corrections).** A correction is a proposal by a human actor
   whose evidence includes `UserStatement` and which names the claim it
-  corrects. On admission it is appended with a `Supersedes` relation (050
-  B-11) to the corrected claim at `UserCorrected` authority. The corrected
-  claim's row is unchanged. A correction by an agent is admitted, if at
-  all, at the level its other evidence earns and never supersedes a claim
-  of higher authority (B-10).
+  corrects. It is admitted at `UserCorrected` authority and the corrected
+  claim's row is unchanged. What relation it carries depends on where the
+  corrected claim came from. A claim is **user-sourced** when the evidence
+  that admitted it is a `UserStatement` by the owner of its scope, and
+  **supplier-sourced** otherwise (for travel: a carrier, hotel, or agency
+  message, or anything extracted from one).
+  - Correcting a user-sourced claim appends a `Supersedes` relation (050
+    B-11), so the correction replaces the earlier statement in the view.
+  - Correcting a supplier-sourced claim never overwrites it. The
+    correction is appended with a `Contradicts` relation, both claims are
+    retained, and the conflict is surfaced (052 B-8 reports the slot as
+    `Conflicted`, and a review item is raised under 023).
+  A correction by an agent is admitted, if at all, at the level its other
+  evidence earns and never supersedes a claim of higher authority (B-10).
 - **B-9 (the claim verdict).** `Gate::evaluate_claim(&ClaimProposal,
   &RegistrySnapshot, &AdmissionPolicy) -> ClaimVerdict` is pure, like
   `Gate::evaluate` (013 B-10): no clock, no randomness, no network, no store
@@ -155,7 +164,9 @@ admitted claim is appended, is 052's.
 - **B-10 (supersession needs authority).** A proposal that carries a
   `Supersedes` relation to a claim of higher authority is held for review,
   never admitted automatically. This is the rule that stops a later,
-  lower-authority extraction from overriding a traveler's correction.
+  lower-authority extraction from overriding a traveler's correction. A
+  `Supersedes` relation from a user-sourced proposal to a supplier-sourced
+  claim is refused as `PolicyDenied` (B-8: the relation is `Contradicts`).
 - **B-11 (every admission is recorded).** An admission writes a
   `claim_admission` row in the same transaction as the claim's append
   (052): the claim id, the proposal id, the policy id and version, the
@@ -176,9 +187,11 @@ admitted claim is appended, is 052's.
 - **B-13 (review before admission).** The initial policy qualifies no
   predicate (D-6): every proposal the gate does not refuse is `Hold`, and
   is admitted only when re-evaluated with a `ReviewApproval` from a human
-  reviewer (023). An authenticated human's own `UserStatement` about a
-  claim in a scope they own is that human's review of it, so a traveler's
-  correction is admitted without a second reviewer (Q-6). A predicate joins
+  reviewer (023). A signed-in principal's `UserStatement` about their own
+  data (their profile, preferences, and trips, that is, claims in a scope
+  they own) is that principal's review of it: it is admitted at the user
+  authority level with no second reviewer (D-7), under B-8's rule for
+  supplier-sourced claims. A predicate joins
   the qualified set only after it passes qualification against
   independently labeled data, recorded as a later owner decision, and only
   by a new policy version.
@@ -194,10 +207,17 @@ admitted claim is appended, is 052's.
 - **FR-004.** A proposal whose `Text` value contains a credential is
   refused with `SecretDetected`, and its Decision carries no substring of
   the value (013 FR-002 applied to claims).
-- **FR-005.** A traveler's correction of a departure time is admitted at
-  `UserCorrected`, the corrected claim's row is byte-identical before and
-  after, and a later model extraction of the old value is held rather than
-  admitted.
+- **FR-005.** A traveler's correction of their own seat preference (a
+  user-sourced claim) is admitted at `UserCorrected` without a
+  `ReviewApproval` and supersedes the earlier preference; the earlier row
+  is byte-identical before and after, and a later model extraction of the
+  old value is held rather than admitted.
+- **FR-010.** A traveler's correction of a departure time taken from a
+  carrier email (a supplier-sourced claim) is admitted at `UserCorrected`
+  with a `Contradicts` relation, the supplier claim's row is byte-identical
+  before and after, both remain in history, a review item is raised, and a
+  proposal carrying `Supersedes` from the correction to the supplier claim
+  is refused.
 - **FR-006.** A proposal citing a quarantined observation is refused with
   `SourceUnavailable`.
 - **FR-007.** Re-running the gate over a stored proposal with the policy
@@ -250,10 +270,17 @@ supersession ordering, and projection (052).
   only after that predicate passes qualification with independently
   labeled data, recorded as a later owner decision (B-12, B-13). Model
   scores can never admit or raise authority (B-6). This resolves Q-3.
+- **D-7 (2026-09-24, owner decision).** The owner's answer: "I agree with your recommendations so proceed". A
+  signed-in principal's correction to their own profile, preferences, and
+  trips counts as their review and is admitted at the user authority
+  level, with no second reviewer for own-data corrections. It never
+  overwrites supplier-sourced claims: when a user correction contradicts a
+  supplier claim, both are retained and a conflict is surfaced (B-8, B-13,
+  FR-005, FR-010; 052 B-8). This resolves Q-6.
 
 ## 8. Open questions
 
-Q-1 to Q-3 were resolved by D-4 to D-6.
+Q-1 to Q-3 were resolved by D-4 to D-6, and Q-6 by D-7.
 
 - **Q-4 (proposal retention).** Are proposals kept forever, or erased on a
   retention schedule once admitted or refused? They hold extracted values,
@@ -261,11 +288,6 @@ Q-1 to Q-3 were resolved by D-4 to D-6.
 - **Q-5 (quarantine for claims).** 013 stores a quarantined memory with a
   status. This draft holds a claim as a proposal instead of storing a
   quarantined claim. Is a quarantined-claim status needed for recall?
-- **Q-6 (a user's own statement as review).** B-13 treats an
-  authenticated human's statement about their own scope as that human's
-  review. This is this draft's reading of D-6, not an owner decision; the
-  stricter reading holds user corrections for a second reviewer.
-
 ## 9. Obligations
 
 Declared in the spec-spine 106 grammar, to be lifted into the frontmatter
@@ -280,6 +302,7 @@ obligations:
   - { id: "I-3", kind: invariant, text: "A model score never admits a proposal, raises its authority, or lets it supersede another claim.", anchor: "3-2-evidence-and-authority" }
   - { id: "I-4", kind: invariant, text: "A lower-authority proposal never supersedes a higher-authority claim without review.", anchor: "3-3-the-gate-and-the-record" }
   - { id: "I-5", kind: invariant, text: "A correction is appended; it never edits or deletes the corrected claim.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "I-7", kind: invariant, text: "A user correction never overwrites a supplier-sourced claim; a contradiction between them retains both and is surfaced.", anchor: "3-3-the-gate-and-the-record" }
   - { id: "I-6", kind: invariant, text: "Under the initial policy no proposal is admitted without a human review.", anchor: "3-3-the-gate-and-the-record" }
   - { id: "R-2", kind: requirement, text: "The ledger receives one Decision per admission batch listing claim ids, and one per refusal, hold, correction and policy change, never a claim value.", anchor: "3-3-the-gate-and-the-record" }
   - { id: "R-1", kind: requirement, text: "Claim admission is pure and reproducible from the proposal, the registry snapshot, and the policy version.", anchor: "3-3-the-gate-and-the-record" }

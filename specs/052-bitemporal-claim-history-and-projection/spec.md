@@ -147,7 +147,12 @@ additive extension of 014's erasure so erasure reaches claims.
   values are equal, they are one value with corroborating claims. When
   they remain tied with different values, the slot's state is
   `Conflicted` with both candidates, and a `Contradicts` relation is
-  proposed for review (017 B-10's rule: surfaced, not resolved).
+  proposed for review (017 B-10's rule: surfaced, not resolved). One rule
+  precedes all of these: when a user-sourced claim and a supplier-sourced
+  claim (051 B-8) are both candidates with different values, neither
+  authority nor source order decides. The slot is `Conflicted` with both,
+  so a traveler's correction and a carrier's value are shown side by side
+  rather than one hiding the other (051 D-7).
 - **B-9 (comparison under precision and uncertainty).** A bound at day
   precision covers its whole civil day in its zone; a bound with
   uncertainty covers its window; a `Floating` time widens by the policy's
@@ -188,7 +193,8 @@ additive extension of 014's erasure so erasure reaches claims.
   repositories stage into the caller's `TxnBuilder` and never open their
   own, so a consumer cell that links aicortex as a library (050 D-4) also
   commits its inbound receipt (`rahi://045`, draft) and the source
-  observation in the same transaction. Every
+  observation in the same transaction. That library mode is blocked on
+  rahi's named migration sets (050 D-9). Every
   repository statement carries the scope predicate (012 B-3).
 - **B-14 (history reads are bounded).** `ClaimRepo::history(scope,
   subject, predicate?, TxBound)` pages by `(tx.seq)` and is bounded by the
@@ -226,6 +232,10 @@ additive extension of 014's erasure so erasure reaches claims.
   value, span, subject key, or slot key from it is readable, its claims
   are tombstones, and a view over the slot reports `Absent` or the next surviving claim; without
   cascade, its claims are marked `origin_erased` and still project.
+- **FR-010.** A slot holding a supplier-sourced departure time and a
+  user-sourced correction of it with a different value projects as
+  `Conflicted` with both claim ids, whatever their authority levels and
+  source order.
 
 ## 5. Acceptance criteria
 

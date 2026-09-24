@@ -108,6 +108,12 @@ consumer can commit its inbound receipt (`rahi://045`, draft), the source
 observation, the admitted claims, and their outbox work in one
 transaction.
 
+Operator prerequisite: library mode needs rahi's named migration sets
+(`rahi://named-migration-sets`, planned, being drafted in the rahi
+repository), so aicortex's migrations are registered as their own set in
+the host cell and never renumbered into its sequence (D-9). Until a rahi
+release carries it, library mode is blocked.
+
 ## 3. Behavior
 
 ### 3.1 The claim
@@ -359,11 +365,24 @@ versioned in travel-memory.
   `README.md`) and moves by the same kind of change as 001 D-7. Until it
   moves, obligations stay in section 9 of each spec rather than in
   frontmatter.
+- **D-9 (2026-09-24, owner decision).** The owner's answer: "I agree with your recommendations so proceed". A linked
+  library registers its own named migration set in the host cell, and the
+  host tracks each set's version independently; aicortex never renumbers
+  its migrations into the host's sequence. This needs chassis support,
+  which is being drafted separately in the rahi repository as "named
+  migration sets". Recorded here as a planned external reference,
+  `rahi://named-migration-sets`, with no rahi spec id yet: that spec is not
+  in rahi's corpus, so no edge can name it. aicortex's library mode (D-4)
+  is blocked on it. A build session for 050 to 052 that finds no released
+  rahi with named migration sets stops and reports the missing
+  prerequisite rather than composing migrations by hand (AGENTS.md,
+  "Working the backlog" step 1). This resolves Q-8.
 
 ## 8. Open questions
 
-Q-1 (consumption mode), Q-6 (span digests), and Q-7 (build order) were
-resolved by D-4, D-6, and D-5 and are not repeated here.
+Q-1 (consumption mode), Q-6 (span digests), Q-7 (build order), and Q-8
+(composing migrations) were resolved by D-4, D-6, D-5, and D-9 and are not
+repeated here.
 
 - **Q-2 (who registers).** Which subject may register a namespace and a
   version: an operator only, the namespace's first registrant, or a
@@ -382,13 +401,6 @@ resolved by D-4, D-6, and D-5 and are not repeated here.
   content-addressed encoding compatible with statecraft-envelope's
   `FactEnvelope`, so a claim can be cited from a Statecraft scope by
   digest? Not decided, and not required by travel-memory.
-- **Q-8 (composing migrations).** A consumer cell has its own migration
-  list, and 012 B-1 numbers aicortex's migrations from 1. Linking aicortex
-  as a library needs a rule for placing aicortex's migrations in the host
-  cell's single version sequence (a reserved version range, a host-supplied
-  offset, or rahi support for more than one migration namespace per store).
-  The last would be a rahi spec, not a local divergence (constitution VI).
-
 ## 9. Obligations
 
 Declared in the spec-spine 106 grammar, to be lifted into the frontmatter

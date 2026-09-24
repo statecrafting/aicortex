@@ -156,6 +156,6 @@
     "summary": "Three things that ingest pipelines routinely blur are kept apart: an observation (the source as received, stored as a memory through 013's gate), a proposal (a typed claim some actor suggests, with its evidence), and an admitted claim (a proposal the gate accepted under a named policy, with a decision record). Admission reuses the existing gate crate and its purity, adds a claim verdict whose `AdmittedClaim` only the gate can mint, and records every admission. Model-produced scores are stored as evidence and never serve as authority. A user's correction is first-class evidence carrying an authority level, and it is appended, never an edit.\n",
     "title": "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
   },
-  "shardHash": "66b43409c7ad44da23f6e701604a3f5e4afe99985a9b4cba65c53e2e1fff766c",
+  "shardHash": "5ea1e30937d90a715249e63064420d29c77d36d564c01e2fd54d405d7830e617",
   "specVersion": "1.3.0"
 }
