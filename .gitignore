@@ -31,3 +31,4 @@ eval/corpora/
 # local overlays
 .idea/
 .DS_Store
+.tooling/

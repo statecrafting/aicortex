@@ -19,7 +19,7 @@ is `approved` and `implementation: pending`, and spec ordinals are the build
 order. Code arrives one spec per session under `crates/`, `apps/`, `eval/`,
 `docker/`, and `deploy/`.
 
-Governance is `spec-spine` **0.25.0** on your `PATH` (CI pins the same
+Governance is `spec-spine` **0.26.0** on your `PATH` (CI pins the same
 version, and `spec-spine.toml [meta] required_version` makes the CLI refuse
 to run below it). All governed reads of `.derived/` go through its CLI.
 

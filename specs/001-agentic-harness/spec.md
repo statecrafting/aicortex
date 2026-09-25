@@ -119,7 +119,7 @@ constitution is 000's; this spec owns the operational summary of it.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.25.0
+- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.26.0
   on `PATH`.
 - **AC-2.** `scripts/spec-dag.sh` reports the corpus acyclic with every
   dependency lower-numbered.
@@ -443,6 +443,16 @@ consumes this repository as a registered target.
   obligations into frontmatter; 0.25.0 accepts the `obligations` key, and
   lifting them is its own change (050 D-8). It does not re-copy
   `.claude/settings.json` from the kit, for the reason D-10 gives.
+- **D-12 (2026-09-25, owner decision, exact pin at 0.26.0).** The
+  Statecraft CI profile the family is adopting (`github-actions-rust`)
+  requires an exact pin, and the owner's work order of 2026-09-25 moves it
+  to the latest published release, 0.26.0. `spec-spine.toml [meta]
+  required_version` becomes `=0.26.0` (a range no longer), and every site
+  D-11 names moves to 0.26.0. The committed tree moves only in the
+  codebase-index shards, whose `shardHash` is rewritten; registry shards
+  change only where this entry and AC-1 changed 001's text.
+  `.tooling/` (the worktree-local pinned binaries the profile installs) is
+  gitignored.
 
 ## Verification
 
