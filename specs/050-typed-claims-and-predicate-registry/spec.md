@@ -1,7 +1,7 @@
 ---
 id: "050-typed-claims-and-predicate-registry"
 title: "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
-status: draft
+status: approved
 kind: "kernel"
 domain: "memory"
 created: "2026-09-24"

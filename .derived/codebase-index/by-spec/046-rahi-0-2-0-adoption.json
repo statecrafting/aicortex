@@ -124,8 +124,8 @@
       }
     ],
     "specId": "046-rahi-0-2-0-adoption",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "941a9618a20815654c4b14712c9fca4bb3e0abd136d1dd4f63fbcfbfa0499a96"
+  "shardHash": "ee05a92f651f707ba7e2091a275e2cdf41c3d57ed70a6e8663b6cf508672b33b"
 }

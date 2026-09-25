@@ -1,7 +1,7 @@
 ---
 id: "052-bitemporal-claim-history-and-projection"
 title: "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
-status: draft
+status: approved
 kind: "kernel"
 domain: "memory"
 created: "2026-09-24"

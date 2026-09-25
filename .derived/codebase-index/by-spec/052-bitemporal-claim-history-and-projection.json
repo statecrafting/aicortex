@@ -296,8 +296,8 @@
       }
     ],
     "specId": "052-bitemporal-claim-history-and-projection",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e29de914071c6b36338f731418258413cfc96930412b1f5720b30385e56701a1"
+  "shardHash": "67dfc1be98e9f798496080993aa57551f9c721f02da9a3e6df46c6dc825b0b0d"
 }

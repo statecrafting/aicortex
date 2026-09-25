@@ -88,10 +88,10 @@
       "Verification"
     ],
     "specPath": "specs/046-rahi-0-2-0-adoption/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "The nine rahi crates are pinned at `=0.1.0`. rahi 0.2.0 is published on crates.io for all nine and is a minor release that changes the consumer contract: migrations gain an `additive` declaration and the store records a checksum per applied version, restore and first-boot export change their Rust API, backups authenticate with a dedicated passkey, and the ledger gains lifetime decision identity. This spec moves all nine pins in one change, keeps the exact-pin rule of spec 010, decides for each shipped migration whether it is additive, and re-runs spec 010's supply-chain revisit against the new tree. It must land before any claim-history migration (050 to 052) is written, so those migrations are authored against the 0.2.0 contract.\n",
     "title": "Move every chassis pin to rahi 0.2.0 together, and declare which migrations are additive"
   },
-  "shardHash": "db80a26a0d4c904c60e7b85c1e421fabbe8b956921b0ee927f574a9ce7e1dbe2",
+  "shardHash": "36493b21b0ca1803687e70d3620d08f6aa881839f229be56bf3902998d9ad73f",
   "specVersion": "1.3.0"
 }

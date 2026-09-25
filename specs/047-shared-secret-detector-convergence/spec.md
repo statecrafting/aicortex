@@ -1,7 +1,7 @@
 ---
 id: "047-shared-secret-detector-convergence"
 title: "Converge secret detection upward: aicortex's detectors move into action-gate, and aicortex consumes them"
-status: draft
+status: approved
 kind: "feature"
 domain: "memory"
 created: "2026-09-24"

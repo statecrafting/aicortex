@@ -374,8 +374,8 @@
       }
     ],
     "specId": "050-typed-claims-and-predicate-registry",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "a9dcf30b605c8881525235c2dfc40c3ad0777fe2965734ff78310475b97e600d"
+  "shardHash": "393c03e296c76494e73a26db5940543c794ecb46070dd307765ba5cd5dd11aa9"
 }

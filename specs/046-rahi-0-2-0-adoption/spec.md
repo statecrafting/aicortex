@@ -1,7 +1,7 @@
 ---
 id: "046-rahi-0-2-0-adoption"
 title: "Move every chassis pin to rahi 0.2.0 together, and declare which migrations are additive"
-status: draft
+status: approved
 kind: "tooling"
 domain: "chassis"
 created: "2026-09-24"

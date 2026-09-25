@@ -1,7 +1,7 @@
 ---
 id: "051-claim-admission-and-authority"
 title: "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
-status: draft
+status: approved
 kind: "kernel"
 domain: "memory"
 created: "2026-09-24"
