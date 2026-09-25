@@ -203,7 +203,11 @@ which are deployment configuration.
     that TTL plus one second. No test here yet exercises a full-node
     restart with a lease held.
 
-  AC-1 holds on this tree (`--test lifecycle` and `--test erasure` pass).
+  Both acceptance criteria hold on this tree: AC-1 (`--test lifecycle`,
+  15 passed, and `--test erasure`, 13 passed and 1 ignored), and AC-2
+  through that ignored test, `ac2_literal_cli_verifies_a_real_erased_fixture`,
+  run with `AICORTEX_VERIFY_BINARY` set to the `aicortex` binary built from
+  this tree (1 passed).
   014 stays `implementation: in-progress` because H-2 is a reproduced
   crash of the lock handler on the lease-handoff path B-9 relies on, and
   the 2026-09-17 entries make its repair a completion prerequisite. 052
