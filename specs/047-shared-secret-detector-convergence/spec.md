@@ -6,7 +6,7 @@ kind: "feature"
 domain: "memory"
 created: "2026-09-24"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: high
 wave: 4
 depends_on:
