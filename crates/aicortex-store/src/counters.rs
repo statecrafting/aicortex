@@ -44,10 +44,14 @@ pub struct Counters;
 /// `ON CONFLICT ... DO UPDATE` rather than a read followed by a write,
 /// because a read outside the transaction would be a lost update under a
 /// concurrent capture and a read inside it would be a second round-trip.
+///
+/// `?NNN` rather than `$n`, because the statement names the delta twice:
+/// SQLite numbers `$n` by first appearance and hiqlite binds by position, so
+/// a reused `$n` is one reorder away from a silent misbinding (012 D-9).
 const ADJUST_SQL: &str = "INSERT INTO scope_counter (scope_id, kind, status, count)
-    VALUES ($1, $2, $3, $4)
+    VALUES (?1, ?2, ?3, ?4)
     ON CONFLICT (scope_id, kind, status)
-    DO UPDATE SET count = max(0, scope_counter.count + $4)";
+    DO UPDATE SET count = max(0, scope_counter.count + ?4)";
 
 /// The whole of `stats` (B-6): one statement, one scope, no memory table.
 const STATS_SQL: &str = "SELECT kind, status, count FROM scope_counter WHERE scope_id = $1";
