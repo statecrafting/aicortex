@@ -34,6 +34,7 @@ extends:
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/provenance.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "001-agentic-harness", unit: "standards/spec/contract.md", nature: additive }
 amends:
   - "002-memory-thesis"
 amends_sections:

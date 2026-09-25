@@ -107,6 +107,10 @@
       {
         "path": "crates/aicortex-types/src/provenance.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "standards/spec/contract.md",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -291,6 +295,19 @@
       {
         "locations": [
           {
+            "file": "standards/spec/contract.md"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/contract.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "Cargo.toml",
             "span": {
               "endLine": 98,
@@ -377,5 +394,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "393c03e296c76494e73a26db5940543c794ecb46070dd307765ba5cd5dd11aa9"
+  "shardHash": "a70c0dec43ea474623dbe2ad8309dd6c46f1c4bd41b01fe242c69d3257110e47"
 }

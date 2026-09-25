@@ -135,6 +135,14 @@
           "kind": "file",
           "path": "crates/aicortex-store/src/migrations.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/contract.md"
+        }
       }
     ],
     "extraFrontmatter": {
@@ -191,6 +199,6 @@
     "summary": "aicortex becomes the family's canonical owner of claim history with provenance. This spec defines what one claim says, as types, before any claim is admitted or stored: a subject reference, a predicate from a namespaced, versioned registry that a domain supplies, a typed value (text, integer, fixed-point decimal with a unit or currency, date, datetime with zone, interval, entity reference, enumeration), an epistemic status taken from the source's own stance, typed claim-to-claim relations, and source span references that extend 011's Provenance with a part, a byte or character span, and a content digest. aicortex stays domain agnostic: travel, the first consumer, registers its own predicates. Who may admit a claim is 051; when it holds and how history is kept is 052.\n",
     "title": "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
   },
-  "shardHash": "d4c8e95e7a05b187ab510e40c9423ab518a439ec33b33d24224e14ec7da73116",
+  "shardHash": "19d6e8de2f2ca82edf10f9c6426f6c27afb298dfad4d566b4c73356e61d0a037",
   "specVersion": "1.3.0"
 }
