@@ -17,8 +17,10 @@ spec = "013-write-gate-and-redaction"
 # ledger, no runtime, no clock and no randomness: `Gate::evaluate` is a pure
 # function, which is what makes the committed corpus a regression suite
 # (B-10). Spec 051 adds the pure claim validation of `aicortex-claims`,
-# which claim admission runs first (051 B-9).
+# which claim admission runs first (051 B-9). Spec 047 replaces the crate's
+# own detector tables with action-gate's registry.
 [dependencies]
+action-gate-core = { workspace = true }
 aicortex-claims = { workspace = true }
 aicortex-types = { workspace = true }
 rahi-types = { workspace = true }
@@ -33,6 +35,8 @@ unicode-normalization = { workspace = true }
 # gate, and the composition has no other home until the surface of spec 020
 # exists. `trybuild` runs the compile-fail cases of FR-004.
 [dev-dependencies]
+# Spec 047: the registry's golden vectors, for the parity tests by id.
+action-gate-core = { workspace = true, features = ["golden-vectors"] }
 aicortex-store = { workspace = true }
 rahi-ledger = { workspace = true }
 rahi-store = { workspace = true }

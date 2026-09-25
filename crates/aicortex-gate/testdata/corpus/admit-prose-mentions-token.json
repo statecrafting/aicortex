@@ -1,0 +1,13 @@
+{
+  "kind": "verdict",
+  "name": "admit-prose-mentions-token",
+  "why": "prose that uses the word token is not an assignment and is stored as written (047 B-6, FR-002)",
+  "origin": "authenticated",
+  "body": {
+    "text": "Rotate the deploy token every quarter; the token itself lives in the vault and never in a note."
+  },
+  "expect": {
+    "verdict": "admit"
+  },
+  "normalized_text": "Rotate the deploy token every quarter; the token itself lives in the vault and never in a note."
+}

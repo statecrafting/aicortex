@@ -60,6 +60,12 @@ aicortex-store = { path = "crates/aicortex-store", version = "=0.1.0" }
 aicortex-gate = { path = "crates/aicortex-gate", version = "=0.1.0" }
 aicortex-claims = { path = "crates/aicortex-claims", version = "=0.1.0" }
 
+# The family's secret detector registry (spec 047): aicortex-gate consumes
+# its tables and scan instead of keeping its own. Exact pin, as the chassis
+# is (047 B-4); default features only, so no `regex` (action-gate 001 D-1).
+# `golden-vectors` is enabled by aicortex-gate's tests alone.
+action-gate-core = { version = "=0.2.0", default-features = false }
+
 # The wire the round-trip fixtures of 011 are written in, and the canonical
 # form spec 012 D-3 stores a memory record as. The chassis locks it already.
 serde_json = "1"
