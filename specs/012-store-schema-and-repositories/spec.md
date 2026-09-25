@@ -228,6 +228,25 @@ edges (017), ingest state (030), review queue (023).
   `migrate` twice, and the block now runs it. A green command is not
   evidence for a criterion it does not exercise. The file is claimed by
   this spec rather than by 010, because it proves 012's acceptance.
+- **D-9 (2026-09-25, owner work order; `$n` placeholders).** SQLite reads
+  `$1` as a named parameter and numbers named parameters by their first
+  appearance, while hiqlite binds positionally (rahi 045 D-23), so a
+  statement whose `$n` first appear out of order binds the wrong values
+  silently. The owner's work order of 2026-09-25 converts every statement
+  that reuses a `$n`, or whose `$n` do not first appear in ascending order,
+  to SQLite's explicit `?NNN`. Scan: every plain string literal in
+  `crates/` and `apps/` holding a `$n` (35 literals: 24 in
+  `crates/aicortex-store/src`, 11 in its tests), each checked for reuse and
+  for first-appearance order. None was out of order; two reused a
+  placeholder, `ADJUST_SQL` in `counters.rs` (`$4`) and `PARENTS_SQL` in
+  `provenance_repo.rs` (`$1`). Because each reuse first appeared in order,
+  both bound correctly and no stored data was affected; they are converted
+  so the hazard cannot arrive with a later edit. `tests/schema.rs` gains
+  `d9_no_statement_reuses_or_reorders_a_dollar_placeholder`, over the
+  crate's sources with the FR-007 scanner, and
+  `d9_the_check_refuses_the_statements_it_replaced`, which refuses both old
+  texts. Rejected: converting every statement to `?NNN`, which changes 22
+  correct statements for no behavioral gain.
 
 ## Verification
 

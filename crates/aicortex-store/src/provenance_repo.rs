@@ -42,11 +42,12 @@ const GET_SQL: &str = "SELECT source_system, source_external_id, source_locator,
 /// The scope predicate is on the derivation row, and the `EXISTS` clause is
 /// scoped too: a parent id that names a memory in another scope is not
 /// returned, because a cross-scope derivation is not a relationship this
-/// system exposes (B-9).
+/// system exposes (B-9). The scope is named twice, so the statement uses
+/// `?NNN` rather than `$n` (012 D-9).
 const PARENTS_SQL: &str = "SELECT parent_id FROM memory_derivation
-    WHERE scope_id = $1 AND memory_id = $2
+    WHERE scope_id = ?1 AND memory_id = ?2
       AND EXISTS (SELECT 1 FROM memory
-                  WHERE memory.scope_id = $1 AND memory.id = memory_derivation.parent_id)
+                  WHERE memory.scope_id = ?1 AND memory.id = memory_derivation.parent_id)
     ORDER BY position";
 
 #[derive(Debug, Deserialize)]

@@ -359,3 +359,82 @@ fn fr007_the_check_refuses_an_unscoped_select() {
         "a literal carrying // was cut short"
     );
 }
+
+// D-9. `$n` placeholders: SQLite numbers them by first appearance, and
+// hiqlite binds parameters by position (rahi 045 D-23). A statement whose
+// `$n` are reused, or first appear out of ascending order, is written with
+// SQLite's explicit `?NNN` instead.
+
+/// The `$n` placeholders of `literal`, in the order they appear.
+fn dollar_placeholders(literal: &str) -> Vec<u32> {
+    let mut found = Vec::new();
+    let mut characters = literal.chars().peekable();
+    while let Some(character) = characters.next() {
+        if character != '$' {
+            continue;
+        }
+        let mut digits = String::new();
+        while let Some(digit) = characters.peek().filter(|next| next.is_ascii_digit()) {
+            digits.push(*digit);
+            characters.next();
+        }
+        if let Ok(number) = digits.parse() {
+            found.push(number);
+        }
+    }
+    found
+}
+
+/// Whether `literal` names a `$n` twice, or its `$n` do not first appear as
+/// `$1`, `$2`, ... in that order.
+fn misbinds_positionally(literal: &str) -> bool {
+    let placeholders = dollar_placeholders(literal);
+    let expected = (1..).take(placeholders.len());
+    !placeholders.iter().copied().eq(expected)
+}
+
+#[test]
+fn d9_no_statement_reuses_or_reorders_a_dollar_placeholder() {
+    let sources = crate_sources();
+    let statements: Vec<String> = sources
+        .iter()
+        .flat_map(|(_, source)| string_literals(source))
+        .filter(|literal| !dollar_placeholders(literal).is_empty())
+        .collect();
+    assert!(
+        statements.len() >= 10,
+        "the scanner found only {} statements with `$n`: {statements:#?}",
+        statements.len()
+    );
+    let problems: Vec<&String> = statements
+        .iter()
+        .filter(|literal| misbinds_positionally(literal))
+        .collect();
+    assert!(problems.is_empty(), "D-9 does not hold: {problems:#?}");
+}
+
+#[test]
+fn d9_the_check_refuses_the_statements_it_replaced() {
+    // The two statements as they stood before D-9.
+    for defect in [
+        "INSERT INTO scope_counter (scope_id, kind, status, count)
+    VALUES ($1, $2, $3, $4)
+    ON CONFLICT (scope_id, kind, status)
+    DO UPDATE SET count = max(0, scope_counter.count + $4)",
+        "SELECT parent_id FROM memory_derivation
+    WHERE scope_id = $1 AND memory_id = $2
+      AND EXISTS (SELECT 1 FROM memory
+                  WHERE memory.scope_id = $1 AND memory.id = memory_derivation.parent_id)
+    ORDER BY position",
+        "SELECT x FROM t WHERE b = $2 AND a = $1",
+    ] {
+        assert!(misbinds_positionally(defect), "the check accepted {defect}");
+    }
+    for fine in [
+        "SELECT record FROM memory WHERE scope_id = $1 AND id = $2",
+        "SELECT x FROM t WHERE a = ?1 AND b = ?2 AND c = ?1",
+        "SELECT kind FROM scope_counter WHERE scope_id = $1",
+    ] {
+        assert!(!misbinds_positionally(fine), "the check refused {fine}");
+    }
+}
