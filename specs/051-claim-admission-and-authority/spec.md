@@ -33,6 +33,16 @@ references:
   - { unit: { kind: file, path: "specs/014-memory-lifecycle-and-erasure/spec.md" }, role: constraint }
   - { unit: { kind: file, path: "specs/023-review-and-promotion/spec.md" }, role: context }
   - { unit: { kind: file, path: "specs/024-decision-and-audit-references/spec.md" }, role: context }
+obligations:
+  - { id: "I-1", kind: invariant, text: "No admitted claim exists without provenance and an admission record naming its policy version.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "I-2", kind: invariant, text: "An admitted claim is constructible only by the gate.", anchor: "3-1-three-layers" }
+  - { id: "I-3", kind: invariant, text: "A model score never admits a proposal, raises its authority, or lets it supersede another claim.", anchor: "3-2-evidence-and-authority" }
+  - { id: "I-4", kind: invariant, text: "A lower-authority proposal never supersedes a higher-authority claim without review.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "I-5", kind: invariant, text: "A correction is appended; it never edits or deletes the corrected claim.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "I-7", kind: invariant, text: "A user correction never overwrites a supplier-sourced claim; a contradiction between them retains both and is surfaced.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "I-6", kind: invariant, text: "Under the initial policy no proposal is admitted without a human review.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "R-2", kind: requirement, text: "The ledger receives one Decision per admission batch listing claim ids, and one per refusal, hold, correction and policy change, never a claim value.", anchor: "3-3-the-gate-and-the-record" }
+  - { id: "R-1", kind: requirement, text: "Claim admission is pure and reproducible from the proposal, the registry snapshot, and the policy version.", anchor: "3-3-the-gate-and-the-record" }
 summary: >
   Three things that ingest pipelines routinely blur are kept apart: an
   observation (the source as received, stored as a memory through 013's
@@ -290,23 +300,9 @@ Q-1 to Q-3 were resolved by D-4 to D-6, and Q-6 by D-7.
   quarantined claim. Is a quarantined-claim status needed for recall?
 ## 9. Obligations
 
-Declared in the spec-spine 106 grammar, to be lifted into the frontmatter
-`obligations` key when this repository's spec-spine pin moves to 0.25.0,
-which is a separate follow-up (050 D-8; below 0.25.0 the key is a compile
-error, `V-002`).
-
-```yaml
-obligations:
-  - { id: "I-1", kind: invariant, text: "No admitted claim exists without provenance and an admission record naming its policy version.", anchor: "3-3-the-gate-and-the-record" }
-  - { id: "I-2", kind: invariant, text: "An admitted claim is constructible only by the gate.", anchor: "3-1-three-layers" }
-  - { id: "I-3", kind: invariant, text: "A model score never admits a proposal, raises its authority, or lets it supersede another claim.", anchor: "3-2-evidence-and-authority" }
-  - { id: "I-4", kind: invariant, text: "A lower-authority proposal never supersedes a higher-authority claim without review.", anchor: "3-3-the-gate-and-the-record" }
-  - { id: "I-5", kind: invariant, text: "A correction is appended; it never edits or deletes the corrected claim.", anchor: "3-3-the-gate-and-the-record" }
-  - { id: "I-7", kind: invariant, text: "A user correction never overwrites a supplier-sourced claim; a contradiction between them retains both and is surfaced.", anchor: "3-3-the-gate-and-the-record" }
-  - { id: "I-6", kind: invariant, text: "Under the initial policy no proposal is admitted without a human review.", anchor: "3-3-the-gate-and-the-record" }
-  - { id: "R-2", kind: requirement, text: "The ledger receives one Decision per admission batch listing claim ids, and one per refusal, hold, correction and policy change, never a claim value.", anchor: "3-3-the-gate-and-the-record" }
-  - { id: "R-1", kind: requirement, text: "Claim admission is pure and reproducible from the proposal, the registry snapshot, and the policy version.", anchor: "3-3-the-gate-and-the-record" }
-```
+Declared in the frontmatter `obligations` key (spec-spine 106 grammar),
+lifted there from this section once the pin moved to 0.25.0 (050 D-8,
+001 D-11).
 
 ## Verification
 

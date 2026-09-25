@@ -57,6 +57,26 @@
     "id": "046-rahi-0-2-0-adoption",
     "implementation": "pending",
     "kind": "tooling",
+    "obligations": [
+      {
+        "anchor": "3-behavior",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "All nine rahi crates resolve to one exact version."
+      },
+      {
+        "anchor": "3-behavior",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "No shipped migration's SQL is edited; a correction is a new migration."
+      },
+      {
+        "anchor": "3-behavior",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Every shipped migration's additive status is declared and recorded per version."
+      }
+    ],
     "references": [
       {
         "role": "constraint",
@@ -75,7 +95,7 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "046-rahi-0-2-0-adoption": "45006433ad43ffa5318a08ee288991bef4b3449f36291e1b8fcfc5964c794bfb",
+      "046-rahi-0-2-0-adoption": "9d4b61ef01252ccaad85c0ea931e733763bdcd15e1bdc6028b34b8d16fde731a",
       "1-purpose": "9e6a79cdae4bec54138c3a511be07fe29ffe8ed4ebcd29c14d4086bf55ae13cc",
       "2-territory": "18588d2e762f9b86c25d2a92316038efbcce7716b6588e6c9b25f8748afb4959",
       "3-behavior": "73e998557897841e4b6926f9cd25b1983711abf0cf08a6650444b669f57d4936",
@@ -84,7 +104,7 @@
       "6-out-of-scope": "fe4fe801d189f3a49cf1be964bf098516ff9dd1867956062ec2b03e77df58f5b",
       "7-resolved-decisions": "f5731f19faa97d825ac09764a8bdd4cb046a588478ae32a6be007188d1331d11",
       "8-open-questions": "7e76143daea74ebe363322cff8feeddcdf7a6b66da32f7e0651a6dc984198bc5",
-      "9-obligations": "bc93115fa1e7f8b3e1991628926623be6a24ae16e2d03ce646cda992222dcccc",
+      "9-obligations": "a901ff41f59f2ce0cf70f77e07e47458167419dd029e94f05d8b802cc27a7d63",
       "verification": "2d616fa67f0d0181a5b79352e3326375efcd4fb88f86e69c3f275274a883c143"
     },
     "sectionHeadings": [
@@ -105,6 +125,6 @@
     "summary": "The nine rahi crates are pinned at `=0.1.0`. rahi 0.2.0 is published on crates.io for all nine and is a minor release that changes the consumer contract: migrations gain an `additive` declaration and the store records a checksum per applied version, restore and first-boot export change their Rust API, backups authenticate with a dedicated passkey, and the ledger gains lifetime decision identity. This spec moves all nine pins in one change, keeps the exact-pin rule of spec 010, decides for each shipped migration whether it is additive, and re-runs spec 010's supply-chain revisit against the new tree. It must land before any claim-history migration (050 to 052) is written, so those migrations are authored against the 0.2.0 contract.\n",
     "title": "Move every chassis pin to rahi 0.2.0 together, and declare which migrations are additive"
   },
-  "shardHash": "36493b21b0ca1803687e70d3620d08f6aa881839f229be56bf3902998d9ad73f",
+  "shardHash": "7d6891299e44617f78e9866ff2ced4595ca70bdb9cedfa544d602379f483fa4d",
   "specVersion": "1.8.0"
 }

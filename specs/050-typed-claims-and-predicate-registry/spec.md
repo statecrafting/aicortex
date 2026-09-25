@@ -47,6 +47,13 @@ references:
   - { unit: { kind: file, path: "specs/011-memory-model/spec.md" }, role: constraint }
   - { unit: { kind: file, path: "specs/017-entities-and-typed-edges/spec.md" }, role: context }
   - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
+obligations:
+  - { id: "I-1", kind: invariant, text: "No claim exists without provenance.", anchor: "3-1-the-claim" }
+  - { id: "I-2", kind: invariant, text: "A claim's predicate is registered at the version it names, and an unknown predicate is refused, never stored as free text.", anchor: "3-4-source-spans" }
+  - { id: "I-3", kind: invariant, text: "A registered predicate version is immutable, and no later version changes an existing predicate's value type or cardinality.", anchor: "3-3-epistemic-status-and-relations" }
+  - { id: "I-4", kind: invariant, text: "No claim value is a floating-point number.", anchor: "3-2-typed-values" }
+  - { id: "I-5", kind: invariant, text: "A source span carries offsets and a keyed digest, never content.", anchor: "3-4-source-spans" }
+  - { id: "R-1", kind: requirement, text: "Epistemic status records the source's stance and is never used as aicortex's authority.", anchor: "3-3-epistemic-status-and-relations" }
 summary: >
   aicortex becomes the family's canonical owner of claim history with
   provenance. This spec defines what one claim says, as types, before any
@@ -404,39 +411,9 @@ repeated here.
   digest? Not decided, and not required by travel-memory.
 ## 9. Obligations
 
-Declared in the spec-spine 106 grammar, to be lifted into the frontmatter
-`obligations` key when this repository's spec-spine pin moves to 0.25.0,
-which is a separate follow-up (D-8; below 0.25.0 the key is a compile
-error, `V-002`).
-
-```yaml
-obligations:
-  - { id: "I-1", kind: invariant, text: "No claim exists without provenance.", anchor: "3-1-the-claim" }
-  - { id: "I-2", kind: invariant, text: "A claim's predicate is registered at the version it names, and an unknown predicate is refused, never stored as free text.", anchor: "3-4-source-spans" }
-  - { id: "I-3", kind: invariant, text: "A registered predicate version is immutable, and no later version changes an existing predicate's value type or cardinality.", anchor: "3-3-epistemic-status-and-relations" }
-  - { id: "I-4", kind: invariant, text: "No claim value is a floating-point number.", anchor: "3-2-typed-values" }
-  - { id: "I-5", kind: invariant, text: "A source span carries offsets and a keyed digest, never content.", anchor: "3-4-source-spans" }
-  - { id: "R-1", kind: requirement, text: "Epistemic status records the source's stance and is never used as aicortex's authority.", anchor: "3-3-epistemic-status-and-relations" }
-```
-
-## 10. Amendment of spec 002
-
-Carried by this spec's `amends` edge and effective only when a human
-approves this spec. Spec 002's text is not edited.
-
-- **Section 2 (responsibilities).** A tenth responsibility, **claim
-  history**: typed temporal claims with provenance, admitted through the
-  gate, kept as append-only bitemporal history, and projected as a pure
-  function of history, as-of, and policy, for this product and for family
-  products that link it as a library (domain `memory`).
-- **Section 4 (crate topology).** A row for `aicortex-claims` in the
-  admission layer, founded by 050, depending on `aicortex-types` only.
-- **Section 5 (build order).** Wave 5 (050 to 059) is family claim history,
-  buildable like wave 1 with no network listener. Its exit condition is
-  the travel fixture of 052 FR-001 passing in every delivery order inside a
-  consumer cell's transaction. `standards/spec/contract.md` names waves 1
-  to 4 and is updated to match when this spec is approved (a follow-up in
-  spec 001's territory).
+Declared in the frontmatter `obligations` key (spec-spine 106 grammar),
+lifted there from this section once the pin moved to 0.25.0 (050 D-8,
+001 D-11).
 
 ## Verification
 
