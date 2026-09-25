@@ -64,11 +64,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
-        "path": "crates/aicortex-store/src/erasure.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/lib.rs' does not exist",
         "path": "crates/aicortex-api/src/lib.rs"
       },
@@ -125,6 +120,10 @@
       "042-portability-and-migration"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-store/src/erasure.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/lib.rs",
         "source": "spec-edge"
@@ -372,7 +371,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/erasure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -489,5 +492,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "307ee6501e9cd8402e958f739b1257d9fd5a5a663db1a2f1d2ccd0855277084a"
+  "shardHash": "eed935898d11d0cc8c09c61b233ca41532b5e4cf83ab0f65e1d53eac417f5fd1"
 }

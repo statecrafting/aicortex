@@ -1,61 +1,69 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/lifecycle.rs' does not exist",
-        "path": "crates/aicortex-store/src/lifecycle.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/fingerprint.rs' does not exist",
-        "path": "crates/aicortex-store/src/fingerprint.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
-        "path": "crates/aicortex-store/src/erasure.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/tests/lifecycle.rs' does not exist",
-        "path": "crates/aicortex-store/tests/lifecycle.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/tests/erasure.rs' does not exist",
-        "path": "crates/aicortex-store/tests/erasure.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
-        "path": "crates/aicortex-store/src/erasure.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '014-memory-lifecycle-and-erasure' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
-        "path": "crates/aicortex-store/src/erasure.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "013-write-gate-and-redaction"
     ],
     "implementingPaths": [
       {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/migrate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/erasure.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/fingerprint.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/lifecycle.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/memory_repo.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/common/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/erasure.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/lifecycle.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/repo.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/erasure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -64,7 +72,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/fingerprint.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -73,7 +85,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lifecycle.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -82,7 +98,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/erasure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -91,12 +111,42 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/lifecycle.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/migrate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/Cargo.toml"
         }
       },
       {
@@ -115,6 +165,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/src/migrations.rs"
           }
         ],
@@ -126,7 +189,55 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/common/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/common/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 102,
+              "startLine": 20
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/erasure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -135,7 +246,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/erasure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -161,5 +276,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ddf6136212e1feb7eab45433925f7391fd7b0ddb4eb9bee6a08cd7d918c1b2ce"
+  "shardHash": "6b0e78acbeb2b34a9b30a972193f8a004a6930720d7fc4f5d4ff3b5b1e290638"
 }

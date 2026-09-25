@@ -250,7 +250,9 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
     );
 
     // FR-002: one row per migration, with the binary's checksum and the
-    // additive flag it declared (B-2, D-2: every shipped one is additive).
+    // additive flag it declared. Every shipped migration is additive (046
+    // B-2, D-2) except spec 014's fingerprint-version migration, which 046
+    // B-2 names as not additive and 014 D-14 leaves undeclared.
     let recorded = runtime.block_on(async {
         let store = open_store(data_dir.path(), ports).await?;
         let rows = store.handle().recorded_migrations().await;
@@ -269,12 +271,18 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
             "version {} recorded another checksum",
             migration.version
         );
-        assert!(
-            migration.additive,
-            "version {} is not declared additive",
+        let expected = migration.version != aicortex_store::migrations::ERASURE_RECEIPTS_VERSION;
+        assert_eq!(
+            migration.additive, expected,
+            "version {} declares the wrong additive flag",
             migration.version
         );
-        assert_eq!(row.additive, Some(true), "version {}", migration.version);
+        assert_eq!(
+            row.additive,
+            Some(expected),
+            "version {}",
+            migration.version
+        );
     }
 
     // FR-003, first half: one additive migration ahead, `serve` starts.
