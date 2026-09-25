@@ -95,6 +95,17 @@
     "implementation": "complete",
     "kind": "kernel",
     "risk": "critical",
+    "sectionDigests": {
+      "011-the-memory-record": "37b6cc6d8e3ea7356ba16eead6d5caf3e419fdb2609f1675cf11aaa4bb966144",
+      "1-purpose": "07c6fe652433207638fac0175eabd336dd564b1e7a9e6b2d419edc8a46b1d338",
+      "2-territory": "cf3bf0b4c0c5aa3921fd8439f2aa3095be2f35aecda6b804ac2ce14488ecf62e",
+      "3-behavior": "aa3c430dbb1ed3a4770ab3b4be9d64484fbf2dc8e1e03de9bdefc43d3af72afc",
+      "4-functional-requirements": "2ca8f378174d9b24ac5e56ca0f7b54db9ee079ec268db773b682a7742db7993a",
+      "5-acceptance-criteria": "498846a3efdaa78f589b4db2102c6d06da447d92acf336a562ddee99ec736eb2",
+      "6-out-of-scope": "b5cd8eef791da67a14218d4d05fc4df5584a6444f42905da0ada8204433d7330",
+      "7-resolved-decisions": "2bbb25f6dfe051bb8fecc1c6c2897a3c4556da1ba20391c2ba00e31b1e46327e",
+      "verification": "8701781e2ad3ce7d1ad5a428b6f230b8b0ea92aef8450e2a85e3c35514c90458"
+    },
     "sectionHeadings": [
       "011: The memory record",
       "1. Purpose",
@@ -112,5 +123,5 @@
     "title": "The memory record: scope, trust class, actor, provenance, and the states a memory can be in"
   },
   "shardHash": "49f86c302d41c56abfb0dd6d1afdf16cf3f72cc69ff01f68117e1d1cb1bb0468",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

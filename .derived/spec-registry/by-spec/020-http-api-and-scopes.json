@@ -88,6 +88,17 @@
       }
     ],
     "risk": "critical",
+    "sectionDigests": {
+      "020-the-http-api": "86ccbed7965c3ee94f73335fd265d854501c95f4d7a9e7fb6f3b4bdc06ff3648",
+      "1-purpose": "0d855f459e0d7cd0660a4ac4f98f7673216425b32401239d8d3d21d202840f6b",
+      "2-territory": "6f97065db8817df7f4aec10a4dfef9a68c95bfe38aa05b5bad865e17ae2a7aee",
+      "3-behavior": "a36fcf3d8d73d93425d89a2cc793c651b6c5519439d4cb66e6602e213fd2d3fd",
+      "4-functional-requirements": "52f4dc09a687cd0308e86c75256dce87d561c365d2e1dddce7f2ab8e2cba13dc",
+      "5-acceptance-criteria": "a18e6d9080c37ebda1509331f2f49c66f67eda86a3c3cb3c37ec0f4879889bdb",
+      "6-out-of-scope": "07ab55fff16d300b9681f9efe8ff72808bf97d33f42e92967e741c06d6b60e1a",
+      "7-resolved-decisions": "3b892769054b539128a0419215a4a9e62b0351d48a65d4cdcaafcaab07fe5292",
+      "verification": "f831f0069ae9d07aecd70a65272bf555d3fcd71f6d783b65c43abad7521277ce"
+    },
     "sectionHeadings": [
       "020: The HTTP API",
       "1. Purpose",
@@ -105,5 +116,5 @@
     "title": "The HTTP API: bearer-authorized, scope-gated, streaming where it earns it"
   },
   "shardHash": "c40b8ff90acf0849a50e62d6af9711efa881750d68ffb9dfe8160ca8a91112bf",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

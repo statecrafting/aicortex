@@ -58,6 +58,17 @@
       }
     ],
     "risk": "critical",
+    "sectionDigests": {
+      "002-memory-thesis": "261f5b5b4e76156f3b296a3fe35231809a1c787884999fc741110575eac3722d",
+      "1-what-it-is": "8a666001dfe2b334e7dfd401aef081bbdddbbff8cf5c7167a1383103c09b64f9",
+      "2-the-nine-responsibilities": "4cceaa2de180230a2b3cfe265aae47ae5de8990ee10f730506521009f110cf19",
+      "3-provider-agnostic-by-protocol-not-by-adapter": "2bf36bc5c6bff62ff2f5b7085675b27f96ce7266057058e6ace81b737073f1fd",
+      "4-crate-topology": "c80b1681e17fd38f09b4a73db5cee7838b45be7e8c8d37a2f9ad7ac6767e5e45",
+      "5-build-order": "ff7d3249374be465bf574155857978833f497fa45555402ddca08819a60dae81",
+      "6-what-the-thesis-refuses": "32810d5d27943704fa2d9589abcd0d757c8a7cc72b6d595239e910d2180696a8",
+      "7-resolved-decisions": "904e2e6f43f683bc5e9d6e18a3aa90ee1ed78452b163f42f2a96f4bc68ab07cc",
+      "verification": "1e380836a0900d9de5372236885481aa7d43d86e324b17b5043265bb7e484175"
+    },
     "sectionHeadings": [
       "002: Memory thesis",
       "1. What it is",
@@ -75,5 +86,5 @@
     "title": "Memory thesis: nine responsibilities, one governed cell, provider agnostic by protocol"
   },
   "shardHash": "0a81411ca1f675f03579b43b532d9c1511d50ee2f8d2a0df84c3a8cdc9091d52",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

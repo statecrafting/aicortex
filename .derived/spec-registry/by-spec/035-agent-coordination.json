@@ -51,6 +51,17 @@
     "implementation": "pending",
     "kind": "feature",
     "risk": "medium",
+    "sectionDigests": {
+      "035-agent-coordination": "82f115235e1e04224aec28c5797c94561540571e431dd4c42e7c6655fe04cb09",
+      "1-purpose": "c073ccc99b205008656158838e1f2c46d785634e37db24ee3772070eaffa7d7f",
+      "2-territory": "09bd51a07751f3566f7b18d35281c6dd0ec76edd2aaebab3d9b8f2d2000a9c3e",
+      "3-behavior": "c0cac890ccbda49026b8a2c4d4e27f49c06ac33fb1f217d881d9abfb526b89c2",
+      "4-functional-requirements": "e0e11fbf24313243607ae5c13d4047d3c6f010edfe56d471bfd11aa8119e1f5c",
+      "5-acceptance-criteria": "03c436284c955db8501d89efd51de0d22030fd80c2356bc5c1a981bf0516ec53",
+      "6-out-of-scope": "847d8eb3d6dabc43709ba8c70b57d70c955e3fdd22c5882cbce1c46c5e2fee4e",
+      "7-resolved-decisions": "41c00301dd0cb66de89bce155fb31c7eff3d052ef570112609f2f63708f642e1",
+      "verification": "fc240f992108bf009199d70bc81273f7b6071fc29e978138062ee6884b2fbb53"
+    },
     "sectionHeadings": [
       "035: Agent coordination",
       "1. Purpose",
@@ -68,5 +79,5 @@
     "title": "Agent coordination: per-agent identity, work claims, and a shared working memory"
   },
   "shardHash": "fa00375c26a8a995ad002c39b45dbb2bc76d75c2af6519ae2281bb3d29a6e114",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

@@ -119,7 +119,7 @@ constitution is 000's; this spec owns the operational summary of it.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.20.0
+- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.25.0
   on `PATH`.
 - **AC-2.** `scripts/spec-dag.sh` reports the corpus acyclic with every
   dependency lower-numbered.
@@ -422,6 +422,27 @@ consumes this repository as a registered target.
   reports nothing (`lint --fail-on-warn` is clean), and spec 092's judging of
   mode-only and binary changes at the coupling gate changes no verdict on
   this tree.
+- **D-11 (2026-09-24, owner decision, pin bump to 0.25.0).** The family
+  aligns on `spec-spine` 0.25.0 (050 D-8, and the owner's work order of
+  2026-09-24). The pin moves from 0.20.0 to 0.25.0 in every site D-10 names
+  (`govern.yml`, `AGENTS.md`, `README.md`, the architect agent, AC-1) and
+  `spec-spine.toml [meta] required_version` becomes `>=0.25.0`. As with
+  D-10 the two binaries do not agree on the committed tree, so the bump is
+  one change.
+
+  What moved, measured on an otherwise clean checkout. Every registry shard
+  is rewritten: `specVersion` moves from 1.3.0 to 1.8.0 and each shard gains
+  a `sectionDigests` map (one digest per section heading); every existing
+  `shardHash` is unchanged. Every codebase-index shard is rewritten and only
+  its `shardHash` changes. `check --fail-on-warn`, `lint --fail-on-warn`,
+  `couple`, `index coverage --fail-on-untraced`, `attest --with-coupling`
+  and `scripts/spec-dag.sh` are clean under the new pin with no further
+  change.
+
+  What this entry does not do. It does not move any spec's section 9
+  obligations into frontmatter; 0.25.0 accepts the `obligations` key, and
+  lifting them is its own change (050 D-8). It does not re-copy
+  `.claude/settings.json` from the kit, for the reason D-10 gives.
 
 ## Verification
 

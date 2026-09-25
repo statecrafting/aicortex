@@ -76,6 +76,17 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "031-imports": "b41f3e1305f1901a655879fac8b50240203100bf01b2d7b6486d2548579321ef",
+      "1-purpose": "e91161e052a1a58fcf3cd30631d8a5571f48665ee7f4b3a3e0bb25185931c7be",
+      "2-territory": "7148ffb41bb0599de379a335e4d4d7ee6d1ea1fa4289f4f6e5f1e65bc1caf26c",
+      "3-behavior": "8fd55a656c3737cde5a6909b0bc6c6a75e55b1d1016fc3853da8ed612cf671b1",
+      "4-functional-requirements": "b5f8c437e7ae6c663d2b251a58af12dfd4676b27edf6b775a6ceccdccf2efb77",
+      "5-acceptance-criteria": "4a54c0fa987d575a2d79dc5df89d924b919d1e860e0ab1e174985f5b26ffc8a2",
+      "6-out-of-scope": "1c0c1eb27f6db6ff7f3dc86714f9bdc8612725a7ea93c54a2e5d0a5e6ca72699",
+      "7-resolved-decisions": "b777bed80f3ffcd72163f4a90117a64cde79deec3d6f4dc08777588e4ccd06ac",
+      "verification": "df6125ee090ecdd98d616700d00eba8c04fc2bec05326575e72a8dc740890389"
+    },
     "sectionHeadings": [
       "031: Imports",
       "1. Purpose",
@@ -93,5 +104,5 @@
     "title": "Bringing a history in: chat exports, note vaults, and read-later archives"
   },
   "shardHash": "b58b56afad56b8357bf8e89f4340be84c25ccee498b210a0d9f65410c90989fa",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

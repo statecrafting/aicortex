@@ -33,6 +33,17 @@
     "implementation": "pending",
     "kind": "constraint",
     "risk": "critical",
+    "sectionDigests": {
+      "041-the-privacy-boundary": "7609bfd40f4fab9bc176461aaade070cd4d5717e3c1d0e2b5cea72f8a0be2cad",
+      "1-purpose": "42ccb8dc4065d358cccbc4cb3abddb555fa4e633e555f480a4a22da313deadf0",
+      "2-territory": "582e13bd5eb30e84ff2e55b182cccec848270a987805655f4190238cfff23f9e",
+      "3-behavior": "74f0c4ed5dd13b9c16ed9eab83e0acdae1201e5312ceb038e7af69bb0e882bf7",
+      "4-functional-requirements": "76aedc172f9560c6a3f28ad08e25b383ea02bbd60a7645c4347dc79d62ed1301",
+      "5-acceptance-criteria": "40d3d4b173fb184205d8ef6a47bb92b58119a68f1cd129fe1994c961e649d30a",
+      "6-out-of-scope": "6b1a4916703b43fe2ab5b01a4516608673ccc7573c0ffae3e2deafef853cd7a6",
+      "7-resolved-decisions": "6a6b23f5fbe3483a15c3bbdc7728a5e4b8b3e2bcd5d23f1da0b1ccb1fe92c054",
+      "verification": "cb0205e15dd70e1f58d16dfda3d4424e7e5904c9453156996c9ef72168d0dae9"
+    },
     "sectionHeadings": [
       "041: The privacy boundary",
       "1. Purpose",
@@ -50,5 +61,5 @@
     "title": "The privacy boundary: what leaves the container, proved by the manifest rather than promised"
   },
   "shardHash": "c1d150b4631d3e98ea345b3f2621bb96dfb7e1596de5ff4c01cf73949c465011",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

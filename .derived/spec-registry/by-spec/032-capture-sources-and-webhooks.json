@@ -68,6 +68,17 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "032-live-capture": "d0831ca4f2718a4c59b4850ecbcaa6b9a93cc88237d44f6f2e04ea2a89a7ef02",
+      "1-purpose": "f4cbf5952adf16ed60054fa6ce70a0edc1780f598cb697d47a679686a9be66b6",
+      "2-territory": "ee8ef16208e4c51546c17443decc69638bf433873db7e5907b3b51748122d176",
+      "3-behavior": "2091bf86c4f6265593c968102b2f9ce737076c56bc74b861696249624cb32d62",
+      "4-functional-requirements": "6e2b9445c68f9db63d42e3ed1d5af0c7b9f4bb96fe8f90ada0cf6c7d1a66c60a",
+      "5-acceptance-criteria": "0d7e6efecf85dab43d3d3332687b13d614715a60e28add782386acda4143aa57",
+      "6-out-of-scope": "e9e4110ffff477e939fff0436c04e682fb2d862890172a0b6c43fb837688356b",
+      "7-resolved-decisions": "cbf5a3ee357cda58806fc0bfa2ebf0ed135f2fd7dd859e2a4b775640fd86510c",
+      "verification": "4d3670df5f514fd08d50c9607f7d8b14512c2173ba50495576c6b0abd8579d31"
+    },
     "sectionHeadings": [
       "032: Live capture",
       "1. Purpose",
@@ -85,5 +96,5 @@
     "title": "Live capture: signed webhooks from chat systems and the browser, quarantined by default"
   },
   "shardHash": "560b471e2d4af20a0641742bc8efdcb5b0fa32bf889b72a470846bc49469d74f",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

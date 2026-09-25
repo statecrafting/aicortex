@@ -71,6 +71,17 @@
     "implementation": "pending",
     "kind": "kernel",
     "risk": "high",
+    "sectionDigests": {
+      "016-the-index": "071facfbd9e58163fe67a830816b371e7d7bbaa3223372ac2cb5cd283fc60320",
+      "1-purpose": "3d4bbf9949690d7e940f4f5decd6884137728e1f9c0bb57707d9d84310d0e0e6",
+      "2-territory": "0ebc4910bf1edbe98e224b4db47b4044a67fec408d19e28e4255f0aacfb686aa",
+      "3-behavior": "7196f04a0ac5451d63375a62e4bb4292b8cfef17c749c68eb89be7b318c0161e",
+      "4-functional-requirements": "e60216b3b3264f7374768ae263f3375036f6233311005ace78e99e413a592f90",
+      "5-acceptance-criteria": "46766d60f4e817f039e051d02693bc9865a52ba697333d7c7905e6dfa77dc6f2",
+      "6-out-of-scope": "8b85e4bf8eeebcc24ae938260732073c6a2ac52346ed86040ef873a0bf79e2b5",
+      "7-resolved-decisions": "96d2bd5db28a4a5eda4437c7bc1e831d8a7d8fe6b0584575a97ef152605ce680",
+      "verification": "14079011bc6b6f1eb235b634fdf83ea6a237e4e136425aa50a5786adb5a41250"
+    },
     "sectionHeadings": [
       "016: The index",
       "1. Purpose",
@@ -88,5 +99,5 @@
     "title": "The index: a paged cosine scan, an application-owned text index, and no SQLite extension"
   },
   "shardHash": "6b2c974290318f41c3326f8cf3d17be75950f8802be055c63131b5cf81a1608d",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

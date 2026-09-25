@@ -59,6 +59,17 @@
     "implementation": "pending",
     "kind": "feature",
     "risk": "medium",
+    "sectionDigests": {
+      "042-portability": "bbc4c48b48b856b6fbcd1005def6cdf30d8e9bf6b14630a69b681dab2b4291c2",
+      "1-purpose": "f71210b54e29ae978dc1a247cd56dbe3f3941bc1ce980365c04a1727fc1c71e5",
+      "2-territory": "4198a05fb30eedcdc57b840db0e1bb10550c347799e63f489cce131fc03a8435",
+      "3-behavior": "4bbaee5bdf32021b129a28b2d5f86c79ae51d065ce2c6b28551032f3c33b637f",
+      "4-functional-requirements": "11a2c62a6451ae10b56a6803083480f06a6bc6ef86a24bc1416b1ad680963edf",
+      "5-acceptance-criteria": "b37fbd5d538abcfeac42246d9023a7ba03ad924fe13d30bad19cbd0f557cafe9",
+      "6-out-of-scope": "b263730dd9e9caa25da3f62e1ca32aa4a1a5c48b9c1cd24079999877031a4fc5",
+      "7-resolved-decisions": "0fcaa985197c69027329507186135a409914de47e69395378e8afea87aeaa483",
+      "verification": "694d060796ec52a53dff49281b10070a55687c215d5e73607f03c54d8e495e31"
+    },
     "sectionHeadings": [
       "042: Portability",
       "1. Purpose",
@@ -76,5 +87,5 @@
     "title": "Portability: a documented export anyone can read, and an import path off the system this replaces"
   },
   "shardHash": "3c74968e38d3b442bbd25d1ab35dcc580bffcac48cbd8f3caee6c337a682ed47",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

@@ -68,6 +68,17 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "023-review-and-promotion": "2e3fdd1b52b44f731d7c272d010b0e3d175051799988e3d589cfc9a52385c0d9",
+      "1-purpose": "1807f7f18c84dcf1997bfe196f63fa932616cad046bc004c1597eec9e4275c50",
+      "2-territory": "fd26d40c077dc7cb155585ca0cf9bf8c1ecd9d1b7f994e3fcada78ef92188d1b",
+      "3-behavior": "b91c10d93dfaf0b1d6507297c8d3578f5f9b78c5756014836dcba94417336955",
+      "4-functional-requirements": "4a654176440730d68f2774b47ce71631d2a9a86b17733609622ab01e9e341ac6",
+      "5-acceptance-criteria": "0d77eb9f00306ecf15ed9c3426c5c76079f5f665cd2d459d8f5ef3354e0e70b8",
+      "6-out-of-scope": "2c9f74c5843dd747fb2f74dbd1d962aa8d1ed68e90325c1f971e561a97e01f39",
+      "7-resolved-decisions": "98f38861af6a0b267c1c4069ac6b8efc4cf49c35307ce1501f9c4b1ba0aaccab",
+      "verification": "94baf4981a922f22b8ccd4f208dedf6410f126aa74c46a0fa74df9189c9ceff3"
+    },
     "sectionHeadings": [
       "023: Review and promotion",
       "1. Purpose",
@@ -85,5 +96,5 @@
     "title": "Review: the queue where quarantine, contradiction, and promotion wait for a human"
   },
   "shardHash": "6d0a94bd780ba6d8a4677fa4de9aac2a3f257929dc40e14c2468bb07b2df83ff",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

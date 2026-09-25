@@ -51,6 +51,17 @@
     "implementation": "pending",
     "kind": "tooling",
     "risk": "high",
+    "sectionDigests": {
+      "043-packaging-and-operations": "f3f6b45a5fb090c0a053b8ac65af176105071ef3a15c0a5b7c7d98bde9778b5f",
+      "1-purpose": "a8f6a8a3ead4d42c4154ac3e44764e8520c5708f588615f974ea2cdbd5929f0b",
+      "2-territory": "bd17f2a9bd7361fe050d7ed82ee9c02bbded91c38c604b7ae28486bb116cf4bd",
+      "3-behavior": "ba84ca5d5a5dae1ac92851cc824418151a066ca2fe971e177cf995a11c193bab",
+      "4-functional-requirements": "13f28e98226c484b231d4a578723f7d1f639b1a28d568dadfc901e1327a9b186",
+      "5-acceptance-criteria": "adf9f02b2c558ebd59b64c34a41398395233d822dbf835a05ca82bd43cd47d1f",
+      "6-out-of-scope": "6e65fd5a7e9c2840e5e8fc727d588e9c9b5f5b1578d31eb95d4accaecc57739f",
+      "7-resolved-decisions": "53ec84b9a10fcbab1d02afa04c18606d9f73eb6d06a4fe2b6898abc66bcb9119",
+      "verification": "abec3552a1601b8f46273d1d8bf6fc9b9ee4c6d62083f6c4bf6c5e2acd8de3af"
+    },
     "sectionHeadings": [
       "043: Packaging and operations",
       "1. Purpose",
@@ -68,5 +79,5 @@
     "title": "Packaging: one image on the chassis, the operator surface, the runbook"
   },
   "shardHash": "af46b2815aba8188c67882cd638d9095257cffc0c81a94cc392d9b2b3f467156",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

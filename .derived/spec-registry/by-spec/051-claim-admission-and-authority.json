@@ -135,6 +135,22 @@
       }
     ],
     "risk": "critical",
+    "sectionDigests": {
+      "051-claim-admission-and-authority": "af3e9258d1432f0c3590cedfa9427bcadf6d17e5fef1b7773fc25e1be6d55453",
+      "1-purpose": "89fe197e2952912e3f8cca0126fb77ae4d5638d848b9293e50976e84e96c6084",
+      "2-territory": "1ed098d1fddf8bebc6772975619cbbb5ac682cedac85b3a2caa403981502e416",
+      "3-1-three-layers": "b30a15bc6d0d3d930fa07498cbcb382440739e9edc18af97ddd8845b975405d3",
+      "3-2-evidence-and-authority": "af93eb4a58bc606d0eede37dcee39f350df72776ca0aadc3dbc6c1e43aa1def3",
+      "3-3-the-gate-and-the-record": "63c318d102820c89dc9f8b2528233dc3cf07a51aac27f4c28e169b2b253aa1a9",
+      "3-behavior": "527bf5cec0e344f4bdb1f250db65614d33914bd641eb7c6b323784b0c107b64a",
+      "4-functional-requirements": "a9b116ed9e79925fdaf9936f30ce49dabae0193ea5e316f9cfc9f2840c7362d0",
+      "5-acceptance-criteria": "da0e4f098d8e69773cb0bccc3186c1b7c8471c9f7aea8caee114dde1f52c20a1",
+      "6-out-of-scope": "846679c62f8a82d1f9f572b89ae10c21e455f6c6fa92b7a552db87e14a112864",
+      "7-resolved-decisions": "e929668c7c6b142eca92b3f5aee74a2db88e08cf113fa17e85a6cefe2261c327",
+      "8-open-questions": "b612391935e6103dbd1a242a76e954d203e9dc0c8243ccde28add94632bed280",
+      "9-obligations": "073d02cfd9f9dffd2e20e09623166060f18e0dfda1ac803f4010f41f6d9fa1a3",
+      "verification": "4a8a2376595e0e2d1ed48a01e29be95b8544b292cbd5ee47e7b3734d63e667ea"
+    },
     "sectionHeadings": [
       "051: Claim admission and authority",
       "1. Purpose",
@@ -157,5 +173,5 @@
     "title": "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
   },
   "shardHash": "0328a50c2e480fa9ea76de7163f0891aeb2d28903e975bd54ff468a4cbe2d1c3",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

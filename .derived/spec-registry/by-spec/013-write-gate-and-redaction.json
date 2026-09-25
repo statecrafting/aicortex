@@ -183,6 +183,17 @@
       }
     ],
     "risk": "critical",
+    "sectionDigests": {
+      "013-the-write-gate": "ce7bf12b0991600572a543050ef5feb77e421e243da0e98c0d7dc5ec2e1231e6",
+      "1-purpose": "7dc19e899e09bbb562d78c46dbf6bed2a16689bb1240a46353d3c6dd13ed72fb",
+      "2-territory": "331dde62e92be7d302946becc846c094dab5558c450896dc563649fd7e8f7d77",
+      "3-behavior": "8d0b220238ad18df84e8fe9282b4fadabee57668b7e1af018eb32b4bcf0755fa",
+      "4-functional-requirements": "d74f82185651720df4b1f2a0bdcc041da66fad97ed94c6ff6cbd63007dafd7b1",
+      "5-acceptance-criteria": "21f2535019e72390c742ef5b579aeb68bda2b0e5b56d7fb9e7a11e7cfddd11ab",
+      "6-out-of-scope": "b569fc8b9caf67d51e08eb2812c92fb4dea431aadab65c7dc85292975605c83a",
+      "7-resolved-decisions": "e6e740541a1832b9d323d97534dd0caab2cfa8db6e72f1793ebf061dbfe42fe0",
+      "verification": "c1243f43242c4103948595581b9d0367e693d762a201c49ad1f16ebc9e6e9420"
+    },
     "sectionHeadings": [
       "013: The write gate",
       "1. Purpose",
@@ -200,5 +211,5 @@
     "title": "The write gate: refuse secrets, cap size, establish origin, quarantine the rest"
   },
   "shardHash": "c959b02fffd3ed478c37dd43f61d178826a5e3d75bf45867ae161bdb6d37b6a3",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

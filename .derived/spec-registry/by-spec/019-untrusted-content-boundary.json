@@ -33,6 +33,17 @@
     "implementation": "pending",
     "kind": "constraint",
     "risk": "critical",
+    "sectionDigests": {
+      "019-the-untrusted-content-boundary": "2a92301137177889e044874551fb877d04a76f058be61db896ac7e5d150fc3bf",
+      "1-purpose": "f1c38a5787b2dfde7b20d9716d3a33046fdaa22ea3b3bf3e74f9e03f55fd83c7",
+      "2-territory": "e7729397531e66e976487aba288e09f6b789fd9151c4ebc4c12908fb9b3f24ff",
+      "3-behavior": "bf36f98dfc42881351d7cff3265c1a2da8e7d55bfdf61827549602ffac6771a6",
+      "4-functional-requirements": "fd2f621b309cd7eadf58748638040318bca558f91d06058da8d5e2d8a6d6985e",
+      "5-acceptance-criteria": "34fd11c1fc90a0f84c12198966656456dc2d1b594b420742f55d35e257f5ab8b",
+      "6-out-of-scope": "eee8eabbf0b28703d6efc3c5774b56a6c81110d18f5422bb2323d7059ae87923",
+      "7-resolved-decisions": "0f9ec1709653d8e1d9f73229c82146b120d827cd8b1a3e35e03d5fe238126e0f",
+      "verification": "1ba584f2af10f953ca7d0366e763c40267aa1ba6b399e1281781bf2fe9511b6d"
+    },
     "sectionHeadings": [
       "019: The untrusted content boundary",
       "1. Purpose",
@@ -50,5 +61,5 @@
     "title": "Recalled content is data: delimited, labelled, never in an instruction position"
   },
   "shardHash": "acaa35f7c561e3c89cf66ae8a608593ebfa1e5558568c6628254917612147462",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

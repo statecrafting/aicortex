@@ -94,6 +94,17 @@
       }
     ],
     "risk": "high",
+    "sectionDigests": {
+      "001-agentic-engineering-harness": "4c9ed9bd3da35dee0cf3da17ccda6c782fd948c60065d7bf86f7cdde9a34e15c",
+      "1-purpose": "e8e79fa321ec9a5ff407990e586c2b60720314bd570c6e0461a1d327b25979e9",
+      "2-territory": "5c9eee77cc5bdf8cf4cdff7e64e510aca134a5a3274b05196ab264940de1c226",
+      "3-behavior": "c1162cc7737998e2d48ecb94b1c2c4ed67ee7c16e02604e4037ea4ac8dd27a66",
+      "4-functional-requirements": "de53634db35ac7cd23b6230db1b7d4fce0cf220e347f0139293393133b49661c",
+      "5-acceptance-criteria": "3df8b2852c74ad1f72e0fd0f6ebe05c23ae2be16aa54e2698bf74ffbcd94bc50",
+      "6-out-of-scope": "758afe22a2084f65e8c5136b8df32a85a8aa9016de657b1907b71a5a6cb0d102",
+      "7-resolved-decisions": "cb6da68972b6b26ac219fcf255db734f3a1ace904aa40ebb2ef2d4de603cd7c4",
+      "verification": "af1c70f7db2f516ed620fe92453690887f213c95d971cfc9e5d9cab8e40fce3c"
+    },
     "sectionHeadings": [
       "001: Agentic engineering harness",
       "1. Purpose",
@@ -110,6 +121,6 @@
     "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, six behavioral rules of which three are path-scoped, four subagents, ten skills, settings hooks that report and refuse, one Makefile that is the single definition of the gate and splits its reading half from its writing half, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
     "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
   },
-  "shardHash": "7d9c8fc895f59b50178aed05d093660a0b3fdfe3ee1183d84ba853a883b335a3",
-  "specVersion": "1.3.0"
+  "shardHash": "b4b6d16007c7f23a8e40c3c3eb288c4fd2ee0d38a977a24c35110cd7992ae719",
+  "specVersion": "1.8.0"
 }
