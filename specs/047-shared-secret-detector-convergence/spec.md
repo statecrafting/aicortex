@@ -6,16 +6,19 @@ kind: "feature"
 domain: "memory"
 created: "2026-09-24"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: complete
 risk: high
 wave: 4
 depends_on:
   - "013-write-gate-and-redaction"
+establishes:
+  - "crates/aicortex-gate/tests/registry.rs"
 extends:
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/src/rules.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/src/secrets.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/Cargo.toml", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/testdata/corpus/", nature: additive }
+  - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/gate.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
 references:
   - { unit: { kind: file, path: "specs/013-write-gate-and-redaction/spec.md" }, role: constraint }
@@ -160,14 +163,58 @@ is load-bearing for the store's type-level insert guard (013 D-5).
   strong, so no refusal is lost. The action-gate change is a separate
   upstream spec.
 
+- **D-3 (2026-09-25, build session; the prerequisite and the pin).**
+  action-gate-core 0.2.0 is on crates.io and carries B-1's detectors as a
+  registry (`action_gate_core::secrets`: `PREFIX_RULES`, `PEM_RULES` with
+  all seven markers, the URL, JWT, entropy and assignment detectors, and
+  `scan` returning a detector id and a byte offset), ported from this
+  crate's tables at `a927f85`, with golden vectors behind the
+  `golden-vectors` feature. B-7 is therefore met. The workspace pins
+  `action-gate-core = "=0.2.0"` with default features only; aicortex-gate's
+  tests alone enable `golden-vectors`.
+- **D-4 (2026-09-25, build session; no regex).** The registry path is
+  regex-free (action-gate 001 D-1); `regex` sits behind action-gate's
+  `checks-common` feature, which this workspace does not enable, so B-4's
+  owner decision is not needed and `regex` does not enter the tree.
+- **D-5 (2026-09-25, build session; the id mapping).** aicortex keeps its
+  own `DetectorId`, which `Reason::SecretDetected` and every stored
+  Decision name. `DetectorId::from_registry` maps a registry id to it, and
+  the mapping is the identity on names: the registry kept every id this
+  crate shipped (action-gate 001 B-1: an id is never renamed or reused).
+  `tests/registry.rs` asserts the identity for every id the registry
+  reports and every id the corpus records, so an upstream rename fails
+  this build rather than changing what a refusal says. `rules.rs` keeps the
+  `DetectorId`, the mapping and the `RuleSet`; `SecretRules` and
+  `EntropyRule` are re-exported from the registry; `secrets.rs` keeps only
+  `Finding` and a `scan` that runs the registry on the normalized text.
+  Rejected: an explicit table of 35 `(aicortex id, registry id)` pairs,
+  which would restate identical strings and be a second table to drift.
+- **D-6 (2026-09-25, build session; parity evidence).** B-3's parity is
+  shown three ways in `tests/registry.rs`: every golden vector (67) holds
+  through this crate's `scan` by id, detector and offset; every corpus
+  fixture the registry ported is found under its name with the same
+  detector and, where the gate scans exactly the vector's text, refuses
+  through the whole gate at the vector's offset; and FR-003 is asserted over
+  the crate's sources (no prefix or armour table, token scan, JWT, URL or
+  entropy code) and over its public rule types, which are the registry's.
+  013's corpus test runs unchanged apart from counting the assignment
+  detector among those that need a positive fixture. The two B-6 fixtures
+  are `secret-credential-assignment.json` and
+  `admit-prose-mentions-token.json`.
+- **D-7 (2026-09-25, build session; a second copy upstream of here).**
+  `cargo deny check` passes, and warns that `action-gate-core` appears
+  twice: `rahi-kernel 0.2.0` depends on 0.1.0. That copy is the chassis's
+  and converges when rahi moves its own pin; `action-gate-core` is not in
+  `deny.toml`'s refuse-duplicates list, and adding it would fail a check
+  this workspace cannot fix (the same reasoning as 010 D-6).
+
 ## 8. Follow-ups and open questions
 
 - **F-1 (upstream spec, action-gate).** A spec in action-gate that adopts
   B-1's detectors with stable ids and byte spans, keeps them pure and
   deterministic, and publishes a release aicortex can pin. Not authored
   here.
-- **Q-1 (regex).** Whether `regex` is acceptable in this workspace if the
-  upstream detectors need it (B-4).
+- **Q-1 (regex).** Resolved by D-4: the upstream detectors do not need it.
 
 ## 9. Obligations
 
@@ -178,6 +225,6 @@ lifted there from this section once the pin moved to 0.25.0 (050 D-8,
 ## Verification
 
 ```verify:cli
-# planned: runs once the upstream release exists and this spec is built.
 cargo test -p aicortex-gate --locked
+cargo test -p aicortex-gate --locked --test registry
 ```
