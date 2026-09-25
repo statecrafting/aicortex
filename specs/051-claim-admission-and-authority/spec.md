@@ -119,6 +119,10 @@ admitted claim is appended, is 052's.
   - `ReviewApproval { by: Sub, decision: DecisionRef }`: a human reviewer
     approved admission of this proposal (B-13). It satisfies review; it
     does not by itself raise the authority level.
+  - `OperatorSeed { by: Sub, seed: SeedRef }`: the value belongs to a
+    deployment's seed data, loaded deliberately by an operator rather than
+    extracted from a source or stated by the scope's owner. `SeedRef` names
+    the seed set and its version (B-14, D-8).
   Evidence is stored with the proposal and, on admission, with the
   admission record. It is never discarded when a claim is superseded.
 - **B-5 (authority levels).** `AuthorityLevel` is a closed, totally
@@ -129,6 +133,8 @@ admitted claim is appended, is 052's.
   with a `SourceSpan` is at most `Extracted`; a `SpanVerified` is at most
   `Verified`; a `UserStatement` from an authenticated human is
   `UserAsserted`, and `UserCorrected` when it targets an existing claim.
+  An `OperatorSeed` is at most `Extracted` (B-14): a seed is below every
+  user level, so any statement by the scope's owner outranks it.
   An agent actor can never reach a `User*` level (011 B-5's rule about
   agents, applied to authority).
 - **B-6 (a score is never authority).** No admission rule may admit a
@@ -150,10 +156,12 @@ admitted claim is appended, is 052's.
   claim's row is unchanged. What relation it carries depends on where the
   corrected claim came from. A claim is **user-sourced** when the evidence
   that admitted it is a `UserStatement` by the owner of its scope, and
+  **seed-sourced** when that evidence is an `OperatorSeed` (B-14), and
   **supplier-sourced** otherwise (for travel: a carrier, hotel, or agency
   message, or anything extracted from one).
-  - Correcting a user-sourced claim appends a `Supersedes` relation (050
-    B-11), so the correction replaces the earlier statement in the view.
+  - Correcting a user-sourced or seed-sourced claim appends a
+    `Supersedes` relation (050 B-11), so the correction replaces the
+    earlier value in the view.
   - Correcting a supplier-sourced claim never overwrites it. The
     correction is appended with a `Contradicts` relation, both claims are
     retained, and the conflict is surfaced (052 B-8 reports the slot as
@@ -191,7 +199,9 @@ admitted claim is appended, is 052's.
   versioned document with a digest: the score floor, which evidence
   combinations reach which authority level, and the set of predicates
   qualified for admission without review, each with the minimum authority
-  level it requires and the owner decision that qualified it. A change of
+  level it requires and the owner decision that qualified it, and the seed
+  sets accepted for admission (B-14), each with the owner decision that
+  accepted it. A change of
   policy is a new version; an admission record names the version it was
   judged under, so a past admission is reproducible by re-running the gate.
 - **B-13 (review before admission).** The initial policy qualifies no
@@ -205,6 +215,18 @@ admitted claim is appended, is 052's.
   the qualified set only after it passes qualification against
   independently labeled data, recorded as a later owner decision, and only
   by a new policy version.
+- **B-14 (operator seed).** A proposal whose evidence includes
+  `OperatorSeed` is judged as seed data. It is admitted at `Extracted`
+  with no `ReviewApproval` only when the policy's accepted seed sets name
+  its `SeedRef` exactly (set and version): accepting a seed set is the
+  owner's review of every claim in it, the way an own-data statement is its
+  principal's review (D-7). A proposal citing a seed set the policy does
+  not accept is `Hold`. A proposal that combines `OperatorSeed` with
+  `UserStatement` is refused as `PolicyDenied`, so a seed can never be
+  dressed as the owner's own word. Seed evidence never reaches a `User*`
+  level, never supersedes a claim of higher authority (B-10), and is
+  corrected by the scope's owner with `Supersedes` (B-8). The initial
+  policy accepts no seed set.
 
 ## 4. Functional requirements
 
@@ -241,6 +263,13 @@ admitted claim is appended, is 052's.
   re-evaluated with a `ReviewApproval` is `Admit` at `Verified`, and an
   admission of three such claims in one transaction appends exactly one
   batch Decision naming the three ids and no value.
+- **FR-011.** Under a policy that accepts seed set `S` at version 1, a
+  seeded seat preference citing `S` version 1 is admitted at `Extracted`
+  without a `ReviewApproval`; the same proposal citing `S` version 2 is
+  `Hold`; a proposal carrying both `OperatorSeed` and `UserStatement` is
+  refused with `PolicyDenied`; and the traveler's correction of the seeded
+  preference is admitted at `UserCorrected` with a `Supersedes` relation,
+  the seeded row byte-identical before and after.
 
 ## 5. Acceptance criteria
 
@@ -287,6 +316,22 @@ supersession ordering, and projection (052).
   overwrites supplier-sourced claims: when a user correction contradicts a
   supplier claim, both are retained and a conflict is surfaced (B-8, B-13,
   FR-005, FR-010; 052 B-8). This resolves Q-6.
+
+- **D-8 (2026-09-25, owner decision, operator seed).** The owner's work
+  order of 2026-09-25 directs "an `OperatorSeed` evidence/source variant in
+  051 ... admitted at an existing authority level; the five-level ladder
+  stays unchanged", answering the gap travel-memory's 001 D-7 recorded: a
+  deployment's seeded profile, preferences and trips need their own
+  provenance, are not `UserAsserted`, and are always outranked by the
+  traveler. This amendment, a separate change ahead of the build, adds the
+  evidence variant (B-4), its ceiling (B-5), its correction rule (B-8), the
+  accepted seed sets in the policy (B-12) and the seed rule (B-14, FR-011).
+  The chosen level is `Extracted`, the lowest level that is not a model's
+  inference: a seed is deliberate operator data, yet nothing re-derived it
+  from source bytes, so `Verified` would overstate it, and every `User*`
+  level must stay above it. Acceptance is per seed set and version in the
+  versioned policy rather than per claim, because an operator loads a seed
+  as one act; a claim-by-claim review of it would add no information.
 
 ## 8. Open questions
 
