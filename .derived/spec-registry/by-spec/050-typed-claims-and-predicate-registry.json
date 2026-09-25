@@ -176,7 +176,7 @@
       "wave": 5
     },
     "id": "050-typed-claims-and-predicate-registry",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "kernel",
     "obligations": [
       {
@@ -281,6 +281,6 @@
     "summary": "aicortex becomes the family's canonical owner of claim history with provenance. This spec defines what one claim says, as types, before any claim is admitted or stored: a subject reference, a predicate from a namespaced, versioned registry that a domain supplies, a typed value (text, integer, fixed-point decimal with a unit or currency, date, datetime with zone, interval, entity reference, enumeration), an epistemic status taken from the source's own stance, typed claim-to-claim relations, and source span references that extend 011's Provenance with a part, a byte or character span, and a content digest. aicortex stays domain agnostic: travel, the first consumer, registers its own predicates. Who may admit a claim is 051; when it holds and how history is kept is 052.\n",
     "title": "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
   },
-  "shardHash": "92ed7a089af1b5421ba9b6311e216eb7cbd108a65914004cba23a2776c5c14ca",
+  "shardHash": "44acb3c6f3d1ab0cf79d4f147108a9087e73341d31a261d858be9c3a894ffc49",
   "specVersion": "1.8.0"
 }

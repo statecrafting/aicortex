@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-24"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 5
 depends_on:
