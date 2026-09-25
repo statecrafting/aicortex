@@ -66,6 +66,7 @@ pub mod cursor;
 pub mod decision_key;
 pub mod memory_repo;
 pub mod migrations;
+pub mod predicate_registry_repo;
 pub mod provenance_repo;
 pub mod scope_repo;
 
@@ -77,6 +78,9 @@ pub use memory_repo::{
     StatusFilter, fingerprint,
 };
 pub use migrations::{EXPECTED_SCHEMA_VERSION, migrations};
+pub use predicate_registry_repo::{
+    KIND_REGISTER, PredicateRegistryRepo, Registration, document_digest,
+};
 pub use provenance_repo::ProvenanceRepo;
 pub use scope_repo::{ScopeId, ScopeRepo, ScopeRow};
 

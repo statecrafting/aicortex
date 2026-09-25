@@ -24,6 +24,9 @@ spec = "012-store-schema-and-repositories"
 # store -> gate and never back: the gate is pure and depends on the record of
 # 011 only.
 aicortex-gate = { workspace = true }
+# The registry rule of spec 050 (FR-005), pure: the predicate registry
+# repository reads the stored documents into its snapshot and asks it.
+aicortex-claims = { workspace = true }
 aicortex-types = { workspace = true }
 rahi-store = { workspace = true }
 rahi-types = { workspace = true }
@@ -36,6 +39,8 @@ base64 = { workspace = true }
 # The tests open rahi's single-voter node in a throwaway directory (FR-001)
 # and need a multi-thread runtime to drive it.
 [dev-dependencies]
+# Spec 050 B-15: the registration test appends the Decision it stages.
+rahi-ledger = { workspace = true }
 tokio = { workspace = true }
 tempfile = { workspace = true }
 

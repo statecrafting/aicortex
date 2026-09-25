@@ -7,7 +7,7 @@ error[E0308]: mismatched types
    |          arguments to this method are incorrect
    |
    = note: expected reference `&aicortex_gate::verdict::Admitted`
-              found reference `&Memory`
+              found reference `&aicortex_types::Memory`
 note: method defined here
   --> $WORKSPACE/crates/aicortex-store/src/memory_repo.rs
    |

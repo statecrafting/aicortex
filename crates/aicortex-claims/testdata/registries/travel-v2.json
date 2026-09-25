@@ -1,0 +1,178 @@
+{
+  "namespace": "travel",
+  "version": 2,
+  "subject_kinds": [
+    "segment",
+    "booking",
+    "traveler",
+    "stay",
+    "ancillary"
+  ],
+  "predicates": [
+    {
+      "name": "segment.departure",
+      "subjects": [
+        "segment"
+      ],
+      "value": {
+        "type": "datetime"
+      },
+      "cardinality": "one",
+      "valid_time": "from_source_time",
+      "supersession": "by_source_order",
+      "epistemic": [
+        "asserted",
+        "confirmed",
+        "estimated",
+        "expected",
+        "observed"
+      ]
+    },
+    {
+      "name": "segment.seat",
+      "subjects": [
+        "segment"
+      ],
+      "value": {
+        "type": "text"
+      },
+      "cardinality": "many",
+      "slot": "traveler",
+      "valid_time": "from_source_time",
+      "supersession": "by_source_order",
+      "epistemic": [
+        "asserted",
+        "requested",
+        "confirmed"
+      ]
+    },
+    {
+      "name": "booking.fare",
+      "subjects": [
+        "booking"
+      ],
+      "value": {
+        "type": "decimal",
+        "units": [
+          {
+            "kind": "currency",
+            "code": "EUR"
+          },
+          {
+            "kind": "currency",
+            "code": "PLN"
+          }
+        ]
+      },
+      "cardinality": "one",
+      "valid_time": "from_source_time",
+      "supersession": "by_source_order",
+      "epistemic": [
+        "asserted",
+        "confirmed"
+      ]
+    },
+    {
+      "name": "stay.dates",
+      "subjects": [
+        "stay"
+      ],
+      "value": {
+        "type": "interval"
+      },
+      "cardinality": "one",
+      "valid_time": "from_source_time",
+      "supersession": "by_source_order",
+      "epistemic": [
+        "asserted",
+        "confirmed",
+        "conditional"
+      ]
+    },
+    {
+      "name": "booking.status",
+      "subjects": [
+        "booking"
+      ],
+      "value": {
+        "type": "enum",
+        "variants": [
+          "held",
+          "ticketed",
+          "cancelled",
+          "refunded"
+        ]
+      },
+      "cardinality": "one",
+      "valid_time": "from_source_time",
+      "supersession": "by_source_order",
+      "epistemic": [
+        "asserted",
+        "confirmed"
+      ]
+    },
+    {
+      "name": "segment.booking",
+      "subjects": [
+        "segment"
+      ],
+      "value": {
+        "type": "entity_ref"
+      },
+      "cardinality": "one",
+      "valid_time": "timeless",
+      "supersession": "explicit_only",
+      "epistemic": [
+        "asserted"
+      ]
+    },
+    {
+      "name": "booking.locator",
+      "subjects": [
+        "booking"
+      ],
+      "value": {
+        "type": "text"
+      },
+      "cardinality": "one",
+      "valid_time": "timeless",
+      "supersession": "explicit_only",
+      "epistemic": [
+        "asserted"
+      ]
+    },
+    {
+      "name": "traveler.loyalty_number",
+      "subjects": [
+        "traveler"
+      ],
+      "value": {
+        "type": "text"
+      },
+      "cardinality": "many",
+      "slot": "program",
+      "valid_time": "timeless",
+      "supersession": "accumulate",
+      "epistemic": [
+        "asserted"
+      ],
+      "deprecated": true
+    },
+    {
+      "name": "ancillary.bags",
+      "subjects": [
+        "ancillary"
+      ],
+      "value": {
+        "type": "integer"
+      },
+      "cardinality": "one",
+      "valid_time": "from_source_time",
+      "supersession": "by_source_order",
+      "epistemic": [
+        "asserted",
+        "confirmed"
+      ]
+    }
+  ]
+}

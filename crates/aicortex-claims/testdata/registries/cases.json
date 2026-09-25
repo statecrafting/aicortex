@@ -1,0 +1,449 @@
+{
+  "registries": [
+    "travel-v1.json",
+    "travel-v2.json"
+  ],
+  "cases": [
+    {
+      "name": "departure",
+      "why": "FR-007: a departure time as a DateTime",
+      "predicate": "travel:segment.departure@1",
+      "subject": {
+        "kind": "segment",
+        "key": "LO281-2026-10-03"
+      },
+      "value": {
+        "type": "datetime",
+        "datetime": {
+          "local": "2026-10-03T14:05",
+          "precision": "minute",
+          "zone": {
+            "kind": "iana",
+            "name": "Europe/Warsaw"
+          }
+        }
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "ok"
+    },
+    {
+      "name": "seat",
+      "why": "FR-007: a seat, cardinality many keyed by traveler",
+      "predicate": "travel:segment.seat@1",
+      "subject": {
+        "kind": "segment",
+        "key": "LO281-2026-10-03"
+      },
+      "value": {
+        "type": "text",
+        "text": "14C"
+      },
+      "epistemic": {
+        "stance": "requested"
+      },
+      "slot": "traveler-1",
+      "expect": "ok"
+    },
+    {
+      "name": "fare",
+      "why": "FR-007: a fare as a Decimal with a currency",
+      "predicate": "travel:booking.fare@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "decimal",
+        "decimal": {
+          "amount": "1234.50",
+          "unit": {
+            "kind": "currency",
+            "code": "EUR"
+          }
+        }
+      },
+      "epistemic": {
+        "stance": "confirmed"
+      },
+      "expect": "ok"
+    },
+    {
+      "name": "stay",
+      "why": "FR-007: a stay as an Interval of Dates",
+      "predicate": "travel:stay.dates@1",
+      "subject": {
+        "kind": "stay",
+        "key": "hotel-waw-1"
+      },
+      "value": {
+        "type": "interval",
+        "interval": {
+          "start": {
+            "kind": "inclusive",
+            "point": {
+              "kind": "date",
+              "date": {
+                "on": "2026-10-03",
+                "precision": "day"
+              }
+            }
+          },
+          "end": {
+            "kind": "exclusive",
+            "point": {
+              "kind": "date",
+              "date": {
+                "on": "2026-10-06",
+                "precision": "day"
+              }
+            }
+          }
+        }
+      },
+      "epistemic": {
+        "stance": "conditional",
+        "condition": "if the deposit is paid"
+      },
+      "expect": "ok"
+    },
+    {
+      "name": "status",
+      "why": "FR-007: a booking status as an Enum",
+      "predicate": "travel:booking.status@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "enum",
+        "enum": "ticketed"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "ok"
+    },
+    {
+      "name": "segment-booking",
+      "why": "FR-007: a segment's booking as an EntityRef",
+      "predicate": "travel:segment.booking@1",
+      "subject": {
+        "kind": "segment",
+        "key": "LO281-2026-10-03"
+      },
+      "value": {
+        "type": "entity_ref",
+        "entity_ref": {
+          "namespace": "travel",
+          "kind": "booking",
+          "key": "PNR-XK2Q9L"
+        }
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "ok"
+    },
+    {
+      "name": "status-v2-variant",
+      "why": "a variant a later version added",
+      "predicate": "travel:booking.status@2",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "enum",
+        "enum": "refunded"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "ok"
+    },
+    {
+      "name": "derived-with-span",
+      "why": "B-2: a span into the memory the claim derives from",
+      "predicate": "travel:booking.locator@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "text",
+        "text": "XK2Q9L"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "span_source": "derived",
+      "expect": "ok"
+    },
+    {
+      "name": "unknown-predicate",
+      "why": "I-2: an unknown predicate is refused, never stored as free text",
+      "predicate": "travel:segment.gate@1",
+      "subject": {
+        "kind": "segment",
+        "key": "LO281-2026-10-03"
+      },
+      "value": {
+        "type": "text",
+        "text": "B12"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "unknown_predicate"
+    },
+    {
+      "name": "unknown-namespace",
+      "why": "a namespace nobody registered",
+      "predicate": "hotel:room.number@1",
+      "subject": {
+        "kind": "stay",
+        "key": "hotel-waw-1"
+      },
+      "value": {
+        "type": "text",
+        "text": "512"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "unknown_predicate"
+    },
+    {
+      "name": "wrong-version",
+      "why": "the predicate exists only from version 2",
+      "predicate": "travel:ancillary.bags@1",
+      "subject": {
+        "kind": "ancillary",
+        "key": "bag-1"
+      },
+      "value": {
+        "type": "integer",
+        "integer": 2
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "wrong_version"
+    },
+    {
+      "name": "withdrawn",
+      "why": "version 2 deprecates it for new claims",
+      "predicate": "travel:traveler.loyalty_number@2",
+      "subject": {
+        "kind": "traveler",
+        "key": "traveler-1"
+      },
+      "value": {
+        "type": "text",
+        "text": "LH-123"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "slot": "lufthansa",
+      "expect": "withdrawn_predicate"
+    },
+    {
+      "name": "wrong-subject-kind",
+      "why": "a departure of a booking",
+      "predicate": "travel:segment.departure@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "datetime",
+        "datetime": {
+          "local": "2026-10-03T14:05",
+          "precision": "minute",
+          "zone": {
+            "kind": "iana",
+            "name": "Europe/Warsaw"
+          }
+        }
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "wrong_subject_kind"
+    },
+    {
+      "name": "wrong-value-type",
+      "why": "a departure as free text",
+      "predicate": "travel:segment.departure@1",
+      "subject": {
+        "kind": "segment",
+        "key": "LO281-2026-10-03"
+      },
+      "value": {
+        "type": "text",
+        "text": "14:05"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "wrong_value_type"
+    },
+    {
+      "name": "undeclared-unit",
+      "why": "USD is not admitted",
+      "predicate": "travel:booking.fare@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "decimal",
+        "decimal": {
+          "amount": "99.00",
+          "unit": {
+            "kind": "currency",
+            "code": "USD"
+          }
+        }
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "undeclared_unit"
+    },
+    {
+      "name": "unitless-fare",
+      "why": "a fare needs a currency",
+      "predicate": "travel:booking.fare@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "decimal",
+        "decimal": {
+          "amount": "12"
+        }
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "undeclared_unit"
+    },
+    {
+      "name": "undeclared-variant",
+      "why": "version 1 has no refunded",
+      "predicate": "travel:booking.status@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "enum",
+        "enum": "refunded"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "undeclared_variant"
+    },
+    {
+      "name": "missing-slot",
+      "why": "a seat without a traveler",
+      "predicate": "travel:segment.seat@1",
+      "subject": {
+        "kind": "segment",
+        "key": "LO281-2026-10-03"
+      },
+      "value": {
+        "type": "text",
+        "text": "14C"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "missing_slot"
+    },
+    {
+      "name": "unexpected-slot",
+      "why": "a departure per traveler",
+      "predicate": "travel:segment.departure@1",
+      "subject": {
+        "kind": "segment",
+        "key": "LO281-2026-10-03"
+      },
+      "value": {
+        "type": "datetime",
+        "datetime": {
+          "local": "2026-10-03T14:05",
+          "precision": "minute",
+          "zone": {
+            "kind": "iana",
+            "name": "Europe/Warsaw"
+          }
+        }
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "slot": "traveler-1",
+      "expect": "unexpected_slot"
+    },
+    {
+      "name": "inadmissible-status",
+      "why": "a seat is not estimated",
+      "predicate": "travel:segment.seat@1",
+      "subject": {
+        "kind": "segment",
+        "key": "LO281-2026-10-03"
+      },
+      "value": {
+        "type": "text",
+        "text": "14C"
+      },
+      "epistemic": {
+        "stance": "estimated"
+      },
+      "slot": "traveler-1",
+      "expect": "inadmissible_status"
+    },
+    {
+      "name": "not-normalized",
+      "why": "text in NFD",
+      "predicate": "travel:booking.locator@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "text",
+        "text": "Cafe\u0301"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "expect": "text_not_normalized"
+    },
+    {
+      "name": "span-outside-derivation",
+      "why": "B-2: a span into a memory the claim does not derive from",
+      "predicate": "travel:booking.locator@1",
+      "subject": {
+        "kind": "booking",
+        "key": "PNR-XK2Q9L"
+      },
+      "value": {
+        "type": "text",
+        "text": "XK2Q9L"
+      },
+      "epistemic": {
+        "stance": "asserted"
+      },
+      "span_source": "elsewhere",
+      "expect": "span_outside_derivation"
+    }
+  ]
+}

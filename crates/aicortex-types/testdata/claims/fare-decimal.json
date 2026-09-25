@@ -1,0 +1,35 @@
+{
+  "id": "019c4f00-0000-7000-8000-000000000104",
+  "scope": {
+    "owner": "2f1b8c4e-0f6a-4b1e-9a2c-7d3e5f8a1b90",
+    "kind": "personal"
+  },
+  "subject": {
+    "namespace": "travel",
+    "kind": "booking",
+    "key": "PNR-XK2Q9L"
+  },
+  "predicate": "travel:booking.fare@1",
+  "value": {
+    "type": "decimal",
+    "decimal": {
+      "amount": "1234.50",
+      "unit": {
+        "kind": "currency",
+        "code": "EUR"
+      }
+    }
+  },
+  "epistemic": {
+    "stance": "asserted"
+  },
+  "provenance": {
+    "source": {
+      "system": "travel-ingest",
+      "external_id": "msg-4411"
+    },
+    "captured_at": 1789041600,
+    "ingested_at": 1789041604
+  },
+  "schema_version": 1
+}

@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-claims",
+    "path": "crates/aicortex-claims",
+    "specRef": "050-typed-claims-and-predicate-registry",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "6e7153fb3700b99a91e77e64e66d269fa6e3cf84f330d573d1c1910875ac479a"
+}

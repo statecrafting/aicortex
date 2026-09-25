@@ -54,16 +54,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/lib.rs' does not exist",
-        "path": "crates/aicortex-claims/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/Cargo.toml' does not exist",
-        "path": "crates/aicortex-claims/Cargo.toml"
-      },
-      {
-        "code": "W-001",
         "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
         "path": "crates/aicortex-store/src/erasure.rs"
       },
@@ -85,6 +75,14 @@
       "051-claim-admission-and-authority"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-claims/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-claims/src/lib.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/lib.rs",
         "source": "spec-edge"
@@ -186,7 +184,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -195,7 +197,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

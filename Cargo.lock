@@ -141,6 +141,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "aicortex-claims"
+version = "0.1.0"
+dependencies = [
+ "aicortex-types",
+ "rahi-types",
+ "serde",
+ "serde_json",
+ "unicode-normalization",
+]
+
+[[package]]
 name = "aicortex-gate"
 version = "0.1.0"
 dependencies = [
@@ -162,9 +173,11 @@ dependencies = [
 name = "aicortex-store"
 version = "0.1.0"
 dependencies = [
+ "aicortex-claims",
  "aicortex-gate",
  "aicortex-types",
  "base64 0.22.1",
+ "rahi-ledger",
  "rahi-store",
  "rahi-types",
  "ring",

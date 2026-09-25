@@ -227,5 +227,6 @@ fn row_to_provenance(
         derived_from,
         extractor,
         admission: None,
+        spans: Vec::new(),
     })
 }

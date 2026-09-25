@@ -1,0 +1,51 @@
+{
+  "id": "019c4f00-0000-7000-8000-000000000105",
+  "scope": {
+    "owner": "2f1b8c4e-0f6a-4b1e-9a2c-7d3e5f8a1b90",
+    "kind": "personal"
+  },
+  "subject": {
+    "namespace": "travel",
+    "kind": "stay",
+    "key": "hotel-waw-1"
+  },
+  "predicate": "travel:stay.dates@1",
+  "value": {
+    "type": "interval",
+    "interval": {
+      "start": {
+        "kind": "inclusive",
+        "point": {
+          "kind": "date",
+          "date": {
+            "on": "2026-10-03",
+            "precision": "day"
+          }
+        }
+      },
+      "end": {
+        "kind": "exclusive",
+        "point": {
+          "kind": "date",
+          "date": {
+            "on": "2026-10-06",
+            "precision": "day"
+          }
+        }
+      }
+    }
+  },
+  "epistemic": {
+    "stance": "conditional",
+    "condition": "if the deposit is paid"
+  },
+  "provenance": {
+    "source": {
+      "system": "travel-ingest",
+      "external_id": "msg-4411"
+    },
+    "captured_at": 1789041600,
+    "ingested_at": 1789041604
+  },
+  "schema_version": 1
+}

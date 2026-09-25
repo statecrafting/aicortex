@@ -17,6 +17,7 @@ use serde::{Deserialize, Deserializer, Serialize};
 
 use crate::error::{Result, TypeError, validate_key};
 use crate::id::MemoryId;
+use crate::span::SourceSpan;
 use crate::trust::DecisionRef;
 
 /// The system a claim came from: a client, an adapter, an importer.
@@ -230,6 +231,13 @@ pub struct Provenance {
     /// record schema version does not move.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub admission: Option<AdmissionOverride>,
+    /// Where in the stored sources the claim was read (spec 050 B-13).
+    ///
+    /// Additive and serialized only when non-empty, so every record written
+    /// before this field existed reads back unchanged (011 FR-001). A span
+    /// carries offsets and a keyed digest, never content.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub spans: Vec<SourceSpan>,
 }
 
 impl Provenance {
@@ -247,6 +255,7 @@ impl Provenance {
             derived_from: Vec::new(),
             extractor: None,
             admission: None,
+            spans: Vec::new(),
         }
     }
 
@@ -264,6 +273,13 @@ impl Provenance {
     pub fn derived(mut self, derived_from: Vec<MemoryId>, extractor: ExtractorVersion) -> Self {
         self.derived_from = derived_from;
         self.extractor = Some(extractor);
+        self
+    }
+
+    /// The same provenance, pointing into its sources (spec 050 B-12).
+    #[must_use]
+    pub fn with_spans(mut self, spans: Vec<SourceSpan>) -> Self {
+        self.spans = spans;
         self
     }
 
