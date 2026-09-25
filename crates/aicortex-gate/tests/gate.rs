@@ -19,7 +19,9 @@ mod common;
 
 use std::collections::BTreeSet;
 
-use aicortex_gate::rules::{HIGH_ENTROPY, JWT, PEM_RULES, PREFIX_RULES, URL_CREDENTIAL};
+use action_gate_core::secrets::{
+    CREDENTIAL_ASSIGNMENT, HIGH_ENTROPY, JWT, PEM_RULES, PREFIX_RULES, URL_CREDENTIAL,
+};
 use aicortex_gate::{Gate, MediaFault, Reason, Verdict};
 
 #[test]
@@ -129,7 +131,7 @@ fn fr001_the_corpus_holds_a_positive_case_for_every_detector() {
             missing.push(rule.detector.as_str());
         }
     }
-    for detector in [URL_CREDENTIAL, JWT, HIGH_ENTROPY] {
+    for detector in [URL_CREDENTIAL, JWT, HIGH_ENTROPY, CREDENTIAL_ASSIGNMENT] {
         if !named.contains(detector.as_str()) {
             missing.push(detector.as_str());
         }
@@ -139,7 +141,7 @@ fn fr001_the_corpus_holds_a_positive_case_for_every_detector() {
         "these detectors have no positive fixture: {missing:?}"
     );
     assert!(
-        named.len() >= PREFIX_RULES.len() + PEM_RULES.len() + 3,
+        named.len() >= PREFIX_RULES.len() + PEM_RULES.len() + 4,
         "the corpus names {} detectors and the tables hold more",
         named.len()
     );
@@ -300,6 +302,11 @@ fn b5_there_is_no_rule_set_with_no_detectors() {
     assert_eq!(rules.secrets.prefixes.len(), PREFIX_RULES.len());
     assert_eq!(rules.secrets.pem.len(), PEM_RULES.len());
     assert!(rules.secrets.entropy.is_some());
+    assert!(rules.secrets.url_credentials && rules.secrets.json_web_tokens);
+    assert!(
+        rules.secrets.assignments,
+        "047 B-6: the assignment rule runs"
+    );
     assert_eq!(Gate::standard().rules(), &rules);
     assert_eq!(aicortex_gate::RuleSet::default().secrets, rules.secrets);
 }
