@@ -52,6 +52,17 @@
       }
     ],
     "risk": "medium",
+    "sectionDigests": {
+      "033-machine-intake": "d5b811f06923ed5fc12c29a4f98ef7e948db690a3676905245a0fb4b2283d0c9",
+      "1-purpose": "e362ded7d0c39f1b14c2c2835cc59f3393e9bc1f21b09c2a18126c393cd0e150",
+      "2-territory": "285bd9c2deccb0e896a6461b79ef268dda7417c5ae6205ef2b5a0c85d5fe4dd4",
+      "3-behavior": "39fb4e357438c5f45a1acbfed9bd64e94b19e961c7ca0def6dc9446993491fcc",
+      "4-functional-requirements": "caed37e8533b14593840985b032fca02d3159ccbf0f11f88d9541721d8abdbaa",
+      "5-acceptance-criteria": "3a1d91537713d16f60cfb8e0c46ceeeab5d327d4252f068451543d44020282aa",
+      "6-out-of-scope": "5e7e8e29e0c7b700fad090a87cc320a48c7c4942c317965321c603273242fe1b",
+      "7-resolved-decisions": "9d0cdba0b0067ea0d998f01716b0930c0f5c1da96fd25b0968be9b4b1c66876b",
+      "verification": "ec984961f88ab859151a5680799b02ea5e4d1f232d58c7e1cc1fed706a5f1642"
+    },
     "sectionHeadings": [
       "033: Machine intake",
       "1. Purpose",
@@ -69,5 +80,5 @@
     "title": "Machine intake: session decisions from the orchestrator and memories written by agents"
   },
   "shardHash": "74ac53fd5c821ad0168822604cc2c914951270ae4ba377855126de5464bd6f3f",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

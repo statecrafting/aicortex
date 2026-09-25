@@ -15,6 +15,19 @@
       "retroactive": true
     },
     "risk": "critical",
+    "sectionDigests": {
+      "000-bootstrap": "6dd49cc190b6c58490874056df7f809e1364cdddfdc840104e9a0c2ee8c1c738",
+      "1-the-authoring-and-derived-boundary": "cfb5838e9abdda80359fb44d233ed1b0707ba32801adaa4c8f158d0531cf2189",
+      "10-bootstrap-order": "e8adbced7899694e4063b83a893a2f120d8f127dbb776a868912fb8d99e69a10",
+      "2-identity": "da843fa52c907775f41a40c3185953dd171f17e9637b6fd51090a14a9833b9dc",
+      "3-the-typed-authority-graph": "f6757635d0fb625281dbc6607f68b5bb748453c44e4ada65052f35830f960c37",
+      "4-closed-taxonomies": "9e5520aba4853241efb36eada143e7dc706bafc2aedd58ace35da053f153d79e",
+      "5-determinism": "e78246875410a8a68a4ede6ee3ef95b4fcb5f8c26e370b2d6778bc6bad89c8c9",
+      "6-the-clean-room-rule": "0e737e90047460159f7ca18b294524a4bd4151f0607b4d8fb94528f39abae7b3",
+      "7-the-coherence-guard": "cf4dfd1d7a866ffea77c617f5d318c7146197dbe04c99781d5d469951953f3c4",
+      "8-lifecycle-as-scheduling": "fccf4554ebb9d68e113bce09ce23dc1544f827bfdfc442a14448398e11ad36b8",
+      "9-the-gate-chain": "a9cbe805bdee05f6a3304bf62c048751c2a2968993950865bc3866e67c8c146b"
+    },
     "sectionHeadings": [
       "000: Bootstrap",
       "1. The authoring and derived boundary",
@@ -41,5 +54,5 @@
     ]
   },
   "shardHash": "a459d62750205355478eb2f7dc99372f4f5ea8a354a35a0499f061d58b543f08",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

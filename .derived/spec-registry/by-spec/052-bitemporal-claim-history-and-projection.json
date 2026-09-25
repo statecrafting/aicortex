@@ -140,6 +140,23 @@
       }
     ],
     "risk": "critical",
+    "sectionDigests": {
+      "052-bitemporal-claim-history-and-projection": "4a74e70e163aa719536d2fc73dd853aad21180b4a4d808298966ba3c084f1a3f",
+      "1-purpose": "31d73c4edb2c60dd46ad4ede85dd5b9fabf3e0f60de0fed06ee3d3665e2343fd",
+      "2-territory": "0ccc9354c4d2e522609522dec87965757c484098918bd5a2923e416cae1dbaea",
+      "3-1-three-times": "7d07260f14855407b1a72b9ddaf09ab2f23a4688e7688fcf72b2151f63cf91fc",
+      "3-2-append-only-history": "4bfa2fad0acb1ffb355ac87745a7b1ea223726ec74618ebc00e0f582f073293f",
+      "3-3-projection": "600a4c8517047f935a182e84fc558b00d20570933c9c3acd2cb566e6dbd6c111",
+      "3-4-erasure-and-the-store": "9f123c1099a3ccfcb42b227a8cbb2604faf90d0b6ddc3d3336538250ac530853",
+      "3-behavior": "78ad0be7b557f1f652c99675634e651ad226baea4e89d904b668f8b3cc05a570",
+      "4-functional-requirements": "da73527884beb42631b7fe3df4c0fff3c03e468f29c793e5c7db2cde47d30350",
+      "5-acceptance-criteria": "19394e4e46f248234c70d30e1f15414126ba5c345bda452279aa0e03895f64c1",
+      "6-out-of-scope": "46d7e9227f2c5029eeeaa6655a0162a4a7a7b620bffce55d3dbd572078eb82b1",
+      "7-resolved-decisions": "563f85d27f3b5bf0645d92c3c55141850f17885517a1c567ba68525388964b45",
+      "8-open-questions": "359ec34f25e8780ed3d3c1e44b65c515eb3ce5bf83dbf4cb3842a3ebfa64ed30",
+      "9-obligations": "afb33012c1dc4ecbc1f7b220050e2369fd8094a67804dae72d530327aa6d1338",
+      "verification": "fb5a41202e69804b5a4239eca84bf25606f6ef07aaa6bba529db82e09663dec8"
+    },
     "sectionHeadings": [
       "052: Bitemporal claim history and projection",
       "1. Purpose",
@@ -163,5 +180,5 @@
     "title": "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
   },
   "shardHash": "76afee8c151c8d29815edf4715c89bd4d07da9c00f3549f6750144a796fd32ee",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

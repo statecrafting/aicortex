@@ -82,6 +82,17 @@
       }
     ],
     "risk": "critical",
+    "sectionDigests": {
+      "014-lifecycle": "5c340495407b49fa234a13bcfe98c420a2d896fbd7d63c44dd728c65dd6266d3",
+      "1-purpose": "e92fd2c2b9dff859293607f2223a4e1e0043857528660d70ebf899ad1e165873",
+      "2-territory": "14fa0db0d197eaaad7477946f4313a264e2f9273631c5a4125b8d81851ea1dee",
+      "3-behavior": "5f09badbc366fbcecb58bbe592a13405716c5b2cf17d2cc94146ac9fc7c61e01",
+      "4-functional-requirements": "592e3b9f27b0475262b28fe74ddebe16058ed27824801e694949f5c501a6845b",
+      "5-acceptance-criteria": "cbca38c21ddea4b218f2299146b3e3d93869a27e266d5f71bd3749bfe0a90235",
+      "6-out-of-scope": "e63bcaeb07fa3bb0e09b9884e76197a589453fa61648b113130d5858c6015d3f",
+      "7-resolved-decisions": "81e7aabeac1850630976341a288ae5c5c97d36c895ed55e8f8406455c937d261",
+      "verification": "8c543ddc59fcfb1adc35d8c1a061db979afb7e0b0268840f0468237d0b86ed8c"
+    },
     "sectionHeadings": [
       "014: Lifecycle",
       "1. Purpose",
@@ -99,5 +110,5 @@
     "title": "Lifecycle: supersession, correction, expiry, deduplication, and erasure that reaches the vectors"
   },
   "shardHash": "0222aed04b8a285e2a8e2310917da032f739a333e855b3b9d6b2fcf2fbd9cb4d",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

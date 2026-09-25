@@ -102,6 +102,17 @@
     "implementation": "pending",
     "kind": "kernel",
     "risk": "critical",
+    "sectionDigests": {
+      "015-embeddings": "ac586ea070fa2b4d99cdcdc65ab64a159bad29c5595636d4ec8be86bb37f5f3a",
+      "1-purpose": "989657e0577a8e2d9da98f01af2692c9052a15b3be44b37bd4856fe66c05b645",
+      "2-territory": "1f87b980d6cb3e4841b5f8402b64554de408c3bda323993bf277f75f08746b6d",
+      "3-behavior": "5b20884b05fe1cb41564e3f41324e67d04018c84122b6a755b5e0bb111ead96a",
+      "4-functional-requirements": "85c189fb3d80eb4a846d97423be27c456a8f36893a908d113a60328a257149bf",
+      "5-acceptance-criteria": "c1dad44487d828931a2bf2fab0ade9d09db19bca2bfa9cc079e33bbc7eaa940f",
+      "6-out-of-scope": "f984716657ec4f21f2549f82f68c8506bec498f2a29466a21d3fd2fc2bf59951",
+      "7-resolved-decisions": "f590d9c336659ecf3e01162dbfd01a7b11be6f4899f2673212c7757c70d8c016",
+      "verification": "2abba5665f1683eb8359a7677a18fa075b5c21059a8dce252165d430515097f2"
+    },
     "sectionHeadings": [
       "015: Embeddings",
       "1. Purpose",
@@ -119,5 +130,5 @@
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
   "shardHash": "ce525b3403620caa8d7608054fb1bb01a4dfe928b313c4bb4a2731b7b81b7342",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

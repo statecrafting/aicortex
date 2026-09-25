@@ -71,6 +71,17 @@
     "implementation": "pending",
     "kind": "kernel",
     "risk": "critical",
+    "sectionDigests": {
+      "040-evaluation": "07ddbfa85afc29e0ad9421c609c985b7b0142f92d5e5a46b250cf2127900d236",
+      "1-purpose": "167d8c6e6afd1f32c0253beaa993a57e96427c498823dc96654346f8ec879aaa",
+      "2-territory": "9dcfa153f6ad76acbe9cc525afd953bbdf937f40b2cfc23faa1ac144a647ee56",
+      "3-behavior": "ff318dc2c9e36e7e1a0540b96bc77de6ef04d2a12696c0bbd24410beb290edd7",
+      "4-functional-requirements": "bcf23aafc52407cfa42b97e3a036239ecf82966223da41a51cf0f44f495d7523",
+      "5-acceptance-criteria": "bff08249ada83c827e9aefe82d8eee8bde0fdc389351218a30ac190ba5b78c3a",
+      "6-out-of-scope": "cdb3a4bb5d01e0f2756699b12788d64a8abd317512bb6ffda35292cbb329a33b",
+      "7-resolved-decisions": "9784db3f08475cb42371fb8354d31b68f88694e0e83b901ae99537fefb15d018",
+      "verification": "6d81704f3d575fb29f01c3d51cc1bc61de1857fb3cebd2b896e2a137241f0f29"
+    },
     "sectionHeadings": [
       "040: Evaluation",
       "1. Purpose",
@@ -88,5 +99,5 @@
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
   "shardHash": "a93780402b250a49947ea7fd46f6b4206f0000332864c1692f0c5f8f76fc9018",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

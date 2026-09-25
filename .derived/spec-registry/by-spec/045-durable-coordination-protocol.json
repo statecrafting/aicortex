@@ -225,6 +225,29 @@
       }
     ],
     "risk": "critical",
+    "sectionDigests": {
+      "045-durable-coordination": "b9f52f4b8e28dbf42c3af9f10f1500b2479a070f81f0ee049f893934551dd1ce",
+      "1-purpose": "0356189bb2b6eba4244c408adc07fddb52ea400f06f6c352446f1acdbdee31b5",
+      "2-territory": "bfcb5a5b75d46b1966c8f25e135aa78275659c75efed94a25f478535b807103a",
+      "3-behavior": "2366a6f567acbc1fe26e16277ccd255e2a71008be260375af6ca02c0f383302f",
+      "4-functional-requirements": "7e54fd991da9332da5a29f583f949781849f423f22ca3421f439c2723c2fa51a",
+      "5-acceptance-criteria": "3b79e98740a4e5519efd192c44435f5a438cd9ed08f41bb0325a1c39fb226615",
+      "6-out-of-scope": "f20161f9bae332c19639076249bc853e6f1b7379dc7372f804911de6303c3d38",
+      "7-resolved-decisions": "2406a10c90a29dce4fa37261a9343f29e3d0085dd8f98640b813fcd18ffa96c6",
+      "b-1-five-concepts-remain-distinct": "08e2ee8085652ee32092a8690ec1abc98f8a7d1e6fb9a9e71bc02b850c4530b8",
+      "b-10-semantic-memory-remains-a-separate-projection": "9cd875107f42d984328e819a69e95701aba013ad6b243d2f188d9261aeab6778",
+      "b-11-retention-erasure-and-access-revocation": "48a18df7a9baa47e81ced111f6e5b39175f9b60b0a274506d6956732582d5b6b",
+      "b-12-local-product-integration": "52bb68e994dff1c2a44742dd3e8096ef960171fbab2b410bd7d3a8e4e385c580",
+      "b-2-envelope-and-identity": "f5a716642a6cb81b5160e218f36ea6e0fabb3da714eca9fee43708be44fff144",
+      "b-3-requests-recipients-and-revisions": "56d04431395b62f4d2c4ae27ed85598068dd4e8f6bb89bd0482786f6e1f9d7e9",
+      "b-4-atomic-storage-and-recoverable-delivery": "210ff3189c70aae8823c14b88c380808ba1d53ac342859862443b88b95ba42d7",
+      "b-5-single-authority-fencing-and-cancellation": "108aaf274ded8af4ef0dd943193b6d8ce15e36a4c17b25221f0acb4abc21d61a",
+      "b-6-git-and-provider-observations": "9bb95c163e478584aa8c641bc3e5d1c4a09f9af29162c08951d0f7a03d31bfa2",
+      "b-7-reconciliation-is-proposition-specific": "06056f695d2eec55dc6108b102957efd352063d71809c79fdd98c2483ef432ac",
+      "b-8-query-views-and-bounded-attention": "6784092a6a7e36cc2de982fd8b8acdbc0887a2278f87b3c29d691e5830c12d15",
+      "b-9-packets-remain-portable-versioned-views": "a3831096c8eaac6ac51f9a8ff0b4a0ac6aa9dc7e6ae2ed2566dd738adcf46766",
+      "verification": "721de808aecda5848961bd43e410030214c2a66b3aef0bccf799c89a73464bd3"
+    },
     "sectionHeadings": [
       "045: Durable coordination",
       "1. Purpose",
@@ -254,5 +277,5 @@
     "title": "Coordinate repository work through durable requests, replies, and reconciled evidence"
   },
   "shardHash": "f9b5220dd52ce391c7cf33f8e410af555f83ff0642dc4279382a6d1e6a611d6f",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

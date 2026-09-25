@@ -57,6 +57,17 @@
     "implementation": "pending",
     "kind": "kernel",
     "risk": "critical",
+    "sectionDigests": {
+      "018-recall": "eef0196b63e2c4d885919ecc651f3157894d07e2d4acc0299633cd8c2638638a",
+      "1-purpose": "12eb79601c5277b1eaed13d354120dc5bc73aa78045db6e5227c103c01473fa1",
+      "2-territory": "4445ce5a0d5cad27112cd1567995258302a3accfb185d41e791bcf981caf169c",
+      "3-behavior": "206f93d65e4674e88ce0811d99bc427b785ac21d86d2e01e5ed8804f72965c47",
+      "4-functional-requirements": "e3b51a95817682038f83f0c07ce52cb978138df3dd070d8d6b7052a33e385f44",
+      "5-acceptance-criteria": "66e055fe0774b80a89708acd0d1089753b0c71e44abebbfcb986f4eb0df2246b",
+      "6-out-of-scope": "5a532b1ce244419b5b6f0278a72981af0774f61c5eb2c1f1fa7ce29fb967b204",
+      "7-resolved-decisions": "8e529e5601c140f648125c68a36fc2f6a18b8d723fe220a0b6caa29e0bb98d94",
+      "verification": "b98d91f345350958f9006b4ae6e935b68063418d7b9a070d8527d8c7d64c3e0d"
+    },
     "sectionHeadings": [
       "018: Recall",
       "1. Purpose",
@@ -74,5 +85,5 @@
     "title": "Recall: four channels fused into one order, every result explainable, scope in the SQL"
   },
   "shardHash": "5e30af0876c198b9f1d7143825961423a9d51ee948a20ab3b1c1fd887bb12060",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

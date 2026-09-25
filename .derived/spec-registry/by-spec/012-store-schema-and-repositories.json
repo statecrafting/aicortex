@@ -110,6 +110,17 @@
     "implementation": "complete",
     "kind": "kernel",
     "risk": "critical",
+    "sectionDigests": {
+      "012-schema-and-repositories": "fa201f8e26a90912323de604d221f3f44374b535e44cd7c1c9684a40641e17a9",
+      "1-purpose": "6d3eb12393cab9277b8d069f967dc94332c556007d32c2aa07334c5b45a9eac9",
+      "2-territory": "210206b489cb7f6579ac7cec1e4445059a3193e9306c699131d36a13594b1761",
+      "3-behavior": "740e41a7c8b1ff13d7263b547e2e49539e78aaa6725d926cb0ee784e2bfec4fc",
+      "4-functional-requirements": "31d2ded5cdf08fa1e01db4dcf5851de130bdd8fd80ce14b49e4d41b960abe0d7",
+      "5-acceptance-criteria": "c3085624fc843519e70b87a5bb6d44a598da9873ac6455c13c0b44aaf1bbe9ce",
+      "6-out-of-scope": "f596c4b3e62db2080a7f178ab4628dbf2ab42b31a9be5703194cc65ccf067e7b",
+      "7-resolved-decisions": "98d30a60e33c86e2efe0dfccc05036ef713eaa414bedcc14fb2ab08b1902c396",
+      "verification": "bca657b17fbe26127ffd50eab0cf1bc1641530b9cd2a68aeb8b551cea48be382"
+    },
     "sectionHeadings": [
       "012: Schema and repositories",
       "1. Purpose",
@@ -127,5 +138,5 @@
     "title": "Schema and repositories: versioned migrations, scope in the predicate, counters instead of scans"
   },
   "shardHash": "132909b16d986c40c9e30459a7a2f61d410a4ef4dc2eee7b014ba02479155fdf",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

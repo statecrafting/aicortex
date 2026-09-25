@@ -6,12 +6,12 @@
 
 [meta]
 # The binary floor this repository is governed by, checked by the CLI itself
-# before any verb runs (spec-spine spec 062). 0.20.0 is the floor this corpus
+# before any verb runs (spec-spine spec 062). 0.25.0 is the floor this corpus
 # is written for: below it the read documents carry a different shape and the
 # committed shards do not match what an older binary compiles, so `check`
-# calls a correct tree stale (spec 001 D-10). Bump this together with
+# calls a correct tree stale (spec 001 D-10, D-11). Bump this together with
 # AGENTS.md, README.md and govern.yml.
-required_version = ">=0.20.0"
+required_version = ">=0.25.0"
 
 [manifest]
 # Cargo `[package.metadata.spec-spine].spec` names each crate's founding spec.

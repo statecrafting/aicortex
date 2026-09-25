@@ -57,6 +57,17 @@
     "implementation": "pending",
     "kind": "feature",
     "risk": "high",
+    "sectionDigests": {
+      "024-decisions-and-audit": "b56b591194ce46f0e4119a169b3167de152faccdf46cb49f14fbaa26dd1b418e",
+      "1-purpose": "0832e2db04275d358ce3baa4ff8e5c0a783ad37ada2e11f51b491cfb85c2e3bd",
+      "2-territory": "ba9640de56fc8938d5de0088e1d27505ad84ebcc1ae35c1ae7e0819824d987d9",
+      "3-behavior": "6d35b1dc6325e69d52ef189a1d2995e2f5161161e17abe5469f67d4ac080e6e5",
+      "4-functional-requirements": "8ab6c8d218ac05f1ac84f12ab1ebcf74a6df364fb940de6d1df144de0f30e17b",
+      "5-acceptance-criteria": "314039582ceeef5eeae1cdc6534e0965c2ee063784e2753f3e1edd7a7b5a8127",
+      "6-out-of-scope": "39c81f437ad60c5231d780bf9c0dd722d1f902c76f7d5ac23586798dbe358b6a",
+      "7-resolved-decisions": "3fec5c66145bf2e39db3265bb999b43b50876fa478c38c0e3c3e20d1011f9123",
+      "verification": "5a6d22a7ba05735d43e234e7a8e09048d883d83a03b1bbab8ab559184d6ce160"
+    },
     "sectionHeadings": [
       "024: Decisions and audit",
       "1. Purpose",
@@ -74,5 +85,5 @@
     "title": "One chain, referenced: decisions live in rahi's ledger and memories point at them"
   },
   "shardHash": "7ed0709f6de574ea404829b7578948076efdac319c81608873d6bec25fa3fd0a",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }

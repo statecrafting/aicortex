@@ -59,6 +59,17 @@
     "implementation": "pending",
     "kind": "feature",
     "risk": "medium",
+    "sectionDigests": {
+      "022-client-adapters": "2295a82fc6057efc17fa5fa6d544c899277664f9f232d5131b0fff2e62dec39a",
+      "1-purpose": "03696686a843665f3bdd97c36255676f45f7dbbf26fba1b2d6efce9eae50ece7",
+      "2-territory": "41b5088baeca1a4ad42c1ad9018402f8720492fbf564be98ab1c623da18fadc2",
+      "3-behavior": "3973c0492ee3e8ade0026da02ddc5e337c780ba84ab8137911ff7d42deb1338f",
+      "4-functional-requirements": "153be8a015b03ecc355cf1c8b86f7c82acfdfcf8c4646ecd89583ecd78924768",
+      "5-acceptance-criteria": "44491057a47245cffe05f59b4259c32845aa5ff25fe007abc3a4cb439fbd2e2e",
+      "6-out-of-scope": "7cf1f75b904541bfcd1e807a51ffe72c4113af3e984d11369225f32d1a76be4a",
+      "7-resolved-decisions": "fdbaf1cd6f570b791fce8037fa1b15fb00a4842c97fac3513502863c8a998bef",
+      "verification": "0a29d40d64c2142b535a92d3cfdd53d69ef52a01c1603d5c6e70ae447cbdc0cf"
+    },
     "sectionHeadings": [
       "022: Client adapters",
       "1. Purpose",
@@ -76,5 +87,5 @@
     "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
   },
   "shardHash": "c449d7a965408c8feeba051613fd2a61d28f568f3102f79e9e99057eb486704c",
-  "specVersion": "1.3.0"
+  "specVersion": "1.8.0"
 }
