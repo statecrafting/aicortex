@@ -41,7 +41,7 @@ make ci         # spine + coverage (--fail-on-untraced once Cargo.toml exists) +
 make verify SPEC=018-retrieval-and-recall-trace
 ```
 
-Governance is `spec-spine` 0.25.0 on `PATH`; CI pins the same version, and
+Governance is `spec-spine` 0.26.0 on `PATH`; CI pins the same version, and
 `spec-spine.toml [meta] required_version` makes the CLI refuse to run below
 it. Derived shards are committed and read only through the `spec-spine` CLI.
 
