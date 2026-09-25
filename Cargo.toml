@@ -19,18 +19,18 @@ authors = ["Bartek Kus"]
 
 [workspace.dependencies]
 # The chassis (B-2): all nine crates at one exact version, from the registry
-# only. No [patch], no path, no git (D-1, D-2). 0.1.0 is rahi's first
-# published release, tagged v0.1.0; a chassis bump is a single change to
+# only. No [patch], no path, no git (D-1, D-2). 0.2.0 is adopted by spec
+# 046 (rahi v0.2.0, all nine together); a chassis bump is a single change to
 # these nine lines that revisits deny.toml with it (D-8).
-rahi-types = "=0.1.0"
-rahi-store = "=0.1.0"
-rahi-ledger = "=0.1.0"
-rahi-kernel = "=0.1.0"
-rahi-idp = "=0.1.0"
-rahi-edge = "=0.1.0"
-rahi-ops = "=0.1.0"
-rahi-harness = "=0.1.0"
-rahi-cli = "=0.1.0"
+rahi-types = "=0.2.0"
+rahi-store = "=0.2.0"
+rahi-ledger = "=0.2.0"
+rahi-kernel = "=0.2.0"
+rahi-idp = "=0.2.0"
+rahi-edge = "=0.2.0"
+rahi-ops = "=0.2.0"
+rahi-harness = "=0.2.0"
+rahi-cli = "=0.2.0"
 
 # The router type the Cell returns (B-3). The chassis's edge is built on it,
 # and this is the version rahi locks, so the workspace adds no second copy
