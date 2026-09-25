@@ -1,0 +1,104 @@
+{
+  "record": {
+    "amends": [
+      "001-agentic-harness"
+    ],
+    "amendsSections": [
+      "3-behavior"
+    ],
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-25",
+    "dependsOn": [
+      "001-agentic-harness"
+    ],
+    "domain": "governance",
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": "AGENTS.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": "CLAUDE.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": "README.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/rules/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/agents/"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "048-one-spec-per-pull-request",
+    "implementation": "complete",
+    "kind": "governance",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/constitution.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "048-one-spec-per-pull-request": "a12dc903298d6af7f787a347251d19d6deddee83954968b95df14340e9a10503",
+      "1-purpose": "c6ea4c1d82bc386dbf2ec1e5d1a7c4f1c59933b2647b0f883bb4f4483a08b715",
+      "2-territory": "81b69832c7cbd33fbc47bce08fc9346a266f74c4ae947737d4b049299741eac8",
+      "3-behavior": "81c05966dfce1ba0e81f1e1836ddabd4931b5e01795e4b93670a788931834ad8",
+      "4-functional-requirements": "79f5a2800a5a3e4eda94f7db330627176e025fdfdb1d25f5f135316f4afdfa3f",
+      "5-acceptance-criteria": "2b8c18dc5dbdc593ca1048abcbff43f5955d6d344266e1b44eedb8a2dc6958c6",
+      "6-out-of-scope": "2b274ae2df61d0a04fed95d341fb552945dc10a747a846d12a2beb7b5708ec71",
+      "7-resolved-decisions": "1de094f46b4badc04b6ef5600a989f9cb38eddb1a4512a05fcc75ff47cff6a78",
+      "verification": "7fda1ec8b487198fe57bc584e367c981e07b62c9c7f0a1440a2ee37dd560a43a"
+    },
+    "sectionHeadings": [
+      "048: One spec per pull request",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/048-one-spec-per-pull-request/spec.md",
+    "status": "approved",
+    "summary": "The owner's decision of 2026-09-25 replaces the repository rule that code lands one spec per session with one spec per pull request: a session may land several specs, each on its own branch and in its own pull request, in build order. This spec amends spec 001 B-6 and carries the new sentence into the harness text that repeated the old one (AGENTS.md, CLAUDE.md, README.md, the orchestrator rule, the architect agent, and constitution principle III).\n",
+    "title": "One spec per pull request; a session may land several specs in build order"
+  },
+  "shardHash": "0c2dad1b0ee4038b00793deaaa2f457d641d7d4cfdeb6d10d9b2a3d60d675bb0",
+  "specVersion": "1.8.0"
+}

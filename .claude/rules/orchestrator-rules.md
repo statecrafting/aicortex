@@ -7,4 +7,5 @@
   before opening a PR, and commit the regenerated shards with the change that
   made them stale. A shard left uncommitted dirties the tree for whoever comes
   next.
-- One session, one spec: follow `AGENTS.md` "Working the backlog", then stop.
+- One pull request, one spec: follow `AGENTS.md` "Working the backlog"; a
+  session may land several specs in build order (spec 048).

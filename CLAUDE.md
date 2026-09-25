@@ -19,7 +19,8 @@ carried from which prior system and why.
 
 The repository is specified before it is built. Every ordinary spec is
 `approved` plus `implementation: pending`, spec ordinals are the build
-order, and code lands one spec per session. Before spec 010 lands there is
+order, and code lands one spec per pull request; a session may land
+several specs in build order (spec 048). Before spec 010 lands there is
 no `Cargo.toml`; every Makefile target and CI step is guarded for that.
 
 ## Commands

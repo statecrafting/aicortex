@@ -16,8 +16,9 @@ owns identity, state, the decision chain, the kernel, the edge, packaging,
 and the operational verbs. The repository is **specified before it is
 built**: the corpus under `specs/` is the whole design, every ordinary spec
 is `approved` and `implementation: pending`, and spec ordinals are the build
-order. Code arrives one spec per session under `crates/`, `apps/`, `eval/`,
-`docker/`, and `deploy/`.
+order. Code arrives one spec per pull request under `crates/`, `apps/`,
+`eval/`, `docker/`, and `deploy/`; a session may land several specs in build
+order (spec 048).
 
 Governance is `spec-spine` **0.26.0** on your `PATH` (CI pins the same
 version, and `spec-spine.toml [meta] required_version` makes the CLI refuse
@@ -103,8 +104,9 @@ If any file is missing: log "not found" and continue.
 ## Working the backlog
 
 This repo's backlog is its spec corpus. Every spec with `status: approved`
-and `implementation: pending` is a work order. One session implements one
-spec, start to finish, then stops. Specs `000`, `001`, and `002` are records
+and `implementation: pending` is a work order. One pull request implements
+one spec, start to finish; a session may land several specs in build order,
+each on its own branch from the latest default branch (spec 048). Specs `000`, `001`, and `002` are records
 (`n-a` or `complete`), never work orders.
 
 1. **Pick the spec.** The lowest-numbered spec with `implementation:
@@ -185,8 +187,9 @@ spec, start to finish, then stops. Specs `000`, `001`, and `002` are records
    such as `feat(011): ...`, push the feature branch, open the PR). The
    PR body is Summary plus Testing; no AI attribution, no session links.
    A `Spec-Drift-Waiver:` line needs explicit human approval; a driven
-   session never self-approves one. Then stop: the next session takes the
-   next spec.
+   session never self-approves one. Then the spec is done when its pull
+   request merges; the next spec starts from the updated default branch, in
+   this session or the next (spec 048).
 
 ## Available Agents
 

@@ -25,8 +25,9 @@ into `.derived/`. Both shard trees are committed; neither is hand-edited.
 ## III. Spec-first development
 
 The corpus is the design. Every ordinary spec is a work order: `approved`
-plus `implementation: pending`. Code arrives one spec per session, inside
-that spec's declared territory, and every source file is claimed.
+plus `implementation: pending`. Code arrives one spec per pull request,
+inside that spec's declared territory (a session may land several specs in
+build order), and every source file is claimed.
 
 ## IV. Determinism and validation
 
