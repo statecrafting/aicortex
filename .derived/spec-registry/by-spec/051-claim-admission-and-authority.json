@@ -192,17 +192,17 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "051-claim-admission-and-authority": "02291aa97afd5bbd6ab3f573e5d054e0b1bd2939f6801cb172e7a6d215f93d5c",
+      "051-claim-admission-and-authority": "625b842764a4c372751c0b03479e91ae95de5a5babd22cb08d19c07d05a3ad40",
       "1-purpose": "89fe197e2952912e3f8cca0126fb77ae4d5638d848b9293e50976e84e96c6084",
       "2-territory": "1ed098d1fddf8bebc6772975619cbbb5ac682cedac85b3a2caa403981502e416",
       "3-1-three-layers": "b30a15bc6d0d3d930fa07498cbcb382440739e9edc18af97ddd8845b975405d3",
-      "3-2-evidence-and-authority": "af93eb4a58bc606d0eede37dcee39f350df72776ca0aadc3dbc6c1e43aa1def3",
-      "3-3-the-gate-and-the-record": "63c318d102820c89dc9f8b2528233dc3cf07a51aac27f4c28e169b2b253aa1a9",
-      "3-behavior": "527bf5cec0e344f4bdb1f250db65614d33914bd641eb7c6b323784b0c107b64a",
-      "4-functional-requirements": "a9b116ed9e79925fdaf9936f30ce49dabae0193ea5e316f9cfc9f2840c7362d0",
+      "3-2-evidence-and-authority": "2851cd3a0169a335508507111be10573c2fe540a908a1d2b23d30dd42ad4918f",
+      "3-3-the-gate-and-the-record": "81252e43a53676072616e7d3df365277f7a5ef7b8313bb8591245a0090001262",
+      "3-behavior": "3ed933f58035a88db238daf51ab671031bc1db6ed9061b2be342511d743c512c",
+      "4-functional-requirements": "0e422575ef86342d24789cf835c1951c0d840f189ae134faeb5435492641d4f4",
       "5-acceptance-criteria": "da0e4f098d8e69773cb0bccc3186c1b7c8471c9f7aea8caee114dde1f52c20a1",
       "6-out-of-scope": "846679c62f8a82d1f9f572b89ae10c21e455f6c6fa92b7a552db87e14a112864",
-      "7-resolved-decisions": "e929668c7c6b142eca92b3f5aee74a2db88e08cf113fa17e85a6cefe2261c327",
+      "7-resolved-decisions": "e358d419080fe8722fada5e691b7c560e3ce66d220e9d9701c6e0cddecb8aac5",
       "8-open-questions": "b612391935e6103dbd1a242a76e954d203e9dc0c8243ccde28add94632bed280",
       "9-obligations": "18d380622e4416db12fbd7c78afcd3315b98123a1f10ada9670715817d3b751e",
       "verification": "4a8a2376595e0e2d1ed48a01e29be95b8544b292cbd5ee47e7b3734d63e667ea"
@@ -228,6 +228,6 @@
     "summary": "Three things that ingest pipelines routinely blur are kept apart: an observation (the source as received, stored as a memory through 013's gate), a proposal (a typed claim some actor suggests, with its evidence), and an admitted claim (a proposal the gate accepted under a named policy, with a decision record). Admission reuses the existing gate crate and its purity, adds a claim verdict whose `AdmittedClaim` only the gate can mint, and records every admission. Model-produced scores are stored as evidence and never serve as authority. A user's correction is first-class evidence carrying an authority level, and it is appended, never an edit.\n",
     "title": "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
   },
-  "shardHash": "3310bdd468d2312beb243d7e2af249d67e6d832f5c32329e1301197ffa0b6dd1",
+  "shardHash": "b9b444ce477861c0e7a5c3a27bc8a0a010dc7303c2e36fc4d36e97220ac5e843",
   "specVersion": "1.8.0"
 }
