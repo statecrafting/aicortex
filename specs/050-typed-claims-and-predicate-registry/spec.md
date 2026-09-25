@@ -10,7 +10,6 @@ implementation: pending
 risk: critical
 wave: 5
 depends_on:
-  - "014-memory-lifecycle-and-erasure"
   - "046-rahi-0-2-0-adoption"
 establishes:
   - "crates/aicortex-types/src/claim.rs"
@@ -385,6 +384,25 @@ versioned in travel-memory.
   rahi with named migration sets stops and reports the missing
   prerequisite rather than composing migrations by hand (AGENTS.md,
   "Working the backlog" step 1). This resolves Q-8.
+
+- **D-10 (2026-09-25, owner decision, build order and library mode).**
+  The owner's work order of 2026-09-25 sets the build order 050, 051, 014,
+  052, and removes 050's dependency on 014. Nothing in 050 needs 014's
+  lifecycle or erasure: its types, its pure validation and its registry
+  repository touch no memory lifecycle state, and the per-scope span key it
+  relies on (D-6) is 013's key discipline, which is complete. 051 carries
+  no dependency on 014 either. 052 does build on 014 (it extends
+  `erasure.rs`, and its tombstones are 014's erasure applied to claims), so
+  052 names 014 in its own `depends_on`, which the removal from 050 would
+  otherwise have dropped from its transitive chain. The D-5 sentence "050
+  can start as soon as 014 and 046 are complete" is superseded: 050 starts
+  when 046 is complete. The same work order says library mode waits for
+  the rahi release carrying named migration sets (`rahi://046`). D-9's
+  stop rule is therefore read as applying to library mode: 050 to 052 are
+  built and verified in aicortex's own cell, their migrations extend
+  aicortex's own sequence (012), and registering that sequence as a named
+  set in a host cell is the later library-mode unit, which stops as D-9
+  says if no such rahi release exists.
 
 ## 8. Open questions
 

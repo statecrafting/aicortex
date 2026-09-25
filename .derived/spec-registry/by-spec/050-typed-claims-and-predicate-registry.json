@@ -23,7 +23,6 @@
     ],
     "created": "2026-09-24",
     "dependsOn": [
-      "014-memory-lifecycle-and-erasure",
       "046-rahi-0-2-0-adoption"
     ],
     "domain": "memory",
@@ -214,7 +213,7 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "050-typed-claims-and-the-predicate-registry": "a1d6d14de69eaeeecad691f2306fc4b9f9f35c64b5ee496895a726bf1f8b2495",
+      "050-typed-claims-and-the-predicate-registry": "6c174d7dd92f9cd8585fbbc0c9dbdf25ebc2a645e79bab3b38ce40a6492d8691",
       "1-purpose": "9b4b33095ff3b4f3b63f76fbc7e10c9292a1c4cd17cd6b94d8d8b1b28341bf27",
       "2-territory": "58b1446329e6aeae23610505ea2d2a8fbee736182f0450d562488cb7cd78e7a1",
       "3-1-the-claim": "d9066e32fb1d746c2634ed2a79705c67c070a32e049c52b689984a6ced4250b3",
@@ -226,7 +225,7 @@
       "5-acceptance-criteria": "971821b893f016d60b332b5694598c7da6ebfbadfdc1aed6f6d6ec3e4b925840",
       "6-1-relationship-to-other-models-in-the-family": "d1cd81a539024c05492ec47e7c543b5761698560f6759c6441da8b531116226b",
       "6-out-of-scope": "960cdc8f806d69e378687695fab8b6f23e12b53ee005709c95c035ba9ed9752d",
-      "7-resolved-decisions": "5b15bedc446b24612a6ce45ec8c736f10a562f4abf6a88d81c708df4daaafb7d",
+      "7-resolved-decisions": "625c2474ad8a1020232b09c93822551e86e08727cb80f013e0457c9583c8303b",
       "8-open-questions": "13b8ba6a3dae0e58fb993bf8f076e9323b64941931ad5b0d5fbfd38f741b38f7",
       "9-obligations": "fd2b9e2efe9eece5d9af730501b14f7b6bc40dc6dc4aa8ff2f22929188bb6710",
       "verification": "bd33c624fa1fe61b4586b973c71dcd918e9e47313e03b85acde45127bf6f537a"
@@ -254,6 +253,6 @@
     "summary": "aicortex becomes the family's canonical owner of claim history with provenance. This spec defines what one claim says, as types, before any claim is admitted or stored: a subject reference, a predicate from a namespaced, versioned registry that a domain supplies, a typed value (text, integer, fixed-point decimal with a unit or currency, date, datetime with zone, interval, entity reference, enumeration), an epistemic status taken from the source's own stance, typed claim-to-claim relations, and source span references that extend 011's Provenance with a part, a byte or character span, and a content digest. aicortex stays domain agnostic: travel, the first consumer, registers its own predicates. Who may admit a claim is 051; when it holds and how history is kept is 052.\n",
     "title": "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
   },
-  "shardHash": "87084c47c6b42940550f3f9a3a66a941854db22b94eb6fce0693911915a8c7f7",
+  "shardHash": "803674065869e1c8590970722a2e6c5261d1971f7836b8d663efb753718a981d",
   "specVersion": "1.8.0"
 }

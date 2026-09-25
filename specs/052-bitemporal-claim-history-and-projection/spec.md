@@ -10,6 +10,7 @@ implementation: pending
 risk: critical
 wave: 5
 depends_on:
+  - "014-memory-lifecycle-and-erasure"
   - "051-claim-admission-and-authority"
 establishes:
   - "crates/aicortex-claims/src/history.rs"
@@ -289,6 +290,12 @@ to a different log; the two are recorded as overlapping and not merged.
   includes the consumer's receipt and observation.
 - **D-6 (2026-09-24, owner decision).** Erasure blanks the subject key and
   the slot key on a claim tombstone (B-12). This resolves Q-3.
+
+- **D-7 (2026-09-25, owner decision, dependency on 014).** The owner's
+  work order of 2026-09-25 removes 050's dependency on 014 and keeps 052's.
+  052 extends 014's `erasure.rs` and tombstones claims as 014 erases
+  memories, so it now names 014 directly in `depends_on` rather than
+  inheriting it through 050 (050 D-10).
 
 ## 8. Open questions
 

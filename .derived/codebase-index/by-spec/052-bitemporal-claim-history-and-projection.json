@@ -81,6 +81,7 @@
   },
   "mapping": {
     "dependsOn": [
+      "014-memory-lifecycle-and-erasure",
       "051-claim-admission-and-authority"
     ],
     "implementingPaths": [
@@ -299,5 +300,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "f37c3871855464921cc199d67b03717af3166cd56b9dc51f42fc02859a88ecea"
+  "shardHash": "676f90ebe14860ed177875a941a57f841797e7b58067aac72703ca92d3e4c9d8"
 }

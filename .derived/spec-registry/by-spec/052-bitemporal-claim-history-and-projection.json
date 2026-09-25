@@ -23,6 +23,7 @@
     ],
     "created": "2026-09-24",
     "dependsOn": [
+      "014-memory-lifecycle-and-erasure",
       "051-claim-admission-and-authority"
     ],
     "domain": "memory",
@@ -185,7 +186,7 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "052-bitemporal-claim-history-and-projection": "408c6426d16b237ab9a1c7d8abc94fc4906d0924c1ea90ee04024eb8d5cad0ae",
+      "052-bitemporal-claim-history-and-projection": "e84f59a1a32bac95a23d2a2440228dfba30552ef555fa6bf872192ed08cbd753",
       "1-purpose": "31d73c4edb2c60dd46ad4ede85dd5b9fabf3e0f60de0fed06ee3d3665e2343fd",
       "2-territory": "0ccc9354c4d2e522609522dec87965757c484098918bd5a2923e416cae1dbaea",
       "3-1-three-times": "7d07260f14855407b1a72b9ddaf09ab2f23a4688e7688fcf72b2151f63cf91fc",
@@ -196,7 +197,7 @@
       "4-functional-requirements": "da73527884beb42631b7fe3df4c0fff3c03e468f29c793e5c7db2cde47d30350",
       "5-acceptance-criteria": "19394e4e46f248234c70d30e1f15414126ba5c345bda452279aa0e03895f64c1",
       "6-out-of-scope": "46d7e9227f2c5029eeeaa6655a0162a4a7a7b620bffce55d3dbd572078eb82b1",
-      "7-resolved-decisions": "563f85d27f3b5bf0645d92c3c55141850f17885517a1c567ba68525388964b45",
+      "7-resolved-decisions": "792ab4e5b9069ec31546e3d046479595584d175d44884744acf4f4402e6b0e21",
       "8-open-questions": "359ec34f25e8780ed3d3c1e44b65c515eb3ce5bf83dbf4cb3842a3ebfa64ed30",
       "9-obligations": "e63bcacdbfdc3b1ea73f71f9516e54b00c73b8ac8e603f952cbe689948bd2a95",
       "verification": "fb5a41202e69804b5a4239eca84bf25606f6ef07aaa6bba529db82e09663dec8"
@@ -223,6 +224,6 @@
     "summary": "A claim has three times: when it holds in the world (valid time, with precision, zone, open ends, and uncertainty), when the source said so (source-declared time), and when this store learned it (transaction time). History is append-only on the transaction axis; retraction, correction, and supersession are appended records, and only erasure removes content, leaving a tombstone. Supersession is scoped to one subject, predicate, and slot, so a schedule change to one segment supersedes that attribute alone. The current view is a deterministic projection of history under an explicit as-of on both axes and a policy version, ordered by the source's own time and the claim's authority, never by arrival, so reordered email delivery yields the same answer.\n",
     "title": "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
   },
-  "shardHash": "84122c2e45bc950c9ce3feb58c25fca927331b36fa99ea3a1a59f2613565465c",
+  "shardHash": "3f439194734990eea3eac8e90add51ee82f5ef6d94a2fc32f09af75b8b800b72",
   "specVersion": "1.8.0"
 }
