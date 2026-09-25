@@ -24,8 +24,9 @@ schema, or prose was taken from it; see spec 000 §6.
 
 Specified, not yet built. The corpus under `specs/` is the whole design.
 Every ordinary spec is `approved` with `implementation: pending`, spec
-ordinals are the build order, and code arrives one spec per session under
-`crates/` and `apps/`. Before spec 010 lands there is no `Cargo.toml`, and
+ordinals are the build order, and code arrives one spec per pull request
+under `crates/` and `apps/`; a session may land several specs in build
+order. Before spec 010 lands there is no `Cargo.toml`, and
 every Makefile target is guarded for that.
 
 Read `specs/002-memory-thesis/spec.md` first: it holds the nine
