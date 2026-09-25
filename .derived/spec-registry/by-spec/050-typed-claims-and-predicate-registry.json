@@ -1,0 +1,204 @@
+{
+  "record": {
+    "amends": [
+      "002-memory-thesis"
+    ],
+    "amendsSections": [
+      "2-the-nine-responsibilities",
+      "4-crate-topology",
+      "5-build-order"
+    ],
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "a claim cannot be constructed without a subject, a registered predicate reference, a typed value, an epistemic status and provenance",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/claim.rs"
+        }
+      }
+    ],
+    "created": "2026-09-24",
+    "dependsOn": [
+      "014-memory-lifecycle-and-erasure",
+      "046-rahi-0-2-0-adoption"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/claim.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/claim_value.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/claim_time.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/predicate.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/span.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/tests/claim.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/testdata/claims/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/src/registry.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/tests/registry.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/testdata/registries/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/predicate_registry_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/predicate_registry.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": "standards/spec/contract.md"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 5
+    },
+    "id": "050-typed-claims-and-predicate-registry",
+    "implementation": "pending",
+    "kind": "kernel",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/011-memory-model/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/017-entities-and-typed-edges/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionHeadings": [
+      "050: Typed claims and the predicate registry",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The claim",
+      "3.2 Typed values",
+      "3.3 Epistemic status and relations",
+      "3.4 Source spans",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "6.1 Relationship to other models in the family",
+      "7. Resolved decisions",
+      "8. Open questions",
+      "9. Obligations",
+      "10. Amendment of spec 002",
+      "Verification"
+    ],
+    "specPath": "specs/050-typed-claims-and-predicate-registry/spec.md",
+    "status": "approved",
+    "summary": "aicortex becomes the family's canonical owner of claim history with provenance. This spec defines what one claim says, as types, before any claim is admitted or stored: a subject reference, a predicate from a namespaced, versioned registry that a domain supplies, a typed value (text, integer, fixed-point decimal with a unit or currency, date, datetime with zone, interval, entity reference, enumeration), an epistemic status taken from the source's own stance, typed claim-to-claim relations, and source span references that extend 011's Provenance with a part, a byte or character span, and a content digest. aicortex stays domain agnostic: travel, the first consumer, registers its own predicates. Who may admit a claim is 051; when it holds and how history is kept is 052.\n",
+    "title": "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
+  },
+  "shardHash": "19d6e8de2f2ca82edf10f9c6426f6c27afb298dfad4d566b4c73356e61d0a037",
+  "specVersion": "1.3.0"
+}

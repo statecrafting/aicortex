@@ -1,0 +1,167 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "claim history is append-only: no statement updates or deletes a claim or relation row except erasure's tombstone",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claim_repo.rs"
+        }
+      },
+      {
+        "flavor": "invariant-freeze",
+        "note": "the current view is a pure function of claim history, an explicit as-of on both axes, and a policy version",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/src/projection.rs"
+        }
+      }
+    ],
+    "created": "2026-09-24",
+    "dependsOn": [
+      "051-claim-admission-and-authority"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/src/history.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/src/asof.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/src/policy.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/src/projection.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/tests/projection.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/tests/reorder.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-claims/testdata/travel/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/claim_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/claim_history.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/claim_erasure.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "050-typed-claims-and-predicate-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "050-typed-claims-and-predicate-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 5
+    },
+    "id": "052-bitemporal-claim-history-and-projection",
+    "implementation": "pending",
+    "kind": "kernel",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/014-memory-lifecycle-and-erasure/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/017-entities-and-typed-edges/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/018-retrieval-and-recall-trace/spec.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionHeadings": [
+      "052: Bitemporal claim history and projection",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Three times",
+      "3.2 Append-only history",
+      "3.3 Projection",
+      "3.4 Erasure and the store",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "8. Open questions",
+      "9. Obligations",
+      "Verification"
+    ],
+    "specPath": "specs/052-bitemporal-claim-history-and-projection/spec.md",
+    "status": "approved",
+    "summary": "A claim has three times: when it holds in the world (valid time, with precision, zone, open ends, and uncertainty), when the source said so (source-declared time), and when this store learned it (transaction time). History is append-only on the transaction axis; retraction, correction, and supersession are appended records, and only erasure removes content, leaving a tombstone. Supersession is scoped to one subject, predicate, and slot, so a schedule change to one segment supersedes that attribute alone. The current view is a deterministic projection of history under an explicit as-of on both axes and a policy version, ordered by the source's own time and the claim's authority, never by arrival, so reordered email delivery yields the same answer.\n",
+    "title": "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
+  },
+  "shardHash": "76afee8c151c8d29815edf4715c89bd4d07da9c00f3549f6750144a796fd32ee",
+  "specVersion": "1.3.0"
+}

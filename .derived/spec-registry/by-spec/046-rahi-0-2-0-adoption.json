@@ -1,0 +1,97 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-24",
+    "dependsOn": [
+      "013-write-gate-and-redaction"
+    ],
+    "domain": "chassis",
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "deny.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/cell.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "046-rahi-0-2-0-adoption",
+    "implementation": "pending",
+    "kind": "tooling",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/010-chassis-adoption-and-workspace/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": ".github/dependabot.yml"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionHeadings": [
+      "046: rahi 0.2.0 adoption",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "8. Open questions",
+      "9. Obligations",
+      "Verification"
+    ],
+    "specPath": "specs/046-rahi-0-2-0-adoption/spec.md",
+    "status": "approved",
+    "summary": "The nine rahi crates are pinned at `=0.1.0`. rahi 0.2.0 is published on crates.io for all nine and is a minor release that changes the consumer contract: migrations gain an `additive` declaration and the store records a checksum per applied version, restore and first-boot export change their Rust API, backups authenticate with a dedicated passkey, and the ledger gains lifetime decision identity. This spec moves all nine pins in one change, keeps the exact-pin rule of spec 010, decides for each shipped migration whether it is additive, and re-runs spec 010's supply-chain revisit against the new tree. It must land before any claim-history migration (050 to 052) is written, so those migrations are authored against the 0.2.0 contract.\n",
+    "title": "Move every chassis pin to rahi 0.2.0 together, and declare which migrations are additive"
+  },
+  "shardHash": "36493b21b0ca1803687e70d3620d08f6aa881839f229be56bf3902998d9ad73f",
+  "specVersion": "1.3.0"
+}

@@ -1,0 +1,161 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "an admitted claim exists only as the output of the gate; a model score is evidence and never the sole ground of admission",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/claim_gate.rs"
+        }
+      }
+    ],
+    "created": "2026-09-24",
+    "dependsOn": [
+      "050-typed-claims-and-predicate-registry"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/claim_evidence.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/src/claim_gate.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/tests/claim_admission.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-gate/testdata/claims/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/claim_proposal_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/claim_admission_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/claim_admission.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "013-write-gate-and-redaction",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "013-write-gate-and-redaction",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "013-write-gate-and-redaction",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/compile_fail/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 5
+    },
+    "id": "051-claim-admission-and-authority",
+    "implementation": "pending",
+    "kind": "kernel",
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/014-memory-lifecycle-and-erasure/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/023-review-and-promotion/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/024-decision-and-audit-references/spec.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionHeadings": [
+      "051: Claim admission and authority",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Three layers",
+      "3.2 Evidence and authority",
+      "3.3 The gate and the record",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "8. Open questions",
+      "9. Obligations",
+      "Verification"
+    ],
+    "specPath": "specs/051-claim-admission-and-authority/spec.md",
+    "status": "approved",
+    "summary": "Three things that ingest pipelines routinely blur are kept apart: an observation (the source as received, stored as a memory through 013's gate), a proposal (a typed claim some actor suggests, with its evidence), and an admitted claim (a proposal the gate accepted under a named policy, with a decision record). Admission reuses the existing gate crate and its purity, adds a claim verdict whose `AdmittedClaim` only the gate can mint, and records every admission. Model-produced scores are stored as evidence and never serve as authority. A user's correction is first-class evidence carrying an authority level, and it is appended, never an edit.\n",
+    "title": "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
+  },
+  "shardHash": "0328a50c2e480fa9ea76de7163f0891aeb2d28903e975bd54ff468a4cbe2d1c3",
+  "specVersion": "1.3.0"
+}

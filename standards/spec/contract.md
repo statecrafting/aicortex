@@ -33,8 +33,9 @@ spec has a non-empty `depends_on` naming only lower-numbered specs.
 
 ## Extra keys (aicortex-specific, declared in `frontmatter.extra_known_keys`)
 
-- `wave`: the build-order wave (1 to 4) from spec 002 §5. Wave 1 is ordinals
-  010 to 019, wave 2 is 020 to 029, wave 3 is 030 to 039, wave 4 is 040 to 049.
+- `wave`: the build-order wave (1 to 5) from spec 002 §5. Wave 1 is ordinals
+  010 to 019, wave 2 is 020 to 029, wave 3 is 030 to 039, wave 4 is 040 to 049,
+  wave 5 is 050 to 059 (typed temporal claim history, opened by spec 050 D-5).
 
 ## Lifecycle in a specify-first corpus
 
