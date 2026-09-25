@@ -1,0 +1,47 @@
+{
+  "name": "hold-seed-other-version",
+  "why": "FR-011, B-14: a seed version the policy does not accept",
+  "proposer": "operator",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "operator_seed",
+      "by": "$OPERATOR",
+      "seed": {
+        "set": "starter-profile",
+        "version": 2
+      }
+    }
+  ],
+  "policy": {
+    "id": "travel.admission",
+    "version": 2,
+    "seeds": [
+      {
+        "seed": {
+          "set": "starter-profile",
+          "version": 1
+        },
+        "decision": "owner.seed-2026-09-25"
+      }
+    ]
+  },
+  "expect": {
+    "verdict": "hold",
+    "reason": "authority_insufficient"
+  }
+}

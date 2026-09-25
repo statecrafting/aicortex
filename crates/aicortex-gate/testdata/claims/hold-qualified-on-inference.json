@@ -1,0 +1,46 @@
+{
+  "name": "hold-qualified-on-inference",
+  "why": "B-6: qualification never admits a score-only proposal",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:booking.locator@1",
+    "subject": {
+      "kind": "booking",
+      "key": "PNR-XK2Q9L"
+    },
+    "value": {
+      "type": "text",
+      "text": "XK2Q9L"
+    },
+    "epistemic": {
+      "stance": "asserted"
+    }
+  },
+  "evidence": [
+    {
+      "kind": "model_score",
+      "model": {
+        "name": "extractor",
+        "version": "2026-09"
+      },
+      "score": 10000,
+      "label": "departure"
+    }
+  ],
+  "policy": {
+    "id": "travel.admission",
+    "version": 3,
+    "qualified": [
+      {
+        "namespace": "travel",
+        "predicate": "booking.locator",
+        "min_authority": "extracted",
+        "decision": "owner.qualify-locator"
+      }
+    ]
+  },
+  "expect": {
+    "verdict": "hold",
+    "reason": "authority_insufficient"
+  }
+}

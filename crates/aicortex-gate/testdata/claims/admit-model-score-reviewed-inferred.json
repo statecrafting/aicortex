@@ -1,0 +1,47 @@
+{
+  "name": "admit-model-score-reviewed-inferred",
+  "why": "B-5: a reviewed score-only proposal is at most inferred",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:segment.departure@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "datetime",
+      "datetime": {
+        "local": "2026-10-03T14:05",
+        "precision": "minute",
+        "zone": {
+          "kind": "iana",
+          "name": "Europe/Warsaw"
+        }
+      }
+    },
+    "epistemic": {
+      "stance": "asserted"
+    }
+  },
+  "evidence": [
+    {
+      "kind": "model_score",
+      "model": {
+        "name": "extractor",
+        "version": "2026-09"
+      },
+      "score": 9900,
+      "label": "departure"
+    },
+    {
+      "kind": "review_approval",
+      "by": "$REVIEWER",
+      "decision": "claims.review-0001"
+    }
+  ],
+  "expect": {
+    "verdict": "admit",
+    "authority": "inferred",
+    "sourcing": "supplier"
+  }
+}

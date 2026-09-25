@@ -1,0 +1,44 @@
+{
+  "name": "admit-own-correction-supersedes-user-claim",
+  "why": "FR-005: an owner's correction of their own preference supersedes it",
+  "proposer": "owner",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "user_statement",
+      "by": "$OWNER",
+      "authority": "user_corrected"
+    }
+  ],
+  "relations": [
+    {
+      "kind": "supersedes",
+      "to": "$TARGET"
+    }
+  ],
+  "targets": {
+    "$TARGET": {
+      "authority": "user_asserted",
+      "sourcing": "user"
+    }
+  },
+  "expect": {
+    "verdict": "admit",
+    "authority": "user_corrected",
+    "sourcing": "user"
+  }
+}

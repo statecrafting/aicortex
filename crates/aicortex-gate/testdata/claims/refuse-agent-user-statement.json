@@ -1,0 +1,31 @@
+{
+  "name": "refuse-agent-user-statement",
+  "why": "B-5: an agent never reaches a user level",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "user_statement",
+      "by": "$OWNER",
+      "authority": "user_asserted"
+    }
+  ],
+  "expect": {
+    "verdict": "refuse",
+    "reason": "authority_insufficient"
+  }
+}

@@ -30,12 +30,16 @@
 //! [`EpistemicStatus`]; the vocabulary is a domain's [`PredicateSet`]; and
 //! [`Provenance`] gains [`SourceSpan`]s that point into a stored source by
 //! offsets and a keyed digest.
+//!
+//! Spec 051 adds what an actor offers for a claim: a [`ClaimProposal`], its
+//! [`Evidence`], and the closed [`AuthorityLevel`] the gate assigns from it.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
 pub mod actor;
 pub mod claim;
+pub mod claim_evidence;
 pub mod claim_time;
 pub mod claim_value;
 pub mod error;
@@ -51,6 +55,10 @@ pub use actor::{Actor, ActorId, ActorKind, AgentOrigin};
 pub use claim::{
     CLAIM_SCHEMA_VERSION, Claim, ClaimId, ClaimParts, ClaimRelation, EpistemicStatus, Namespace,
     RelationKind, RelationTarget, SlotKey, Stance, SubjectKey, SubjectKind, SubjectRef, TargetKind,
+};
+pub use claim_evidence::{
+    AuthorityLevel, ClaimProposal, Evidence, EvidenceKind, ProposalId, ProposedRelation, Score,
+    SeedRef, SeedSet, Sourcing,
 };
 pub use claim_time::{
     Bound, BoundKind, CivilDate, Interval, PointKind, Precision, TimePoint, TimeValue, TzName,

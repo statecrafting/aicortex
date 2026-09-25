@@ -16,8 +16,10 @@ spec = "013-write-gate-and-redaction"
 # payload is written in, and the Unicode normalization of B-8. No store, no
 # ledger, no runtime, no clock and no randomness: `Gate::evaluate` is a pure
 # function, which is what makes the committed corpus a regression suite
-# (B-10).
+# (B-10). Spec 051 adds the pure claim validation of `aicortex-claims`,
+# which claim admission runs first (051 B-9).
 [dependencies]
+aicortex-claims = { workspace = true }
 aicortex-types = { workspace = true }
 rahi-types = { workspace = true }
 serde = { workspace = true }

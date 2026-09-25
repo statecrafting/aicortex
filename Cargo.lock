@@ -155,6 +155,7 @@ dependencies = [
 name = "aicortex-gate"
 version = "0.1.0"
 dependencies = [
+ "aicortex-claims",
  "aicortex-store",
  "aicortex-types",
  "rahi-ledger",

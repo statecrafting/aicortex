@@ -1,0 +1,32 @@
+{
+  "name": "hold-rule-match",
+  "why": "D-6: no predicate is qualified under the initial policy",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:booking.locator@1",
+    "subject": {
+      "kind": "booking",
+      "key": "PNR-XK2Q9L"
+    },
+    "value": {
+      "type": "text",
+      "text": "XK2Q9L"
+    },
+    "epistemic": {
+      "stance": "asserted"
+    }
+  },
+  "evidence": [
+    {
+      "kind": "rule_match",
+      "rule": {
+        "name": "pnr-locator",
+        "version": "1"
+      }
+    }
+  ],
+  "expect": {
+    "verdict": "hold",
+    "reason": "authority_insufficient"
+  }
+}

@@ -26,6 +26,10 @@
 //!   fixed-point integers. That is what makes `testdata/corpus/` a regression
 //!   suite rather than a sample.
 //!
+//! Spec 051 adds a second question in the same crate and on the same terms:
+//! [`Gate::evaluate_claim`] judges a claim proposal, and only its
+//! [`ClaimVerdict::Admit`] yields an [`AdmittedClaim`] ([`claim_gate`]).
+//!
 //! # Order of evaluation
 //!
 //! [`Gate::evaluate`] applies the rules in this order, and the order is part
@@ -73,6 +77,7 @@
 #![warn(missing_docs)]
 
 pub mod candidate;
+pub mod claim_gate;
 pub mod limits;
 pub mod normalize;
 pub mod rules;
@@ -83,6 +88,13 @@ use aicortex_types::{AdmissionOverride, DecisionRef, Memory, MemoryId, Status, T
 use rahi_types::Sub;
 
 pub use candidate::{Candidate, Origin};
+pub use claim_gate::{
+    AdmissionPolicy, AdmittedClaim, Ceiling, ClaimContext, ClaimField, ClaimReason, ClaimVerdict,
+    INITIAL_POLICY_ID, KIND_CLAIM_BATCH, KIND_CLAIM_CORRECTION, KIND_CLAIM_HOLD, KIND_CLAIM_REFUSE,
+    KIND_POLICY_CHANGE, PolicyDocument, PolicyError, PolicyRef, Qualification, SeedAcceptance,
+    SourceState, TargetFacts, batch_entry, ceiling_of, correction_entry, policy_entry,
+    proposal_entry,
+};
 pub use limits::{
     DEFAULT_MAX_BODY_BYTES, DEFAULT_MAX_MEDIA_REFS, DEFAULT_MEDIA_TOP_LEVELS, Limits,
 };

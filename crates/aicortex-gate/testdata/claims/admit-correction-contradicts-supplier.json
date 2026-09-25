@@ -1,0 +1,50 @@
+{
+  "name": "admit-correction-contradicts-supplier",
+  "why": "FR-010: an owner's correction of a supplier claim is kept beside it",
+  "proposer": "owner",
+  "claim": {
+    "predicate": "travel:segment.departure@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "datetime",
+      "datetime": {
+        "local": "2026-10-03T14:05",
+        "precision": "minute",
+        "zone": {
+          "kind": "iana",
+          "name": "Europe/Warsaw"
+        }
+      }
+    },
+    "epistemic": {
+      "stance": "asserted"
+    }
+  },
+  "evidence": [
+    {
+      "kind": "user_statement",
+      "by": "$OWNER",
+      "authority": "user_corrected"
+    }
+  ],
+  "relations": [
+    {
+      "kind": "contradicts",
+      "to": "$TARGET"
+    }
+  ],
+  "targets": {
+    "$TARGET": {
+      "authority": "extracted",
+      "sourcing": "supplier"
+    }
+  },
+  "expect": {
+    "verdict": "admit",
+    "authority": "user_corrected",
+    "sourcing": "user"
+  }
+}

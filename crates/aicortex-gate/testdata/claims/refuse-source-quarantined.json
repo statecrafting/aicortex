@@ -1,0 +1,45 @@
+{
+  "name": "refuse-source-quarantined",
+  "why": "FR-006: a proposal citing a quarantined observation",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:segment.departure@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "datetime",
+      "datetime": {
+        "local": "2026-10-03T14:05",
+        "precision": "minute",
+        "zone": {
+          "kind": "iana",
+          "name": "Europe/Warsaw"
+        }
+      }
+    },
+    "epistemic": {
+      "stance": "asserted"
+    },
+    "derived": true
+  },
+  "evidence": [
+    {
+      "kind": "source_span",
+      "span": "$SPAN"
+    },
+    {
+      "kind": "review_approval",
+      "by": "$REVIEWER",
+      "decision": "claims.review-0001"
+    }
+  ],
+  "sources": {
+    "$SOURCE": "quarantined"
+  },
+  "expect": {
+    "verdict": "refuse",
+    "reason": "source_unavailable"
+  }
+}

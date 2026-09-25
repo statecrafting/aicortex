@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-24"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 5
 depends_on:
@@ -333,6 +333,58 @@ supersession ordering, and projection (052).
   versioned policy rather than per claim, because an operator loads a seed
   as one act; a claim-by-claim review of it would add no information.
 
+- **D-9 (2026-09-25, build record).** Choices the spec left open, made
+  while building it; none changes what B-1 to B-14 require.
+  - *The store's facts.* The pure gate cannot read the store (B-9), yet
+    B-2 needs the state of cited sources and B-8, B-10 need the authority
+    and sourcing of related claims. They arrive as a fourth argument,
+    `ClaimContext`, which the caller reads first, the way 013's `Candidate`
+    carries its origin. A source or target the context does not name is
+    unavailable: an unnamed source is `SourceUnavailable`, an unnamed
+    target is `PolicyDenied` (`unknown_target`), and a relation across
+    scopes is `PolicyDenied` (`cross_scope_relation`).
+    `ClaimAdmissionRepo::targets` reads the target facts.
+  - *Relations.* A proposal carries `ProposedRelation { kind, to }` to
+    existing claims; the gate builds each admitted one as a 050
+    `ClaimRelation` carrying the claim's provenance, and the admission
+    record stores them for 052 to append.
+  - *Honoured statements.* A `UserStatement` counts only when the proposer
+    is a human whose actor id is the statement's `sub`; any other earns
+    nothing (B-5). The level it names is recorded, must be a user level
+    (else `PolicyDenied`), and is recomputed: `user_corrected` exactly when
+    the proposal relates to a claim by `supersedes` or `contradicts`.
+  - *Holds.* A proposal that needs review, and one held by B-10, is held
+    with `AuthorityInsufficient`, the closed list's reason for "the
+    evidence does not carry the authority to admit unreviewed".
+    Evidence that earns no level at all (only corroboration or a review)
+    is refused with the same code.
+  - *Wire forms.* `Evidence` is `kind`-tagged; `SourceSpan` is written
+    `{ "kind": "source_span", "span": ... }`. `Score` is basis points,
+    an integer in `[0, 10000]`. `RuleMatch` and `SpanVerified` name their
+    rule or method as an `ExtractorVersion` (name and version). An
+    evidence item's id is its position in the proposal's list.
+  - *Secrets.* The detectors run over a `Text` value, a conditional
+    stance's condition, the slot key, and the subject key.
+  - *Policy.* `AdmissionPolicy` is an id, a version, an optional score
+    floor, per-kind ceilings that may only lower B-5's, qualifications by
+    namespace and predicate name (any registered version) with a minimum
+    level of at least `extracted`, and accepted seed sets. The initial
+    policy is `aicortex.claims.admission` version 1 with none of them. Its
+    digest is the SHA-256 of its JSON, computed by the store, which keeps
+    each version in an unscoped `admission_policy` table.
+  - *Decisions.* Kinds `claims.admission.batch`, `.refuse`, `.hold`,
+    `.correction` and `claims.policy.change`. Until 023 exists, the review
+    item of B-8 is the correction Decision's `conflicts` list and the
+    admission record's `conflicts` column. A refusal's keyed digest is an
+    optional argument over `Gate::claim_digest_material`, supplied by the
+    caller that holds the key, as in 013.
+  - *Rows before 052.* The claim history table is 052's, so FR-005,
+    FR-008 and FR-010's rows are, here, the admission record, the proposal
+    row, and the outbox row; 052 adds the claim and relation rows to the
+    same transaction.
+  - *Migration.* Version 5 creates `claim_proposal`, `claim_admission`
+    and `admission_policy`; 014's unmerged branch renumbers above it.
+
 ## 8. Open questions
 
 Q-1 to Q-3 were resolved by D-4 to D-6, and Q-6 by D-7.
@@ -352,7 +404,6 @@ lifted there from this section once the pin moved to 0.25.0 (050 D-8,
 ## Verification
 
 ```verify:cli
-# planned: the gate module, fixtures and store tests below exist once this spec is built.
 cargo test -p aicortex-gate --locked
 cargo test -p aicortex-store --locked --test claim_admission
 ```

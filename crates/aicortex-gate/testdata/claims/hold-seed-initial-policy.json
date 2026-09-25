@@ -1,0 +1,34 @@
+{
+  "name": "hold-seed-initial-policy",
+  "why": "B-14: the initial policy accepts no seed set",
+  "proposer": "operator",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "operator_seed",
+      "by": "$OPERATOR",
+      "seed": {
+        "set": "starter-profile",
+        "version": 1
+      }
+    }
+  ],
+  "expect": {
+    "verdict": "hold",
+    "reason": "authority_insufficient"
+  }
+}

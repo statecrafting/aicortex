@@ -41,11 +41,15 @@ pub const DECISION_KEY_VERSION: u32 = 3;
 /// `extends` edge on this file.
 pub const PREDICATE_REGISTRY_VERSION: u32 = 4;
 
+/// Claim proposals, admission records and admission policies of spec 051,
+/// appended by that spec under an `extends` edge on this file.
+pub const CLAIM_ADMISSION_VERSION: u32 = 5;
+
 /// The version an up-to-date store records, which is the highest below.
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = PREDICATE_REGISTRY_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = CLAIM_ADMISSION_VERSION;
 
 /// The scope a memory lives in (B-2).
 ///
@@ -196,6 +200,58 @@ const PREDICATE_REGISTRY_TABLE: &str = "CREATE TABLE IF NOT EXISTS predicate_reg
     PRIMARY KEY (namespace, version)
 )";
 
+/// One claim proposal (spec 051 B-2): append-only, never read by a
+/// projection. `document` is the proposal's serde JSON, evidence included.
+const CLAIM_PROPOSAL_TABLE: &str = "CREATE TABLE IF NOT EXISTS claim_proposal (
+    proposal_id TEXT PRIMARY KEY,
+    scope_id TEXT NOT NULL,
+    claim_id TEXT NOT NULL,
+    predicate TEXT NOT NULL,
+    proposer TEXT NOT NULL,
+    proposed_at INTEGER NOT NULL,
+    document TEXT NOT NULL
+)";
+
+/// The proposals of one claim in one scope.
+const CLAIM_PROPOSAL_INDEX: &str = "CREATE INDEX IF NOT EXISTS claim_proposal_scope_claim
+    ON claim_proposal (scope_id, claim_id)";
+
+/// One admission (spec 051 B-11): written in the transaction that appends
+/// the claim, naming the policy version it was judged under and the
+/// evidence it was judged on.
+const CLAIM_ADMISSION_TABLE: &str = "CREATE TABLE IF NOT EXISTS claim_admission (
+    claim_id TEXT PRIMARY KEY,
+    scope_id TEXT NOT NULL,
+    proposal_id TEXT NOT NULL,
+    policy_id TEXT NOT NULL,
+    policy_version INTEGER NOT NULL,
+    authority TEXT NOT NULL,
+    sourcing TEXT NOT NULL,
+    verdict TEXT NOT NULL,
+    evidence TEXT NOT NULL,
+    relations TEXT NOT NULL,
+    corrects TEXT NOT NULL,
+    conflicts TEXT NOT NULL,
+    admitted_at INTEGER NOT NULL
+)";
+
+/// The admission of one proposal in one scope.
+const CLAIM_ADMISSION_INDEX: &str = "CREATE INDEX IF NOT EXISTS claim_admission_scope_proposal
+    ON claim_admission (scope_id, proposal_id)";
+
+/// One version of one admission policy (spec 051 B-12). Not scoped: a policy
+/// is deployment configuration, not memory content. The primary key makes a
+/// version immutable.
+const ADMISSION_POLICY_TABLE: &str = "CREATE TABLE IF NOT EXISTS admission_policy (
+    policy_id TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    digest TEXT NOT NULL,
+    document TEXT NOT NULL,
+    registered_by TEXT NOT NULL,
+    registered_at INTEGER NOT NULL,
+    PRIMARY KEY (policy_id, version)
+)";
+
 /// The migrations, in version order (B-1).
 ///
 /// Each is idempotent (`IF NOT EXISTS` throughout), so a rerun against a
@@ -206,7 +262,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 4]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 5]> = std::sync::LazyLock::new(|| {
     [
         // Every shipped migration only creates tables and indexes, so each is
         // declared additive (spec 046 B-2, D-2). The declaration is not part
@@ -238,6 +294,19 @@ static LIST: std::sync::LazyLock<[Migration; 4]> = std::sync::LazyLock::new(|| {
             PREDICATE_REGISTRY_VERSION,
             "aicortex predicate registry",
             PREDICATE_REGISTRY_TABLE,
+        )
+        .additive(),
+        Migration::new(
+            CLAIM_ADMISSION_VERSION,
+            "aicortex claim admission",
+            [
+                CLAIM_PROPOSAL_TABLE,
+                CLAIM_PROPOSAL_INDEX,
+                CLAIM_ADMISSION_TABLE,
+                CLAIM_ADMISSION_INDEX,
+                ADMISSION_POLICY_TABLE,
+            ]
+            .join(";\n"),
         )
         .additive(),
     ]

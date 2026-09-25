@@ -1,0 +1,31 @@
+{
+  "name": "refuse-no-evidence",
+  "why": "B-9: a proposal with no evidence",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:segment.departure@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "datetime",
+      "datetime": {
+        "local": "2026-10-03T14:05",
+        "precision": "minute",
+        "zone": {
+          "kind": "iana",
+          "name": "Europe/Warsaw"
+        }
+      }
+    },
+    "epistemic": {
+      "stance": "asserted"
+    }
+  },
+  "evidence": [],
+  "expect": {
+    "verdict": "refuse",
+    "reason": "no_provenance"
+  }
+}
