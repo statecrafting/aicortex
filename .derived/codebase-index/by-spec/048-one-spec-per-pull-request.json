@@ -1,27 +1,30 @@
 {
   "mapping": {
+    "amends": [
+      "001-agentic-harness"
+    ],
     "dependsOn": [
-      "013-write-gate-and-redaction"
+      "001-agentic-harness"
     ],
     "implementingPaths": [
       {
-        "path": "Cargo.toml",
+        "path": ".claude/agents/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-gate/Cargo.toml",
+        "path": ".claude/rules/",
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-gate/src/rules.rs",
+        "path": "AGENTS.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-gate/src/secrets.rs",
+        "path": "CLAUDE.md",
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-gate/testdata/corpus/",
+        "path": "README.md",
         "source": "spec-edge"
       }
     ],
@@ -29,90 +32,85 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-gate/Cargo.toml"
+            "file": ".claude/agents/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-gate/Cargo.toml"
+          "path": ".claude/agents/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/aicortex-gate/src/rules.rs"
+            "file": ".claude/rules/"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-gate/src/rules.rs"
+          "path": ".claude/rules/"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/aicortex-gate/src/secrets.rs"
+            "file": "AGENTS.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-gate/src/secrets.rs"
+          "path": "AGENTS.md"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/aicortex-gate/testdata/corpus/"
+            "file": "CLAUDE.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-gate/testdata/corpus/"
+          "path": "CLAUDE.md"
         }
       },
       {
         "locations": [
           {
-            "file": "Cargo.toml",
-            "span": {
-              "endLine": 88,
-              "startLine": 20
-            }
+            "file": "README.md"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
+          "kind": "file",
+          "path": "README.md"
         }
       },
       {
         "locations": [
           {
-            "file": "specs/013-write-gate-and-redaction/spec.md"
+            "file": "standards/spec/constitution.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/013-write-gate-and-redaction/spec.md"
+          "path": "standards/spec/constitution.md"
         }
       }
     ],
-    "specId": "047-shared-secret-detector-convergence",
+    "specId": "048-one-spec-per-pull-request",
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "8b9e38df4860c2453d7af0a681079995030720bbcaefd3c008e630eff5b57284"
+  "shardHash": "d8f7035a360bcdbe6126f7cb88c1a05f35c644d9028750496d51b31c4428d140"
 }
