@@ -215,6 +215,51 @@ fn b2_the_workspace_pins_nine_rahi_crates_to_one_exact_version() -> Outcome {
     Ok(())
 }
 
+/// Spec 046 FR-001: the version every rahi package resolves to. The exact
+/// pin of B-2 is a requirement; this is what `cargo metadata --locked` says
+/// the requirement produced.
+const RAHI_VERSION: &str = "0.2.0";
+
+#[test]
+fn fr001_046_every_rahi_package_resolves_to_one_version() -> Outcome {
+    let output = Command::new(env!("CARGO"))
+        .args(["metadata", "--locked", "--format-version", "1"])
+        .current_dir(workspace_root())
+        .output()
+        .map_err(|err| format!("cargo metadata did not run: {err}"))?;
+    assert!(
+        output.status.success(),
+        "cargo metadata --locked failed:\n{}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let metadata: serde_json::Value =
+        serde_json::from_slice(&output.stdout).map_err(|err| err.to_string())?;
+    let packages = metadata
+        .get("packages")
+        .and_then(serde_json::Value::as_array)
+        .ok_or("cargo metadata has no packages")?;
+    let mut resolved = Vec::new();
+    for package in packages {
+        let name = package.get("name").and_then(serde_json::Value::as_str);
+        let version = package.get("version").and_then(serde_json::Value::as_str);
+        if let (Some(name), Some(version)) = (name, version)
+            && name.starts_with("rahi-")
+        {
+            resolved.push((name.to_owned(), version.to_owned()));
+        }
+    }
+    assert!(!resolved.is_empty(), "no rahi package resolved");
+    let stray: Vec<_> = resolved
+        .iter()
+        .filter(|(_, version)| version != RAHI_VERSION)
+        .collect();
+    assert!(
+        stray.is_empty(),
+        "rahi packages off {RAHI_VERSION}: {stray:?}"
+    );
+    Ok(())
+}
+
 #[test]
 fn fr004_fr005_the_pin_check_refuses_each_defect() -> Outcome {
     let good = synthetic_root(|_| "\"=1.2.3\"".to_owned());

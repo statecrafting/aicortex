@@ -187,7 +187,10 @@ pub fn migrations() -> &'static [Migration] {
 
 static LIST: std::sync::LazyLock<[Migration; 3]> = std::sync::LazyLock::new(|| {
     [
-        rahi_store::coordination_migration(COORDINATION_VERSION),
+        // Every shipped migration only creates tables and indexes, so each is
+        // declared additive (spec 046 B-2, D-2). The declaration is not part
+        // of the SQL, so the checksum rahi records is unchanged (046 B-3).
+        rahi_store::coordination_migration(COORDINATION_VERSION).additive(),
         Migration::new(
             MEMORY_TABLES_VERSION,
             "aicortex memory schema",
@@ -202,11 +205,13 @@ static LIST: std::sync::LazyLock<[Migration; 3]> = std::sync::LazyLock::new(|| {
                 CURATOR_INDEX,
             ]
             .join(";\n"),
-        ),
+        )
+        .additive(),
         Migration::new(
             DECISION_KEY_VERSION,
             "aicortex decision digest keys",
             [DECISION_KEY_TABLE, DECISION_KEY_INDEX].join(";\n"),
-        ),
+        )
+        .additive(),
     ]
 });

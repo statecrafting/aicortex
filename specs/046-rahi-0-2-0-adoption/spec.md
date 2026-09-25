@@ -6,7 +6,7 @@ kind: "tooling"
 domain: "chassis"
 created: "2026-09-24"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: high
 wave: 4
 depends_on:
@@ -14,6 +14,8 @@ depends_on:
 extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "deny.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
+  - { spec: "001-agentic-harness", unit: ".github/dependabot.yml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/tests/cell.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
@@ -176,12 +178,26 @@ spec 024 may adopt when it is built.
   unchanged and B-3 holds. The re-digest migration spec 014 carries is not
   additive and must not be declared so.
 
+- **D-3 (2026-09-24, owner decision, resolves Q-2).** The owner accepted
+  the follow-up: `.github/dependabot.yml` groups the nine `rahi-*` crates
+  so the next chassis bump arrives as one pull request, and the per-crate
+  dependabot branches at 0.2.0 are superseded by this change.
+- **D-4 (2026-09-24, build record for B-2, B-3 and B-5).** Per version, as
+  shipped by this change: version 1 (`rahi_store::coordination_migration`)
+  additive; version 2 ("aicortex memory schema") additive; version 3
+  ("aicortex decision digest keys") additive. No migration's SQL changed,
+  and the coordination SQL rahi supplies is byte identical in 0.1.0 and
+  0.2.0, so every recorded checksum is the one a 0.1.0 store would carry.
+  `cargo deny check` on the 0.2.0 tree passes with the three advisory
+  ignores unchanged; each is still reached (bincode through hiqlite 0.14.0
+  and cryptr, quick-xml through s3-simple), so none is removed, and no
+  licence exception or ban changed. The workspace declares `rahi-harness`
+  at `=0.2.0`, but no member depends on it, so it does not appear in the
+  resolved tree; FR-001 asserts every rahi package that does resolve.
+
 ## 8. Open questions
 
-- **Q-2.** Should the per-crate dependabot branches be closed in favor of
-  this change, and should `.github/dependabot.yml` group the nine `rahi-*`
-  crates so the next bump arrives as one pull request? The dependabot file
-  is spec 001's territory.
+None. Q-2 is resolved by D-3.
 
 ## 9. Obligations
 

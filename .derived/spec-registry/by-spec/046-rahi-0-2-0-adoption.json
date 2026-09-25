@@ -31,6 +31,22 @@
         "spec": "010-chassis-adoption-and-workspace",
         "unit": {
           "kind": "file",
+          "path": "apps/aicortex/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": ".github/dependabot.yml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
           "path": "apps/aicortex/tests/cell.rs"
         }
       },
@@ -55,7 +71,7 @@
       "wave": 4
     },
     "id": "046-rahi-0-2-0-adoption",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "tooling",
     "obligations": [
       {
@@ -95,15 +111,15 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "046-rahi-0-2-0-adoption": "9d4b61ef01252ccaad85c0ea931e733763bdcd15e1bdc6028b34b8d16fde731a",
+      "046-rahi-0-2-0-adoption": "02d3a0e2cd25bf3b40df1c717745d089387c165af94152cc8d94ddafbd19f6d8",
       "1-purpose": "9e6a79cdae4bec54138c3a511be07fe29ffe8ed4ebcd29c14d4086bf55ae13cc",
       "2-territory": "18588d2e762f9b86c25d2a92316038efbcce7716b6588e6c9b25f8748afb4959",
       "3-behavior": "73e998557897841e4b6926f9cd25b1983711abf0cf08a6650444b669f57d4936",
       "4-functional-requirements": "78de2125de0c075c7b3cfd6b632b112c5e6af44bed321302757a33f9c0fad4ac",
       "5-acceptance-criteria": "201e92c82bd50efc1e9ac4ef2398d6cc85e580cb70a803783ef9609ae2b73213",
       "6-out-of-scope": "fe4fe801d189f3a49cf1be964bf098516ff9dd1867956062ec2b03e77df58f5b",
-      "7-resolved-decisions": "f5731f19faa97d825ac09764a8bdd4cb046a588478ae32a6be007188d1331d11",
-      "8-open-questions": "7e76143daea74ebe363322cff8feeddcdf7a6b66da32f7e0651a6dc984198bc5",
+      "7-resolved-decisions": "db01666f70d5ac1b16d4853e515ee4b04ee02d6951de32dfa2ac7530613ed9c1",
+      "8-open-questions": "5d961cdd8728ef28aae9a63bf85bb01372e1dada618dc57f11d0ed339cb5b22d",
       "9-obligations": "a901ff41f59f2ce0cf70f77e07e47458167419dd029e94f05d8b802cc27a7d63",
       "verification": "2d616fa67f0d0181a5b79352e3326375efcd4fb88f86e69c3f275274a883c143"
     },
@@ -125,6 +141,6 @@
     "summary": "The nine rahi crates are pinned at `=0.1.0`. rahi 0.2.0 is published on crates.io for all nine and is a minor release that changes the consumer contract: migrations gain an `additive` declaration and the store records a checksum per applied version, restore and first-boot export change their Rust API, backups authenticate with a dedicated passkey, and the ledger gains lifetime decision identity. This spec moves all nine pins in one change, keeps the exact-pin rule of spec 010, decides for each shipped migration whether it is additive, and re-runs spec 010's supply-chain revisit against the new tree. It must land before any claim-history migration (050 to 052) is written, so those migrations are authored against the 0.2.0 contract.\n",
     "title": "Move every chassis pin to rahi 0.2.0 together, and declare which migrations are additive"
   },
-  "shardHash": "7b9a284fc5e00775f42c67af23a0e8d487352ed6ca3dff91e9d7dffd3fb460f9",
+  "shardHash": "99e94fb97ab3436ccf1da186ae4c556659568f6e3055628f6edbb0069614071f",
   "specVersion": "1.8.0"
 }
