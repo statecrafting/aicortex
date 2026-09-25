@@ -1,0 +1,16 @@
+{
+  "from": "019c4f00-0000-7000-8000-000000000102",
+  "kind": "supersedes",
+  "to": {
+    "kind": "claim",
+    "id": "019c4f00-0000-7000-8000-000000000101"
+  },
+  "provenance": {
+    "source": {
+      "system": "travel-ingest",
+      "external_id": "msg-4411"
+    },
+    "captured_at": 1789041600,
+    "ingested_at": 1789041604
+  }
+}

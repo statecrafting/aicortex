@@ -1,0 +1,11 @@
+error[E0639]: cannot create non-exhaustive struct using struct expression
+  --> tests/claim_compile_fail/claim_literal.rs:7:5
+   |
+ 7 | /     Claim {
+ 8 | |         id: other.id,
+ 9 | |         scope: other.scope,
+10 | |         subject: other.subject,
+...  |
+16 | |         schema_version: CLAIM_SCHEMA_VERSION,
+17 | |     }
+   | |_____^

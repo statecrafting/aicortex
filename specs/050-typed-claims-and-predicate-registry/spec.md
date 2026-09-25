@@ -19,6 +19,7 @@ establishes:
   - "crates/aicortex-types/src/span.rs"
   - "crates/aicortex-types/tests/claim.rs"
   - "crates/aicortex-types/testdata/claims/"
+  - "crates/aicortex-types/tests/claim_compile_fail/"
   - "crates/aicortex-claims/Cargo.toml"
   - "crates/aicortex-claims/src/lib.rs"
   - "crates/aicortex-claims/src/registry.rs"
@@ -33,6 +34,9 @@ extends:
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/provenance.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/provenance_repo.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
+  - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/compile_fail/", nature: additive }
   - { spec: "001-agentic-harness", unit: "standards/spec/contract.md", nature: additive }
 amends:
   - "002-memory-thesis"
@@ -403,6 +407,62 @@ versioned in travel-memory.
   aicortex's own sequence (012), and registering that sequence as a named
   set in a host cell is the later library-mode unit, which stops as D-9
   says if no such rahi release exists.
+
+- **D-11 (2026-09-25, build record).** Choices the spec left open, made
+  while building it.
+  - *Wire forms.* Every closed vocabulary is a lowercase word refused by a
+    `TypeError` naming its field (FR-002). A tagged union is an object with
+    a `kind` field (a claim value uses `type`) and exactly the one payload
+    field that kind names. A date is `{on, precision}` in reduced ISO 8601
+    (`2026`, `2026-10`, `2026-10-03`); a date and time is `{local,
+    precision, zone}` down to the second; the declared precision must
+    agree with the text. A decimal is its exact text (`"1234.50"`), so it
+    round-trips byte for byte and keeps the scale the source gave.
+  - *Uncertainty* is carried on a `TimePoint` (interval bounds, and 052's
+    valid time), as B-7 says, and not on the `Date` and `DateTime` value
+    variants, which B-5 defines as a `CivilDate` and a `ZonedTime`.
+  - *Registry succession* (B-9, I-3). A new version must follow the
+    namespace's latest. It may add subject kinds, predicates, variants and
+    units and may deprecate a predicate; it may not drop any of them,
+    because a claim written under the earlier version must keep its
+    meaning, and a dropped variant or unit is a change of value type. A
+    predicate is "withdrawn" (B-14) at a version that marks it
+    `deprecated`: `validate` refuses a new claim naming that version, and
+    claims naming an earlier version still validate there. `accumulate`
+    requires cardinality `many` (052 B-5). The `aicortex` namespace is
+    refused at registration, not by the `Namespace` type.
+  - *Validation extras.* Beyond B-14's list, `validate` refuses a subject
+    whose namespace differs from the predicate's (subject kinds are
+    declared by the registry, B-3), text or a condition not in Unicode
+    NFC (013 B-8, checked with the gate's normalization table), and a
+    span into a memory the provenance does not derive from (B-2). The
+    "counted" of B-14 is the caller's: `ClaimError::code` is the stable
+    label a counter keys on, and a pure function keeps no tally.
+  - *Registration* (B-15). `PredicateRegistryRepo::stage_register` checks
+    the stored snapshot, stages one `INSERT` keyed on `(namespace,
+    version)` and returns the Decision (`claims.registry.register`, with
+    namespace, version, `sha256:` document digest and registrant) for the
+    caller to append after commit, the shape 013's `LedgerEntry` already
+    gives. The registry table is not scoped: vocabulary is shared and is
+    not memory content. Who may register stays open (Q-2).
+  - *Migration number.* The registry table is migration 4 in aicortex's
+    own sequence (D-10). Spec 014's unmerged branch also numbers its
+    migrations from 4; it renumbers above the highest merged version when
+    it rebases, since no unmerged migration has shipped.
+  - *Span keys.* This spec defines the span reference and its keyed
+    digest's shape (B-12). Minting the per-scope span key and computing a
+    digest belong to the first writer that stores spans (052's claim
+    history or library mode), which owns the key row in the application
+    store; nothing in 050's territory stores a span.
+  - *Store dependency.* `aicortex-store` depends on the pure
+    `aicortex-claims` for the registry rule, so the rule is written once;
+    the edge points downward (claims depends only on types).
+  - *A compiler message.* `RelationTarget::Memory` and `TargetKind::Memory`
+    make the short name `Memory` ambiguous to rustc, which now prints
+    `aicortex_types::Memory` in the expected output of 013's compile-fail
+    case `insert_takes_an_admitted`. That golden file is re-blessed with
+    only this line changed; the case still fails to compile for the same
+    reason.
 
 ## 8. Open questions
 

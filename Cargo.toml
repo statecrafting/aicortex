@@ -58,6 +58,7 @@ uuid = { version = "1", default-features = false, features = ["std", "v7", "serd
 aicortex-types = { path = "crates/aicortex-types", version = "=0.1.0" }
 aicortex-store = { path = "crates/aicortex-store", version = "=0.1.0" }
 aicortex-gate = { path = "crates/aicortex-gate", version = "=0.1.0" }
+aicortex-claims = { path = "crates/aicortex-claims", version = "=0.1.0" }
 
 # The wire the round-trip fixtures of 011 are written in, and the canonical
 # form spec 012 D-3 stores a memory record as. The chassis locks it already.

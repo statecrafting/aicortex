@@ -23,25 +23,53 @@
 //!
 //! Nothing here decides admission (spec 013), persists a record (spec 012),
 //! or moves one between statuses (spec 014).
+//!
+//! Spec 050 adds what one typed claim says, on the same terms: [`Claim`]
+//! cannot be built without provenance, a registered [`PredicateRef`], a
+//! typed [`ClaimValue`] with no floating-point variant, and the source's
+//! [`EpistemicStatus`]; the vocabulary is a domain's [`PredicateSet`]; and
+//! [`Provenance`] gains [`SourceSpan`]s that point into a stored source by
+//! offsets and a keyed digest.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
 pub mod actor;
+pub mod claim;
+pub mod claim_time;
+pub mod claim_value;
 pub mod error;
 pub mod id;
 pub mod memory;
+pub mod predicate;
 pub mod provenance;
 pub mod scope;
+pub mod span;
 pub mod trust;
 
 pub use actor::{Actor, ActorId, ActorKind, AgentOrigin};
+pub use claim::{
+    CLAIM_SCHEMA_VERSION, Claim, ClaimId, ClaimParts, ClaimRelation, EpistemicStatus, Namespace,
+    RelationKind, RelationTarget, SlotKey, Stance, SubjectKey, SubjectKind, SubjectRef, TargetKind,
+};
+pub use claim_time::{
+    Bound, BoundKind, CivilDate, Interval, PointKind, Precision, TimePoint, TimeValue, TzName,
+    Uncertainty, Zone, ZoneForm, ZonedTime,
+};
+pub use claim_value::{
+    ClaimValue, CurrencyCode, Decimal, EnumVariant, MAX_SCALE, Unit, UnitKind, UnitName, ValueKind,
+};
 pub use error::{Result, TypeError};
 pub use id::MemoryId;
 pub use memory::{
     Importance, MEMORY_SCHEMA_VERSION, MediaDigest, MediaRef, Memory, MemoryBody, MemoryKind,
     MemoryParts, Status,
 };
+pub use predicate::{
+    Cardinality, CardinalityKind, PredicateDef, PredicateDefParts, PredicateName, PredicateRef,
+    PredicateSet, SlotName, SupersessionRule, ValidTimeMode, ValueType,
+};
 pub use provenance::{AdmissionOverride, ExtractorVersion, Provenance, SourceRef, SourceSystem};
 pub use scope::{ProjectKey, Scope, ScopeKind, ShareKey};
+pub use span::{ContentDigest, Hex, PartKind, PartLocator, SourceSpan, SpanRange, SpanUnit};
 pub use trust::{DecisionRef, Promotion, TrustClass};

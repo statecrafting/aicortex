@@ -1,0 +1,16 @@
+{
+  "from": "019c4f00-0000-7000-8000-000000000103",
+  "kind": "derived_from",
+  "to": {
+    "kind": "memory",
+    "id": "019c4f00-0000-7000-8000-0000000000a1"
+  },
+  "provenance": {
+    "source": {
+      "system": "travel-ingest",
+      "external_id": "msg-4411"
+    },
+    "captured_at": 1789041600,
+    "ingested_at": 1789041604
+  }
+}

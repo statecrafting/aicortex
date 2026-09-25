@@ -1,0 +1,29 @@
+[package]
+name = "aicortex-claims"
+version = "0.1.0"
+description = "Typed claims checked against a domain's predicate registry: pure validation, no I/O, no SQL, no async"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "050-typed-claims-and-predicate-registry"
+
+# The territory (spec 050 section 2): the claim types of aicortex-types and
+# the Unicode normalization check the gate's text rule needs (013 B-8). No
+# I/O crate, no SQL crate, no async runtime; AC-4 asserts that over the
+# resolved tree rather than trusting this list.
+[dependencies]
+aicortex-types = { workspace = true }
+unicode-normalization = { workspace = true }
+
+[dev-dependencies]
+rahi-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

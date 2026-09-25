@@ -37,11 +37,15 @@ pub const MEMORY_TABLES_VERSION: u32 = 2;
 /// erasure destroys them on their own terms (013 FR-007, 014 B-7, B-9).
 pub const DECISION_KEY_VERSION: u32 = 3;
 
+/// The predicate registry of spec 050 B-15, appended by that spec under an
+/// `extends` edge on this file.
+pub const PREDICATE_REGISTRY_VERSION: u32 = 4;
+
 /// The version an up-to-date store records, which is the highest below.
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = DECISION_KEY_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = PREDICATE_REGISTRY_VERSION;
 
 /// The scope a memory lives in (B-2).
 ///
@@ -175,6 +179,23 @@ const DECISION_KEY_TABLE: &str = "CREATE TABLE IF NOT EXISTS decision_key (
 const DECISION_KEY_INDEX: &str = "CREATE INDEX IF NOT EXISTS decision_key_scope_memory
     ON decision_key (scope_id, memory_id)";
 
+/// One registered version of one namespace's vocabulary (spec 050 B-15).
+///
+/// Not scoped: a vocabulary is shared by every scope that writes claims in
+/// its namespace, and it is not memory content. `document` is the set's own
+/// serde JSON and `digest` is what the registration's Decision names. The
+/// primary key makes a version immutable at the table as well as in the
+/// rule: a second insert of one version fails the transaction.
+const PREDICATE_REGISTRY_TABLE: &str = "CREATE TABLE IF NOT EXISTS predicate_registry (
+    namespace TEXT NOT NULL,
+    version INTEGER NOT NULL,
+    digest TEXT NOT NULL,
+    document TEXT NOT NULL,
+    registered_by TEXT NOT NULL,
+    registered_at INTEGER NOT NULL,
+    PRIMARY KEY (namespace, version)
+)";
+
 /// The migrations, in version order (B-1).
 ///
 /// Each is idempotent (`IF NOT EXISTS` throughout), so a rerun against a
@@ -185,7 +206,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 3]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 4]> = std::sync::LazyLock::new(|| {
     [
         // Every shipped migration only creates tables and indexes, so each is
         // declared additive (spec 046 B-2, D-2). The declaration is not part
@@ -211,6 +232,12 @@ static LIST: std::sync::LazyLock<[Migration; 3]> = std::sync::LazyLock::new(|| {
             DECISION_KEY_VERSION,
             "aicortex decision digest keys",
             [DECISION_KEY_TABLE, DECISION_KEY_INDEX].join(";\n"),
+        )
+        .additive(),
+        Migration::new(
+            PREDICATE_REGISTRY_VERSION,
+            "aicortex predicate registry",
+            PREDICATE_REGISTRY_TABLE,
         )
         .additive(),
     ]
