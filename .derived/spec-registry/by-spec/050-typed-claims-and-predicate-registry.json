@@ -151,6 +151,44 @@
     "id": "050-typed-claims-and-predicate-registry",
     "implementation": "pending",
     "kind": "kernel",
+    "obligations": [
+      {
+        "anchor": "3-1-the-claim",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "No claim exists without provenance."
+      },
+      {
+        "anchor": "3-4-source-spans",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "A claim's predicate is registered at the version it names, and an unknown predicate is refused, never stored as free text."
+      },
+      {
+        "anchor": "3-3-epistemic-status-and-relations",
+        "id": "I-3",
+        "kind": "invariant",
+        "text": "A registered predicate version is immutable, and no later version changes an existing predicate's value type or cardinality."
+      },
+      {
+        "anchor": "3-2-typed-values",
+        "id": "I-4",
+        "kind": "invariant",
+        "text": "No claim value is a floating-point number."
+      },
+      {
+        "anchor": "3-4-source-spans",
+        "id": "I-5",
+        "kind": "invariant",
+        "text": "A source span carries offsets and a keyed digest, never content."
+      },
+      {
+        "anchor": "3-3-epistemic-status-and-relations",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Epistemic status records the source's stance and is never used as aicortex's authority."
+      }
+    ],
     "references": [
       {
         "role": "constraint",
@@ -176,9 +214,8 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "050-typed-claims-and-the-predicate-registry": "00603d53399b5f5801227629a2b6ac0ab8c3838802d14a93d55d10116ebaa595",
+      "050-typed-claims-and-the-predicate-registry": "a1d6d14de69eaeeecad691f2306fc4b9f9f35c64b5ee496895a726bf1f8b2495",
       "1-purpose": "9b4b33095ff3b4f3b63f76fbc7e10c9292a1c4cd17cd6b94d8d8b1b28341bf27",
-      "10-amendment-of-spec-002": "de9aabb6ab32cae41cbc2789aca7bc8fd294577e19f6dec1045e1351cb3121e7",
       "2-territory": "58b1446329e6aeae23610505ea2d2a8fbee736182f0450d562488cb7cd78e7a1",
       "3-1-the-claim": "d9066e32fb1d746c2634ed2a79705c67c070a32e049c52b689984a6ced4250b3",
       "3-2-typed-values": "6c6311491a6b4e44acf995f3732bc28a88d38e11cec731a15505f350c8b9443a",
@@ -191,7 +228,7 @@
       "6-out-of-scope": "960cdc8f806d69e378687695fab8b6f23e12b53ee005709c95c035ba9ed9752d",
       "7-resolved-decisions": "5b15bedc446b24612a6ce45ec8c736f10a562f4abf6a88d81c708df4daaafb7d",
       "8-open-questions": "13b8ba6a3dae0e58fb993bf8f076e9323b64941931ad5b0d5fbfd38f741b38f7",
-      "9-obligations": "36e9798df1fa276b6ce432fa062b80a3065af048d00f1ea4f703e9c6b4497857",
+      "9-obligations": "fd2b9e2efe9eece5d9af730501b14f7b6bc40dc6dc4aa8ff2f22929188bb6710",
       "verification": "bd33c624fa1fe61b4586b973c71dcd918e9e47313e03b85acde45127bf6f537a"
     },
     "sectionHeadings": [
@@ -210,7 +247,6 @@
       "7. Resolved decisions",
       "8. Open questions",
       "9. Obligations",
-      "10. Amendment of spec 002",
       "Verification"
     ],
     "specPath": "specs/050-typed-claims-and-predicate-registry/spec.md",
@@ -218,6 +254,6 @@
     "summary": "aicortex becomes the family's canonical owner of claim history with provenance. This spec defines what one claim says, as types, before any claim is admitted or stored: a subject reference, a predicate from a namespaced, versioned registry that a domain supplies, a typed value (text, integer, fixed-point decimal with a unit or currency, date, datetime with zone, interval, entity reference, enumeration), an epistemic status taken from the source's own stance, typed claim-to-claim relations, and source span references that extend 011's Provenance with a part, a byte or character span, and a content digest. aicortex stays domain agnostic: travel, the first consumer, registers its own predicates. Who may admit a claim is 051; when it holds and how history is kept is 052.\n",
     "title": "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
   },
-  "shardHash": "19d6e8de2f2ca82edf10f9c6426f6c27afb298dfad4d566b4c73356e61d0a037",
+  "shardHash": "87084c47c6b42940550f3f9a3a66a941854db22b94eb6fce0693911915a8c7f7",
   "specVersion": "1.8.0"
 }

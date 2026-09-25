@@ -19,6 +19,10 @@ extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
 references:
   - { unit: { kind: file, path: "specs/013-write-gate-and-redaction/spec.md" }, role: constraint }
+obligations:
+  - { id: "I-1", kind: invariant, text: "No convergence step loses a refusal, a detector id, or an offset that 013's corpus records.", anchor: "3-1-what-moves-and-what-stays" }
+  - { id: "I-2", kind: invariant, text: "aicortex keeps its own verdict, normalization and keyed-digest Decision; only detection is consumed.", anchor: "3-1-what-moves-and-what-stays" }
+  - { id: "R-1", kind: requirement, text: "After this spec lands, aicortex-gate has one detector table, action-gate's, at an exact pin.", anchor: "3-2-consumption" }
 summary: >
   aicortex-gate carries its own credential detectors (013 B-4, `rules.rs`,
   `secrets.rs`), and action-gate-core, the family's pure action gate, ships
@@ -167,17 +171,9 @@ is load-bearing for the store's type-level insert guard (013 D-5).
 
 ## 9. Obligations
 
-Declared in the spec-spine 106 grammar, to be lifted into the frontmatter
-`obligations` key when this repository's spec-spine pin moves to 0.25.0,
-which is a separate follow-up (below it, the key is a compile error,
-`V-002`).
-
-```yaml
-obligations:
-  - { id: "I-1", kind: invariant, text: "No convergence step loses a refusal, a detector id, or an offset that 013's corpus records.", anchor: "3-1-what-moves-and-what-stays" }
-  - { id: "I-2", kind: invariant, text: "aicortex keeps its own verdict, normalization and keyed-digest Decision; only detection is consumed.", anchor: "3-1-what-moves-and-what-stays" }
-  - { id: "R-1", kind: requirement, text: "After this spec lands, aicortex-gate has one detector table, action-gate's, at an exact pin.", anchor: "3-2-consumption" }
-```
+Declared in the frontmatter `obligations` key (spec-spine 106 grammar),
+lifted there from this section once the pin moved to 0.25.0 (050 D-8,
+001 D-11).
 
 ## Verification
 

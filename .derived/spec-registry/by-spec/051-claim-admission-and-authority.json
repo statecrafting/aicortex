@@ -104,6 +104,62 @@
     "id": "051-claim-admission-and-authority",
     "implementation": "pending",
     "kind": "kernel",
+    "obligations": [
+      {
+        "anchor": "3-3-the-gate-and-the-record",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "No admitted claim exists without provenance and an admission record naming its policy version."
+      },
+      {
+        "anchor": "3-1-three-layers",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "An admitted claim is constructible only by the gate."
+      },
+      {
+        "anchor": "3-2-evidence-and-authority",
+        "id": "I-3",
+        "kind": "invariant",
+        "text": "A model score never admits a proposal, raises its authority, or lets it supersede another claim."
+      },
+      {
+        "anchor": "3-3-the-gate-and-the-record",
+        "id": "I-4",
+        "kind": "invariant",
+        "text": "A lower-authority proposal never supersedes a higher-authority claim without review."
+      },
+      {
+        "anchor": "3-3-the-gate-and-the-record",
+        "id": "I-5",
+        "kind": "invariant",
+        "text": "A correction is appended; it never edits or deletes the corrected claim."
+      },
+      {
+        "anchor": "3-3-the-gate-and-the-record",
+        "id": "I-7",
+        "kind": "invariant",
+        "text": "A user correction never overwrites a supplier-sourced claim; a contradiction between them retains both and is surfaced."
+      },
+      {
+        "anchor": "3-3-the-gate-and-the-record",
+        "id": "I-6",
+        "kind": "invariant",
+        "text": "Under the initial policy no proposal is admitted without a human review."
+      },
+      {
+        "anchor": "3-3-the-gate-and-the-record",
+        "id": "R-2",
+        "kind": "requirement",
+        "text": "The ledger receives one Decision per admission batch listing claim ids, and one per refusal, hold, correction and policy change, never a claim value."
+      },
+      {
+        "anchor": "3-3-the-gate-and-the-record",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Claim admission is pure and reproducible from the proposal, the registry snapshot, and the policy version."
+      }
+    ],
     "references": [
       {
         "role": "constraint",
@@ -136,7 +192,7 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "051-claim-admission-and-authority": "af3e9258d1432f0c3590cedfa9427bcadf6d17e5fef1b7773fc25e1be6d55453",
+      "051-claim-admission-and-authority": "02291aa97afd5bbd6ab3f573e5d054e0b1bd2939f6801cb172e7a6d215f93d5c",
       "1-purpose": "89fe197e2952912e3f8cca0126fb77ae4d5638d848b9293e50976e84e96c6084",
       "2-territory": "1ed098d1fddf8bebc6772975619cbbb5ac682cedac85b3a2caa403981502e416",
       "3-1-three-layers": "b30a15bc6d0d3d930fa07498cbcb382440739e9edc18af97ddd8845b975405d3",
@@ -148,7 +204,7 @@
       "6-out-of-scope": "846679c62f8a82d1f9f572b89ae10c21e455f6c6fa92b7a552db87e14a112864",
       "7-resolved-decisions": "e929668c7c6b142eca92b3f5aee74a2db88e08cf113fa17e85a6cefe2261c327",
       "8-open-questions": "b612391935e6103dbd1a242a76e954d203e9dc0c8243ccde28add94632bed280",
-      "9-obligations": "073d02cfd9f9dffd2e20e09623166060f18e0dfda1ac803f4010f41f6d9fa1a3",
+      "9-obligations": "18d380622e4416db12fbd7c78afcd3315b98123a1f10ada9670715817d3b751e",
       "verification": "4a8a2376595e0e2d1ed48a01e29be95b8544b292cbd5ee47e7b3734d63e667ea"
     },
     "sectionHeadings": [
@@ -172,6 +228,6 @@
     "summary": "Three things that ingest pipelines routinely blur are kept apart: an observation (the source as received, stored as a memory through 013's gate), a proposal (a typed claim some actor suggests, with its evidence), and an admitted claim (a proposal the gate accepted under a named policy, with a decision record). Admission reuses the existing gate crate and its purity, adds a claim verdict whose `AdmittedClaim` only the gate can mint, and records every admission. Model-produced scores are stored as evidence and never serve as authority. A user's correction is first-class evidence carrying an authority level, and it is appended, never an edit.\n",
     "title": "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
   },
-  "shardHash": "0328a50c2e480fa9ea76de7163f0891aeb2d28903e975bd54ff468a4cbe2d1c3",
+  "shardHash": "3310bdd468d2312beb243d7e2af249d67e6d832f5c32329e1301197ffa0b6dd1",
   "specVersion": "1.8.0"
 }

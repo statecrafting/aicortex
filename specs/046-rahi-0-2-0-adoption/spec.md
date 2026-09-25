@@ -20,6 +20,10 @@ extends:
 references:
   - { unit: { kind: file, path: "specs/010-chassis-adoption-and-workspace/spec.md" }, role: constraint }
   - { unit: { kind: file, path: ".github/dependabot.yml" }, role: context }
+obligations:
+  - { id: "I-1", kind: invariant, text: "All nine rahi crates resolve to one exact version.", anchor: "3-behavior" }
+  - { id: "I-2", kind: invariant, text: "No shipped migration's SQL is edited; a correction is a new migration.", anchor: "3-behavior" }
+  - { id: "R-1", kind: requirement, text: "Every shipped migration's additive status is declared and recorded per version.", anchor: "3-behavior" }
 summary: >
   The nine rahi crates are pinned at `=0.1.0`. rahi 0.2.0 is published on
   crates.io for all nine and is a minor release that changes the consumer
@@ -181,17 +185,9 @@ spec 024 may adopt when it is built.
 
 ## 9. Obligations
 
-Declared here in the spec-spine 106 grammar and to be lifted into the
-frontmatter `obligations` key when this repository's spec-spine pin moves
-to 0.25.0, which is a separate follow-up (below it, the key is a compile
-error, `V-002`).
-
-```yaml
-obligations:
-  - { id: "I-1", kind: invariant, text: "All nine rahi crates resolve to one exact version.", anchor: "3-behavior" }
-  - { id: "I-2", kind: invariant, text: "No shipped migration's SQL is edited; a correction is a new migration.", anchor: "3-behavior" }
-  - { id: "R-1", kind: requirement, text: "Every shipped migration's additive status is declared and recorded per version.", anchor: "3-behavior" }
-```
+Declared in the frontmatter `obligations` key (spec-spine 106 grammar),
+lifted there from this section once the pin moved to 0.25.0 (050 D-8,
+001 D-11).
 
 ## Verification
 

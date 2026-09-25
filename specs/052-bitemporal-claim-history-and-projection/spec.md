@@ -35,6 +35,14 @@ references:
   - { unit: { kind: file, path: "specs/014-memory-lifecycle-and-erasure/spec.md" }, role: constraint }
   - { unit: { kind: file, path: "specs/017-entities-and-typed-edges/spec.md" }, role: context }
   - { unit: { kind: file, path: "specs/018-retrieval-and-recall-trace/spec.md" }, role: context }
+obligations:
+  - { id: "I-1", kind: invariant, text: "Correction, retraction and supersession never delete or update prior claim rows; only erasure tombstones one.", anchor: "3-2-append-only-history" }
+  - { id: "I-2", kind: invariant, text: "The projection is a pure function of claim history, an explicit as-of on both axes, and a policy version.", anchor: "3-3-projection" }
+  - { id: "I-3", kind: invariant, text: "Winner selection never orders by transaction time, recorded_at or claim id, so delivery order cannot change the full-knowledge view.", anchor: "3-3-projection" }
+  - { id: "I-4", kind: invariant, text: "Supersession never crosses a (scope, subject, predicate, slot).", anchor: "3-2-append-only-history" }
+  - { id: "I-5", kind: invariant, text: "Transaction time is assigned by the store, strictly increasing per scope, and never edited.", anchor: "3-1-three-times" }
+  - { id: "R-1", kind: requirement, text: "Two tied candidates with different values are reported as Conflicted and never silently resolved.", anchor: "3-3-projection" }
+  - { id: "R-2", kind: requirement, text: "Erasure reaches claim values, spans, subject keys and slot keys, and leaves a tombstone that relations resolve to.", anchor: "3-4-erasure-and-the-store" }
 summary: >
   A claim has three times: when it holds in the world (valid time, with
   precision, zone, open ends, and uncertainty), when the source said so
@@ -306,21 +314,9 @@ Q-3 was resolved by D-6.
 
 ## 9. Obligations
 
-Declared in the spec-spine 106 grammar, to be lifted into the frontmatter
-`obligations` key when this repository's spec-spine pin moves to 0.25.0,
-which is a separate follow-up (050 D-8; below 0.25.0 the key is a compile
-error, `V-002`).
-
-```yaml
-obligations:
-  - { id: "I-1", kind: invariant, text: "Correction, retraction and supersession never delete or update prior claim rows; only erasure tombstones one.", anchor: "3-2-append-only-history" }
-  - { id: "I-2", kind: invariant, text: "The projection is a pure function of claim history, an explicit as-of on both axes, and a policy version.", anchor: "3-3-projection" }
-  - { id: "I-3", kind: invariant, text: "Winner selection never orders by transaction time, recorded_at or claim id, so delivery order cannot change the full-knowledge view.", anchor: "3-3-projection" }
-  - { id: "I-4", kind: invariant, text: "Supersession never crosses a (scope, subject, predicate, slot).", anchor: "3-2-append-only-history" }
-  - { id: "I-5", kind: invariant, text: "Transaction time is assigned by the store, strictly increasing per scope, and never edited.", anchor: "3-1-three-times" }
-  - { id: "R-1", kind: requirement, text: "Two tied candidates with different values are reported as Conflicted and never silently resolved.", anchor: "3-3-projection" }
-  - { id: "R-2", kind: requirement, text: "Erasure reaches claim values, spans, subject keys and slot keys, and leaves a tombstone that relations resolve to.", anchor: "3-4-erasure-and-the-store" }
-```
+Declared in the frontmatter `obligations` key (spec-spine 106 grammar),
+lifted there from this section once the pin moved to 0.25.0 (050 D-8,
+001 D-11).
 
 ## Verification
 
