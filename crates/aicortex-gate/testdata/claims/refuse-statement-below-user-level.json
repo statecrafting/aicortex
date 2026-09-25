@@ -1,0 +1,31 @@
+{
+  "name": "refuse-statement-below-user-level",
+  "why": "B-5: a user statement asserting a non-user level",
+  "proposer": "owner",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "user_statement",
+      "by": "$OWNER",
+      "authority": "verified"
+    }
+  ],
+  "expect": {
+    "verdict": "refuse",
+    "reason": "policy_denied"
+  }
+}

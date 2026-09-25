@@ -61,6 +61,8 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod claim_admission_repo;
+pub mod claim_proposal_repo;
 pub mod counters;
 pub mod cursor;
 pub mod decision_key;
@@ -70,6 +72,10 @@ pub mod predicate_registry_repo;
 pub mod provenance_repo;
 pub mod scope_repo;
 
+pub use claim_admission_repo::{
+    AdmissionDecisions, AdmissionRecord, ClaimAdmissionRepo, policy_digest,
+};
+pub use claim_proposal_repo::ClaimProposalRepo;
 pub use counters::{Counters, ScopeStats};
 pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};

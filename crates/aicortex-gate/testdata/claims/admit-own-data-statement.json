@@ -1,0 +1,32 @@
+{
+  "name": "admit-own-data-statement",
+  "why": "B-13, D-7: an owner's statement about their own data is their review",
+  "proposer": "owner",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "user_statement",
+      "by": "$OWNER",
+      "authority": "user_asserted"
+    }
+  ],
+  "expect": {
+    "verdict": "admit",
+    "authority": "user_asserted",
+    "sourcing": "user"
+  }
+}

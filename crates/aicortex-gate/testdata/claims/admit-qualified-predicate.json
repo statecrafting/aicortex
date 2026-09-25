@@ -1,0 +1,45 @@
+{
+  "name": "admit-qualified-predicate",
+  "why": "B-12: a qualified predicate at its minimum authority",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:booking.locator@1",
+    "subject": {
+      "kind": "booking",
+      "key": "PNR-XK2Q9L"
+    },
+    "value": {
+      "type": "text",
+      "text": "XK2Q9L"
+    },
+    "epistemic": {
+      "stance": "asserted"
+    }
+  },
+  "evidence": [
+    {
+      "kind": "rule_match",
+      "rule": {
+        "name": "pnr-locator",
+        "version": "1"
+      }
+    }
+  ],
+  "policy": {
+    "id": "travel.admission",
+    "version": 3,
+    "qualified": [
+      {
+        "namespace": "travel",
+        "predicate": "booking.locator",
+        "min_authority": "extracted",
+        "decision": "owner.qualify-locator"
+      }
+    ]
+  },
+  "expect": {
+    "verdict": "admit",
+    "authority": "extracted",
+    "sourcing": "supplier"
+  }
+}

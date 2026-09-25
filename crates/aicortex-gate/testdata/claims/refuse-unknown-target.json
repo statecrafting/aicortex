@@ -1,0 +1,37 @@
+{
+  "name": "refuse-unknown-target",
+  "why": "B-10: a relation to a claim admission knows nothing of",
+  "proposer": "owner",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "user_statement",
+      "by": "$OWNER",
+      "authority": "user_corrected"
+    }
+  ],
+  "relations": [
+    {
+      "kind": "supersedes",
+      "to": "$TARGET"
+    }
+  ],
+  "expect": {
+    "verdict": "refuse",
+    "reason": "policy_denied"
+  }
+}

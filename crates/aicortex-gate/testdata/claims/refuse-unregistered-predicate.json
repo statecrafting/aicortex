@@ -1,0 +1,32 @@
+{
+  "name": "refuse-unregistered-predicate",
+  "why": "B-9: an unregistered predicate is refused",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:segment.gate@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "B12"
+    },
+    "epistemic": {
+      "stance": "asserted"
+    }
+  },
+  "evidence": [
+    {
+      "kind": "rule_match",
+      "rule": {
+        "name": "pnr-locator",
+        "version": "1"
+      }
+    }
+  ],
+  "expect": {
+    "verdict": "refuse",
+    "reason": "unregistered_predicate"
+  }
+}

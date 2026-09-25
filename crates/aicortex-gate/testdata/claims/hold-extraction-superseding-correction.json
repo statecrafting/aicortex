@@ -1,0 +1,64 @@
+{
+  "name": "hold-extraction-superseding-correction",
+  "why": "FR-005, B-10: a later extraction never overrides a correction",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1",
+    "derived": true
+  },
+  "evidence": [
+    {
+      "kind": "source_span",
+      "span": "$SPAN"
+    },
+    {
+      "kind": "model_score",
+      "model": {
+        "name": "extractor",
+        "version": "2026-09"
+      },
+      "score": 10000,
+      "label": "departure"
+    }
+  ],
+  "relations": [
+    {
+      "kind": "supersedes",
+      "to": "$TARGET"
+    }
+  ],
+  "policy": {
+    "id": "travel.admission",
+    "version": 3,
+    "qualified": [
+      {
+        "namespace": "travel",
+        "predicate": "booking.locator",
+        "min_authority": "extracted",
+        "decision": "owner.qualify-locator"
+      }
+    ]
+  },
+  "targets": {
+    "$TARGET": {
+      "authority": "user_corrected",
+      "sourcing": "user"
+    }
+  },
+  "expect": {
+    "verdict": "hold",
+    "reason": "authority_insufficient"
+  }
+}

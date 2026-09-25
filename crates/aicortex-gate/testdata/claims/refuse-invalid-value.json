@@ -1,0 +1,33 @@
+{
+  "name": "refuse-invalid-value",
+  "why": "B-9: a value of the wrong type is refused (050 B-14)",
+  "proposer": "agent",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "integer",
+      "integer": 14
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "rule_match",
+      "rule": {
+        "name": "pnr-locator",
+        "version": "1"
+      }
+    }
+  ],
+  "expect": {
+    "verdict": "refuse",
+    "reason": "invalid_value"
+  }
+}

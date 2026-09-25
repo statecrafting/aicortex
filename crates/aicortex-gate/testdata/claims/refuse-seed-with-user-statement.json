@@ -1,0 +1,52 @@
+{
+  "name": "refuse-seed-with-user-statement",
+  "why": "FR-011, B-14: a seed dressed as the owner's word",
+  "proposer": "owner",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "operator_seed",
+      "by": "$OPERATOR",
+      "seed": {
+        "set": "starter-profile",
+        "version": 1
+      }
+    },
+    {
+      "kind": "user_statement",
+      "by": "$OWNER",
+      "authority": "user_asserted"
+    }
+  ],
+  "policy": {
+    "id": "travel.admission",
+    "version": 2,
+    "seeds": [
+      {
+        "seed": {
+          "set": "starter-profile",
+          "version": 1
+        },
+        "decision": "owner.seed-2026-09-25"
+      }
+    ]
+  },
+  "expect": {
+    "verdict": "refuse",
+    "reason": "policy_denied"
+  }
+}

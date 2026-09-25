@@ -1,0 +1,31 @@
+{
+  "name": "hold-stranger-statement",
+  "why": "B-13: a human's statement about another's scope needs review",
+  "proposer": "stranger",
+  "claim": {
+    "predicate": "travel:segment.seat@1",
+    "subject": {
+      "kind": "segment",
+      "key": "LO281-2026-10-03"
+    },
+    "value": {
+      "type": "text",
+      "text": "14C"
+    },
+    "epistemic": {
+      "stance": "requested"
+    },
+    "slot": "traveler-1"
+  },
+  "evidence": [
+    {
+      "kind": "user_statement",
+      "by": "$STRANGER",
+      "authority": "user_asserted"
+    }
+  ],
+  "expect": {
+    "verdict": "hold",
+    "reason": "authority_insufficient"
+  }
+}

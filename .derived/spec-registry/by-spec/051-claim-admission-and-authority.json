@@ -102,7 +102,7 @@
       "wave": 5
     },
     "id": "051-claim-admission-and-authority",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "kernel",
     "obligations": [
       {
@@ -192,7 +192,7 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "051-claim-admission-and-authority": "625b842764a4c372751c0b03479e91ae95de5a5babd22cb08d19c07d05a3ad40",
+      "051-claim-admission-and-authority": "b3e7969d96fbcea3f996cbb9911389b2350e71710fd4991e25ed936eb08e397a",
       "1-purpose": "89fe197e2952912e3f8cca0126fb77ae4d5638d848b9293e50976e84e96c6084",
       "2-territory": "1ed098d1fddf8bebc6772975619cbbb5ac682cedac85b3a2caa403981502e416",
       "3-1-three-layers": "b30a15bc6d0d3d930fa07498cbcb382440739e9edc18af97ddd8845b975405d3",
@@ -202,10 +202,10 @@
       "4-functional-requirements": "0e422575ef86342d24789cf835c1951c0d840f189ae134faeb5435492641d4f4",
       "5-acceptance-criteria": "da0e4f098d8e69773cb0bccc3186c1b7c8471c9f7aea8caee114dde1f52c20a1",
       "6-out-of-scope": "846679c62f8a82d1f9f572b89ae10c21e455f6c6fa92b7a552db87e14a112864",
-      "7-resolved-decisions": "e358d419080fe8722fada5e691b7c560e3ce66d220e9d9701c6e0cddecb8aac5",
+      "7-resolved-decisions": "15231921358227a644d2a12ee5f4815065dfa81587d111a473d2ab05c828fcc8",
       "8-open-questions": "b612391935e6103dbd1a242a76e954d203e9dc0c8243ccde28add94632bed280",
       "9-obligations": "18d380622e4416db12fbd7c78afcd3315b98123a1f10ada9670715817d3b751e",
-      "verification": "4a8a2376595e0e2d1ed48a01e29be95b8544b292cbd5ee47e7b3734d63e667ea"
+      "verification": "40d387ea3407aad9b4ee03a33f1062e817c8e957188914dff15ecb01c826077d"
     },
     "sectionHeadings": [
       "051: Claim admission and authority",
@@ -228,6 +228,6 @@
     "summary": "Three things that ingest pipelines routinely blur are kept apart: an observation (the source as received, stored as a memory through 013's gate), a proposal (a typed claim some actor suggests, with its evidence), and an admitted claim (a proposal the gate accepted under a named policy, with a decision record). Admission reuses the existing gate crate and its purity, adds a claim verdict whose `AdmittedClaim` only the gate can mint, and records every admission. Model-produced scores are stored as evidence and never serve as authority. A user's correction is first-class evidence carrying an authority level, and it is appended, never an edit.\n",
     "title": "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
   },
-  "shardHash": "b9b444ce477861c0e7a5c3a27bc8a0a010dc7303c2e36fc4d36e97220ac5e843",
+  "shardHash": "3cbb14dc8794908d3c666cd2f6396e49eafb99ad076905610d2dafbc435c60a2",
   "specVersion": "1.8.0"
 }
