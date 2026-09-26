@@ -58,11 +58,72 @@ pub const LIFECYCLE_VERSION: u32 = 6;
 /// Durable erasure accounting and resumable fingerprint progress (spec 014).
 pub const ERASURE_RECEIPTS_VERSION: u32 = 7;
 
+/// Append-only bitemporal claim history and its per-scope transaction counter.
+pub const CLAIM_HISTORY_VERSION: u32 = 8;
+
 /// The version an up-to-date store records, which is the highest below.
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = ERASURE_RECEIPTS_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = CLAIM_HISTORY_VERSION;
+
+const CLAIM_HISTORY_TABLES: &str = "CREATE TABLE claim_tx_counter (
+    scope_id TEXT PRIMARY KEY,
+    seq INTEGER NOT NULL
+);
+CREATE TABLE claim_history (
+    claim_id TEXT PRIMARY KEY,
+    scope_id TEXT NOT NULL,
+    subject_namespace TEXT NOT NULL,
+    subject_kind TEXT NOT NULL,
+    subject_key TEXT NOT NULL,
+    predicate_namespace TEXT NOT NULL,
+    predicate_name TEXT NOT NULL,
+    predicate_version INTEGER NOT NULL,
+    slot_key TEXT,
+    tx_seq INTEGER NOT NULL,
+    recorded_at INTEGER NOT NULL,
+    valid_time TEXT NOT NULL,
+    source_time TEXT,
+    source_seq INTEGER,
+    authority TEXT NOT NULL,
+    sourcing TEXT NOT NULL,
+    admission TEXT NOT NULL,
+    supersession TEXT NOT NULL,
+    hostile_content INTEGER NOT NULL,
+    origin_erased INTEGER NOT NULL DEFAULT 0,
+    erased INTEGER NOT NULL DEFAULT 0,
+    claim TEXT
+);
+CREATE UNIQUE INDEX claim_history_scope_tx ON claim_history (scope_id, tx_seq);
+CREATE INDEX claim_history_subject_tx ON claim_history
+    (scope_id, subject_namespace, subject_kind, subject_key, tx_seq);
+CREATE TABLE claim_relation (
+    scope_id TEXT NOT NULL,
+    from_claim_id TEXT NOT NULL,
+    relation_kind TEXT NOT NULL,
+    to_kind TEXT NOT NULL,
+    to_id TEXT NOT NULL,
+    tx_seq INTEGER NOT NULL,
+    recorded_at INTEGER NOT NULL,
+    authority TEXT NOT NULL,
+    document TEXT,
+    PRIMARY KEY (scope_id, from_claim_id, relation_kind, to_kind, to_id)
+);
+CREATE TABLE claim_retraction (
+    scope_id TEXT NOT NULL,
+    target_claim_id TEXT NOT NULL,
+    tx_seq INTEGER NOT NULL,
+    recorded_at INTEGER NOT NULL,
+    document TEXT NOT NULL,
+    PRIMARY KEY (scope_id, target_claim_id, tx_seq)
+);
+CREATE TABLE claim_source (
+    scope_id TEXT NOT NULL,
+    claim_id TEXT NOT NULL,
+    source_memory_id TEXT NOT NULL,
+    PRIMARY KEY (scope_id, claim_id, source_memory_id)
+);";
 
 /// The scope a memory lives in (B-2).
 ///
@@ -363,7 +424,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 7]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 8]> = std::sync::LazyLock::new(|| {
     [
         // Every shipped migration only creates tables and indexes, so each is
         // declared additive (spec 046 B-2, D-2). The declaration is not part
@@ -458,5 +519,11 @@ static LIST: std::sync::LazyLock<[Migration; 7]> = std::sync::LazyLock::new(|| {
             ALTER TABLE memory ADD COLUMN fingerprint_version INTEGER NOT NULL DEFAULT 0;
             CREATE INDEX memory_redigest ON memory (scope_id, fingerprint_version, id);",
         ),
+        Migration::new(
+            CLAIM_HISTORY_VERSION,
+            "aicortex append-only bitemporal claim history",
+            CLAIM_HISTORY_TABLES,
+        )
+        .additive(),
     ]
 });

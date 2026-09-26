@@ -413,7 +413,7 @@
           {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 114,
+              "endLine": 119,
               "startLine": 6
             }
           }
@@ -431,7 +431,7 @@
           {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 103,
+              "endLine": 108,
               "startLine": 20
             }
           }
@@ -501,5 +501,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "4a8b2437dbc0cfee32560c9c7ee96e8bc380824cc8cab8acc37238f6021adac9"
+  "shardHash": "b62257fe24f9af5eba856e1caa39cec57e5fb16912a849480ed9fec132d8c5e6"
 }

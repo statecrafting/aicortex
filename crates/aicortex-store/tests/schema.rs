@@ -137,13 +137,20 @@ async fn b2_the_tables_and_indexes_are_the_ones_the_spec_names() {
 /// `decision_key` is one of them (spec 013 B-9): a key is an object of
 /// somebody's scope, and a read that could reach across scopes would be a way
 /// to confirm another subject's refusal digests.
-const SCOPED_TABLES: [&str; 6] = [
+const SCOPED_TABLES: [&str; 13] = [
     "memory",
     "memory_derivation",
     "provenance",
     "scope",
     "scope_counter",
     "decision_key",
+    "claim_history",
+    "claim_relation",
+    "claim_retraction",
+    "claim_source",
+    "claim_admission",
+    "claim_proposal",
+    "claim_tx_counter",
 ];
 
 /// The predicate column every such statement must name.

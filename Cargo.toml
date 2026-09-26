@@ -95,6 +95,11 @@ blake3 = { version = "1", default-features = false, features = ["std"] }
 # of B-4 is computed in fixed-point integers (D-4).
 unicode-normalization = "0.1"
 
+# Pure civil-time conversion for spec 052. The projection rejects a policy
+# whose pinned database identity differs from the database compiled here.
+chrono = { version = "0.4", default-features = false, features = ["std"] }
+chrono-tz = { version = "0.10", default-features = false, features = ["std"] }
+
 # Tests only: `trybuild` runs the compile-fail cases that prove a type cannot
 # be built (011 FR-003), and `tokio` drives the async store tests of 012
 # against rahi's single-voter node.

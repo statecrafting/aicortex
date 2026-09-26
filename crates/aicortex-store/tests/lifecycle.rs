@@ -1112,11 +1112,20 @@ async fn migration_seven_preserves_v6_rows_and_backfills_them_after_reopen() {
     fixture.handle().txn(txn.into_statements()).await.unwrap();
     let report = fixture
         .handle()
-        .migrate(aicortex_store::migrations())
+        .migrate(&aicortex_store::migrations()[..7])
         .await
         .unwrap();
     assert_eq!(report.previous, 6);
     assert_eq!(report.applied, vec![7]);
+    assert_eq!(
+        fixture
+            .handle()
+            .migrate(aicortex_store::migrations())
+            .await
+            .unwrap()
+            .applied,
+        vec![8]
+    );
     assert!(
         fixture
             .handle()

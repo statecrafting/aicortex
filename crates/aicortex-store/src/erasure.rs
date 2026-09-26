@@ -354,6 +354,32 @@ const MARK_DERIVED_SQL: &str = "UPDATE memory SET origin_erased = 1
         WHERE scope_id = ?1 AND parent_id = ?2
     )";
 
+const MARK_SOURCE_CLAIMS_SQL: &str = "UPDATE claim_history SET origin_erased = 1
+    WHERE scope_id = ?1 AND erased = 0 AND claim_id IN (
+        SELECT claim_id FROM claim_source WHERE scope_id = ?1 AND source_memory_id = ?2
+    )";
+
+const ERASE_SOURCE_CLAIMS_SQL: &str = "UPDATE claim_history
+    SET subject_key = '', slot_key = NULL, claim = NULL, hostile_content = 0,
+        origin_erased = 1, erased = 1
+    WHERE scope_id = ?1 AND erased = 0 AND claim_id IN (
+        SELECT claim_id FROM claim_source WHERE scope_id = ?1 AND source_memory_id = ?2
+    )";
+
+const SCRUB_SOURCE_RELATIONS_SQL: &str = "UPDATE claim_relation SET document = NULL
+    WHERE scope_id = ?1 AND from_claim_id IN (
+        SELECT claim_id FROM claim_source WHERE scope_id = ?1 AND source_memory_id = ?2
+    )";
+
+const SCRUB_SOURCE_ADMISSIONS_SQL: &str = "UPDATE claim_admission
+    SET evidence = '[]', relations = '[]' WHERE scope_id = ?1 AND claim_id IN (
+        SELECT claim_id FROM claim_source WHERE scope_id = ?1 AND source_memory_id = ?2
+    )";
+
+const ERASE_SCOPE_CLAIMS_SQL: &str = "UPDATE claim_history
+    SET subject_key = '', slot_key = NULL, claim = NULL, hostile_content = 0,
+        origin_erased = 1, erased = 1 WHERE scope_id = ?1 AND erased = 0";
+
 const DERIVED_SQL: &str = "SELECT memory_id AS id FROM memory_derivation
     WHERE scope_id = $1 AND parent_id = $2";
 
@@ -526,6 +552,22 @@ impl Eraser {
             MARK_DERIVED_SQL,
             vec![Value::from(&scope_id), Value::from(id.to_string())],
         ));
+        txn.push(Statement::with_params(
+            if cascade {
+                ERASE_SOURCE_CLAIMS_SQL
+            } else {
+                MARK_SOURCE_CLAIMS_SQL
+            },
+            vec![Value::from(&scope_id), Value::from(id.to_string())],
+        ));
+        if cascade {
+            for statement in [SCRUB_SOURCE_RELATIONS_SQL, SCRUB_SOURCE_ADMISSIONS_SQL] {
+                txn.push(Statement::with_params(
+                    statement,
+                    vec![Value::from(&scope_id), Value::from(id.to_string())],
+                ));
+            }
+        }
 
         let decision = Decision::new(
             DecisionId::new(format!("{KIND_ERASE}-{id}")),
@@ -742,6 +784,22 @@ impl Eraser {
         DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
+        txn.push(Statement::with_params(
+            ERASE_SCOPE_CLAIMS_SQL,
+            vec![Value::from(&scope_id)],
+        ));
+        for statement in [
+            "DELETE FROM claim_relation WHERE scope_id = ?1",
+            "DELETE FROM claim_retraction WHERE scope_id = ?1",
+            "DELETE FROM claim_source WHERE scope_id = ?1",
+            "DELETE FROM claim_admission WHERE scope_id = ?1",
+            "DELETE FROM claim_proposal WHERE scope_id = ?1",
+        ] {
+            txn.push(Statement::with_params(
+                statement,
+                vec![Value::from(&scope_id)],
+            ));
+        }
         let mut statements = vec![Statement::with_params(
             "UPDATE erasure_receipt SET ready = CASE
                 WHEN decision_id = $1 AND ready = 0 THEN 0 ELSE NULL END
@@ -765,6 +823,7 @@ impl Eraser {
             "UPDATE erasure_receipt SET ready = 1
              WHERE scope_id = ?1 AND target = '' AND decision_id = ?2
              AND NOT EXISTS (SELECT 1 FROM memory WHERE scope_id = ?1 AND status <> 'erased')
+             AND NOT EXISTS (SELECT 1 FROM claim_history WHERE scope_id = ?1 AND erased = 0)
              AND NOT EXISTS (SELECT 1 FROM decision_key WHERE scope_id = ?1)",
             vec![Value::from(&scope_id), Value::from(operation)],
         ));

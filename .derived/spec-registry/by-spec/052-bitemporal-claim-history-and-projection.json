@@ -88,6 +88,14 @@
       },
       {
         "nature": "additive",
+        "spec": "050-typed-claims-and-predicate-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/claim_time.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "012-store-schema-and-repositories",
         "unit": {
           "kind": "file",
@@ -104,10 +112,35 @@
       },
       {
         "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "014-memory-lifecycle-and-erasure",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
         }
       }
     ],
@@ -115,7 +148,7 @@
       "wave": 5
     },
     "id": "052-bitemporal-claim-history-and-projection",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "kernel",
     "obligations": [
       {
@@ -186,7 +219,7 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "052-bitemporal-claim-history-and-projection": "e84f59a1a32bac95a23d2a2440228dfba30552ef555fa6bf872192ed08cbd753",
+      "052-bitemporal-claim-history-and-projection": "689e16992fca4dbd6154d947f2b799a1cc0dd4424934b7a5cb6ffc6e173214ef",
       "1-purpose": "31d73c4edb2c60dd46ad4ede85dd5b9fabf3e0f60de0fed06ee3d3665e2343fd",
       "2-territory": "0ccc9354c4d2e522609522dec87965757c484098918bd5a2923e416cae1dbaea",
       "3-1-three-times": "7d07260f14855407b1a72b9ddaf09ab2f23a4688e7688fcf72b2151f63cf91fc",
@@ -197,8 +230,8 @@
       "4-functional-requirements": "da73527884beb42631b7fe3df4c0fff3c03e468f29c793e5c7db2cde47d30350",
       "5-acceptance-criteria": "19394e4e46f248234c70d30e1f15414126ba5c345bda452279aa0e03895f64c1",
       "6-out-of-scope": "46d7e9227f2c5029eeeaa6655a0162a4a7a7b620bffce55d3dbd572078eb82b1",
-      "7-resolved-decisions": "792ab4e5b9069ec31546e3d046479595584d175d44884744acf4f4402e6b0e21",
-      "8-open-questions": "359ec34f25e8780ed3d3c1e44b65c515eb3ce5bf83dbf4cb3842a3ebfa64ed30",
+      "7-resolved-decisions": "66f3bf54ad2128889985ce6b0f657c0cd9438c0cb274dff0a0837ec22f12f451",
+      "8-open-questions": "86e71edda5cbd133b5aee073d30c6a5906cd1bab747b66bff695bef7ff04d1d3",
       "9-obligations": "e63bcacdbfdc3b1ea73f71f9516e54b00c73b8ac8e603f952cbe689948bd2a95",
       "verification": "fb5a41202e69804b5a4239eca84bf25606f6ef07aaa6bba529db82e09663dec8"
     },
@@ -224,6 +257,6 @@
     "summary": "A claim has three times: when it holds in the world (valid time, with precision, zone, open ends, and uncertainty), when the source said so (source-declared time), and when this store learned it (transaction time). History is append-only on the transaction axis; retraction, correction, and supersession are appended records, and only erasure removes content, leaving a tombstone. Supersession is scoped to one subject, predicate, and slot, so a schedule change to one segment supersedes that attribute alone. The current view is a deterministic projection of history under an explicit as-of on both axes and a policy version, ordered by the source's own time and the claim's authority, never by arrival, so reordered email delivery yields the same answer.\n",
     "title": "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
   },
-  "shardHash": "1f964430b545db0532a9ed34f9c56afc47974793c505bf181bb12fc4368f5e2f",
+  "shardHash": "def637e03ad63f10e354ab7d5c6a0dd67a7d0572b14cfa4d6985cca7e2854fae",
   "specVersion": "1.8.0"
 }

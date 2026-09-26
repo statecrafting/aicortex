@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-24"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 5
 depends_on:
@@ -26,9 +26,13 @@ establishes:
 extends:
   - { spec: "050-typed-claims-and-predicate-registry", unit: "crates/aicortex-claims/src/lib.rs", nature: additive }
   - { spec: "050-typed-claims-and-predicate-registry", unit: "crates/aicortex-claims/Cargo.toml", nature: additive }
+  - { spec: "050-typed-claims-and-predicate-registry", unit: "crates/aicortex-types/src/claim_time.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/schema.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/claim_repo.rs", note: "claim history is append-only: no statement updates or deletes a claim or relation row except erasure's tombstone" }
   - { flavor: invariant-freeze, unit: "crates/aicortex-claims/src/projection.rs", note: "the current view is a pure function of claim history, an explicit as-of on both axes, and a policy version" }
@@ -297,9 +301,17 @@ to a different log; the two are recorded as overlapping and not merged.
   memories, so it now names 014 directly in `depends_on` rather than
   inheriting it through 050 (050 D-10).
 
+- **D-8 (2026-09-26, owner decision packet).** Projection never falls back
+  to transaction or arrival order. The first version computes on read.
+  Untrusted-content framing remains an egress responsibility while projection
+  retains provenance and hostile-content classification. The fourteen-hour
+  floating window and the time-zone database identity are both versioned
+  policy inputs.
+
 ## 8. Open questions
 
-Q-3 was resolved by D-6.
+Q-3 was resolved by D-6. Q-1, Q-2, Q-4, and Q-5 were resolved by D-8.
+Q-6 was resolved by 014 D-16.
 
 - **Q-1 (source order without a source time).** When neither
   `source_seq` nor `source_time` is present, B-8 falls through to
