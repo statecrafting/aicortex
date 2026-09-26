@@ -618,6 +618,24 @@ impl ZonedTime {
         self.date
     }
 
+    /// The stated wall-clock hour.
+    #[must_use]
+    pub const fn hour_value(&self) -> u8 {
+        self.hour
+    }
+
+    /// The stated wall-clock minute, when precision includes it.
+    #[must_use]
+    pub const fn minute_value(&self) -> Option<u8> {
+        self.minute
+    }
+
+    /// The stated wall-clock second, when precision includes it.
+    #[must_use]
+    pub const fn second_value(&self) -> Option<u8> {
+        self.second
+    }
+
     /// The zone form, as given.
     #[must_use]
     pub const fn zone(&self) -> &Zone {

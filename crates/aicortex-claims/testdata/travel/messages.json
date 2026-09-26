@@ -1,0 +1,7 @@
+{
+  "messages": [
+    { "name": "A", "sent_order": 1, "claims": ["segment-1.departure", "segment-2.departure"] },
+    { "name": "B", "sent_order": 3, "claims": ["segment-2.departure-change"] },
+    { "name": "C", "sent_order": 2, "claims": ["segment-1.seat"] }
+  ]
+}

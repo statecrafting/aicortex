@@ -1,69 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/history.rs' does not exist",
-        "path": "crates/aicortex-claims/src/history.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/asof.rs' does not exist",
-        "path": "crates/aicortex-claims/src/asof.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/policy.rs' does not exist",
-        "path": "crates/aicortex-claims/src/policy.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/projection.rs' does not exist",
-        "path": "crates/aicortex-claims/src/projection.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/tests/projection.rs' does not exist",
-        "path": "crates/aicortex-claims/tests/projection.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/tests/reorder.rs' does not exist",
-        "path": "crates/aicortex-claims/tests/reorder.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/testdata/travel/' does not exist",
-        "path": "crates/aicortex-claims/testdata/travel/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/claim_repo.rs' does not exist",
-        "path": "crates/aicortex-store/src/claim_repo.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/tests/claim_history.rs' does not exist",
-        "path": "crates/aicortex-store/tests/claim_history.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/tests/claim_erasure.rs' does not exist",
-        "path": "crates/aicortex-store/tests/claim_erasure.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/claim_repo.rs' does not exist",
-        "path": "crates/aicortex-store/src/claim_repo.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-claims/src/projection.rs' does not exist",
-        "path": "crates/aicortex-claims/src/projection.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "014-memory-lifecycle-and-erasure",
@@ -71,11 +6,47 @@
     ],
     "implementingPaths": [
       {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-claims/Cargo.toml",
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-claims/src/asof.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-claims/src/history.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-claims/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-claims/src/policy.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-claims/src/projection.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-claims/testdata/travel/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-claims/tests/projection.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-claims/tests/reorder.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/claim_repo.rs",
         "source": "spec-edge"
       },
       {
@@ -89,11 +60,35 @@
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/claim_erasure.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/claim_history.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/lifecycle.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/schema.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/claim_time.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/src/asof.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -102,7 +97,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/src/history.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -111,7 +110,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/src/policy.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -120,7 +123,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/src/projection.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -129,7 +136,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/testdata/travel/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -138,7 +149,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/tests/projection.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -147,7 +162,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/tests/reorder.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -156,7 +175,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/claim_repo.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -165,7 +188,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/claim_erasure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -174,7 +201,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/claim_history.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -248,7 +279,68 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/lifecycle.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/claim_time.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/claim_time.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 108,
+              "startLine": 20
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace.dependencies",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/src/projection.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -257,7 +349,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/claim_repo.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -309,5 +405,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "5917b55a1a7b877a30e94cfac506a887af8e8110ac236011e88b6df5c6ddb476"
+  "shardHash": "a69e4d536d76ab2a7ef398de6762432c0fae56e89df0ae268a8e4bfa1b2c1d03"
 }

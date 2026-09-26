@@ -14,6 +14,10 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod asof;
+pub mod history;
+pub mod policy;
+pub mod projection;
 pub mod registry;
 
 use core::fmt;
@@ -23,6 +27,16 @@ use aicortex_types::{
 };
 use unicode_normalization::is_nfc;
 
+pub use asof::{AsOf, TxBound, ValidBound};
+pub use history::{
+    AdmissionRef, ClaimHistory, ClaimRecord, HistoryError, HistoryRelation, Retraction, SlotId,
+    SourceSeq, TxStamp, ValidTime,
+};
+pub use policy::{ProjectionPolicy, SUPPORTED_TZDB_VERSION};
+pub use projection::{
+    Certainty, ConflictProposal, CurrentView, ProjectionCandidate, ProjectionError, SlotState,
+    SlotView, project,
+};
 pub use registry::{Admission, Change, RegistryError, RegistrySnapshot};
 
 /// Why a claim does not validate (FR-004).
