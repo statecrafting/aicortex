@@ -54,6 +54,22 @@ impl Fixture {
         fixture
     }
 
+    /// A migrated node at the application path the released cell CLI opens.
+    pub async fn migrated_for_cell() -> Self {
+        let dir = tempfile::tempdir().expect("a temporary directory");
+        let cfg = config(&dir.path().join("app-store"));
+        let store = Store::open(&cfg)
+            .await
+            .expect("a single-voter cell store opens");
+        let fixture = Self { store, dir };
+        fixture
+            .handle()
+            .migrate(aicortex_store::migrations())
+            .await
+            .expect("the schema applies to an empty cell store");
+        fixture
+    }
+
     /// Stop the node.
     pub async fn shutdown(self) {
         self.store.shutdown().await.expect("the node stops");
@@ -128,6 +144,40 @@ impl Node {
             .await
             .expect("reopen finishes within 30 seconds")
             .expect("the durable node reopens");
+        let ledger = Ledger::open(
+            store.handle(),
+            LedgerSigner::from_seed([7u8; 32]),
+            Hash::parse(format!("sha256:{}", "ab".repeat(32))).unwrap(),
+        )
+        .await
+        .expect("the durable chain reopens");
+        Self { store, ledger, dir }
+    }
+
+    /// Stop and reopen the same durable node while `lease` is still held.
+    ///
+    /// The stop completes before the held lease is dropped. Reopening uses the
+    /// identical configuration, including the Raft and API listener addresses,
+    /// so a caller exercises cached-lock recovery rather than an app snapshot.
+    pub async fn reopen_after_stop_with_lease(self, lease: rahi_store::Lease) -> Self {
+        let Self { store, ledger, dir } = self;
+        let cfg = store.config().clone();
+        let identities = (cfg.raft_addr, cfg.api_addr);
+        drop(ledger);
+        tokio::time::timeout(std::time::Duration::from_secs(30), store.shutdown())
+            .await
+            .expect("the full node stop finishes within 30 seconds")
+            .expect("the full node stops while the lease is held");
+        drop(lease);
+        let store = tokio::time::timeout(std::time::Duration::from_secs(30), Store::open(&cfg))
+            .await
+            .expect("reopen finishes within 30 seconds")
+            .expect("the durable node reopens");
+        assert_eq!(
+            (store.config().raft_addr, store.config().api_addr),
+            identities,
+            "the Raft and API listener identities stay fixed across restart"
+        );
         let ledger = Ledger::open(
             store.handle(),
             LedgerSigner::from_seed([7u8; 32]),
