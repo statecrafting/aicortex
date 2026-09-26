@@ -479,8 +479,8 @@
       }
     ],
     "specId": "053-host-library-mode",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "fb6c8a2fb1283c9bd83cb63dc38c1fa872452330d5451a4c79304714f5be2474"
+  "shardHash": "a34c4616f5db6e58da58eb2ea3213abe21b2fdf7e1f89af852e32c26116820d1"
 }

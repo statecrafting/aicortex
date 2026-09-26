@@ -1,7 +1,7 @@
 ---
 id: "053-host-library-mode"
 title: "Host-library mode: named migrations, operator-authorized vocabulary, and one caller-owned transaction"
-status: draft
+status: approved
 kind: kernel
 domain: memory
 created: "2026-09-26"
@@ -321,6 +321,11 @@ public host API, the resolved dependency tree, and the external-host evidence.
   `implementation: pending` remain until Bart separately approves the
   contract; no implementation or downstream consumption is authorized by
   this draft.
+- **D-7 (2026-09-26, owner ratification).** Bart approved spec 053
+  completely and authorized its end-to-end build, shipment, and shepherding.
+  This is the human ratification D-6 reserved. The spec moves to
+  `status: approved`; implementation remains a separately evidenced act and
+  must satisfy every acceptance criterion before it moves to complete.
 
 ## Verification
 

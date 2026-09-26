@@ -275,7 +275,7 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "053-host-library-mode": "0cff6105b20fc008c36c3f0294e2cb537c001d800e6625025b7b2ffed9382280",
+      "053-host-library-mode": "fbcd550327ee1bf87828546c23e4f3a38ca2e9d21e18853eb5761df176219a06",
       "1-purpose": "d1b5ce9ba46287a3dd8fa613e4626f1ebf58b42a0ffa2f955db9825f3cfb47f8",
       "2-territory": "f11e77461cfed1a55d52af218ffe9ff1fc9d49e94911532ed055e7dc45decac6",
       "3-1-one-named-migration-set": "d92e410806c1637513ba270074e7ed592a4664ef4c99fad94cc585406119ce8d",
@@ -287,7 +287,7 @@
       "4-functional-requirements": "94dedefa9216a576646f189c3da71119224794933e2c99f014d7fc415ce91acb",
       "5-acceptance-criteria": "a2b2bd1d6a7dd1e26d771c87310530d220a74e78e2f68567cb2f5167f2fbcc76",
       "6-out-of-scope": "92bfe953366da83404da02c94a18f3d796735190b806223be2d17fe6b6bc7ff4",
-      "7-resolved-decisions": "d61078934fa64f40febe1d24819e79c590b0894e5e024ae0c39736bc1c8993ff",
+      "7-resolved-decisions": "05ed5377d00ea430799e143445b850ae7a3549bdccafc2fdee949a5d39965c44",
       "verification": "83f4d2e861c303ef9071b4d781e603aad8ee4e854846286ee3d292754b95de8d"
     },
     "sectionHeadings": [
@@ -307,10 +307,10 @@
       "Verification"
     ],
     "specPath": "specs/053-host-library-mode/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Expose Aicortex as a linked library inside another Rahi cell without giving up migration identity, operator authority, or transaction ownership. The library exports the immutable named migration set `aicortex`, makes predicate registration an explicit operator-configured act, and stages observations, admission records, claim history, erasure records, and outbox work into the caller's `rahi_store::TxnBuilder`. A separate host fixture proves that Rahi ingress state, Aicortex history, a host-owned projection revision, and outbox work share one commit and one rollback.\n",
     "title": "Host-library mode: named migrations, operator-authorized vocabulary, and one caller-owned transaction"
   },
-  "shardHash": "98b0642672125f7fff947bcff820a0dabef9270efc2fdd5fa02e878e06be71fc",
+  "shardHash": "353a34a4005dd87e9e6414ac597e6c2ca896d9fd613ce848619bb23115098b4c",
   "specVersion": "1.8.0"
 }
