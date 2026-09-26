@@ -197,9 +197,11 @@ which are deployment configuration.
   rahi's `UnixSeconds`, for `valid_until` and expiry comparison. This closes
   the representation gap without adding a travel type, a second clock, or a
   field to 011's serialized `Memory`: D-3's column-versus-record decision
-  remains intact. Rejected: 050's civil and zoned source-time types, which do
-  not represent record-clock deadlines, and a new wrapper with conversion
-  semantics distinct from the chassis clock.
+  remains intact. Its public documentation links to `TimeValue`, the public
+  source-time type, so the separation is expressed through a resolvable API
+  item rather than a module name. Rejected: 050's civil and zoned source-time
+  types, which do not represent record-clock deadlines, and a new wrapper
+  with conversion semantics distinct from the chassis clock.
 
 - **Status (2026-09-25, port onto main and chassis re-check).** The work of
   pull request #15 (last commit `eae4258`, based on `a927f85`) is carried

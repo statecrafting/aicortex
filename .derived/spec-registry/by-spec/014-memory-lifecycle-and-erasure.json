@@ -148,14 +148,14 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "014-lifecycle": "89c21ef155173a97277b4ffb835fe4ac8e0c7095cd8ed1f38c51a51223b550b1",
+      "014-lifecycle": "be56722692265a51e9875a5d396f8699df21d0ba3c7696b1391dc62ed72df1e4",
       "1-purpose": "e92fd2c2b9dff859293607f2223a4e1e0043857528660d70ebf899ad1e165873",
       "2-territory": "14fa0db0d197eaaad7477946f4313a264e2f9273631c5a4125b8d81851ea1dee",
       "3-behavior": "5f09badbc366fbcecb58bbe592a13405716c5b2cf17d2cc94146ac9fc7c61e01",
       "4-functional-requirements": "592e3b9f27b0475262b28fe74ddebe16058ed27824801e694949f5c501a6845b",
       "5-acceptance-criteria": "cbca38c21ddea4b218f2299146b3e3d93869a27e266d5f71bd3749bfe0a90235",
       "6-out-of-scope": "e63bcaeb07fa3bb0e09b9884e76197a589453fa61648b113130d5858c6015d3f",
-      "7-resolved-decisions": "2bfb772e062b53104a905a019833dd37bb09b4a5f7cd5292b5bb9258dc58ac74",
+      "7-resolved-decisions": "94c895e5a74d43e3f6f8052088aa7d7a71ac6f54a4568c674fc6d871381a3348",
       "verification": "f0d11b7350e1951bc6f1d8ce072c5b11ce8bd5e724c2b72143247c2568c91c79"
     },
     "sectionHeadings": [
@@ -174,6 +174,6 @@
     "summary": "A memory store that can only append becomes wrong over time and then confidently recalls the wrong thing. This spec gives a memory the rest of its life: an exact fingerprint that merges a repeated capture instead of duplicating it, supersession that keeps the old row readable but unretrievable, correction that records who said the old value was wrong, expiry for memories that were true until a date, and erasure that removes content, chunks, embeddings, and index entries in one transaction while the ledger records only that it happened.\n",
     "title": "Lifecycle: supersession, correction, expiry, deduplication, and erasure that reaches the vectors"
   },
-  "shardHash": "f71e53457439d02e1df08578079b231eebd4a358a18b27ebc12bc690998d9481",
+  "shardHash": "ad6825e2e40823f59fc1665eedb2916776f187b730ec5ba4323a6686f7e5b492",
   "specVersion": "1.8.0"
 }
