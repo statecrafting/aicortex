@@ -115,7 +115,7 @@
       "wave": 5
     },
     "id": "052-bitemporal-claim-history-and-projection",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "kernel",
     "obligations": [
       {
@@ -224,6 +224,6 @@
     "summary": "A claim has three times: when it holds in the world (valid time, with precision, zone, open ends, and uncertainty), when the source said so (source-declared time), and when this store learned it (transaction time). History is append-only on the transaction axis; retraction, correction, and supersession are appended records, and only erasure removes content, leaving a tombstone. Supersession is scoped to one subject, predicate, and slot, so a schedule change to one segment supersedes that attribute alone. The current view is a deterministic projection of history under an explicit as-of on both axes and a policy version, ordered by the source's own time and the claim's authority, never by arrival, so reordered email delivery yields the same answer.\n",
     "title": "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
   },
-  "shardHash": "3f439194734990eea3eac8e90add51ee82f5ef6d94a2fc32f09af75b8b800b72",
+  "shardHash": "1f964430b545db0532a9ed34f9c56afc47974793c505bf181bb12fc4368f5e2f",
   "specVersion": "1.8.0"
 }
