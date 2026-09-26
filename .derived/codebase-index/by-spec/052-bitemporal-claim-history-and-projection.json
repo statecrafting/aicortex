@@ -54,11 +54,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/erasure.rs' does not exist",
-        "path": "crates/aicortex-store/src/erasure.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '052-bitemporal-claim-history-and-projection' file unit 'crates/aicortex-store/src/claim_repo.rs' does not exist",
         "path": "crates/aicortex-store/src/claim_repo.rs"
       },
@@ -81,6 +76,10 @@
       },
       {
         "path": "crates/aicortex-claims/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/erasure.rs",
         "source": "spec-edge"
       },
       {
@@ -210,7 +209,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/erasure.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -306,5 +309,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "393e87de4d3fca17c9edc1e3e94217b881d92587c7364bf9106367aef6dae7b2"
+  "shardHash": "51659839753109be4bacd39dc1659956692b2ca0005f2ecfb3726aa940a9bae4"
 }

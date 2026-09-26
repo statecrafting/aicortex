@@ -466,17 +466,18 @@ fn decode(record: &str) -> Result<Memory, Error> {
 
 /// The content fingerprint the `(scope_id, fingerprint)` index is unique on.
 ///
-/// Spec 014 owns what content is normalized to before it is digested (its
-/// `fingerprint.rs`, and the near-duplicate question that exact digesting
-/// cannot answer). What 012 owns is the column, the partial unique index over
-/// the memories that still exist, and that a duplicate is refused at the
-/// storage boundary rather than by whoever remembered to look. Until 014
-/// lands, the digest is over the kind and the body's text as written (D-4).
+/// Spec 014 owns what content is normalized to before it is digested and has
+/// landed, so this is now one call into [`crate::fingerprint::of_memory`]:
+/// BLAKE3 over the scope, the kind and the gate-normalized body (014 B-1).
+/// What 012 still owns is the column, the partial unique index over the
+/// memories that still exist, and that a duplicate is refused at the storage
+/// boundary rather than by whoever remembered to look.
+///
+/// The function stays here, delegating, rather than being deleted in favour
+/// of the new one. It is 012 B-2's name for "what this index is unique on",
+/// and the indirection is what let 014 change the digest without every call
+/// site having to agree to it in the same change (012 D-4).
 #[must_use]
 pub fn fingerprint(memory: &Memory) -> String {
-    let mut material = Vec::new();
-    material.extend_from_slice(memory.kind.label().as_bytes());
-    material.push(0x1f);
-    material.extend_from_slice(memory.body.text.as_bytes());
-    hex_digest(&material)
+    crate::fingerprint::of_memory(memory)
 }

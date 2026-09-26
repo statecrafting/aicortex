@@ -45,11 +45,24 @@ pub const PREDICATE_REGISTRY_VERSION: u32 = 4;
 /// appended by that spec under an `extends` edge on this file.
 pub const CLAIM_ADMISSION_VERSION: u32 = 5;
 
+/// The lifecycle columns and tables of spec 014, appended by that spec under
+/// an `extends` edge on this file.
+///
+/// Three kinds of thing, and none of them touches what a memory *says*: the
+/// columns a lifecycle predicate needs on the memory row (012 D-3's rule for
+/// why a column exists at all), the per-capture source log a merge appends to
+/// (014 B-2), and the journal a resumable scope erasure writes its progress
+/// to (014 B-9).
+pub const LIFECYCLE_VERSION: u32 = 6;
+
+/// Durable erasure accounting and resumable fingerprint progress (spec 014).
+pub const ERASURE_RECEIPTS_VERSION: u32 = 7;
+
 /// The version an up-to-date store records, which is the highest below.
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = CLAIM_ADMISSION_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = ERASURE_RECEIPTS_VERSION;
 
 /// The scope a memory lives in (B-2).
 ///
@@ -252,6 +265,94 @@ const ADMISSION_POLICY_TABLE: &str = "CREATE TABLE IF NOT EXISTS admission_polic
     PRIMARY KEY (policy_id, version)
 )";
 
+/// When a memory stops being true (spec 014 B-5).
+///
+/// A column rather than a field of the record, because the record of 011 has
+/// no `valid_until` and 014 may not amend another spec's type to get one
+/// (014 D-3). It is read by a predicate and by nothing else, which is exactly
+/// the test 012 D-3 sets for a column existing at all.
+const MEMORY_VALID_UNTIL: &str = "ALTER TABLE memory ADD COLUMN valid_until INTEGER";
+
+/// Whether this memory's origin has been erased (spec 014 B-8).
+///
+/// Erasing a memory does not erase what was derived from it, because a
+/// derived summary may be independently valuable; it marks the derivative so
+/// that a recall trace can say the citation's origin is gone rather than
+/// present a derived claim as if its source were still standing.
+const MEMORY_ORIGIN_ERASED: &str =
+    "ALTER TABLE memory ADD COLUMN origin_erased INTEGER NOT NULL DEFAULT 0";
+
+/// The fencing token of the lease that last wrote the row.
+///
+/// Required by [`rahi_store::StoreHandle::fenced_txn`], which is how spec 014
+/// B-5's expiry pass runs: a superseded lease holder's statements match no
+/// row rather than racing the holder that replaced it. `0` is the value a row
+/// written outside any lease carries, and it is below every minted token, so
+/// an ordinary capture is never fenced out of its own row.
+const MEMORY_FENCE: &str = "ALTER TABLE memory ADD COLUMN fence INTEGER NOT NULL DEFAULT 0";
+
+/// The same column on the counters, for the same reason.
+///
+/// A leased pass that moved a memory between states without moving the
+/// counter in the same transaction would leave `stats` wrong until somebody
+/// recounted, and recounting is the scan this schema exists to avoid (B-6).
+const COUNTER_FENCE: &str = "ALTER TABLE scope_counter ADD COLUMN fence INTEGER NOT NULL DEFAULT 0";
+
+/// The expiry sweep's index (spec 014 B-5).
+///
+/// Leads with `status` so the sweep reads only the memories that could
+/// expire, and carries `valid_until` so the due ones are a range scan rather
+/// than a filter over all of them.
+const EXPIRY_INDEX: &str = "CREATE INDEX IF NOT EXISTS memory_status_valid_until
+    ON memory (status, valid_until)";
+
+/// One row per *capture*, as opposed to one row per memory (spec 014 B-2).
+///
+/// 012 B-2 keeps `provenance` at one row per memory, and that stays true:
+/// that row is the projection of the provenance the record carries. This
+/// table is the other question, which a merge makes askable for the first
+/// time: a repeated capture does not insert a second memory, so without this
+/// the second capture's source would simply be lost. `ordinal` is `0` for the
+/// capture that created the row and rises with each merge, so the order the
+/// sources arrived in survives.
+const SOURCE_TABLE: &str = "CREATE TABLE IF NOT EXISTS memory_source (
+    memory_id TEXT NOT NULL REFERENCES memory (id),
+    ordinal INTEGER NOT NULL,
+    scope_id TEXT NOT NULL,
+    source_system TEXT NOT NULL,
+    source_external_id TEXT,
+    source_locator TEXT,
+    captured_at INTEGER NOT NULL,
+    ingested_at INTEGER NOT NULL,
+    extractor_name TEXT,
+    extractor_version TEXT,
+    PRIMARY KEY (memory_id, ordinal)
+)";
+
+/// The source log's index: every source of one memory, under its scope.
+const SOURCE_INDEX: &str = "CREATE INDEX IF NOT EXISTS memory_source_scope_memory
+    ON memory_source (scope_id, memory_id)";
+
+/// What a scope erasure has done so far (spec 014 B-9).
+///
+/// A scope erasure runs in bounded batches under a lease and must survive the
+/// process that started it. Resumption itself needs no state, because the
+/// work is defined by what is left rather than by a cursor: the next batch is
+/// the next memories in the scope that are not erased yet, so a crash loses
+/// at most the batch that was in flight and a rerun is idempotent. What the
+/// journal adds is the per-batch progress B-9 requires to be reportable, and
+/// the batch number the single completion Decision counts. Version 7 adds
+/// operation identity and key counts; all progress then commits atomically
+/// with the destructive statements.
+const ERASURE_JOURNAL_TABLE: &str = "CREATE TABLE IF NOT EXISTS erasure_journal (
+    scope_id TEXT NOT NULL,
+    batch INTEGER NOT NULL,
+    memories INTEGER NOT NULL,
+    derivatives INTEGER NOT NULL,
+    at INTEGER NOT NULL,
+    PRIMARY KEY (scope_id, batch)
+)";
+
 /// The migrations, in version order (B-1).
 ///
 /// Each is idempotent (`IF NOT EXISTS` throughout), so a rerun against a
@@ -262,7 +363,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 5]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 7]> = std::sync::LazyLock::new(|| {
     [
         // Every shipped migration only creates tables and indexes, so each is
         // declared additive (spec 046 B-2, D-2). The declaration is not part
@@ -309,5 +410,53 @@ static LIST: std::sync::LazyLock<[Migration; 5]> = std::sync::LazyLock::new(|| {
             .join(";\n"),
         )
         .additive(),
+        // `ALTER TABLE` has no `IF NOT EXISTS` in SQLite, so unlike the
+        // migrations above this one is not idempotent on its own. It does not
+        // need to be: the chassis reads `schema_version` and applies only the
+        // versions above what the store records (`rahi_store::migrate`), so a
+        // rerun against a store that already carries version 6 applies
+        // nothing at all.
+        //
+        // Additive under rahi 036 B-8 (spec 046 B-2): it adds nullable or
+        // defaulted columns, an index and two tables, and an older binary
+        // reads and writes the memory row without them (014 D-14).
+        Migration::new(
+            LIFECYCLE_VERSION,
+            "aicortex lifecycle columns, source log and erasure journal",
+            [
+                MEMORY_VALID_UNTIL,
+                MEMORY_ORIGIN_ERASED,
+                MEMORY_FENCE,
+                COUNTER_FENCE,
+                EXPIRY_INDEX,
+                SOURCE_TABLE,
+                SOURCE_INDEX,
+                ERASURE_JOURNAL_TABLE,
+            ]
+            .join(";\n"),
+        )
+        .additive(),
+        // Not declared additive (spec 046 B-2): it carries the fingerprint
+        // version the re-digest of 014 B-1 advances, and an older binary
+        // would keep minting the old digest beside rows that carry the new
+        // one (014 D-14).
+        Migration::new(
+            ERASURE_RECEIPTS_VERSION,
+            "aicortex durable erasure receipts and fingerprint progress",
+            "CREATE TABLE erasure_receipt (
+                scope_id TEXT NOT NULL,
+                target TEXT NOT NULL,
+                decision_id TEXT NOT NULL UNIQUE,
+                decision TEXT NOT NULL,
+                ready INTEGER NOT NULL DEFAULT 0,
+                delivered INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY (scope_id, target)
+            );
+            ALTER TABLE erasure_journal ADD COLUMN operation TEXT NOT NULL DEFAULT 'legacy';
+            ALTER TABLE erasure_journal ADD COLUMN keys_destroyed INTEGER NOT NULL DEFAULT 0;
+            ALTER TABLE erasure_journal ADD COLUMN marked INTEGER NOT NULL DEFAULT 0;
+            ALTER TABLE memory ADD COLUMN fingerprint_version INTEGER NOT NULL DEFAULT 0;
+            CREATE INDEX memory_redigest ON memory (scope_id, fingerprint_version, id);",
+        ),
     ]
 });
