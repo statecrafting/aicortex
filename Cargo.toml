@@ -78,7 +78,7 @@ serde_json = "1"
 # so neither adds a tree and `deny.toml`'s single-version rule for `ring`
 # still holds.
 ring = "0.17"
-base64 = "0.22"
+base64 = "0.23"
 
 # The content fingerprint of spec 014 B-1. BLAKE3 rather than a second call
 # into `ring`, because B-1 names it: it is a tree hash with a published,
