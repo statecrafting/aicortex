@@ -17,7 +17,10 @@
 
 mod common;
 
-use aicortex_store::{KIND_REGISTER, PredicateRegistryRepo, Registration, document_digest};
+use aicortex_store::{
+    KIND_REGISTER, OperatorPredicateConfig, PredicateRegistrationGrant, PredicateRegistryRepo,
+    Registration, document_digest,
+};
 use aicortex_types::PredicateSet;
 use rahi_ledger::{Decision, DecisionId, DecisionKind, Hash, Ledger, LedgerSigner, Outcome};
 use rahi_store::TxnBuilder;
@@ -43,13 +46,18 @@ async fn register(
 ) -> Result<Registration, Error> {
     let snapshot = PredicateRegistryRepo::snapshot(store).await?;
     let mut txn = TxnBuilder::new();
-    let registration = PredicateRegistryRepo::stage_register(
-        &mut txn,
-        &snapshot,
-        set,
-        &common::sub("registrar"),
-        UnixSeconds::new(1_789_041_600),
+    let config = OperatorPredicateConfig::new(
+        common::sub("registrar"),
+        vec![PredicateRegistrationGrant::new(
+            set.namespace().clone(),
+            set.version(),
+            document_digest(set)?,
+        )],
     )?;
+    let plan = PredicateRegistryRepo::validate_registration(&snapshot, set, &config)
+        .map_err(|error| Error::Validation(error.to_string()))?;
+    let registration =
+        PredicateRegistryRepo::stage_registration(&mut txn, plan, UnixSeconds::new(1_789_041_600))?;
     let statements = txn.into_statements();
     if !statements.is_empty() {
         store.txn(statements).await?;
@@ -123,7 +131,7 @@ async fn ac003_registration_is_recorded_once_and_immutable() {
     let mut different = document("travel-v1.json");
     different["predicates"][6]["epistemic"] = serde_json::json!(["asserted", "confirmed"]);
     match register(&store, &set(different)).await {
-        Err(Error::Conflict(_)) => {}
+        Err(Error::Validation(message)) if message.contains("different content") => {}
         other => panic!("different content under version 1: {other:?}"),
     }
 
@@ -166,14 +174,19 @@ async fn ac003_registration_is_recorded_once_and_immutable() {
     // said: a transaction that stages one fails.
     let mut txn = TxnBuilder::new();
     let empty = aicortex_claims::RegistrySnapshot::new();
-    PredicateRegistryRepo::stage_register(
-        &mut txn,
-        &empty,
-        &v1,
-        &common::sub("racer"),
-        UnixSeconds::new(1_789_041_700),
+    let config = OperatorPredicateConfig::new(
+        common::sub("racer"),
+        vec![PredicateRegistrationGrant::new(
+            v1.namespace().clone(),
+            v1.version(),
+            document_digest(&v1).expect("a digest"),
+        )],
     )
-    .expect("an empty snapshot admits it");
+    .expect("non-empty operator config");
+    let plan = PredicateRegistryRepo::validate_registration(&empty, &v1, &config)
+        .expect("an empty snapshot admits it");
+    PredicateRegistryRepo::stage_registration(&mut txn, plan, UnixSeconds::new(1_789_041_700))
+        .expect("the authorized plan stages");
     assert!(
         store.txn(txn.into_statements()).await.is_err(),
         "the primary key holds"

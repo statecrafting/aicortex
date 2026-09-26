@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-external-host-fixture",
+    "path": "fixtures/external-host",
+    "specRef": "053-host-library-mode",
+    "version": "0.0.0"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "833696ed0b35a367d00df6aaf9a1b9c38df200e4fc0a6a2bc259488d86e72d39"
+}

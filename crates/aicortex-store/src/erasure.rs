@@ -215,6 +215,20 @@ pub struct Erased {
     pub decision: DecisionId,
 }
 
+/// A single-memory erasure prepared from consistent reads and ready to stage.
+///
+/// Its fields are intentionally private. Preparation captures the guarded
+/// tombstones, derivative sweep, digest-key destruction, durable receipt,
+/// accounting, and ready marker. The value can then be consumed exactly once
+/// into a caller-owned transaction.
+#[derive(Debug)]
+pub struct PreparedErasure {
+    scope_id: ScopeId,
+    target: String,
+    statements: Vec<Statement>,
+    staged: Erased,
+}
+
 impl Erased {
     /// What an erasure does *not* claim, in so many words (FR-007).
     ///
@@ -469,53 +483,30 @@ impl Eraser {
         &self.derivatives
     }
 
-    /// Erase one memory (B-7, B-8, B-11).
-    ///
-    /// Every removal is one transaction: the body is replaced by a tombstone,
-    /// the derivative rows go, the derivation rows naming this memory as a
-    /// child go, its provenance detail and its source log go, and its
-    /// Decision digest keys are destroyed, or none of it happens. A partial
-    /// erasure is worse than none, because it is an erasure somebody has been
-    /// told about.
-    ///
-    /// The Decision is appended *after* the transaction commits, and that
-    /// order is deliberate. The chain is append-only: a Decision appended
-    /// first and then not carried out would be a permanent, unretractable
-    /// claim that content was destroyed when it was not. The other way round,
-    /// a durable receipt commits with destruction, so a retry delivers the
-    /// original Decision without repeating the destructive transaction.
+    /// Prepare one memory erasure without opening or committing a transaction.
     ///
     /// # Errors
     ///
-    /// [`Error::Validation`] when the memory is not a row of this scope or is
-    /// a tombstone without a receipt; the store's error; the ledger's error when the
-    /// Decision cannot be appended.
-    pub async fn erase(
+    /// [`Error::Conflict`] when a durable receipt already owns this target,
+    /// [`Error::Validation`] when the memory is not an erasable row of this
+    /// scope, or the store's error while reading the guarded inputs.
+    pub async fn prepare_erase(
         &self,
         store: &StoreHandle,
-        ledger: &Ledger,
-        request: &Erasure<'_>,
-    ) -> Result<Erased, Error> {
-        let Erasure {
-            scope,
-            memory: id,
-            authority,
-            cascade,
-            at: now,
-        } = *request;
+        scope: &Scope,
+        id: MemoryId,
+        cascade: bool,
+        authority: &Authority,
+        now: UnixSeconds,
+    ) -> Result<PreparedErasure, Error> {
         let scope_id = ScopeId::of(scope);
         let target = id.to_string();
-        if let Some(receipt) = self.receipt(store, &scope_id, &target).await? {
-            return self
-                .deliver_memory(store, ledger, &scope_id, &target, receipt)
-                .await;
+        if self.receipt(store, &scope_id, &target).await?.is_some() {
+            return Err(Error::Conflict(format!(
+                "memory {id} already has a durable erasure receipt"
+            )));
         }
         let Some(shell) = self.shell(store, &scope_id, id).await? else {
-            if let Some(receipt) = self.receipt(store, &scope_id, &target).await? {
-                return self
-                    .deliver_memory(store, ledger, &scope_id, &target, receipt)
-                    .await;
-            }
             return Err(Error::Validation(format!(
                 "memory {id} is not an erasable row of this scope"
             )));
@@ -535,18 +526,12 @@ impl Eraser {
 
         let mut txn = TxnBuilder::new();
         let sweep = self.stage_sweep(&mut txn, &scope_id, &shells);
-        // B-11, frozen on this file: the keys of every Decision about this
-        // memory are destroyed in the same transaction as the rest of it.
         let keys_at = txn.len();
         for shell in &shells {
             DecisionKeyRepo::stage_destroy_for_memory(&mut txn, scope, shell.id);
         }
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
-        // B-8: a derivative that is not being erased is marked, never erased.
-        // The mark runs after the tombstones, and skips a row that is already
-        // one, so a cascaded derivative is reported as erased rather than as
-        // merely marked.
         let mark_at = txn.len();
         txn.push(Statement::with_params(
             MARK_DERIVED_SQL,
@@ -601,7 +586,88 @@ impl Eraser {
             vec![Value::from(&scope_id), Value::from(target.clone())],
         ));
         self.inject_journal_failure(&mut statements);
-        if let Err(error) = store.txn(statements).await {
+
+        Ok(PreparedErasure {
+            scope_id,
+            target,
+            statements,
+            staged: Erased {
+                memory: id,
+                removed_derivatives: 0,
+                keys_destroyed: 0,
+                marked: 0,
+                cascaded,
+                decision: decision.id,
+            },
+        })
+    }
+
+    /// Consume a prepared erasure into the caller's transaction.
+    ///
+    /// The returned value identifies the staged operation. Its dynamic row
+    /// counts remain zero until the committed receipt is delivered by the
+    /// standalone recovery path.
+    ///
+    /// # Errors
+    ///
+    /// This staging operation currently has no fallible conversion, but the
+    /// result keeps the host seam forward-compatible with guarded staging.
+    pub fn stage_erase(txn: &mut TxnBuilder, prepared: PreparedErasure) -> Result<Erased, Error> {
+        for statement in prepared.statements {
+            txn.push(statement);
+        }
+        Ok(prepared.staged)
+    }
+
+    /// Erase one memory (B-7, B-8, B-11).
+    ///
+    /// Every removal is one transaction: the body is replaced by a tombstone,
+    /// the derivative rows go, the derivation rows naming this memory as a
+    /// child go, its provenance detail and its source log go, and its
+    /// Decision digest keys are destroyed, or none of it happens. A partial
+    /// erasure is worse than none, because it is an erasure somebody has been
+    /// told about.
+    ///
+    /// The Decision is appended *after* the transaction commits, and that
+    /// order is deliberate. The chain is append-only: a Decision appended
+    /// first and then not carried out would be a permanent, unretractable
+    /// claim that content was destroyed when it was not. The other way round,
+    /// a durable receipt commits with destruction, so a retry delivers the
+    /// original Decision without repeating the destructive transaction.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Validation`] when the memory is not a row of this scope or is
+    /// a tombstone without a receipt; the store's error; the ledger's error when the
+    /// Decision cannot be appended.
+    pub async fn erase(
+        &self,
+        store: &StoreHandle,
+        ledger: &Ledger,
+        request: &Erasure<'_>,
+    ) -> Result<Erased, Error> {
+        let Erasure {
+            scope,
+            memory: id,
+            authority,
+            cascade,
+            at: now,
+        } = *request;
+        let scope_id = ScopeId::of(scope);
+        let target = id.to_string();
+        if let Some(receipt) = self.receipt(store, &scope_id, &target).await? {
+            return self
+                .deliver_memory(store, ledger, &scope_id, &target, receipt)
+                .await;
+        }
+        let prepared = self
+            .prepare_erase(store, scope, id, cascade, authority, now)
+            .await?;
+        debug_assert_eq!(prepared.scope_id, scope_id);
+        debug_assert_eq!(prepared.target, target);
+        let mut txn = TxnBuilder::new();
+        let _staged = Self::stage_erase(&mut txn, prepared)?;
+        if let Err(error) = store.txn(txn.into_statements()).await {
             // A racing request may have committed the same receipt. Only
             // that durable receipt can turn this failure into a safe retry.
             if let Some(receipt) = self.receipt(store, &scope_id, &target).await? {

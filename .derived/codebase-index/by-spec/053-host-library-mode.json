@@ -1,8 +1,13 @@
 {
   "mapping": {
+    "amends": [
+      "050-typed-claims-and-predicate-registry"
+    ],
     "dependsOn": [
       "014-memory-lifecycle-and-erasure",
-      "051-claim-admission-and-authority"
+      "050-typed-claims-and-predicate-registry",
+      "051-claim-admission-and-authority",
+      "052-bitemporal-claim-history-and-projection"
     ],
     "implementingPaths": [
       {
@@ -10,31 +15,11 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-claims/Cargo.toml",
+        "path": "apps/aicortex/src/cell.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-claims/src/asof.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/aicortex-claims/src/history.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/aicortex-claims/src/lib.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/aicortex-claims/src/policy.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/aicortex-claims/src/projection.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/aicortex-claims/testdata/travel/",
+        "path": "apps/aicortex/tests/migrate.rs",
         "source": "spec-edge"
       },
       {
@@ -42,7 +27,11 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-claims/tests/reorder.rs",
+        "path": "crates/aicortex-store/src/claim_admission_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/claim_proposal_repo.rs",
         "source": "spec-edge"
       },
       {
@@ -54,11 +43,27 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/src/host.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/lib.rs",
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/src/memory_repo.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/predicate_registry_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/claim_admission.rs",
         "source": "spec-edge"
       },
       {
@@ -70,7 +75,15 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-store/tests/lifecycle.rs",
+        "path": "crates/aicortex-store/tests/erasure.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/host_library.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/predicate_registry.rs",
         "source": "spec-edge"
       },
       {
@@ -78,74 +91,74 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-types/src/claim_time.rs",
-        "source": "spec-edge"
+        "path": "fixtures/external-host",
+        "source": "multiple"
       }
     ],
     "resolvedUnits": [
       {
         "locations": [
           {
-            "file": "crates/aicortex-claims/src/asof.rs"
+            "file": "fixtures/external-host"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-claims/src/asof.rs"
+          "id": "aicortex-external-host-fixture",
+          "kind": "crate"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/aicortex-claims/src/history.rs"
+            "file": "crates/aicortex-store/src/host.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-claims/src/history.rs"
+          "path": "crates/aicortex-store/src/host.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/aicortex-claims/src/policy.rs"
+            "file": "crates/aicortex-store/tests/host_library.rs"
           }
         ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-claims/src/policy.rs"
+          "path": "crates/aicortex-store/tests/host_library.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/aicortex-claims/src/projection.rs"
+            "file": "apps/aicortex/src/cell.rs"
           }
         ],
         "ownership": true,
-        "sourceField": "establishes",
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-claims/src/projection.rs"
+          "path": "apps/aicortex/src/cell.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/aicortex-claims/testdata/travel/"
+            "file": "apps/aicortex/tests/migrate.rs"
           }
         ],
         "ownership": true,
-        "sourceField": "establishes",
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-claims/testdata/travel/"
+          "path": "apps/aicortex/tests/migrate.rs"
         }
       },
       {
@@ -155,7 +168,7 @@
           }
         ],
         "ownership": true,
-        "sourceField": "establishes",
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-claims/tests/projection.rs"
@@ -164,14 +177,27 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-claims/tests/reorder.rs"
+            "file": "crates/aicortex-store/src/claim_admission_repo.rs"
           }
         ],
         "ownership": true,
-        "sourceField": "establishes",
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-claims/tests/reorder.rs"
+          "path": "crates/aicortex-store/src/claim_admission_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/claim_proposal_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claim_proposal_repo.rs"
         }
       },
       {
@@ -181,62 +207,10 @@
           }
         ],
         "ownership": true,
-        "sourceField": "establishes",
+        "sourceField": "extends",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-store/src/claim_repo.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/aicortex-store/tests/claim_erasure.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/tests/claim_erasure.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/aicortex-store/tests/claim_history.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/tests/claim_history.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/aicortex-claims/Cargo.toml"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-claims/Cargo.toml"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/aicortex-claims/src/lib.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-claims/src/lib.rs"
         }
       },
       {
@@ -268,6 +242,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/src/migrations.rs"
           }
         ],
@@ -281,14 +268,79 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-store/tests/lifecycle.rs"
+            "file": "crates/aicortex-store/src/predicate_registry_repo.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-store/tests/lifecycle.rs"
+          "path": "crates/aicortex-store/src/predicate_registry_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/claim_admission.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/claim_admission.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/claim_erasure.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/claim_erasure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/claim_history.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/claim_history.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/erasure.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/erasure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/predicate_registry.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/predicate_registry.rs"
         }
       },
       {
@@ -307,45 +359,19 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-types/src/claim_time.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-types/src/claim_time.rs"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 108,
-              "startLine": 20
+              "endLine": 119,
+              "startLine": 6
             }
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
-          "anchor": "workspace.dependencies",
+          "anchor": "workspace",
           "file": "Cargo.toml",
           "kind": "section"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/aicortex-claims/src/projection.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "constrains",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-claims/src/projection.rs"
         }
       },
       {
@@ -364,46 +390,72 @@
       {
         "locations": [
           {
-            "file": "specs/014-memory-lifecycle-and-erasure/spec.md"
+            "file": "crates/aicortex-store/src/host.rs"
           }
         ],
-        "ownership": false,
-        "sourceField": "references",
+        "ownership": true,
+        "sourceField": "constrains",
         "unit": {
           "kind": "file",
-          "path": "specs/014-memory-lifecycle-and-erasure/spec.md"
+          "path": "crates/aicortex-store/src/host.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "specs/017-entities-and-typed-edges/spec.md"
+            "file": "crates/aicortex-store/src/predicate_registry_repo.rs"
           }
         ],
-        "ownership": false,
-        "sourceField": "references",
+        "ownership": true,
+        "sourceField": "constrains",
         "unit": {
           "kind": "file",
-          "path": "specs/017-entities-and-typed-edges/spec.md"
+          "path": "crates/aicortex-store/src/predicate_registry_repo.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "specs/018-retrieval-and-recall-trace/spec.md"
+            "file": "specs/050-typed-claims-and-predicate-registry/spec.md"
           }
         ],
         "ownership": false,
         "sourceField": "references",
         "unit": {
           "kind": "file",
-          "path": "specs/018-retrieval-and-recall-trace/spec.md"
+          "path": "specs/050-typed-claims-and-predicate-registry/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/051-claim-admission-and-authority/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/051-claim-admission-and-authority/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/052-bitemporal-claim-history-and-projection/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/052-bitemporal-claim-history-and-projection/spec.md"
         }
       }
     ],
-    "specId": "052-bitemporal-claim-history-and-projection",
+    "specId": "053-host-library-mode",
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ab877b02b941e61ddb0a454ade86dd6fb7c895540bd5fddab9ad3aaad862d57f"
+  "shardHash": "4f71ec40839a30cc913234fbcf6efb66f001a0749d4c21a1ef98d88809e22e4d"
 }

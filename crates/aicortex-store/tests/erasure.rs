@@ -260,6 +260,78 @@ async fn append(node: &common::Node, entry: &aicortex_gate::LedgerEntry, id: &st
         .expect("the Decision appends");
 }
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn host_prepares_and_stages_erasure_without_owning_the_commit() {
+    let node = common::node().await;
+    let scope = common::scope("host-erasure");
+    let memory = common::memory(&scope, "host-owned erasure transaction", 1_700_000_000);
+    let mut seed = TxnBuilder::new();
+    MemoryRepo::new()
+        .insert(
+            &mut seed,
+            &common::admit(&memory),
+            &memory.provenance,
+            &common::work(&memory),
+        )
+        .unwrap();
+    node.handle().txn(seed.into_statements()).await.unwrap();
+
+    let eraser = Eraser::new();
+    let authority = Authority::of(scope.owner.clone());
+    let prepared = eraser
+        .prepare_erase(
+            &node.handle(),
+            &scope,
+            memory.id,
+            false,
+            &authority,
+            UnixSeconds::new(1_700_000_100),
+        )
+        .await
+        .unwrap();
+    let mut rollback = TxnBuilder::new();
+    let staged = Eraser::stage_erase(&mut rollback, prepared).unwrap();
+    assert_eq!(staged.memory, memory.id);
+    rollback.push(Statement::new(
+        "INSERT INTO missing_host_erasure_tail VALUES (1)",
+    ));
+    assert!(node.handle().txn(rollback.into_statements()).await.is_err());
+    assert_eq!(
+        MemoryRepo::new()
+            .get(&node.handle(), &scope, memory.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .status,
+        Status::Active
+    );
+
+    let prepared = eraser
+        .prepare_erase(
+            &node.handle(),
+            &scope,
+            memory.id,
+            false,
+            &authority,
+            UnixSeconds::new(1_700_000_101),
+        )
+        .await
+        .unwrap();
+    let mut commit = TxnBuilder::new();
+    Eraser::stage_erase(&mut commit, prepared).unwrap();
+    node.handle().txn(commit.into_statements()).await.unwrap();
+    assert_eq!(
+        MemoryRepo::new()
+            .get(&node.handle(), &scope, memory.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .status,
+        Status::Erased
+    );
+    node.shutdown().await;
+}
+
 /// The records the chain holds, newest last.
 async fn records(node: &common::Node) -> Vec<SignedRecord> {
     node.ledger.records().await.expect("the chain reads")
