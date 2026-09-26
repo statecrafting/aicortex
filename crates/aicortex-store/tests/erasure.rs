@@ -32,7 +32,7 @@ use aicortex_store::{
     KIND_ERASE_SCOPE, Lifecycle, MAX_ERASURE_BATCH, MemoryFilter, MemoryRepo, PLANNED, ScopeId,
     StatusFilter, erasure_lease_key, fingerprint,
 };
-use aicortex_types::{Memory, MemoryId, MemoryKind, Scope, Status};
+use aicortex_types::{AicortexTime, Memory, MemoryId, MemoryKind, Scope, Status};
 use rahi_ledger::SignedRecord;
 use rahi_store::{LEASE_TTL_SECONDS, Outbox, Statement, TxnBuilder, Value};
 use rahi_types::UnixSeconds;
@@ -1163,7 +1163,7 @@ async fn h3_restart_with_a_held_lease_finishes_once_from_a_fresh_request() {
             &scope,
             &authority(),
             2,
-            UnixSeconds::new(1_700_100_000),
+            AicortexTime::new(1_700_100_000),
         ),
     )
     .await
@@ -1188,7 +1188,7 @@ async fn h3_restart_with_a_held_lease_finishes_once_from_a_fresh_request() {
             &scope,
             &authority(),
             2,
-            UnixSeconds::new(1_700_200_000),
+            AicortexTime::new(1_700_200_000),
         )
         .await
         .expect("the completed operation is replayed");
