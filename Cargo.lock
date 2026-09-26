@@ -156,6 +156,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "aicortex-external-host-fixture"
+version = "0.0.0"
+dependencies = [
+ "aicortex-claims",
+ "aicortex-gate",
+ "aicortex-store",
+ "aicortex-types",
+ "axum",
+ "rahi-cli",
+ "rahi-edge",
+ "rahi-store",
+ "rahi-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "aicortex-gate"
 version = "0.1.0"
 dependencies = [

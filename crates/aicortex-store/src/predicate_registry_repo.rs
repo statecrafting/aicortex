@@ -9,7 +9,7 @@
 //! The write follows the store's discipline: read the registry through the
 //! leader ([`PredicateRegistryRepo::snapshot`]), decide, and stage the
 //! insert into the caller's transaction
-//! ([`PredicateRegistryRepo::stage_register`]). The insert is a plain
+//! ([`PredicateRegistryRepo::stage_registration`]). The insert is a plain
 //! `INSERT` on `(namespace, version)`, so two writers racing to register
 //! different content under one version cannot both commit.
 
@@ -17,10 +17,14 @@ use aicortex_claims::{Admission, RegistrySnapshot};
 use aicortex_gate::LedgerEntry;
 use aicortex_types::PredicateSet;
 use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
-use rahi_types::{Error, Sub, UnixSeconds};
+use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
 use crate::hex_digest;
+use crate::host::{
+    AuthorizedPredicateRegistration, OperatorPredicateConfig, PredicateRegistrationIdentity,
+    PredicateRegistrationPlan, PredicateRegistrationRefusal,
+};
 use crate::scope_repo::seconds_to_sql;
 
 /// The decision kind a registration is appended under (B-15).
@@ -74,47 +78,83 @@ impl PredicateRegistryRepo {
             .map_err(|error| Error::Integrity(format!("the stored registry: {error}")))
     }
 
-    /// Stage the registration of `set` by `registrant` at `at`.
+    /// Validate `set` against the registry and exact operator configuration.
+    ///
+    /// This function is pure: it stages no statement and performs no I/O.
     ///
     /// # Errors
     ///
-    /// [`Error::Conflict`] when the version is registered with different
-    /// content, [`Error::Validation`] for any other refusal of the registry's
-    /// rule (a reserved namespace, a version before the latest, a change to
-    /// a predicate's value type or cardinality).
-    pub fn stage_register(
-        txn: &mut TxnBuilder,
+    /// A typed refusal when authority, document identity, or registry rules
+    /// do not admit the registration.
+    pub fn validate_registration(
         snapshot: &RegistrySnapshot,
         set: &PredicateSet,
-        registrant: &Sub,
+        config: &OperatorPredicateConfig,
+    ) -> Result<PredicateRegistrationPlan, PredicateRegistrationRefusal> {
+        let document = serde_json::to_string(set)
+            .map_err(|error| PredicateRegistrationRefusal::Serialization(error.to_string()))?;
+        let digest = format!("sha256:{}", hex_digest(document.as_bytes()));
+        let Some(grant) = config.grant(set.namespace(), set.version()) else {
+            return Err(PredicateRegistrationRefusal::NotOperatorGranted {
+                namespace: set.namespace().clone(),
+                version: set.version(),
+            });
+        };
+        if grant.document_digest() != digest {
+            return Err(PredicateRegistrationRefusal::GrantDigestMismatch {
+                granted: grant.document_digest().to_owned(),
+                actual: digest,
+            });
+        }
+        let identity =
+            PredicateRegistrationIdentity::new(set.namespace().clone(), set.version(), digest);
+        match snapshot.check(set) {
+            Ok(Admission::Unchanged) => {
+                return Ok(PredicateRegistrationPlan::Unchanged(identity));
+            }
+            Ok(Admission::New) => {}
+            Err(aicortex_claims::RegistryError::ConflictingVersion { .. }) => {
+                return Err(PredicateRegistrationRefusal::ConflictingVersion {
+                    namespace: set.namespace().clone(),
+                    version: set.version(),
+                });
+            }
+            Err(error) => return Err(PredicateRegistrationRefusal::Registry(error)),
+        }
+        Ok(PredicateRegistrationPlan::Insert(
+            AuthorizedPredicateRegistration {
+                identity,
+                operator: config.operator().clone(),
+                document,
+            },
+        ))
+    }
+
+    /// Consume a validated plan and stage its insertion, if any.
+    ///
+    /// # Errors
+    ///
+    /// Returns a validation error only if the authorized version cannot fit
+    /// the store's integer representation.
+    pub fn stage_registration(
+        txn: &mut TxnBuilder,
+        plan: PredicateRegistrationPlan,
         at: UnixSeconds,
     ) -> Result<Registration, Error> {
-        match snapshot.check(set) {
-            Ok(Admission::Unchanged) => return Ok(Registration::Unchanged),
-            Ok(Admission::New) => {}
-            Err(error @ aicortex_claims::RegistryError::ConflictingVersion { .. }) => {
-                return Err(Error::Conflict(format!("{}: {error}", set.namespace())));
-            }
-            Err(error) => {
-                return Err(Error::Validation(format!(
-                    "{}@{}: {error} ({})",
-                    set.namespace(),
-                    set.version(),
-                    error.code()
-                )));
-            }
-        }
-        let document = serde_json::to_string(set).map_err(|error| {
-            Error::Validation(format!("the predicate set does not serialize: {error}"))
-        })?;
-        let digest = document_digest(set)?;
+        let PredicateRegistrationPlan::Insert(authorized) = plan else {
+            return Ok(Registration::Unchanged);
+        };
+        let namespace = authorized.identity.namespace();
+        let version = authorized.identity.version();
+        let digest = authorized.identity.document_digest();
+        let registrant = &authorized.operator;
         txn.push(Statement::with_params(
             INSERT_SQL,
             vec![
-                Value::from(set.namespace().as_str()),
-                Value::Integer(i64::from(set.version())),
-                Value::from(digest.as_str()),
-                Value::from(document.as_str()),
+                Value::from(namespace.as_str()),
+                Value::Integer(i64::from(version)),
+                Value::from(digest),
+                Value::from(authorized.document.as_str()),
                 Value::from(registrant.as_str()),
                 Value::Integer(seconds_to_sql(at)),
             ],
@@ -123,14 +163,10 @@ impl PredicateRegistryRepo {
             kind: KIND_REGISTER,
             denied: false,
             actor: registrant.clone(),
-            reason: format!(
-                "registered predicate set {}@{}",
-                set.namespace(),
-                set.version()
-            ),
+            reason: format!("registered predicate set {namespace}@{version}",),
             payload: serde_json::json!({
-                "namespace": set.namespace().as_str(),
-                "version": set.version(),
+                "namespace": namespace.as_str(),
+                "version": version,
                 "digest": digest,
                 "registered_by": registrant.as_str(),
             }),

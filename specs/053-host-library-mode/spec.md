@@ -17,9 +17,7 @@ depends_on:
 establishes:
   - "crates/aicortex-store/src/host.rs"
   - "crates/aicortex-store/tests/host_library.rs"
-  - "fixtures/external-host/Cargo.toml"
-  - "fixtures/external-host/src/lib.rs"
-  - "fixtures/external-host/tests/atomic.rs"
+  - { kind: crate, id: "aicortex-external-host-fixture" }
 extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace" }, nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
@@ -326,6 +324,11 @@ public host API, the resolved dependency tree, and the external-host evidence.
   This is the human ratification D-6 reserved. The spec moves to
   `status: approved`; implementation remains a separately evidenced act and
   must satisfy every acceptance criterion before it moves to complete.
+- **D-8 (2026-09-26, implementation authority unit).** The external fixture
+  is established as the `aicortex-external-host-fixture` crate unit rather
+  than three bare file units. This gives its manifest and every source file
+  content-hashed ownership in one bounded unit; it does not change the
+  approved fixture behavior or widen the implementation territory.
 
 ## Verification
 

@@ -1,39 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '053-host-library-mode' file unit 'crates/aicortex-store/src/host.rs' does not exist",
-        "path": "crates/aicortex-store/src/host.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '053-host-library-mode' file unit 'crates/aicortex-store/tests/host_library.rs' does not exist",
-        "path": "crates/aicortex-store/tests/host_library.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '053-host-library-mode' file unit 'fixtures/external-host/Cargo.toml' does not exist",
-        "path": "fixtures/external-host/Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '053-host-library-mode' file unit 'fixtures/external-host/src/lib.rs' does not exist",
-        "path": "fixtures/external-host/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '053-host-library-mode' file unit 'fixtures/external-host/tests/atomic.rs' does not exist",
-        "path": "fixtures/external-host/tests/atomic.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '053-host-library-mode' file unit 'crates/aicortex-store/src/host.rs' does not exist",
-        "path": "crates/aicortex-store/src/host.rs"
-      }
-    ]
-  },
   "mapping": {
     "amends": [
       "050-typed-claims-and-predicate-registry"
@@ -78,6 +43,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/src/host.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/lib.rs",
         "source": "spec-edge"
       },
@@ -110,17 +79,42 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/tests/host_library.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/tests/predicate_registry.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-store/tests/schema.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "fixtures/external-host",
+        "source": "multiple"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "fixtures/external-host"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "id": "aicortex-external-host-fixture",
+          "kind": "crate"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/host.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -129,39 +123,16 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/host_library.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-store/tests/host_library.rs"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "fixtures/external-host/Cargo.toml"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "fixtures/external-host/src/lib.rs"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "fixtures/external-host/tests/atomic.rs"
         }
       },
       {
@@ -417,7 +388,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/host.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -482,5 +457,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "7216922bfcaccb0c7a3e2644867a76ae4854b9a819e38e60a17c560e8301fd0a"
+  "shardHash": "ca1388ff6482267262e717d6eb7fe718dc73c0b3e7e0cb8788725c0f24777f6b"
 }

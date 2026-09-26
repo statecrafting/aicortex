@@ -32,9 +32,17 @@ use std::path::Path;
 use std::process::{Child, Command, Output, Stdio};
 use std::time::{Duration, Instant};
 
+use aicortex::Aicortex;
+use rahi_cli::Cell;
 use rahi_store::{Migration, Store};
 
 type Outcome = Result<(), String>;
+
+#[test]
+fn fr003_standalone_keeps_aicortex_migrations_in_the_app_set_only() {
+    assert_eq!(Aicortex::migrations(), aicortex_store::migrations());
+    assert!(Aicortex::migration_sets().is_empty());
+}
 
 /// A port the OS is not using, released before the child takes it.
 fn free_port() -> Result<u16, String> {

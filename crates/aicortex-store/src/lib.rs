@@ -72,6 +72,7 @@ pub mod cursor;
 pub mod decision_key;
 pub mod erasure;
 pub mod fingerprint;
+pub mod host;
 pub mod lifecycle;
 pub mod memory_repo;
 pub mod migrations;
@@ -89,7 +90,12 @@ pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
 pub use erasure::{
     Authority, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE, KIND_ERASE_SCOPE,
-    MAX_ERASURE_BATCH, PLANNED, ScopeErased, erasure_lease_key,
+    MAX_ERASURE_BATCH, PLANNED, PreparedErasure, ScopeErased, erasure_lease_key,
+};
+pub use host::{
+    AICORTEX_MIGRATION_SET_NAME, AuthorizedPredicateRegistration, OperatorPredicateConfig,
+    PredicateRegistrationGrant, PredicateRegistrationIdentity, PredicateRegistrationPlan,
+    PredicateRegistrationRefusal, migration_set,
 };
 pub use lifecycle::{Captured, Expired, Lifecycle, MAX_EXPIRY_BATCH, lifecycle_lease_key};
 pub use memory_repo::{

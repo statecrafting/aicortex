@@ -1,0 +1,34 @@
+[package]
+name = "aicortex-external-host-fixture"
+version = "0.0.0"
+description = "External Rahi cell proving atomic Aicortex library composition"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "053-host-library-mode"
+
+[dependencies]
+aicortex-claims = { workspace = true }
+aicortex-gate = { workspace = true }
+aicortex-store = { workspace = true }
+aicortex-types = { workspace = true }
+axum = { workspace = true }
+rahi-cli = { workspace = true }
+rahi-edge = { workspace = true }
+rahi-store = { workspace = true }
+rahi-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true
