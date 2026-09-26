@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 1
 depends_on:
@@ -26,6 +26,8 @@ extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/repo.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "011-memory-model", unit: "crates/aicortex-types/src/lib.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/tests/cell.rs", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/erasure.rs", note: "erasure reaches every derivative; memory content never enters the ledger" }
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/erasure.rs", note: "erasure destroys the B-9 digest key of every Decision about the erased memory or scope" }
@@ -173,6 +175,31 @@ queue that promotes out of quarantine (023). Retention policy defaults,
 which are deployment configuration.
 
 ## 7. Resolved decisions
+
+- **Status (2026-09-26, completion on released rahi 0.4.0).** All nine rahi
+  crates resolve at exact registry version 0.4.0 from the crates.io index,
+  whose signed `v0.4.0` tag peels to
+  `e845bd08f3b73a17f19656accb3c2ab24975f277`. The locked graph contains
+  `hiqlite-patched` and `hiqlite-wal-patched` 0.15.0-patched.3 with no path,
+  Git or `[patch]` override. H-2 now exercises a stale release after TTL
+  takeover without a fenced write, then proves unrelated and same-key lock
+  progress. H-3 stops a full node while its lease is held, reopens the same
+  durable state at identical Raft and API listener identities, waits
+  `LEASE_TTL_SECONDS + 1`, submits a fresh erasure request, and proves the
+  operation completes exactly once. The declared verification, all store and
+  migration tests, the literal CLI acceptance test, the registry-only
+  resolution check, and the full repository gate and CI pass. The lifecycle
+  is therefore complete; earlier status entries remain as the chronological
+  record of why it could not complete on older chassis releases.
+
+- **D-16 (2026-09-26, owner work order; one neutral time representation).**
+  The public lifecycle API names `aicortex_types::AicortexTime`, an alias of
+  rahi's `UnixSeconds`, for `valid_until` and expiry comparison. This closes
+  the representation gap without adding a travel type, a second clock, or a
+  field to 011's serialized `Memory`: D-3's column-versus-record decision
+  remains intact. Rejected: 050's civil and zoned source-time types, which do
+  not represent record-clock deadlines, and a new wrapper with conversion
+  semantics distinct from the chassis clock.
 
 - **Status (2026-09-25, port onto main and chassis re-check).** The work of
   pull request #15 (last commit `eae4258`, based on `a927f85`) is carried

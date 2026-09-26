@@ -30,11 +30,11 @@ use aicortex_gate::{Candidate, DigestRef, Gate, KIND_QUARANTINE, Origin, Verdict
 use aicortex_store::{
     Authority, Counters, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE,
     KIND_ERASE_SCOPE, Lifecycle, MAX_ERASURE_BATCH, MemoryFilter, MemoryRepo, PLANNED, ScopeId,
-    StatusFilter, fingerprint,
+    StatusFilter, erasure_lease_key, fingerprint,
 };
-use aicortex_types::{Memory, MemoryId, MemoryKind, Scope, Status};
+use aicortex_types::{AicortexTime, Memory, MemoryId, MemoryKind, Scope, Status};
 use rahi_ledger::SignedRecord;
-use rahi_store::{Outbox, Statement, TxnBuilder, Value};
+use rahi_store::{LEASE_TTL_SECONDS, Outbox, Statement, TxnBuilder, Value};
 use rahi_types::UnixSeconds;
 
 /// The two tables spec 015 will own, created here so that FR-003 can be
@@ -1137,6 +1137,66 @@ async fn fr007_erasing_a_scope_destroys_every_key_in_it_including_a_refusal_s() 
 
 // ---------------------------------------------------------------- FR-005
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn h3_restart_with_a_held_lease_finishes_once_from_a_fresh_request() {
+    let mut node = common::node().await;
+    let scope = common::scope("restart-held-lease");
+    let memory = common::memory(&scope, "erase once after restart", 1_700_000_000);
+    capture(&node, &memory).await;
+    let key = erasure_lease_key(&ScopeId::of(&scope));
+    let held = node
+        .handle()
+        .lease(&key)
+        .await
+        .expect("the lease is held at stop");
+
+    node = node.reopen_after_stop_with_lease(held).await;
+    tokio::time::sleep(std::time::Duration::from_secs(LEASE_TTL_SECONDS + 1)).await;
+
+    // This request is created after the wait. A request queued before expiry
+    // is not reused, because hiqlite expires a dead holder on a fresh request.
+    let result = tokio::time::timeout(
+        std::time::Duration::from_secs(30),
+        Eraser::new().erase_scope(
+            &node.handle(),
+            &node.ledger,
+            &scope,
+            &authority(),
+            2,
+            AicortexTime::new(1_700_100_000),
+        ),
+    )
+    .await
+    .expect("the fresh request after TTL does not hang")
+    .expect("the restarted operation completes");
+    assert_eq!((result.batches, result.memories), (1, 1));
+    assert_eq!(
+        MemoryRepo::new()
+            .get(&node.handle(), &scope, memory.id)
+            .await
+            .expect("the tombstone reads")
+            .expect("the tombstone remains")
+            .status,
+        Status::Erased
+    );
+    assert_eq!(node.ledger.count().await.expect("the chain count"), 2);
+
+    let repeated = Eraser::new()
+        .erase_scope(
+            &node.handle(),
+            &node.ledger,
+            &scope,
+            &authority(),
+            2,
+            AicortexTime::new(1_700_200_000),
+        )
+        .await
+        .expect("the completed operation is replayed");
+    assert_eq!(repeated, result, "the operation is finished exactly once");
+    assert_eq!(node.ledger.count().await.expect("the chain count"), 2);
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr005_a_scope_erasure_of_five_thousand_memories_is_bounded_and_resumable() {
     let node = common::node().await;
@@ -1411,7 +1471,7 @@ async fn ac2_literal_cli_verifies_a_real_erased_fixture() {
     use base64::Engine as _;
     use std::os::unix::fs::PermissionsExt;
     let binary = std::env::var("AICORTEX_VERIFY_BINARY").expect("the current cell binary");
-    let fixture = common::Fixture::migrated().await;
+    let fixture = common::Fixture::migrated_for_cell().await;
     let cfg = fixture.store.config().clone();
     let keys = fixture.dir.path().join("keys");
     std::fs::create_dir(&keys).unwrap();

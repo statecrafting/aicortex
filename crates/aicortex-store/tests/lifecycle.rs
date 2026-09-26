@@ -17,15 +17,17 @@
 
 mod common;
 
+use std::time::Duration;
+
 use aicortex_store::{
     Captured, Counters, Lifecycle, MAX_EXPIRY_BATCH, MemoryFilter, MemoryRepo, ScopeId,
-    StatusFilter, fingerprint,
+    StatusFilter, fingerprint, lifecycle_lease_key,
 };
 use aicortex_types::{
-    DecisionRef, MediaDigest, MediaRef, MemoryBody, MemoryId, MemoryKind, Promotion, Status,
-    TrustClass,
+    AicortexTime, DecisionRef, MediaDigest, MediaRef, MemoryBody, MemoryId, MemoryKind, Promotion,
+    Status, TrustClass,
 };
-use rahi_store::{TxnBuilder, Value};
+use rahi_store::{LEASE_TTL_SECONDS, TxnBuilder, Value};
 use rahi_types::UnixSeconds;
 
 /// Run one capture through the merge-aware path and commit it.
@@ -719,12 +721,53 @@ async fn b4_a_correction_that_does_not_correct_is_refused() {
 
 // ---------------------------------------------------------------- B-5
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn h2_stale_release_without_a_fenced_write_keeps_lock_progress() {
+    let node = common::node().await;
+    let scope = common::scope("lease-handoff");
+    let key = lifecycle_lease_key(&ScopeId::of(&scope));
+    let stale = node.handle().lease(&key).await.expect("the first lease");
+
+    tokio::time::sleep(Duration::from_secs(LEASE_TTL_SECONDS + 1)).await;
+    let fresh = tokio::time::timeout(Duration::from_secs(5), node.handle().lease(&key))
+        .await
+        .expect("the TTL takeover does not hang")
+        .expect("the TTL takeover acquires a fresh lease");
+    assert!(fresh.token > stale.token, "the takeover advances the fence");
+
+    // No fenced write has marked `stale` as superseded. This release is the
+    // exact path that panicked the old lock handler.
+    stale.release().await;
+
+    let unrelated = tokio::time::timeout(
+        Duration::from_secs(5),
+        node.handle().lease("aicortex.lifecycle.unrelated"),
+    )
+    .await
+    .expect("the lock subsystem was not poisoned")
+    .expect("an unrelated lease still makes progress");
+    unrelated.release().await;
+
+    let fresh_token = fresh.token;
+    fresh.release().await;
+    let next = tokio::time::timeout(Duration::from_secs(5), node.handle().lease(&key))
+        .await
+        .expect("the handed-off key was not lost")
+        .expect("the handed-off key can be acquired again");
+    assert!(
+        next.token > fresh_token,
+        "progress keeps advancing the fence"
+    );
+    next.release().await;
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn b5_expiry_moves_due_rows_in_bounded_batches_and_never_deletes() {
     let node = common::node().await;
     let alice = common::scope("alice");
     let lifecycle = Lifecycle::new();
-    let now = UnixSeconds::new(1_700_100_000);
+    let now = AicortexTime::new(1_700_100_000);
 
     // Three memories that were true until yesterday, and one that carries no
     // deadline at all.
@@ -737,7 +780,7 @@ async fn b5_expiry_moves_due_rows_in_bounded_batches_and_never_deletes() {
             &mut txn,
             &alice,
             memory.id,
-            Some(UnixSeconds::new(1_700_090_000)),
+            Some(AicortexTime::new(1_700_090_000)),
         );
         node.handle()
             .txn(txn.into_statements())

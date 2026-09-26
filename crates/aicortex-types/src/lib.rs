@@ -81,3 +81,10 @@ pub use provenance::{AdmissionOverride, ExtractorVersion, Provenance, SourceRef,
 pub use scope::{ProjectKey, Scope, ScopeKind, ShareKey};
 pub use span::{ContentDigest, Hex, PartKind, PartLocator, SourceSpan, SpanRange, SpanUnit};
 pub use trust::{DecisionRef, Promotion, TrustClass};
+
+/// The neutral record clock used across Aicortex lifecycle APIs.
+///
+/// This is rahi's Unix-seconds representation under an Aicortex name, not a
+/// second clock or a conversion boundary. Civil and zoned source time remains
+/// the separate model in [`claim_time`].
+pub use rahi_types::UnixSeconds as AicortexTime;

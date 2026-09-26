@@ -44,9 +44,9 @@
 //! that makes people turn decay off.
 
 use aicortex_gate::Admitted;
-use aicortex_types::{Memory, MemoryId, MemoryKind, Provenance, Scope, Status};
+use aicortex_types::{AicortexTime, Memory, MemoryId, MemoryKind, Provenance, Scope, Status};
 use rahi_store::{Envelope, Outbox, Statement, StoreHandle, TxnBuilder, Value};
-use rahi_types::{Error, UnixSeconds};
+use rahi_types::Error;
 use serde::Deserialize;
 
 use crate::counters::Counters;
@@ -316,7 +316,7 @@ impl Lifecycle {
         scope: &Scope,
         old: MemoryId,
         new: MemoryId,
-        at: UnixSeconds,
+        at: AicortexTime,
     ) -> Result<(), Error> {
         if old == new {
             return Err(Error::Validation(format!(
@@ -511,7 +511,7 @@ impl Lifecycle {
         txn: &mut TxnBuilder,
         scope: &Scope,
         id: MemoryId,
-        until: Option<UnixSeconds>,
+        until: Option<AicortexTime>,
     ) {
         txn.push(Statement::with_params(
             VALID_UNTIL_SQL,
@@ -553,7 +553,7 @@ impl Lifecycle {
         &self,
         store: &StoreHandle,
         scope: &Scope,
-        now: UnixSeconds,
+        now: AicortexTime,
         batch: u32,
     ) -> Result<Expired, Error> {
         if batch == 0 || batch > MAX_EXPIRY_BATCH {
@@ -796,7 +796,7 @@ fn expiry_statements(
     scope: &ScopeId,
     ids: &[String],
     kinds: &[MemoryKind],
-    now: UnixSeconds,
+    now: AicortexTime,
 ) -> Vec<Statement> {
     let list = placeholders(ids.len(), 2);
     let id_values = || ids.iter().map(|id| Value::from(id.as_str()));
