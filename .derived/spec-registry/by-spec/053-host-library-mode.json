@@ -216,7 +216,7 @@
       "wave": 5
     },
     "id": "053-host-library-mode",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "kernel",
     "obligations": [
       {
@@ -311,6 +311,6 @@
     "summary": "Expose Aicortex as a linked library inside another Rahi cell without giving up migration identity, operator authority, or transaction ownership. The library exports the immutable named migration set `aicortex`, makes predicate registration an explicit operator-configured act, and stages observations, admission records, claim history, erasure records, and outbox work into the caller's `rahi_store::TxnBuilder`. A separate host fixture proves that Rahi ingress state, Aicortex history, a host-owned projection revision, and outbox work share one commit and one rollback.\n",
     "title": "Host-library mode: named migrations, operator-authorized vocabulary, and one caller-owned transaction"
   },
-  "shardHash": "353a34a4005dd87e9e6414ac597e6c2ca896d9fd613ce848619bb23115098b4c",
+  "shardHash": "2ed8c9a13cf649450d5e25973e0b6bc3cbd47c68a465ddc4a92b0ee75f3fb777",
   "specVersion": "1.8.0"
 }
