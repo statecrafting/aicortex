@@ -86,5 +86,5 @@ pub use trust::{DecisionRef, Promotion, TrustClass};
 ///
 /// This is rahi's Unix-seconds representation under an Aicortex name, not a
 /// second clock or a conversion boundary. Civil and zoned source time remains
-/// the separate model in [`claim_time`].
+/// the separate model represented by [`TimeValue`].
 pub use rahi_types::UnixSeconds as AicortexTime;
