@@ -1,3 +1,5 @@
+@.statecraft/AGENTS.md
+
 # AGENTS.md: aicortex
 
 Cross-agent authority for aicortex, read by Claude Code, Codex CLI, Cursor,
@@ -171,9 +173,10 @@ each on its own branch from the latest default branch (spec 048). Specs `000`, `
    `check` is deliberately called without `--fail-on-unresolved`: this corpus
    is specified before it is built, so a pending spec legitimately carries
    unresolved units until its session lands. The flag comes back the day that
-   stops being true. This list and the `govern.yml` job are kept identical:
-   the skills tell their reader to run "the gate as `AGENTS.md` lists it", so
-   a step CI enforces and this list omits is a step every session skips.
+   stops being true. This list and the managed Statecraft profile plus its
+   declared extra jobs are kept equivalent: the skills tell their reader to
+   run "the gate as `AGENTS.md` lists it", so a step CI enforces and this list
+   omits is a step every session skips.
 7. **Satisfy Acceptance criteria verbatim.** Run the spec's `##
    Verification` block locally with `/verify <id>`, which wraps `spec-spine
    verify <id>`, the same verb an orchestrator's verify stage runs after
@@ -227,6 +230,13 @@ project layer the skills read lives in this file (the pin, the binary, the
 gate command list in "Working the backlog", the resolved default branch) and
 in the path-scoped rules (the memory invariants, the evaluation corpus); do
 not edit a skill to add a project fact, add it here.
+
+## Continuous integration
+
+The Statecraft profile owns `.github/workflows/statecraft-*.yml`,
+`scripts/statecraft/*`, and `.statecraft/setup/*`. Change those files only by
+editing the parameters in `.statecraft/environment.json` and re-rendering the
+profile, never by hand.
 
 ## Conventions
 

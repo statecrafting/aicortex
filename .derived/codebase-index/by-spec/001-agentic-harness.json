@@ -29,7 +29,19 @@
         "source": "spec-edge"
       },
       {
+        "path": ".github/CODEOWNERS",
+        "source": "spec-edge"
+      },
+      {
         "path": ".github/dependabot.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".github/workflows/cargo-deny.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".github/workflows/corpus-attestation.yml",
         "source": "spec-edge"
       },
       {
@@ -37,7 +49,27 @@
         "source": "spec-edge"
       },
       {
+        "path": ".github/workflows/spec-dag.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".github/workflows/statecraft-ai-review.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".github/workflows/statecraft-ci.yml",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".gitignore",
+        "source": "spec-edge"
+      },
+      {
         "path": ".mcp.json",
+        "source": "spec-edge"
+      },
+      {
+        "path": ".statecraft/",
         "source": "spec-edge"
       },
       {
@@ -57,7 +89,15 @@
         "source": "spec-edge"
       },
       {
+        "path": "scripts/check-authored-content.sh",
+        "source": "spec-edge"
+      },
+      {
         "path": "scripts/spec-dag.sh",
+        "source": "spec-edge"
+      },
+      {
+        "path": "scripts/statecraft/",
         "source": "spec-edge"
       },
       {
@@ -155,6 +195,19 @@
       {
         "locations": [
           {
+            "file": ".github/CODEOWNERS"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/CODEOWNERS"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": ".github/dependabot.yml"
           }
         ],
@@ -163,6 +216,32 @@
         "unit": {
           "kind": "file",
           "path": ".github/dependabot.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/cargo-deny.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/cargo-deny.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/corpus-attestation.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/corpus-attestation.yml"
         }
       },
       {
@@ -181,6 +260,58 @@
       {
         "locations": [
           {
+            "file": ".github/workflows/spec-dag.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/spec-dag.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/statecraft-ai-review.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ai-review.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".github/workflows/statecraft-ci.yml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/statecraft-ci.yml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".gitignore"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".gitignore"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": ".mcp.json"
           }
         ],
@@ -189,6 +320,19 @@
         "unit": {
           "kind": "file",
           "path": ".mcp.json"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".statecraft/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".statecraft/"
         }
       },
       {
@@ -246,6 +390,19 @@
       {
         "locations": [
           {
+            "file": "scripts/check-authored-content.sh"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/check-authored-content.sh"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "scripts/spec-dag.sh"
           }
         ],
@@ -254,6 +411,19 @@
         "unit": {
           "kind": "file",
           "path": "scripts/spec-dag.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "scripts/statecraft/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/statecraft/"
         }
       },
       {
@@ -313,5 +483,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "0645a5e93350e0cd302d320a8069544685eac9cbad987e15d6b32b957ed06553"
+  "shardHash": "6e74a59bcf27f16e73da2714294b23fd2c5769d7ecbe02665ee78a9af2a76b8d"
 }

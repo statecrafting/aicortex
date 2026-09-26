@@ -1,0 +1,24 @@
+name: spec DAG
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  SPEC_SPINE_VERSION: v0.26.0
+
+jobs:
+  dag:
+    name: spec DAG
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Install spec-spine
+        run: |
+          set -euo pipefail
+          curl -fsSL https://raw.githubusercontent.com/statecrafting/spec-spine/main/install.sh \
+            | SPEC_SPINE_VERSION="$SPEC_SPINE_VERSION" SPEC_SPINE_BIN_DIR="$HOME/.local/bin" sh
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: scripts/spec-dag.sh

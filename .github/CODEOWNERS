@@ -1,0 +1,12 @@
+# Rendered by Statecraft from profile github-actions-rust revision 9,
+# because this repository had no CODEOWNERS. Branch protection should require
+# code-owner review, so a change to the gate that judges pull requests needs
+# a review its author cannot give (decision S-3).
+/.github/workflows/statecraft-ci.yml @bartekus
+/.github/workflows/statecraft-ai-review.yml @bartekus
+/scripts/statecraft/install-spec-spine.sh @bartekus
+/scripts/statecraft/gate.sh @bartekus
+/scripts/statecraft/ci-gate.sh @bartekus
+/scripts/statecraft/ai-review.sh @bartekus
+/Makefile @bartekus
+/.statecraft/setup/github-actions-rust.json @bartekus

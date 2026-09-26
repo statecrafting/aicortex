@@ -63,7 +63,35 @@
       },
       {
         "kind": "file",
+        "path": ".github/workflows/statecraft-ai-review.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/statecraft-ci.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/cargo-deny.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/corpus-attestation.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/spec-dag.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/CODEOWNERS"
+      },
+      {
+        "kind": "file",
         "path": ".github/dependabot.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".statecraft/"
       },
       {
         "kind": "file",
@@ -72,6 +100,18 @@
       {
         "kind": "file",
         "path": ".gitattributes"
+      },
+      {
+        "kind": "file",
+        "path": ".gitignore"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/check-authored-content.sh"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/statecraft/"
       },
       {
         "kind": "file",
@@ -95,14 +135,14 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "001-agentic-engineering-harness": "1c8b9991f94f09f0a84042804e8fc8c968d5ccca7d17dea689c37b293b1b447b",
+      "001-agentic-engineering-harness": "9a8696c37bafcc2a20d478401c565a5fb88e5519c7e8643590b9d874f270aff1",
       "1-purpose": "e8e79fa321ec9a5ff407990e586c2b60720314bd570c6e0461a1d327b25979e9",
       "2-territory": "5c9eee77cc5bdf8cf4cdff7e64e510aca134a5a3274b05196ab264940de1c226",
       "3-behavior": "c1162cc7737998e2d48ecb94b1c2c4ed67ee7c16e02604e4037ea4ac8dd27a66",
       "4-functional-requirements": "de53634db35ac7cd23b6230db1b7d4fce0cf220e347f0139293393133b49661c",
       "5-acceptance-criteria": "12b3080e6b816d9533dd4825c6a533f93e47dfc2a96a0c12031dd32594f6f846",
       "6-out-of-scope": "758afe22a2084f65e8c5136b8df32a85a8aa9016de657b1907b71a5a6cb0d102",
-      "7-resolved-decisions": "969dfab0af23733b3e6ed4da6158ee96d26997a36320e40965ead6704e3e9d25",
+      "7-resolved-decisions": "ef04c4945ade43f2ed6b1514f70ada8b2662d461ba5a700c7ae0f9ec0f7cc3dc",
       "verification": "af1c70f7db2f516ed620fe92453690887f213c95d971cfc9e5d9cab8e40fce3c"
     },
     "sectionHeadings": [
@@ -121,6 +161,6 @@
     "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, six behavioral rules of which three are path-scoped, four subagents, ten skills, settings hooks that report and refuse, one Makefile that is the single definition of the gate and splits its reading half from its writing half, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
     "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
   },
-  "shardHash": "dc3e471e0fb6b8e362e04c91c38b37013dbe665e8b9c2fe51c2bff70debb4ae6",
+  "shardHash": "669f8aa0940ba1f4beae4b042e7933bc8fbf6b5ae3aa661bd962eb0c573d7eb3",
   "specVersion": "1.8.0"
 }
