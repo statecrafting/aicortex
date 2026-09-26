@@ -25,9 +25,19 @@ establishes:
   - ".claude/rules/"
   - ".claude/skills/"
   - ".github/workflows/govern.yml"
+  - ".github/workflows/statecraft-ai-review.yml"
+  - ".github/workflows/statecraft-ci.yml"
+  - ".github/workflows/cargo-deny.yml"
+  - ".github/workflows/corpus-attestation.yml"
+  - ".github/workflows/spec-dag.yml"
+  - ".github/CODEOWNERS"
   - ".github/dependabot.yml"
+  - ".statecraft/"
   - ".githooks/"
   - ".gitattributes"
+  - ".gitignore"
+  - "scripts/check-authored-content.sh"
+  - "scripts/statecraft/"
   - "scripts/spec-dag.sh"
 references:
   - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
@@ -453,6 +463,28 @@ consumes this repository as a registered target.
   change only where this entry and AC-1 changed 001's text.
   `.tooling/` (the worktree-local pinned binaries the profile installs) is
   gitignored.
+
+- **D-13 (2026-09-26, owner decision, Statecraft CI profile revision 7).**
+  The repository adopts the `github-actions-rust` profile rendered from
+  statecraft-cli commit `9bb61881ef3ec12b08f00f090bab45d8b3ee81e6`, whose
+  setup record is revision 7. The profile enforces coverage, authored-content
+  checks over files and pull request text, per-commit gates, signed commits,
+  and `@bartekus` code ownership. Corpus attestation, cargo-deny, and the spec
+  DAG remain required through reusable workflows declared in
+  `ci.extra_required_jobs`; no crate declares feature flags, so there is no
+  all-features job. The existing `govern.yml` remains unchanged because this
+  completed spec owns it and its current check names protect the transition;
+  the owner changes branch protection to `ci-gate` when merging the setup pull
+  request. The renderer's generated `specs/000-bootstrap/spec.md` is excluded:
+  it collides with this corpus's `000-aicortex-bootstrap`, and the owner work
+  order explicitly forbids committing it. The generated profile, policy,
+  scripts, authored-content check, reusable workflows, and ownership file join
+  this spec's authority so later changes are mechanically coupled here. The
+  profile state, `CODEOWNERS`, and `.gitignore` also join the governance slice
+  configuration and setup policy also join the governance slice and hashed
+  inputs, so changing any of them makes the committed index stale instead of
+  leaving an unwitnessed governance edit. Ignored `.statecraft/state/`
+  remains ungoverned runtime state and is deliberately excluded.
 
 ## Verification
 

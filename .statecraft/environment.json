@@ -1,0 +1,217 @@
+{
+  "version": 2,
+  "pins": {
+    "product": "0.0.0",
+    "spec_spine": "0.26.0",
+    "adapters": {},
+    "producer": {
+      "name": "spec-spine-core",
+      "version": "0.27.0",
+      "checksum": "04c0165ed03496a5c0622ef5f7fab6ecb54d5ec404921f5ee3b3155d2602d9b5"
+    }
+  },
+  "entries": [
+    {
+      "path": ".github/CODEOWNERS",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@9"
+      },
+      "digest": "b146e8d1df1d29473b52b43f713753ca3230272b317335006c58cbfdf05bb43d",
+      "bytes": 624,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": ".github/workflows/statecraft-ai-review.yml",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@9"
+      },
+      "digest": "1d04a28c3256dd5fe6eadd1516cc6a86785335a6907d9394b72b167594ca61b6",
+      "bytes": 3208,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": ".github/workflows/statecraft-ci.yml",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@9"
+      },
+      "digest": "8f81928e62f594d99939eaa0eb23e564819d269fa1077996d5a0c167cd340aec",
+      "bytes": 15200,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": ".statecraft/AGENTS.md",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "2b41647b3dd483c8151846804a985b5d691c49b4418af34d8355830f917fc324",
+      "bytes": 1624,
+      "written_at": "2026-09-26T01:18:52Z"
+    },
+    {
+      "path": ".statecraft/setup/github-actions-rust.json",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@9"
+      },
+      "digest": "52cc394443a6f0207a16a403a4c8fd79d0a44897280771aa3a69c569282f2517",
+      "bytes": 10270,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": "scripts/statecraft/ai-review.sh",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@9"
+      },
+      "digest": "fd083d713f9af117474c0342ae25f13985eac593c522cc6b3004093970d9e0e7",
+      "bytes": 13782,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": "scripts/statecraft/ci-gate.sh",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@9"
+      },
+      "digest": "a73ca9a31dbd436a01ddbc1f0ca9ff48b70fb819ad484e53b74d663edec10979",
+      "bytes": 14011,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": "scripts/statecraft/gate.sh",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@9"
+      },
+      "digest": "78ea327bc98edcf320677e464a2f99bc1c39b6595dfdea0b162ce3962894ff27",
+      "bytes": 18479,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": "scripts/statecraft/install-spec-spine.sh",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-setup:github-actions-rust@9"
+      },
+      "digest": "eea387a5462e29bfae2973e770e5ecdc73b1066db4b8891c65ae11814c2717d4",
+      "bytes": 2056,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": "spec-spine.toml",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "290a9ef0a05160f2cebe9bb8f053210877818cb6b64102339ad116e75c7da060",
+      "bytes": 4479,
+      "written_at": "2026-09-26T01:18:52Z"
+    },
+    {
+      "path": "standards/spec/constitution.md",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "5c71bfb0acfac1e848f33a89f55098c3d115d6f860db8d0d8e4ef88a3cc02a24",
+      "bytes": 5873,
+      "written_at": "2026-09-26T01:18:52Z"
+    },
+    {
+      "path": "standards/spec/contract.md",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "b8cfd1ce7bd2d9dedb363b44b7c5a1535a6d1098035ce40240f8851d0aaf25f2",
+      "bytes": 4799,
+      "written_at": "2026-09-26T01:18:52Z"
+    },
+    {
+      "path": "standards/spec/templates/constitution-template.md",
+      "class": "managed",
+      "source": {
+        "kind": "template",
+        "identity": "spec-spine-core@0.27.0"
+      },
+      "digest": "882ffc058fc35cee7b588a4efafca2ca6d7b8086c21f16c7dc44580d92fce2c6",
+      "bytes": 821,
+      "written_at": "2026-09-26T16:42:16Z"
+    },
+    {
+      "path": "standards/spec/templates/spec-template.md",
+      "class": "adopted",
+      "source": {
+        "kind": "template",
+        "identity": "statecraft-governance"
+      },
+      "digest": "567a14d68a6ba9017e00fdeeea2fbf1ff6680a93c69bc0f02d4de13acac56ec0",
+      "bytes": 3235,
+      "written_at": "2026-09-26T01:18:52Z"
+    }
+  ],
+  "modifications": [
+    {
+      "path": "AGENTS.md",
+      "kind": "import-bridge",
+      "line": "@.statecraft/AGENTS.md",
+      "digest_before": "ba0408e18babcc070addee57b0505667160f130344eaa2d09d82ed097ebc63fa",
+      "digest_after": "24e57970088e2a297f1b789793fc67d2c3bb55da634d6596b592bd347dd47a68",
+      "written_at": "2026-09-26T01:18:52Z"
+    }
+  ],
+  "project": {
+    "requirements": {},
+    "overrides": {},
+    "shared_approval_required": [],
+    "enrollment": {
+      "kind": "solo"
+    },
+    "setup": {
+      "profile": "github-actions-rust",
+      "revision": 9,
+      "identity": "426b82624c84e14172e96d82ed0e03ac4cfc7a925529f593a51fc182aa1a453f",
+      "parameters": {
+        "ci.extra_required_jobs": [
+          {
+            "job": "corpus-attestation",
+            "workflow": ".github/workflows/corpus-attestation.yml"
+          },
+          {
+            "job": "supply-chain",
+            "workflow": ".github/workflows/cargo-deny.yml"
+          },
+          {
+            "job": "spec-dag",
+            "workflow": ".github/workflows/spec-dag.yml"
+          }
+        ],
+        "governance.authored_content": "scripts/check-authored-content.sh",
+        "governance.authored_content_text": true,
+        "governance.enforce_coverage": true,
+        "governance.fail_on_unresolved": false,
+        "governance.gate_each_commit": true,
+        "governance.require_signed_commits": true,
+        "review.code_owners": [
+          "@bartekus"
+        ]
+      }
+    }
+  }
+}

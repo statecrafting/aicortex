@@ -1,0 +1,15 @@
+name: supply chain
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  deny:
+    name: supply chain (cargo-deny)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: EmbarkStudios/cargo-deny-action@v2

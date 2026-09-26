@@ -62,6 +62,11 @@ standalone_npm_packages = []
 extra_hashed_inputs = [
   "standards/**/*",
   ".github/workflows/**/*",
+  ".github/CODEOWNERS",
+  ".statecraft/AGENTS.md",
+  ".statecraft/environment.json",
+  ".statecraft/setup/**/*",
+  ".gitignore",
   ".claude/agents/**/*",
   ".claude/rules/**/*",
   ".claude/skills/**/*",
@@ -96,6 +101,11 @@ governance = [
   "AGENTS.md",
   "CLAUDE.md",
   ".github/workflows/**/*",
+  ".github/CODEOWNERS",
+  ".statecraft/AGENTS.md",
+  ".statecraft/environment.json",
+  ".statecraft/setup/**/*",
+  ".gitignore",
   ".githooks/**/*",
 ]
 deployment = ["docker/**/*", "deploy/**/*"]
