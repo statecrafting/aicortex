@@ -1,0 +1,316 @@
+{
+  "record": {
+    "amends": [
+      "050-typed-claims-and-predicate-registry"
+    ],
+    "amendsSections": [
+      "8-open-questions"
+    ],
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "flavor": "invariant-freeze",
+        "note": "the library migration set is named aicortex, carries migrations 1 through 8 byte for byte, and requires rahi.receipts and rahi.coordination at version 1 or later",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/host.rs"
+        }
+      },
+      {
+        "flavor": "invariant-freeze",
+        "note": "only explicit operator configuration authorizes predicate registration; domain input, model output, and caller-selected subjects do not",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/predicate_registry_repo.rs"
+        }
+      },
+      {
+        "flavor": "invariant-freeze",
+        "note": "the host owns the TxnBuilder and the only commit; aicortex repositories stage and never commit host work",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claim_repo.rs"
+        }
+      }
+    ],
+    "created": "2026-09-26",
+    "dependsOn": [
+      "014-memory-lifecycle-and-erasure",
+      "050-typed-claims-and-predicate-registry",
+      "051-claim-admission-and-authority",
+      "052-bitemporal-claim-history-and-projection"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/host.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/host_library.rs"
+      },
+      {
+        "kind": "file",
+        "path": "fixtures/external-host/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "fixtures/external-host/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "fixtures/external-host/tests/atomic.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "050-typed-claims-and-predicate-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/predicate_registry_repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "050-typed-claims-and-predicate-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/predicate_registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "051-claim-admission-and-authority",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claim_proposal_repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "051-claim-admission-and-authority",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claim_admission_repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "051-claim-admission-and-authority",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/claim_admission.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "052-bitemporal-claim-history-and-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/claim_repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "052-bitemporal-claim-history-and-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/claim_history.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "052-bitemporal-claim-history-and-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/claim_erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "052-bitemporal-claim-history-and-projection",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/tests/projection.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 5
+    },
+    "id": "053-host-library-mode",
+    "implementation": "pending",
+    "kind": "kernel",
+    "obligations": [
+      {
+        "anchor": "3-1-one-named-migration-set",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "The library migration set has the immutable name aicortex and preserves every migration version, SQL byte, checksum, name, and additive declaration from the standalone app sequence."
+      },
+      {
+        "anchor": "3-2-operator-authorized-predicate-registration",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "Predicate registration is authorized only by an explicit operator configuration grant over an exact namespace, version, and canonical document digest."
+      },
+      {
+        "anchor": "3-3-one-caller-owned-transaction",
+        "id": "I-3",
+        "kind": "invariant",
+        "text": "Aicortex stages writes into the host-owned TxnBuilder and never opens or commits an independent transaction on the host path."
+      },
+      {
+        "anchor": "3-4-bounded-reads-and-pure-projection",
+        "id": "I-4",
+        "kind": "invariant",
+        "text": "Every claim-history read remains bounded by scope, subject, and an explicit as-of on both transaction and valid-time axes."
+      },
+      {
+        "anchor": "3-5-external-host-proof",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "An external host fixture proves one Rahi receipt or work transition, one source observation, one admitted claim-history write, one host projection revision, and one outbox intent commit or roll back together."
+      }
+    ],
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/050-typed-claims-and-predicate-registry/spec.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/051-claim-admission-and-authority/spec.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/052-bitemporal-claim-history-and-projection/spec.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionDigests": {
+      "053-host-library-mode": "0cff6105b20fc008c36c3f0294e2cb537c001d800e6625025b7b2ffed9382280",
+      "1-purpose": "d1b5ce9ba46287a3dd8fa613e4626f1ebf58b42a0ffa2f955db9825f3cfb47f8",
+      "2-territory": "f11e77461cfed1a55d52af218ffe9ff1fc9d49e94911532ed055e7dc45decac6",
+      "3-1-one-named-migration-set": "d92e410806c1637513ba270074e7ed592a4664ef4c99fad94cc585406119ce8d",
+      "3-2-operator-authorized-predicate-registration": "962cfbc006ce4c6f60069a66d430dea98430681b35203f05cdf7802f7fd356ef",
+      "3-3-one-caller-owned-transaction": "c07e36bb5026762d00440f7ecfea3ee6a9359332a55955e49ee43a319aa50ff4",
+      "3-4-bounded-reads-and-pure-projection": "83ed45ae1a1a869f11b1793d3c8a7baae60e97847b07b0e5f1118dae655eb6a5",
+      "3-5-external-host-proof": "99169e6e498c5769f3496a79286465e394bc03d7b92231aa7a80942dd9203f08",
+      "3-behavior": "2e3dc8da346a4c94b99d503c7766e698567f5ec34922fd1e752a61c83ad20652",
+      "4-functional-requirements": "94dedefa9216a576646f189c3da71119224794933e2c99f014d7fc415ce91acb",
+      "5-acceptance-criteria": "a2b2bd1d6a7dd1e26d771c87310530d220a74e78e2f68567cb2f5167f2fbcc76",
+      "6-out-of-scope": "92bfe953366da83404da02c94a18f3d796735190b806223be2d17fe6b6bc7ff4",
+      "7-resolved-decisions": "d61078934fa64f40febe1d24819e79c590b0894e5e024ae0c39736bc1c8993ff",
+      "verification": "83f4d2e861c303ef9071b4d781e603aad8ee4e854846286ee3d292754b95de8d"
+    },
+    "sectionHeadings": [
+      "053: Host-library mode",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 One named migration set",
+      "3.2 Operator-authorized predicate registration",
+      "3.3 One caller-owned transaction",
+      "3.4 Bounded reads and pure projection",
+      "3.5 External-host proof",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/053-host-library-mode/spec.md",
+    "status": "draft",
+    "summary": "Expose Aicortex as a linked library inside another Rahi cell without giving up migration identity, operator authority, or transaction ownership. The library exports the immutable named migration set `aicortex`, makes predicate registration an explicit operator-configured act, and stages observations, admission records, claim history, erasure records, and outbox work into the caller's `rahi_store::TxnBuilder`. A separate host fixture proves that Rahi ingress state, Aicortex history, a host-owned projection revision, and outbox work share one commit and one rollback.\n",
+    "title": "Host-library mode: named migrations, operator-authorized vocabulary, and one caller-owned transaction"
+  },
+  "shardHash": "98b0642672125f7fff947bcff820a0dabef9270efc2fdd5fa02e878e06be71fc",
+  "specVersion": "1.8.0"
+}
