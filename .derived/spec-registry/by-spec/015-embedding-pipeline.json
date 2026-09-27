@@ -99,7 +99,7 @@
       "wave": 1
     },
     "id": "015-embedding-pipeline",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
@@ -129,6 +129,6 @@
     "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
-  "shardHash": "ce525b3403620caa8d7608054fb1bb01a4dfe928b313c4bb4a2731b7b81b7342",
+  "shardHash": "17c74be77f018ea8d4b74630743ac41e81ccb7a38d7796798ee754ccb244aa16",
   "specVersion": "1.8.0"
 }
