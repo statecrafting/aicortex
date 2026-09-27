@@ -51,7 +51,7 @@ use serde::Deserialize;
 
 use crate::counters::Counters;
 use crate::fingerprint;
-use crate::memory_repo::MemoryRepo;
+use crate::memory_repo::{MemoryRepo, stage_active_embedding};
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
 /// The largest expiry batch a single leased pass will claim.
@@ -278,6 +278,7 @@ impl Lifecycle {
             ],
         ));
         stage_source(txn, &scope_id, existing_id, &memory.provenance)?;
+        stage_active_embedding(txn, scope_id.as_str(), existing_id, existing.updated)?;
         // The work is staged either way: a merge changed the row, so whatever
         // the capture implies downstream (re-embedding, re-indexing) is owed
         // for the merged row as much as for a new one. Losing it here would

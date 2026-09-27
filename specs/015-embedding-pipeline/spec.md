@@ -26,7 +26,20 @@ establishes:
   - "crates/aicortex-embed/testdata/vectors/"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/lifecycle.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/mod.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/erasure.rs", nature: additive }
+  - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/common/mod.rs", nature: additive }
+  - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/manifest.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/main.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
+  - { spec: "046-rahi-0-2-0-adoption", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
+  - { spec: "053-host-library-mode", unit: { kind: crate, id: "aicortex-external-host-fixture" }, nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-embed/src/worker.rs", note: "a memory is never left unembedded and unreported; constitution XI" }
@@ -158,6 +171,25 @@ configuration with a pinned digest rather than a spec-level commitment.
   score rather than a pooled document vector. Pooling dilutes a long note
   until nothing in it matches, which is the failure users describe as the
   system forgetting things it was told.
+- **D-3 (2026-09-26, implementation).** Capture resolves the active model
+  inside its write transaction. The durable-work statement selects the active
+  registry row into its non-null processing identity. An absent active model
+  therefore aborts the complete capture, including a merge, instead of leaving
+  a memory without durable embedding work.
+
+## Status (2026-09-26, in progress: chassis lifecycle hooks required)
+
+The provider, chunking, registry, durable queue worker, capture integration,
+re-embedding scheduler, erasure integration, and preflight report are
+implemented and locally verified. Completion is blocked on a released Rahi
+chassis capability for two runtime integrations that Rahi 0.4.0 does not
+expose: a managed cell background-task lifecycle for the single worker per
+node (B-2), and product collector registration in the chassis `/metrics`
+registry for dead-letter count and oldest pending age (B-3). `Cell` currently
+exposes routes and migrations only, while `AppState` does not expose the
+chassis metrics registry. The library capability is therefore implemented but
+not activated by `aicortex serve`; B-2 and B-3 remain unsatisfied until that
+upstream release is available and pinned.
 
 ## Verification
 

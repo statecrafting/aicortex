@@ -22,19 +22,21 @@ name = "aicortex"
 path = "src/main.rs"
 
 [dependencies]
+aicortex-embed = { workspace = true }
 aicortex-store = { workspace = true }
 rahi-cli = { workspace = true }
 rahi-edge = { workspace = true }
+rahi-ops = { workspace = true }
 rahi-store = { workspace = true }
+rahi-types = { workspace = true }
 axum = { workspace = true }
+serde = { workspace = true }
+tokio = { workspace = true }
 
 [dev-dependencies]
 rahi-kernel = { workspace = true }
-rahi-types = { workspace = true }
-rahi-ops = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
-tokio = { workspace = true }
 toml = { workspace = true }
 
 [lints]

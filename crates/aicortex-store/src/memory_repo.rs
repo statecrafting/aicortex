@@ -21,7 +21,7 @@
 
 use aicortex_gate::Admitted;
 use aicortex_types::{Memory, MemoryId, MemoryKind, Provenance, Scope, Status};
-use rahi_store::{Envelope, Outbox, Statement, StoreHandle, TxnBuilder, Value};
+use rahi_store::{Envelope, Outbox, ReceiptKey, Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
@@ -33,6 +33,50 @@ use crate::scope_repo::{ScopeId, ScopeRepo, seconds_to_sql};
 
 /// The default body ceiling: 64 KiB of text (B-8).
 pub const DEFAULT_MAX_BODY_BYTES: usize = 64 * 1024;
+
+/// Rahi processing namespace holding embedding jobs.
+pub const EMBEDDING_NAMESPACE: &str = "aicortex.memory";
+
+/// Rahi processor name holding embedding jobs.
+pub const EMBEDDING_PROCESSOR: &str = "embed";
+
+/// Stage embedding work against whichever model revision is active at commit.
+///
+/// This primitive lives at the capture boundary so the lower storage crate
+/// never depends upward on an embedding worker. The non-null processing
+/// identity also makes a missing active model abort the complete capture.
+///
+/// # Errors
+///
+/// Rahi validation errors for an invalid scope or memory identity.
+pub fn stage_active_embedding(
+    txn: &mut TxnBuilder,
+    scope_id: &str,
+    memory_id: MemoryId,
+    now: UnixSeconds,
+) -> Result<(), Error> {
+    let receipt = ReceiptKey::new(scope_id, EMBEDDING_NAMESPACE, memory_id.to_string())?;
+    txn.push(Statement::with_params(
+        "INSERT INTO rahi_processing
+         (key_digest, revision, processor, processor_revision, tenant, namespace, key,
+          state, attempt, created_at)
+         VALUES (?1,
+                 (SELECT revision FROM embedding_model WHERE active = 1),
+                 ?2,
+                 (SELECT model_id FROM embedding_model WHERE active = 1),
+                 ?3, ?4, ?5, 'pending', 0, ?6)
+         ON CONFLICT (key_digest, revision, processor, processor_revision) DO NOTHING",
+        vec![
+            Value::from(receipt.key_digest()),
+            Value::from(EMBEDDING_PROCESSOR),
+            Value::from(scope_id),
+            Value::from(EMBEDDING_NAMESPACE),
+            Value::from(memory_id.to_string()),
+            Value::Integer(seconds_to_sql(now)),
+        ],
+    ));
+    Ok(())
+}
 
 /// The largest page a listing will return (B-7).
 ///
@@ -301,6 +345,7 @@ impl MemoryRepo {
         ));
         ProvenanceRepo::stage(txn, &scope_id, memory.id, provenance)?;
         Counters::increment(txn, &scope_id, memory.kind, &memory.status);
+        stage_active_embedding(txn, scope_id.as_str(), memory.id, memory.updated)?;
         Outbox::stage(txn, work);
         Ok(())
     }

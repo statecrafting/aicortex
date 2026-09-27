@@ -107,8 +107,8 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
     .unwrap();
     let staged = txn.len();
     assert_eq!(
-        staged, 7,
-        "a capture with two parents stages scope, memory, provenance, two derivations, counter, outbox"
+        staged, 8,
+        "a capture with two parents stages scope, memory, provenance, two derivations, counter, embedding work, outbox"
     );
     txn.push(Statement::with_params(
         "INSERT INTO memory (id) VALUES ($1)",

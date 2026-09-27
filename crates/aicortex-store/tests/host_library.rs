@@ -50,7 +50,7 @@ fn fr001_fr002_the_named_set_is_exact_and_immutable() {
             .iter()
             .map(|migration| migration.version)
             .collect::<Vec<_>>(),
-        (1..=8).collect::<Vec<_>>()
+        (1..=aicortex_store::EXPECTED_SCHEMA_VERSION).collect::<Vec<_>>()
     );
     assert_eq!(set.requires.len(), 2);
     assert_eq!(set.requires[0].set.as_str(), "rahi.receipts");
@@ -105,6 +105,12 @@ fn fr001_fr002_the_named_set_is_exact_and_immutable() {
             8,
             "aicortex append-only bitemporal claim history",
             "sha256:16a63aee97b45b82f024bd21e7fb1dbf4ed6519112d633df679ec01244b179ac",
+            true,
+        ),
+        (
+            9,
+            "embedding models, chunks, and vectors",
+            "sha256:ebed33b47d4529518a2d4d918b9259a309d1c5b76883146274d85a1ad7bebdb9",
             true,
         ),
     ];

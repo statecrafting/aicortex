@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-embed",
+    "path": "crates/aicortex-embed",
+    "specRef": "015-embedding-pipeline",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.1.0",
+  "shardHash": "7f11cbc3f6d03700b0cdb9b76dbbe578ad8b145ad2081e33a61a21f20b3f8651"
+}

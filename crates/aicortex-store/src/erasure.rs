@@ -168,6 +168,9 @@ impl Derivative {
 /// Naming it as an ordinary derivative would hide a frozen invariant inside a
 /// loop.
 pub const DERIVATIVES: &[Derivative] = &[
+    // Embeddings reference chunks, so erase them first.
+    Derivative::new("embedding", "memory_id", "scope_id"),
+    Derivative::new("chunk", "memory_id", "scope_id"),
     Derivative::new("provenance", "memory_id", "scope_id"),
     Derivative::new("memory_derivation", "memory_id", "scope_id"),
     Derivative::new("memory_source", "memory_id", "scope_id"),
@@ -175,23 +178,18 @@ pub const DERIVATIVES: &[Derivative] = &[
 
 /// The derivative tables later specs add, named here before they exist.
 ///
-/// B-7 requires erasure to reach every chunk, every embedding, and every
-/// index entry. Those tables belong to specs 015 and 016 and this schema
-/// version does not carry them, so sweeping them now would fail every
+/// B-7 requires erasure to reach every index entry. That table belongs to
+/// spec 016 and this schema version does not carry it, so sweeping it now would fail every
 /// erasure: SQLite refuses a `DELETE` against a table that does not exist and
 /// the whole transaction rolls back.
 ///
-/// Naming them anyway is the difference between a requirement deferred and a
-/// requirement forgotten. Spec 015 moves its two entries and spec 016 moves
-/// its one into [`DERIVATIVES`] in the same change as the migration that
+/// Naming it anyway is the difference between a requirement deferred and a
+/// requirement forgotten. Spec 016 moves its entry into [`DERIVATIVES`] in the same change as the migration that
 /// creates the table, under an `extends` edge on this file, and the sweep
 /// itself needs no edit. Until then [`Eraser::also`] registers them against a
 /// table the caller has created, which is how this spec's own tests assert
 /// FR-003 over real chunk and embedding rows rather than over their absence.
 pub const PLANNED: &[Derivative] = &[
-    // Spec 015 section 2: the chunks of a body and the vectors over them.
-    Derivative::new("chunk", "memory_id", "scope_id"),
-    Derivative::new("embedding", "memory_id", "scope_id"),
     // Spec 016 section 2: the application-owned text index.
     Derivative::new("chunk_token", "memory_id", "scope_id"),
 ];

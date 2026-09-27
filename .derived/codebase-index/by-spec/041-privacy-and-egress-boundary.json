@@ -1,14 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '041-privacy-and-egress-boundary' file unit 'crates/aicortex-embed/src/remote.rs' does not exist",
-        "path": "crates/aicortex-embed/src/remote.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "040-retrieval-evaluation"
@@ -16,6 +6,10 @@
     "implementingPaths": [
       {
         "path": "apps/aicortex/manifest.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/remote.rs",
         "source": "spec-edge"
       }
     ],
@@ -34,7 +28,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/remote.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {

@@ -37,6 +37,7 @@ unicode-normalization = { workspace = true }
 [dev-dependencies]
 # Spec 047: the registry's golden vectors, for the parity tests by id.
 action-gate-core = { workspace = true, features = ["golden-vectors"] }
+aicortex-embed = { workspace = true }
 aicortex-store = { workspace = true }
 rahi-ledger = { workspace = true }
 rahi-store = { workspace = true }

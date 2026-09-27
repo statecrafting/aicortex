@@ -11,7 +11,9 @@
 use axum::Router;
 use rahi_cli::Cell;
 use rahi_edge::AppState;
-use rahi_store::Migration;
+use rahi_store::{Migration, MigrationSet, Store};
+use rahi_types::{Config, EnvReader, Error, UnixSeconds};
+use serde::Deserialize;
 
 /// The cell.
 ///
@@ -42,6 +44,10 @@ impl Cell for Aicortex {
         aicortex_store::migrations()
     }
 
+    fn migration_sets() -> Vec<MigrationSet> {
+        vec![rahi_store::coordination_set(), rahi_store::receipt_set()]
+    }
+
     /// The merged product router. No product route exists yet.
     fn routes(state: AppState) -> Router {
         let _ = state;
@@ -54,4 +60,71 @@ impl Cell for Aicortex {
         let _ = state;
         Router::new()
     }
+}
+
+#[derive(Debug, Deserialize)]
+struct ScopeRow {
+    scope_id: String,
+}
+
+/// Append embedding state to the chassis preflight report.
+///
+/// This runs after the chassis preflight attempt, including when an unrelated
+/// chassis check failed. It reopens the deployment store at the application
+/// layer, reports every scope separately, and leaves the process-wide model
+/// identity visible even when the deployment contains no scopes yet.
+#[must_use]
+pub fn embedding_preflight(env: &dyn EnvReader) -> i32 {
+    let runtime = match tokio::runtime::Builder::new_current_thread()
+        .enable_all()
+        .build()
+    {
+        Ok(runtime) => runtime,
+        Err(error) => {
+            eprintln!("error: io: the embedding preflight runtime cannot be built: {error}");
+            return 3;
+        }
+    };
+    match runtime.block_on(read_embedding_preflight(env)) {
+        Ok(()) => 0,
+        Err(error) => {
+            eprintln!("error: {error}");
+            error.exit_code()
+        }
+    }
+}
+
+async fn read_embedding_preflight(env: &dyn EnvReader) -> Result<(), Error> {
+    let config = Config::from_env(env)?;
+    let secrets = rahi_ops::KeySet::of(&config).store_secrets()?;
+    let store_config = rahi_ops::store_config(&config, env, secrets)?;
+    let store = Store::open(&store_config).await?;
+    let result = report_embeddings(&store, UnixSeconds::new(unix_now())).await;
+    let shutdown = store.shutdown().await;
+    result.and(shutdown)
+}
+
+async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error> {
+    let handle = store.handle();
+    let scopes: Vec<ScopeRow> = handle
+        .query("SELECT scope_id FROM scope ORDER BY scope_id", vec![])
+        .await?;
+    if scopes.is_empty() {
+        let report = aicortex_embed::EmbeddingPreflight::read(&handle, "", now).await?;
+        println!("embedding: scope=none {report}");
+        return Ok(());
+    }
+    for scope in scopes {
+        let report =
+            aicortex_embed::EmbeddingPreflight::read(&handle, &scope.scope_id, now).await?;
+        println!("embedding: scope={} {report}", scope.scope_id);
+    }
+    Ok(())
+}
+
+fn unix_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
 }

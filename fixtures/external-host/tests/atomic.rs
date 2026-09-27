@@ -15,6 +15,7 @@ use aicortex_claims::{
     AdmissionRef, AsOf, ClaimHistory, ClaimRecord, ProjectionPolicy, RegistrySnapshot, TxBound,
     TxStamp, ValidBound, ValidTime, project,
 };
+use aicortex_embed::{ModelId, ModelRegistry, ModelRevision};
 use aicortex_external_host_fixture::ExternalHost;
 use aicortex_gate::{
     AdmissionPolicy, Candidate, ClaimContext, ClaimVerdict, Gate, Origin, SourceState, Verdict,
@@ -335,14 +336,31 @@ async fn assert_atomic_counts(store: &StoreHandle, expected: i64) {
 }
 
 async fn migrate(store: &StoreHandle) {
+    let app = <ExternalHost as Cell>::migrations();
+    let sets = <ExternalHost as Cell>::migration_sets();
+    let expected = app.len() + sets.iter().map(|set| set.migrations.len()).sum::<usize>();
     let report = store
-        .migrate_sets(
-            <ExternalHost as Cell>::migrations(),
-            &<ExternalHost as Cell>::migration_sets(),
-        )
+        .migrate_sets(app, &sets)
         .await
         .expect("all host and library migrations apply");
-    assert_eq!(report.applied.len(), 11);
+    assert_eq!(report.applied.len(), expected);
+
+    let mut txn = TxnBuilder::new();
+    ModelRegistry::activate(
+        &mut txn,
+        &ModelRevision {
+            model_id: ModelId::new("external-host-test").expect("a model id"),
+            revision: 1,
+            dims: 3,
+            normalized: true,
+            first_seen: at(0),
+            active: true,
+        },
+    );
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("the host activates its embedding model");
 }
 
 async fn register_once(store: &StoreHandle) {
@@ -419,7 +437,7 @@ async fn fr006_fr008_commit_restart_noop_and_checksum_refusal() {
             "SELECT count(*) AS count FROM schema_set_version WHERE set_name = 'aicortex'",
         )
         .await,
-        8
+        i64::from(aicortex_store::EXPECTED_SCHEMA_VERSION)
     );
 
     let mut altered = aicortex_store::migration_set().expect("the set builds");

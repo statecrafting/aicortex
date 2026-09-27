@@ -1,10 +1,16 @@
-//! The aicortex binary (spec 010 B-3).
-//!
-//! The chassis owns argument parsing, boot, logging, the listener, every
-//! verb, and the exit codes. The cell is the only thing handed to it.
+//! The aicortex binary (spec 010 B-3, extended by spec 015).
 
 #![forbid(unsafe_code)]
 
 fn main() {
-    rahi_cli::run(aicortex::Aicortex)
+    let args = std::env::args().skip(1).collect::<Vec<_>>();
+    let env = rahi_cli::process_env();
+    let mut code = rahi_cli::run_with::<aicortex::Aicortex>(&args, &env);
+    if args.as_slice() == ["preflight"] {
+        let embedding = aicortex::embedding_preflight(&env);
+        if code == 0 {
+            code = embedding;
+        }
+    }
+    std::process::exit(code)
 }

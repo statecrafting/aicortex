@@ -99,10 +99,12 @@ pub use host::{
 };
 pub use lifecycle::{Captured, Expired, Lifecycle, MAX_EXPIRY_BATCH, lifecycle_lease_key};
 pub use memory_repo::{
-    DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, Listing, MAX_PAGE_ROWS, MemoryFilter, MemoryRepo,
-    StatusFilter, fingerprint,
+    DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, Listing,
+    MAX_PAGE_ROWS, MemoryFilter, MemoryRepo, StatusFilter, fingerprint, stage_active_embedding,
 };
-pub use migrations::{EXPECTED_SCHEMA_VERSION, migrations};
+pub use migrations::{
+    EMBEDDING_MIGRATION_VERSION, EXPECTED_SCHEMA_VERSION, embedding_migration, migrations,
+};
 pub use predicate_registry_repo::{
     KIND_REGISTER, PredicateRegistryRepo, Registration, document_digest,
 };

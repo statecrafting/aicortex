@@ -61,11 +61,14 @@ pub const ERASURE_RECEIPTS_VERSION: u32 = 7;
 /// Append-only bitemporal claim history and its per-scope transaction counter.
 pub const CLAIM_HISTORY_VERSION: u32 = 8;
 
+/// The additive embedding schema version introduced by spec 015.
+pub const EMBEDDING_MIGRATION_VERSION: u32 = 9;
+
 /// The version an up-to-date store records, which is the highest below.
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = CLAIM_HISTORY_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = EMBEDDING_MIGRATION_VERSION;
 
 const CLAIM_HISTORY_TABLES: &str = "CREATE TABLE claim_tx_counter (
     scope_id TEXT PRIMARY KEY,
@@ -124,6 +127,43 @@ CREATE TABLE claim_source (
     source_memory_id TEXT NOT NULL,
     PRIMARY KEY (scope_id, claim_id, source_memory_id)
 );";
+
+const EMBEDDING_TABLES: &str = "CREATE TABLE IF NOT EXISTS embedding_model (
+    model_id TEXT NOT NULL,
+    revision INTEGER PRIMARY KEY,
+    dims INTEGER NOT NULL,
+    normalized INTEGER NOT NULL,
+    first_seen INTEGER NOT NULL,
+    active INTEGER NOT NULL DEFAULT 0
+);
+CREATE UNIQUE INDEX IF NOT EXISTS embedding_model_one_active
+    ON embedding_model (active) WHERE active = 1;
+CREATE TABLE IF NOT EXISTS chunk (
+    scope_id TEXT NOT NULL,
+    memory_id TEXT NOT NULL,
+    model_revision INTEGER NOT NULL,
+    ordinal INTEGER NOT NULL,
+    byte_start INTEGER NOT NULL,
+    byte_end INTEGER NOT NULL,
+    PRIMARY KEY (scope_id, memory_id, model_revision, ordinal)
+);
+CREATE TABLE IF NOT EXISTS embedding (
+    scope_id TEXT NOT NULL,
+    memory_id TEXT NOT NULL,
+    model_id TEXT NOT NULL,
+    model_revision INTEGER NOT NULL,
+    chunk_ordinal INTEGER NOT NULL,
+    dims INTEGER NOT NULL,
+    normalized INTEGER NOT NULL,
+    vector BLOB NOT NULL,
+    updated INTEGER NOT NULL,
+    PRIMARY KEY (scope_id, memory_id, model_revision, chunk_ordinal),
+    FOREIGN KEY (model_revision) REFERENCES embedding_model (revision),
+    FOREIGN KEY (scope_id, memory_id, model_revision, chunk_ordinal)
+        REFERENCES chunk (scope_id, memory_id, model_revision, ordinal)
+);
+CREATE INDEX IF NOT EXISTS embedding_scope_revision_memory
+    ON embedding (scope_id, model_revision, memory_id)";
 
 /// The scope a memory lives in (B-2).
 ///
@@ -419,12 +459,30 @@ const ERASURE_JOURNAL_TABLE: &str = "CREATE TABLE IF NOT EXISTS erasure_journal 
 /// Each is idempotent (`IF NOT EXISTS` throughout), so a rerun against a
 /// store that already carries the schema applies nothing, and the chassis
 /// records the version it applied.
+///
+/// Spec 015's embedding migration is constructed here to preserve the
+/// downward-only crate dependency graph while that spec extends this list.
+#[must_use]
+pub fn embedding_migration() -> Migration {
+    Migration::new(
+        EMBEDDING_MIGRATION_VERSION,
+        "embedding models, chunks, and vectors",
+        EMBEDDING_TABLES,
+    )
+    .additive()
+}
+
+/// The migrations, in version order (B-1).
+///
+/// Each is idempotent (`IF NOT EXISTS` throughout), so a rerun against a
+/// store that already carries the schema applies nothing, and the chassis
+/// records the version it applied.
 #[must_use]
 pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 8]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 9]> = std::sync::LazyLock::new(|| {
     [
         // Every shipped migration only creates tables and indexes, so each is
         // declared additive (spec 046 B-2, D-2). The declaration is not part
@@ -525,5 +583,6 @@ static LIST: std::sync::LazyLock<[Migration; 8]> = std::sync::LazyLock::new(|| {
             CLAIM_HISTORY_TABLES,
         )
         .additive(),
+        embedding_migration(),
     ]
 });

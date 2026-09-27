@@ -20,14 +20,14 @@ mod common;
 use std::time::Duration;
 
 use aicortex_store::{
-    Captured, Counters, Lifecycle, MAX_EXPIRY_BATCH, MemoryFilter, MemoryRepo, ScopeId,
+    Captured, Counters, Lifecycle, MAX_EXPIRY_BATCH, MemoryFilter, MemoryRepo, ScopeId, ScopeRepo,
     StatusFilter, fingerprint, lifecycle_lease_key,
 };
 use aicortex_types::{
     AicortexTime, DecisionRef, MediaDigest, MediaRef, MemoryBody, MemoryId, MemoryKind, Promotion,
     Status, TrustClass,
 };
-use rahi_store::{LEASE_TTL_SECONDS, TxnBuilder, Value};
+use rahi_store::{LEASE_TTL_SECONDS, Statement, TxnBuilder, Value};
 use rahi_types::UnixSeconds;
 
 /// Run one capture through the merge-aware path and commit it.
@@ -1101,14 +1101,27 @@ async fn migration_seven_preserves_v6_rows_and_backfills_them_after_reopen() {
     let scope = common::scope("upgrade");
     let memory = common::memory(&scope, "a pre-upgrade row", 1_700_000_000);
     let mut txn = TxnBuilder::new();
-    MemoryRepo::new()
-        .insert(
-            &mut txn,
-            &common::admit(&memory),
-            &memory.provenance,
-            &common::work(&memory),
-        )
-        .unwrap();
+    ScopeRepo::ensure(&mut txn, &scope, memory.created);
+    txn.push(Statement::with_params(
+        "INSERT INTO memory (
+            id, scope_id, status, superseded_by, kind, trust, fingerprint,
+            schema_version, body_bytes, created, updated, record
+         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)",
+        vec![
+            Value::from(memory.id.to_string()),
+            Value::from(&ScopeId::of(&scope)),
+            Value::from(memory.status.label()),
+            Value::from(memory.status.superseded_by().map(|by| by.to_string())),
+            Value::from(memory.kind.label()),
+            Value::from(memory.trust.label()),
+            Value::from(fingerprint(&memory)),
+            Value::from(u32::from(memory.schema_version)),
+            Value::Integer(i64::try_from(memory.body.len()).unwrap()),
+            Value::Integer(1_700_000_000),
+            Value::Integer(1_700_000_000),
+            Value::from(serde_json::to_string(&memory).unwrap()),
+        ],
+    ));
     fixture.handle().txn(txn.into_statements()).await.unwrap();
     let report = fixture
         .handle()
@@ -1124,7 +1137,7 @@ async fn migration_seven_preserves_v6_rows_and_backfills_them_after_reopen() {
             .await
             .unwrap()
             .applied,
-        vec![8]
+        vec![8, 9]
     );
     assert!(
         fixture
