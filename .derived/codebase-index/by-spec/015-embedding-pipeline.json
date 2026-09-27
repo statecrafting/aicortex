@@ -97,6 +97,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/lifecycle.rs",
         "source": "spec-edge"
       },
@@ -114,6 +118,18 @@
       },
       {
         "path": "crates/aicortex-store/tests/erasure.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/host_library.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/lifecycle.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/repo.rs",
         "source": "spec-edge"
       },
       {
@@ -411,6 +427,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/src/lifecycle.rs"
           }
         ],
@@ -476,6 +505,45 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/tests/host_library.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/host_library.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/lifecycle.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "Cargo.toml",
             "span": {
               "endLine": 109,
@@ -509,5 +577,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "8a8b4440b757d335d1fbdc64d7f89f7701ea3c7ebe593d5948e434f59521b36c"
+  "shardHash": "5456207eb12bcb61ab4d32ebb83142b13135ddb403eb4ad6152c30f3c388b7fc"
 }

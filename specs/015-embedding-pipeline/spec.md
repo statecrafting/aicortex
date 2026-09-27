@@ -28,9 +28,13 @@ extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/lifecycle.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/mod.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/host_library.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/repo.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/erasure.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/common/mod.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/Cargo.toml", nature: additive }
