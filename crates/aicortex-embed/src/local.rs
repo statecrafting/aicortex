@@ -50,13 +50,17 @@ impl WeightArtifact {
                 "model weights need a 64-character lowercase SHA-256".to_owned(),
             ));
         }
-        let safe_components = self.path.components().all(|component| {
-            matches!(
-                component,
-                Component::Prefix(_) | Component::RootDir | Component::Normal(_)
-            )
-        });
-        if !safe_components || !self.path.starts_with(models_dir) || self.path == models_dir {
+        let relative_path = self.path.strip_prefix(models_dir).map_err(|_| {
+            Error::Config(format!(
+                "model artifact {} is outside configured models directory {}",
+                self.path.display(),
+                models_dir.display()
+            ))
+        })?;
+        let safe_components = relative_path
+            .components()
+            .all(|component| matches!(component, Component::Normal(_)));
+        if relative_path.as_os_str().is_empty() || !safe_components {
             return Err(Error::Config(format!(
                 "model artifact {} is outside configured models directory {}",
                 self.path.display(),
@@ -483,6 +487,21 @@ mod tests {
     use std::os::unix::fs::symlink;
 
     use super::*;
+
+    #[test]
+    fn validate_accepts_artifact_beneath_relative_models_directory() {
+        for models in [Path::new("./models"), Path::new("../data/models")] {
+            let artifact = WeightArtifact {
+                path: models.join("model.bin"),
+                url: "https://models.example/model.bin".to_owned(),
+                sha256: "0".repeat(64),
+            };
+
+            artifact
+                .validate(models)
+                .expect("relative models directory");
+        }
+    }
 
     #[test]
     fn confined_destination_rejects_a_symlinked_subdirectory() {
