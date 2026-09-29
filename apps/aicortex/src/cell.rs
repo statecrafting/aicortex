@@ -11,9 +11,7 @@
 use axum::Router;
 use rahi_cli::Cell;
 use rahi_edge::AppState;
-use rahi_store::{Migration, MigrationSet, Store};
-use rahi_types::{Config, EnvReader, Error, UnixSeconds};
-use serde::Deserialize;
+use rahi_store::{Migration, MigrationSet};
 
 /// The cell.
 ///
@@ -60,118 +58,4 @@ impl Cell for Aicortex {
         let _ = state;
         Router::new()
     }
-}
-
-#[derive(Debug, Deserialize)]
-struct ScopeRow {
-    scope_id: String,
-}
-
-/// Produce embedding state for a future chassis preflight extension hook.
-///
-/// The pinned chassis does not yet expose such a hook, so the binary does not
-/// call this function. A future hook must run only after the chassis preflight
-/// succeeds. This function then takes the chassis cell gate before opening the
-/// store, reports a bounded set of scopes, and leaves the process-wide model
-/// identity visible even when the deployment contains no scopes yet.
-#[must_use]
-pub fn embedding_preflight(env: &dyn EnvReader) -> i32 {
-    let runtime = match tokio::runtime::Builder::new_current_thread()
-        .enable_all()
-        .build()
-    {
-        Ok(runtime) => runtime,
-        Err(error) => {
-            eprintln!("error: io: the embedding preflight runtime cannot be built: {error}");
-            return 3;
-        }
-    };
-    match runtime.block_on(read_embedding_preflight(env)) {
-        Ok(()) => 0,
-        Err(error) => {
-            eprintln!("error: {error}");
-            error.exit_code()
-        }
-    }
-}
-
-async fn read_embedding_preflight(env: &dyn EnvReader) -> Result<(), Error> {
-    let config = Config::from_env(env)?;
-    let _gate = match rahi_ops::cell_lock::gate(
-        &config,
-        rahi_ops::cell_lock::Entry::Store { may_attach: false },
-    ) {
-        Ok(gate) => gate,
-        Err(error) => {
-            println!("embedding: skipped because the chassis cell gate refused: {error}");
-            return Err(error);
-        }
-    };
-    let secrets = rahi_ops::KeySet::of(&config).store_secrets()?;
-    let store_config = rahi_ops::store_config(&config, env, secrets)?;
-    let store = Store::open(&store_config).await?;
-    let result = report_embeddings(&store, UnixSeconds::new(unix_now())).await;
-    let shutdown = store.shutdown().await;
-    result.and(shutdown)
-}
-
-async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error> {
-    let handle = store.handle();
-    let migrations = handle.recorded_migrations().await?;
-    if !migrations
-        .iter()
-        .any(|migration| migration.version == aicortex_store::EMBEDDING_MIGRATION_VERSION)
-    {
-        println!("embedding: unavailable until migrate");
-        return Ok(());
-    }
-    let deployment = aicortex_embed::EmbeddingPreflight::read(&handle, "", now).await?;
-    println!("embedding: deployment {}", deployment.deployment());
-
-    const MAX_REPORTED_SCOPES: usize = 100;
-    let scopes: Vec<ScopeRow> = handle
-        .query(
-            "SELECT scope_id FROM scope ORDER BY scope_id LIMIT ?1",
-            vec![
-                i64::try_from(MAX_REPORTED_SCOPES + 1)
-                    .unwrap_or(i64::MAX)
-                    .into(),
-            ],
-        )
-        .await?;
-    for scope in scopes.iter().take(MAX_REPORTED_SCOPES) {
-        let coverage = aicortex_embed::ModelRegistry::coverage(&handle, &scope.scope_id).await?;
-        let total = aicortex_embed::ModelRegistry::live_total(&handle, &scope.scope_id).await?;
-        println!(
-            "embedding: scope={} total={} coverage=[{}]",
-            scope.scope_id,
-            total,
-            format_coverage(&coverage)
-        );
-    }
-    if scopes.is_empty() {
-        println!(
-            "embedding: scope=none total={} coverage=[{}]",
-            deployment.live_memories,
-            format_coverage(&deployment.coverage)
-        );
-    } else if scopes.len() > MAX_REPORTED_SCOPES {
-        println!("embedding: scope_coverage_truncated=true limit={MAX_REPORTED_SCOPES}");
-    }
-    Ok(())
-}
-
-fn format_coverage(coverage: &[aicortex_embed::Coverage]) -> String {
-    coverage
-        .iter()
-        .map(ToString::to_string)
-        .collect::<Vec<_>>()
-        .join(",")
-}
-
-fn unix_now() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_secs()
 }

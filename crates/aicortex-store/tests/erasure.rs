@@ -495,9 +495,9 @@ async fn fr003_erasure_empties_the_chunk_and_embedding_tables_and_leaves_retriev
             "erasure must reach {table}"
         );
     }
-    assert!(
-        erased.removed_derivatives >= 5,
-        "every removed row is counted: {erased:?}"
+    assert_eq!(
+        erased.removed_derivatives, 7,
+        "five derivative rows and two queue rows are counted"
     );
 
     // A targeted search that previously returned it returns nothing.

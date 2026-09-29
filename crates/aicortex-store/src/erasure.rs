@@ -535,7 +535,7 @@ impl Eraser {
         }
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
-        stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
+        let queue = stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
         let mark_at = txn.len();
         txn.push(Statement::with_params(
             MARK_DERIVED_SQL,
@@ -581,6 +581,7 @@ impl Eraser {
             &Counts {
                 sweep,
                 keys,
+                queue,
                 tombstones,
                 marked: Some(mark_at),
             },
@@ -854,7 +855,7 @@ impl Eraser {
         DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
-        stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
+        let queue = stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
         txn.push(Statement::with_params(
             ERASE_SCOPE_CLAIMS_SQL,
             vec![Value::from(&scope_id)],
@@ -885,6 +886,7 @@ impl Eraser {
             &Counts {
                 sweep,
                 keys,
+                queue,
                 tombstones,
                 marked: None,
             },
@@ -1122,12 +1124,28 @@ fn stage_embedding_queue_erasure(
     scope_id: &ScopeId,
     shells: &[Shell],
     now: UnixSeconds,
-) -> Result<(), Error> {
-    for shell in shells {
-        let key = ReceiptKey::new(scope_id.as_str(), EMBEDDING_NAMESPACE, shell.id.to_string())?;
+) -> Result<core::ops::Range<usize>, Error> {
+    let keys = shells
+        .iter()
+        .map(|shell| ReceiptKey::new(scope_id.as_str(), EMBEDDING_NAMESPACE, shell.id.to_string()))
+        .collect::<Result<Vec<_>, _>>()?;
+    let start = txn.len();
+    for key in &keys {
+        let digest = key.key_digest();
+        txn.push(Statement::with_params(
+            "DELETE FROM rahi_processing_attempt WHERE key_digest = ?1",
+            vec![Value::from(digest.clone())],
+        ));
+        txn.push(Statement::with_params(
+            "DELETE FROM rahi_processing WHERE key_digest = ?1",
+            vec![Value::from(digest)],
+        ));
+    }
+    let queue = start..txn.len();
+    for key in keys {
         Receipts::stage_erasure(txn, &EraseScope::Identity(key), now);
     }
-    Ok(())
+    Ok(queue)
 }
 
 /// Ranges refer to the original destructive transaction, before accounting
@@ -1136,6 +1154,7 @@ fn stage_embedding_queue_erasure(
 struct Counts {
     sweep: core::ops::Range<usize>,
     keys: core::ops::Range<usize>,
+    queue: core::ops::Range<usize>,
     tombstones: core::ops::Range<usize>,
     marked: Option<usize>,
 }
@@ -1161,7 +1180,7 @@ fn accounted_batch(
         statements.push(statement);
         let update = if counts.keys.contains(&index) {
             "keys_destroyed = keys_destroyed + changes(), derivatives = derivatives + changes()"
-        } else if counts.sweep.contains(&index) {
+        } else if counts.sweep.contains(&index) || counts.queue.contains(&index) {
             "derivatives = derivatives + changes()"
         } else if counts.tombstones.contains(&index) {
             "memories = memories + changes()"

@@ -8,10 +8,12 @@ use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
-use rahi_types::Error;
+use rahi_kernel::{Egress, Governed, Permit};
+use rahi_types::{Error, Sub};
 use ring::digest::{Context, SHA256, digest};
 
 use crate::provider::{EmbeddingProvider, ModelId, Vector, validate_batch};
+use crate::remote::parse_https_endpoint;
 
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
@@ -193,11 +195,12 @@ fn too_large(path: &Path) -> Error {
 /// A preflight-owned transport for the one-time artifact fetch.
 #[allow(async_fn_in_trait)]
 pub trait WeightFetcher: Send + Sync {
-    /// Fetch `url` under deployment governance and return at most `max_bytes`.
+    /// Fetch `https://{permit.host()}{path}` and return at most `max_bytes`.
     ///
-    /// Implementations should stop reading once this bound is reached. The
+    /// Implementations must construct the destination from these components,
+    /// disable redirects, and stop reading once the bound is reached. The
     /// caller checks the returned length again before writing it to disk.
-    async fn fetch(&self, url: &str, max_bytes: usize) -> Result<Vec<u8>, Error>;
+    async fn fetch(&self, permit: &Permit, path: &str, max_bytes: usize) -> Result<Vec<u8>, Error>;
 }
 
 /// The configured sentence model implementation.
@@ -277,6 +280,8 @@ impl<E> LocalProvider<E> {
     pub async fn ensure_weights(
         artifact: &WeightArtifact,
         models_dir: &Path,
+        egress: &Governed<Egress>,
+        actor: &Sub,
         fetcher: &impl WeightFetcher,
     ) -> Result<(), Error> {
         artifact.validate(models_dir)?;
@@ -284,7 +289,11 @@ impl<E> LocalProvider<E> {
         if artifact.verify_path(&destination).is_ok() {
             return Ok(());
         }
-        let bytes = fetcher.fetch(&artifact.url, MAX_WEIGHT_BYTES).await?;
+        let endpoint = parse_https_endpoint(&artifact.url)?;
+        let permit = egress.permit(actor, &endpoint.host).await?;
+        let bytes = fetcher
+            .fetch(&permit, &endpoint.path, MAX_WEIGHT_BYTES)
+            .await?;
         if bytes.len() > MAX_WEIGHT_BYTES {
             return Err(Error::Integrity(format!(
                 "downloaded model artifact exceeds the {MAX_WEIGHT_BYTES}-byte limit"

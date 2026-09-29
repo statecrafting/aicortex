@@ -126,7 +126,6 @@ dependencies = [
 name = "aicortex"
 version = "0.1.0"
 dependencies = [
- "aicortex-embed",
  "aicortex-store",
  "axum",
  "rahi-cli",
@@ -135,7 +134,6 @@ dependencies = [
  "rahi-ops",
  "rahi-store",
  "rahi-types",
- "serde",
  "serde_json",
  "tempfile",
  "tokio",

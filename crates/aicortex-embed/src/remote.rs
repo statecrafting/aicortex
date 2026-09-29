@@ -104,12 +104,12 @@ impl<T: EmbeddingTransport> EmbeddingProvider for RemoteProvider<T> {
     }
 }
 
-struct ParsedEndpoint {
-    host: String,
-    path: String,
+pub(crate) struct ParsedEndpoint {
+    pub(crate) host: String,
+    pub(crate) path: String,
 }
 
-fn parse_https_endpoint(endpoint: &str) -> Result<ParsedEndpoint, Error> {
+pub(crate) fn parse_https_endpoint(endpoint: &str) -> Result<ParsedEndpoint, Error> {
     let authority = endpoint.strip_prefix("https://").ok_or_else(|| {
         Error::Config(format!(
             "remote embedding endpoint {endpoint:?} must use https"

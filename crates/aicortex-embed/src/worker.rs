@@ -326,33 +326,29 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             {
                 return Ok(WorkerReport::default());
             }
-            let claims = Work::next(
-                store,
-                EMBEDDING_NAMESPACE,
-                &self.processor,
-                &self.holder,
-                self.config.hold_for,
-                now,
-                self.config.batch_size,
-            )
-            .await?;
             let started = Instant::now();
-            let mut report = WorkerReport {
-                claimed: u64::try_from(claims.len()).unwrap_or(u64::MAX),
-                ..WorkerReport::default()
-            };
-            for claim in claims {
+            let mut report = WorkerReport::default();
+            for _ in 0..self.config.batch_size {
                 let item_now = elapsed_now(now, started);
-                let claim = match Work::renew(store, &claim, self.config.hold_for, item_now).await {
-                    Ok(claim) => claim,
-                    Err(Error::Conflict(_)) => continue,
-                    Err(error) => return Err(error),
+                let mut claims = Work::next(
+                    store,
+                    EMBEDDING_NAMESPACE,
+                    &self.processor,
+                    &self.holder,
+                    self.config.hold_for,
+                    item_now,
+                    1,
+                )
+                .await?;
+                let Some(claim) = claims.pop() else {
+                    break;
                 };
+                report.claimed = report.claimed.saturating_add(1);
                 match self.process(store, &claim, now, started).await {
                     Ok(ProcessOutcome::Completed) => {
                         report.completed = report.completed.saturating_add(1);
                     }
-                    Ok(ProcessOutcome::Deferred) => {}
+                    Ok(ProcessOutcome::Deferred) => break,
                     Ok(ProcessOutcome::Quarantined(quarantined_claim)) => {
                         match self
                             .record_quarantine(store, &quarantined_claim, elapsed_now(now, started))
@@ -378,6 +374,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                         } else {
                             report.failed = report.failed.saturating_add(1);
                         }
+                        break;
                     }
                     Err(ProcessError::Infrastructure(Error::Conflict(_))) => continue,
                     Err(ProcessError::Infrastructure(error)) => return Err(error),

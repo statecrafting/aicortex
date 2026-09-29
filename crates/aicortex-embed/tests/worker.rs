@@ -50,6 +50,11 @@ struct TestProvider {
 }
 
 #[derive(Clone, Copy, Debug)]
+struct SlowProvider {
+    delay: Duration,
+}
+
+#[derive(Clone, Copy, Debug)]
 struct OtherProvider;
 
 #[derive(Clone, Debug)]
@@ -214,6 +219,25 @@ impl EmbeddingProvider for TestProvider {
         if self.fail {
             return Err(Error::Upstream("injected provider failure".to_owned()));
         }
+        batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
+    }
+}
+
+impl EmbeddingProvider for SlowProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("test-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        2
+    }
+
+    fn normalized(&self) -> bool {
+        true
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        tokio::time::sleep(self.delay).await;
         batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
     }
 }
@@ -978,7 +1002,7 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
         .drain(&store, UnixSeconds::new(3))
         .await
         .expect("race drains");
-    assert_eq!(report.claimed, 2);
+    assert_eq!(report.claimed, 1);
     assert_eq!(report.completed, 1);
     for memory_id in [memory.id, later.id] {
         assert_eq!(
@@ -1017,6 +1041,71 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
         )
         .await,
         0
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn slow_provider_does_not_expire_unprocessed_tail_claims() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memories = [
+        test_memory("alice", "First slow embedding.", 2),
+        test_memory("alice", "Second slow embedding.", 3),
+        test_memory("alice", "Third slow embedding.", 4),
+    ];
+    let mut txn = TxnBuilder::new();
+    for memory in &memories {
+        insert_memory(&store, "scope-a", memory).await;
+        stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+            .expect("slow work stages");
+    }
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("slow work commits");
+
+    let embedding_worker = EmbeddingWorker::new(
+        SlowProvider {
+            delay: Duration::from_millis(1_100),
+        },
+        model,
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 3,
+            hold_for: Duration::from_secs(3),
+            retry: RetryPolicy {
+                max_attempts: 2,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "slow-worker",
+    )
+    .expect("worker config");
+    let report = embedding_worker
+        .drain(&store, UnixSeconds::new(10))
+        .await
+        .expect("slow batch drains");
+    assert_eq!((report.claimed, report.completed), (3, 3));
+    assert_eq!((report.failed, report.dead), (0, 0));
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM rahi_processing_attempt
+             WHERE attempt = 1 AND outcome = 'done'",
+            vec![],
+        )
+        .await,
+        3
     );
     fixture.shutdown().await;
 }
