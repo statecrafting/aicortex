@@ -513,7 +513,7 @@ async fn claimed_work_stays_reportable_when_no_model_is_active() {
         .drain(&store, UnixSeconds::new(3))
         .await
         .expect("inactive work remains reportable");
-    assert_eq!(report.claimed, 0);
+    assert_eq!(report.claimed, 1);
     assert_eq!(report.completed, 0);
     assert_eq!(report.failed, 0);
     assert_eq!(
@@ -523,7 +523,7 @@ async fn claimed_work_stays_reportable_when_no_model_is_active() {
             vec![],
         )
         .await,
-        0
+        1
     );
     let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
         .await
@@ -945,7 +945,7 @@ async fn a_worker_never_completes_same_revision_work_for_another_model() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn stale_revision_work_is_replaced_by_active_revision_work() {
+async fn inactive_revision_work_completes_before_active_reembedding() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();
     let old_model = test_model(true);
@@ -972,28 +972,41 @@ async fn stale_revision_work_is_replaced_by_active_revision_work() {
         ..test_model(true)
     };
     activate(&store, &active_model).await;
+    let old_worker = worker_for_model(TestProvider { fail: false }, old_model, "old-worker", 3);
+    let old_report = old_worker
+        .drain(&store, UnixSeconds::new(4))
+        .await
+        .expect("inactive worker drains stale work as a terminal no-op");
+    assert_eq!(old_report.completed, 1);
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(4))
+        .await
+        .expect("inactive revision no longer affects readiness");
+    assert_eq!(health.pending, 0);
+    assert_eq!(health.dead, 0);
+
+    let batch = stage_reembedding_batch(
+        &store,
+        "scope-a",
+        &active_model,
+        None,
+        10,
+        UnixSeconds::new(5),
+    )
+    .await
+    .expect("model activation stages bounded re-embedding");
+    assert_eq!(batch.staged, 1);
     let active_worker = worker_for_model(
         TestProvider { fail: false },
         active_model,
         "active-worker",
         3,
     );
-    let old_report = active_worker
-        .drain(&store, UnixSeconds::new(4))
-        .await
-        .expect("active worker replaces stale work");
-    assert_eq!(old_report.completed, 1);
-    let health = queue_health(&store, "scope-a", UnixSeconds::new(4))
-        .await
-        .expect("only active revision work affects readiness");
-    assert_eq!(health.pending, 1);
-    assert_eq!(health.dead, 0);
     let active_report = active_worker
-        .drain(&store, UnixSeconds::new(5))
+        .drain(&store, UnixSeconds::new(6))
         .await
-        .expect("active worker drains replacement");
+        .expect("active worker drains re-embedding work");
     assert_eq!(active_report.completed, 1);
-    let health = queue_health(&store, "scope-a", UnixSeconds::new(5))
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(6))
         .await
         .expect("active revision queue becomes ready");
     assert_eq!(health.pending, 0);
@@ -1179,7 +1192,7 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
     .drain(&store, UnixSeconds::new(5))
     .await
     .expect("revision two drains");
-    assert_eq!(report.completed, 3);
+    assert_eq!(report.completed, 2);
     ModelRegistry::drop_revision(&store, "scope-a", 1)
         .await
         .expect("scoped drop ignores another scope's queue");

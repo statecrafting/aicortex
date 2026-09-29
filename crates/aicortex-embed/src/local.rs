@@ -167,7 +167,7 @@ impl<E> LocalProvider<E> {
             ));
         }
         weights.validate(models_dir)?;
-        weights.path = confined_destination(&weights.path, models_dir)?;
+        weights.path = confined_destination(&weights.path, models_dir, false)?;
         weights.verify()?;
         Ok(Self {
             id,
@@ -193,7 +193,7 @@ impl<E> LocalProvider<E> {
         fetcher: &impl WeightFetcher,
     ) -> Result<(), Error> {
         artifact.validate(models_dir)?;
-        let destination = confined_destination(&artifact.path, models_dir)?;
+        let destination = confined_destination(&artifact.path, models_dir, true)?;
         if artifact.verify_path(&destination).is_ok() {
             return Ok(());
         }
@@ -210,7 +210,7 @@ impl<E> LocalProvider<E> {
                 artifact.sha256
             )));
         }
-        let destination = confined_destination(&artifact.path, models_dir)?;
+        let destination = confined_destination(&artifact.path, models_dir, true)?;
         let (directory, destination_name) = open_destination_directory(&destination, models_dir)?;
         let (temporary_name, mut file) = temporary_file(&directory, &destination_name)?;
         if let Err(error) = file.write_all(&bytes) {
@@ -246,21 +246,40 @@ impl<E> LocalProvider<E> {
     }
 }
 
-fn confined_destination(path: &Path, models_dir: &Path) -> Result<PathBuf, Error> {
-    if let Ok(metadata) = std::fs::symlink_metadata(models_dir)
-        && metadata.file_type().is_symlink()
-    {
-        return Err(Error::Config(format!(
-            "configured models directory {} must not be a symlink",
-            models_dir.display()
-        )));
+fn confined_destination(
+    path: &Path,
+    models_dir: &Path,
+    create_missing: bool,
+) -> Result<PathBuf, Error> {
+    match std::fs::symlink_metadata(models_dir) {
+        Ok(metadata) if metadata.file_type().is_symlink() => {
+            return Err(Error::Config(format!(
+                "configured models directory {} must not be a symlink",
+                models_dir.display()
+            )));
+        }
+        Ok(metadata) if !metadata.is_dir() => {
+            return Err(Error::Config(format!(
+                "configured models directory {} is not a directory",
+                models_dir.display()
+            )));
+        }
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound && create_missing => {
+            std::fs::create_dir_all(models_dir).map_err(|error| {
+                Error::Io(format!(
+                    "cannot create models directory {}: {error}",
+                    models_dir.display()
+                ))
+            })?;
+        }
+        Err(error) => {
+            return Err(Error::Io(format!(
+                "cannot inspect models directory {}: {error}",
+                models_dir.display()
+            )));
+        }
     }
-    std::fs::create_dir_all(models_dir).map_err(|error| {
-        Error::Io(format!(
-            "cannot create models directory {}: {error}",
-            models_dir.display()
-        ))
-    })?;
     let parent = path.parent().ok_or_else(|| {
         Error::Config(format!(
             "model artifact {} has no parent directory",
@@ -298,12 +317,19 @@ fn confined_destination(path: &Path, models_dir: &Path) -> Result<PathBuf, Error
             }
             Ok(_) => {}
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-                std::fs::create_dir(&current).map_err(|error| {
-                    Error::Io(format!(
-                        "cannot create model directory {}: {error}",
+                if create_missing {
+                    std::fs::create_dir(&current).map_err(|error| {
+                        Error::Io(format!(
+                            "cannot create model directory {}: {error}",
+                            current.display()
+                        ))
+                    })?;
+                } else {
+                    return Err(Error::Io(format!(
+                        "cannot inspect model directory {}: {error}",
                         current.display()
-                    ))
-                })?;
+                    )));
+                }
             }
             Err(error) => {
                 return Err(Error::Io(format!(
@@ -513,7 +539,17 @@ mod tests {
         symlink(&outside, models.join("linked")).expect("symlink fixture");
 
         let destination = models.join("linked/model.bin");
-        assert!(confined_destination(&destination, &models).is_err());
+        assert!(confined_destination(&destination, &models, true).is_err());
         assert!(!outside.join("model.bin").exists());
+    }
+
+    #[test]
+    fn verification_does_not_create_a_missing_models_directory() {
+        let root = tempfile::tempdir().expect("temporary root");
+        let models = root.path().join("missing/models");
+        let destination = models.join("model.bin");
+
+        assert!(confined_destination(&destination, &models, false).is_err());
+        assert!(!models.exists());
     }
 }

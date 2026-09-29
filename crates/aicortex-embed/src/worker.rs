@@ -279,93 +279,66 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         store: &StoreHandle,
         now: UnixSeconds,
     ) -> Result<WorkerReport, Error> {
-        let active = ModelRegistry::active(store).await?;
-        let is_active_worker = active.as_ref().is_some_and(|active| {
-            active.revision == self.model.revision && active.model_id == self.model.model_id
-        });
-        if !is_active_worker {
-            return Ok(WorkerReport::default());
-        }
-        let mut claims = Vec::new();
-        let mut remaining = self.config.batch_size;
-        let counts = Work::counts(store).await?;
-        for count in counts.iter().filter(|count| {
-            count
-                .processor
-                .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
-                && count.processor != self.processor
-                && count
-                    .pending
-                    .saturating_add(count.claimed)
-                    .saturating_add(count.failed)
-                    > 0
-        }) {
-            let mut stale = Work::next(
-                store,
-                EMBEDDING_NAMESPACE,
-                &count.processor,
-                &self.holder,
-                self.config.hold_for,
-                now,
-                remaining,
-            )
+        let lease = store
+            .lease(&format!("aicortex.embed.worker/{}", self.model.revision))
             .await?;
-            remaining = remaining.saturating_sub(u32::try_from(stale.len()).unwrap_or(u32::MAX));
-            claims.append(&mut stale);
-            if remaining == 0 {
-                break;
+        let result = async {
+            if ModelRegistry::active(store).await?.is_some_and(|active| {
+                active.revision == self.model.revision && active.model_id != self.model.model_id
+            }) {
+                return Ok(WorkerReport::default());
             }
-        }
-        if remaining > 0 {
-            let mut current = Work::next(
+            let claims = Work::next(
                 store,
                 EMBEDDING_NAMESPACE,
                 &self.processor,
                 &self.holder,
                 self.config.hold_for,
                 now,
-                remaining,
+                self.config.batch_size,
             )
             .await?;
-            claims.append(&mut current);
-        }
-        let started = Instant::now();
-        let mut report = WorkerReport {
-            claimed: u64::try_from(claims.len()).unwrap_or(u64::MAX),
-            ..WorkerReport::default()
-        };
-        for claim in claims {
-            let item_now = elapsed_now(now, started);
-            let claim = match Work::renew(store, &claim, self.config.hold_for, item_now).await {
-                Ok(claim) => claim,
-                Err(Error::Conflict(_)) => continue,
-                Err(error) => return Err(error),
+            let started = Instant::now();
+            let mut report = WorkerReport {
+                claimed: u64::try_from(claims.len()).unwrap_or(u64::MAX),
+                ..WorkerReport::default()
             };
-            match self.process(store, &claim, now, started).await {
-                Ok(ProcessOutcome::Completed) => {
-                    report.completed = report.completed.saturating_add(1);
-                }
-                Ok(ProcessOutcome::Deferred) => {}
-                Err(ProcessError::Item { error, claim }) => {
-                    match self
-                        .record_failure(store, &claim, &error, elapsed_now(now, started))
-                        .await
-                    {
-                        Ok(()) => {}
-                        Err(Error::Conflict(_)) => continue,
-                        Err(error) => return Err(error),
+            for claim in claims {
+                let item_now = elapsed_now(now, started);
+                let claim = match Work::renew(store, &claim, self.config.hold_for, item_now).await {
+                    Ok(claim) => claim,
+                    Err(Error::Conflict(_)) => continue,
+                    Err(error) => return Err(error),
+                };
+                match self.process(store, &claim, now, started).await {
+                    Ok(ProcessOutcome::Completed) => {
+                        report.completed = report.completed.saturating_add(1);
                     }
-                    if claim.attempt >= self.config.retry.max_attempts {
-                        report.dead = report.dead.saturating_add(1);
-                    } else {
-                        report.failed = report.failed.saturating_add(1);
+                    Ok(ProcessOutcome::Deferred) => {}
+                    Err(ProcessError::Item { error, claim }) => {
+                        match self
+                            .record_failure(store, &claim, &error, elapsed_now(now, started))
+                            .await
+                        {
+                            Ok(()) => {}
+                            Err(Error::Conflict(_)) => continue,
+                            Err(error) => return Err(error),
+                        }
+                        if claim.attempt >= self.config.retry.max_attempts {
+                            report.dead = report.dead.saturating_add(1);
+                        } else {
+                            report.failed = report.failed.saturating_add(1);
+                        }
                     }
+                    Err(ProcessError::Infrastructure(Error::Conflict(_))) => continue,
+                    Err(ProcessError::Infrastructure(error)) => return Err(error),
                 }
-                Err(ProcessError::Infrastructure(Error::Conflict(_))) => continue,
-                Err(ProcessError::Infrastructure(error)) => return Err(error),
             }
+            Ok(report)
         }
-        Ok(report)
+        .await;
+        lease.release().await;
+        result
     }
 
     async fn process(
@@ -394,8 +367,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     && claim.key.processor_revision == self.model.model_id.as_str()
                     && active.revision == self.model.revision
                     && active.model_id == self.model.model_id => {}
-            Some(active) => {
-                self.restage_active(store, claim, &active, now).await?;
+            Some(_) => {
+                self.complete_empty(store, claim, now).await?;
                 return Ok(ProcessOutcome::Completed);
             }
             None => {
@@ -554,39 +527,6 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         now: UnixSeconds,
     ) -> Result<(), ProcessError> {
         let mut txn = TxnBuilder::new();
-        Work::complete(&mut txn, claim, now);
-        store
-            .txn(txn.into_statements())
-            .await
-            .map_err(ProcessError::Infrastructure)?;
-        Ok(())
-    }
-
-    async fn restage_active(
-        &self,
-        store: &StoreHandle,
-        claim: &Claim,
-        active: &ModelRevision,
-        now: UnixSeconds,
-    ) -> Result<(), ProcessError> {
-        let memory_id = claim.key.receipt.key.parse::<MemoryId>().map_err(|error| {
-            ProcessError::item(
-                Error::Integrity(format!(
-                    "embedding work memory id {} is invalid: {error}",
-                    claim.key.receipt.key
-                )),
-                claim,
-            )
-        })?;
-        let mut txn = TxnBuilder::new();
-        stage_embedding(
-            &mut txn,
-            claim.key.receipt.tenant.as_str(),
-            memory_id,
-            active,
-            now,
-        )
-        .map_err(|error| ProcessError::item(error, claim))?;
         Work::complete(&mut txn, claim, now);
         store
             .txn(txn.into_statements())

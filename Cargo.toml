@@ -80,6 +80,10 @@ serde_json = "1"
 # still holds.
 ring = "0.17"
 base64 = "0.22"
+
+# The local model preflight installs verified artifacts through directory
+# handles so a pathname swap cannot redirect the final rename (015 B-5).
+# Only rustix's filesystem facade is enabled.
 rustix = { version = "1", features = ["fs"] }
 
 # The content fingerprint of spec 014 B-1. BLAKE3 rather than a second call

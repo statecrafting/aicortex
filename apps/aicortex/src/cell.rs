@@ -72,8 +72,8 @@ struct ScopeRow {
 /// This runs after the chassis preflight attempt and reacquires the chassis
 /// cell gate before opening the store. If another process owns that gate, the
 /// embedding check reports a skip instead of bypassing it. Otherwise it
-/// reports every scope separately and leaves the process-wide model identity
-/// visible even when the deployment contains no scopes yet.
+/// reports a bounded set of scopes separately and leaves the process-wide
+/// model identity visible even when the deployment contains no scopes yet.
 #[must_use]
 pub fn embedding_preflight(env: &dyn EnvReader) -> i32 {
     let runtime = match tokio::runtime::Builder::new_current_thread()
@@ -128,42 +128,32 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
     let deployment = aicortex_embed::EmbeddingPreflight::read(&handle, "", now).await?;
     println!("embedding: deployment {}", deployment.deployment());
 
-    const PAGE: i64 = 100;
-    let mut after = String::new();
-    let mut reported = false;
-    loop {
-        let scopes: Vec<ScopeRow> = handle
-            .query(
-                "SELECT scope_id FROM scope WHERE scope_id > ?1 ORDER BY scope_id LIMIT ?2",
-                vec![after.clone().into(), PAGE.into()],
-            )
-            .await?;
-        if scopes.is_empty() {
-            break;
-        }
-        for scope in &scopes {
-            let coverage =
-                aicortex_embed::ModelRegistry::coverage(&handle, &scope.scope_id).await?;
-            println!(
-                "embedding: scope={} coverage=[{}]",
-                scope.scope_id,
-                format_coverage(&coverage)
-            );
-            reported = true;
-        }
-        after = scopes
-            .last()
-            .map(|scope| scope.scope_id.clone())
-            .unwrap_or(after);
-        if scopes.len() < usize::try_from(PAGE).unwrap_or(usize::MAX) {
-            break;
-        }
+    const MAX_REPORTED_SCOPES: usize = 100;
+    let scopes: Vec<ScopeRow> = handle
+        .query(
+            "SELECT scope_id FROM scope ORDER BY scope_id LIMIT ?1",
+            vec![
+                i64::try_from(MAX_REPORTED_SCOPES + 1)
+                    .unwrap_or(i64::MAX)
+                    .into(),
+            ],
+        )
+        .await?;
+    for scope in scopes.iter().take(MAX_REPORTED_SCOPES) {
+        let coverage = aicortex_embed::ModelRegistry::coverage(&handle, &scope.scope_id).await?;
+        println!(
+            "embedding: scope={} coverage=[{}]",
+            scope.scope_id,
+            format_coverage(&coverage)
+        );
     }
-    if !reported {
+    if scopes.is_empty() {
         println!(
             "embedding: scope=none coverage=[{}]",
             format_coverage(&deployment.coverage)
         );
+    } else if scopes.len() > MAX_REPORTED_SCOPES {
+        println!("embedding: scope_coverage_truncated=true limit={MAX_REPORTED_SCOPES}");
     }
     Ok(())
 }
