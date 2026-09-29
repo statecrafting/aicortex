@@ -256,8 +256,10 @@ The current application has no first-activation wiring, so capture does not
 yet stage embedding work. The storage and durable-work contracts are
 implemented and tested without regressing the existing capture path.
 
-FR-002, FR-003, and FR-007 have direct tests. FR-001, FR-004, FR-005, and
-FR-006 remain open: capture does not stage the job yet, and there is no booted
+FR-002 and FR-007 have direct tests. FR-003 has direct dead-letter transition
+and library report coverage, but its application preflight reporting path
+remains open with the chassis hook. FR-001, FR-004, FR-005, and FR-006 also
+remain open: capture does not stage the job yet, and there is no booted
 local-provider socket probe, denied-host application preflight fixture, or
 query predicate until the runtime wiring and spec 016 recall implementation
 exist. These are recorded as open requirements, not inferred from lower-level

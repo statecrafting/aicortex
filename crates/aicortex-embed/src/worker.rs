@@ -704,16 +704,7 @@ fn stage_derivative_commit_guards(
     memory_id: MemoryId,
     model: &ModelRevision,
 ) {
-    txn.push(Statement::with_params(
-        "INSERT INTO memory (id)
-         SELECT ?2
-         WHERE NOT EXISTS (
-             SELECT 1 FROM memory
-             WHERE scope_id = ?1 AND id = ?2
-               AND status NOT IN ('erased', 'quarantined')
-         )",
-        vec![Value::from(scope_id), Value::from(memory_id.to_string())],
-    ));
+    stage_live_memory_guard(txn, scope_id, memory_id);
     txn.push(Statement::with_params(
         "INSERT INTO embedding_model (revision)
          SELECT ?1
@@ -728,6 +719,19 @@ fn stage_derivative_commit_guards(
             Value::Integer(i64::from(model.dims)),
             Value::from(model.normalized),
         ],
+    ));
+}
+
+fn stage_live_memory_guard(txn: &mut TxnBuilder, scope_id: &str, memory_id: MemoryId) {
+    txn.push(Statement::with_params(
+        "INSERT INTO chunk (chunk_id)
+         SELECT NULL
+         WHERE NOT EXISTS (
+             SELECT 1 FROM memory
+             WHERE scope_id = ?1 AND id = ?2
+               AND status NOT IN ('erased', 'quarantined')
+         )",
+        vec![Value::from(scope_id), Value::from(memory_id.to_string())],
     ));
 }
 
@@ -785,9 +789,9 @@ pub fn stage_embedding(
 ///
 /// Re-embedding selects candidates before it opens the staging transaction.
 /// This guard rechecks the selection inside that transaction, so erasure or
-/// quarantine committed in between aborts the complete batch. The failed
-/// insert is deliberately impossible: an existing terminal row conflicts on
-/// its primary key, while an absent row violates the required columns.
+/// quarantine committed in between aborts the complete batch. If the memory
+/// is no longer live, the guard deliberately violates `chunk.chunk_id`'s
+/// `NOT NULL` constraint without opening an insert path into `memory`.
 ///
 /// # Errors
 ///
@@ -800,16 +804,7 @@ pub fn stage_live_embedding(
     model: &ModelRevision,
     now: UnixSeconds,
 ) -> Result<(), Error> {
-    txn.push(Statement::with_params(
-        "INSERT INTO memory (id)
-         SELECT ?2
-         WHERE NOT EXISTS (
-             SELECT 1 FROM memory
-             WHERE scope_id = ?1 AND id = ?2
-               AND status NOT IN ('erased', 'quarantined')
-         )",
-        vec![Value::from(scope_id), Value::from(memory_id.to_string())],
-    ));
+    stage_live_memory_guard(txn, scope_id, memory_id);
     stage_embedding(txn, scope_id, memory_id, model, now)
 }
 
