@@ -352,18 +352,20 @@ fn ac2_migrate_reaches_the_expected_version_and_serve_refuses_a_stale_store() ->
         "migrate failed:\n{}",
         String::from_utf8_lossy(&migrated.stderr)
     );
-    assert!(
-        report.contains(&format!("app {}", aicortex_store::EXPECTED_SCHEMA_VERSION)),
-        "migrate did not report reaching the expected version:\n{report}"
+    let applied = aicortex_store::migrations()
+        .iter()
+        .map(|migration| format!("app {}", migration.version))
+        .collect::<Vec<_>>()
+        .join(", ");
+    assert_eq!(
+        report.trim(),
+        format!(
+            "migrate: sets now at app {}, rahi.coordination 1, rahi.receipts 1; applied: \
+             rahi.coordination 1, rahi.receipts 1, {applied}",
+            aicortex_store::EXPECTED_SCHEMA_VERSION
+        ),
+        "migrate did not report every application migration from empty"
     );
-    for migration in aicortex_store::migrations() {
-        assert!(
-            report.contains(&migration.version.to_string()),
-            "migrate did not apply {} ({}):\n{report}",
-            migration.version,
-            migration.name
-        );
-    }
 
     // B-1: running it twice is a no-op.
     let again = aicortex("migrate", data_dir.path(), ports)?;

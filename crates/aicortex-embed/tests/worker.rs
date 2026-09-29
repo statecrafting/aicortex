@@ -7,6 +7,8 @@
 
 use std::net::{SocketAddr, TcpListener};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
 use aicortex_embed::local::{LocalEngine, LocalProvider, WeightArtifact};
@@ -23,8 +25,8 @@ use aicortex_types::{
     Scope, SourceRef, SourceSystem, TrustClass,
 };
 use rahi_store::{
-    EncKey, EncKeys, RetryPolicy, Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value,
-    coordination_set, receipt_set,
+    EncKey, EncKeys, EraseScope, ReceiptKey, Receipts, RetryPolicy, Statement, Store, StoreConfig,
+    StoreHandle, StoreSecrets, TxnBuilder, Value, coordination_set, receipt_set,
 };
 use rahi_types::{Error, Sub, UnixSeconds};
 use ring::digest::{SHA256, digest};
@@ -53,7 +55,8 @@ struct OtherProvider;
 struct ErasingProvider {
     store: StoreHandle,
     scope_id: String,
-    memory_id: MemoryId,
+    memory_ids: Vec<MemoryId>,
+    erased: Arc<AtomicBool>,
 }
 
 impl EmbeddingProvider for ErasingProvider {
@@ -70,15 +73,25 @@ impl EmbeddingProvider for ErasingProvider {
     }
 
     async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
-        self.store
-            .execute(
-                "UPDATE memory SET status = 'erased' WHERE scope_id = ?1 AND id = ?2",
-                vec![
-                    Value::from(self.scope_id.as_str()),
-                    Value::from(self.memory_id.to_string()),
-                ],
-            )
-            .await?;
+        if !self.erased.swap(true, Ordering::SeqCst) {
+            let mut txn = TxnBuilder::new();
+            for memory_id in &self.memory_ids {
+                txn.push(Statement::with_params(
+                    "UPDATE memory SET status = 'erased' WHERE scope_id = ?1 AND id = ?2",
+                    vec![
+                        Value::from(self.scope_id.as_str()),
+                        Value::from(memory_id.to_string()),
+                    ],
+                ));
+                let key = ReceiptKey::new(
+                    self.scope_id.as_str(),
+                    aicortex_store::EMBEDDING_NAMESPACE,
+                    memory_id.to_string(),
+                )?;
+                Receipts::stage_erasure(&mut txn, &EraseScope::Identity(key), UnixSeconds::new(3));
+            }
+            self.store.txn(txn.into_statements()).await?;
+        }
         batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
     }
 }
@@ -702,10 +715,14 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
     let model = test_model(true);
     activate(&store, &model).await;
     let memory = test_memory("alice", "Erase while inference is running.", 2);
+    let later = test_memory("alice", "The claimed batch must keep draining.", 2);
     insert_memory(&store, "scope-a", &memory).await;
+    insert_memory(&store, "scope-a", &later).await;
     let mut txn = TxnBuilder::new();
     stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
         .expect("work stages");
+    stage_embedding(&mut txn, "scope-a", later.id, &model, UnixSeconds::new(2))
+        .expect("later work stages");
     store
         .txn(txn.into_statements())
         .await
@@ -714,7 +731,8 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
         ErasingProvider {
             store: store.clone(),
             scope_id: "scope-a".to_owned(),
-            memory_id: memory.id,
+            memory_ids: vec![memory.id, later.id],
+            erased: Arc::new(AtomicBool::new(false)),
         },
         model,
         Chunker::new(ChunkConfig {
@@ -725,7 +743,7 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
         })
         .expect("chunk config"),
         WorkerConfig {
-            batch_size: 1,
+            batch_size: 2,
             hold_for: Duration::from_secs(5),
             retry: RetryPolicy {
                 max_attempts: 3,
@@ -740,12 +758,33 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
         .drain(&store, UnixSeconds::new(3))
         .await
         .expect("race drains");
+    assert_eq!(report.claimed, 2);
     assert_eq!(report.completed, 1);
+    for memory_id in [memory.id, later.id] {
+        assert_eq!(
+            count(
+                &store,
+                "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+                vec![Value::from(memory_id.to_string())],
+            )
+            .await,
+            0
+        );
+        assert_eq!(
+            count(
+                &store,
+                "SELECT COUNT(*) AS count FROM chunk WHERE memory_id = ?1",
+                vec![Value::from(memory_id.to_string())],
+            )
+            .await,
+            0
+        );
+    }
     assert_eq!(
         count(
             &store,
-            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
-            vec![Value::from(memory.id.to_string())],
+            "SELECT COUNT(*) AS count FROM rahi_processing",
+            vec![],
         )
         .await,
         0
@@ -753,8 +792,8 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
     assert_eq!(
         count(
             &store,
-            "SELECT COUNT(*) AS count FROM chunk WHERE memory_id = ?1",
-            vec![Value::from(memory.id.to_string())],
+            "SELECT COUNT(*) AS count FROM rahi_processing_attempt",
+            vec![],
         )
         .await,
         0
