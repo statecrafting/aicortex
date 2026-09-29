@@ -229,7 +229,7 @@ pub fn stage_complete_embedding_coverage_guard(txn: &mut TxnBuilder, scope_id: &
     ));
 }
 
-/// Read deployment-wide embedding queue aggregates through the leader.
+/// Read one scope's embedding queue aggregates through the leader.
 ///
 /// The result contains no memory records or identifiers. The join exists only
 /// to distinguish work still held by quarantine from an admitted dead letter.
@@ -239,6 +239,7 @@ pub fn stage_complete_embedding_coverage_guard(txn: &mut TxnBuilder, scope_id: &
 /// Store errors or a missing aggregate row.
 pub async fn embedding_queue_counts(
     store: &StoreHandle,
+    scope_id: &str,
     namespace: &str,
     processor_glob: &str,
     revision_offset: i64,
@@ -277,13 +278,16 @@ pub async fn embedding_queue_counts(
               AND attempt.attempt = processing.attempt
               AND attempt.outcome = 'dead'
              LEFT JOIN memory
-               ON memory.scope_id = processing.tenant
+               ON memory.scope_id = ?1
+              AND memory.scope_id = processing.tenant
               AND memory.id = processing.key
              WHERE processing.state IN ('pending', 'claimed', 'failed', 'dead')
-               AND processing.namespace = ?1
-               AND processing.processor GLOB ?2
-               AND substr(processing.processor, ?3) NOT GLOB '*[^0-9]*'",
+               AND processing.tenant = ?1
+               AND processing.namespace = ?2
+               AND processing.processor GLOB ?3
+               AND substr(processing.processor, ?4) NOT GLOB '*[^0-9]*'",
             vec![
+                Value::from(scope_id),
                 Value::from(namespace),
                 Value::from(processor_glob),
                 Value::Integer(revision_offset),

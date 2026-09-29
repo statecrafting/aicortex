@@ -253,6 +253,11 @@ configuration with a pinned digest rather than a spec-level commitment.
   re-embedding selection, lifecycle guards, coverage, and queue classification
   therefore remain inside spec 012's SQL scope-predicate ratchet. Live totals
   come from the maintained scope counters rather than scanning memory rows.
+- **D-18 (2026-09-29, implementation).** Product preflight queue health is
+  scope-bound across every model revision. This narrows D-10's deployment-wide
+  wording to preserve the storage isolation invariant: an operator-wide metric
+  requires a separately authorized surface and cannot be inferred by a scoped
+  preflight read.
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,
@@ -267,15 +272,14 @@ The spec is not complete. `aicortex serve` still lacks provider configuration,
 a concrete local inference engine, first-activation and model-change wiring,
 the managed background-worker lifecycle, and the re-embed and drop operator
 verbs (B-2, B-4, B-5, B-6, B-9). The product preflight report can read the
-active revision, deployment-wide queue counts and oldest-pending age, and
+active revision, scope-bound queue counts and oldest-pending age, and
 per-scope coverage, but the pinned chassis has no product preflight extension
 hook through which to invoke it without violating spec 010 B-3 and B-6. Rahi
 0.4.0 also does not expose tenant-level queue counts or a product collector
 hook in the chassis `/metrics` registry (B-3). Expected quarantine dead letters
 are reported separately from failed work and do not degrade readiness. An
-inactive revision's queued work completes
-as a terminal no-op, so a scope-local drop does not consult the chassis's
-deployment-global queue counts.
+inactive revision's queued work completes as a terminal no-op, so a
+scope-local drop does not consult another scope's queue counts.
 
 The current application has no first-activation wiring, so capture does not
 yet stage embedding work. The storage and durable-work contracts are

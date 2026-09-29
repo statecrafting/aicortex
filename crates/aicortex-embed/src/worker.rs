@@ -95,7 +95,7 @@ pub struct QueueHealth {
 pub struct EmbeddingPreflight {
     /// Revision serving queries now, if one has been activated.
     pub active: Option<ModelRevision>,
-    /// Durable work state across every embedding revision and scope.
+    /// Durable work state across every embedding revision in this scope.
     pub queue: QueueHealth,
     /// Live-memory coverage for each known revision in this scope.
     pub coverage: Vec<Coverage>,
@@ -103,9 +103,9 @@ pub struct EmbeddingPreflight {
     pub live_memories: u64,
 }
 
-/// Deployment-wide embedding state without scope-specific coverage.
+/// Scope-wide embedding state without coverage details.
 #[derive(Clone, Copy, Debug)]
-pub struct EmbeddingDeployment<'a>(&'a EmbeddingPreflight);
+pub struct EmbeddingScope<'a>(&'a EmbeddingPreflight);
 
 impl EmbeddingPreflight {
     /// Read the current preflight observations for `scope_id`.
@@ -149,14 +149,14 @@ impl EmbeddingPreflight {
         }
     }
 
-    /// Format deployment-wide state separately from per-scope coverage.
+    /// Format scope-wide state separately from coverage details.
     #[must_use]
-    pub const fn deployment(&self) -> EmbeddingDeployment<'_> {
-        EmbeddingDeployment(self)
+    pub const fn scope_summary(&self) -> EmbeddingScope<'_> {
+        EmbeddingScope(self)
     }
 }
 
-impl std::fmt::Display for EmbeddingDeployment<'_> {
+impl std::fmt::Display for EmbeddingScope<'_> {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let active = self.0.active.as_ref().map_or_else(
             || "none".to_owned(),
@@ -195,7 +195,7 @@ impl std::fmt::Display for EmbeddingPreflight {
         write!(
             formatter,
             "{} live={} coverage=[{coverage}]",
-            self.deployment(),
+            self.scope_summary(),
             self.live_memories
         )
     }
@@ -940,11 +940,10 @@ async fn reembed_under_lease(
     })
 }
 
-/// Read the global queue values required by preflight and metrics.
+/// Read the scoped queue values required by preflight and metrics.
 ///
-/// Rahi 0.4 exposes deployment-level processing rows but not a tenant-level
-/// queue aggregate. The scope remains in this API so callers do not need
-/// another compatibility break when the chassis adds that read.
+/// Rahi 0.4 exposes processing rows but not a tenant-level queue aggregate,
+/// so this adapter binds the scope in its storage predicate.
 /// Counts deliberately include every model revision: activating a replacement
 /// must not hide unfinished work in the prior revision's durable partition.
 /// The prior revision's worker drains that work to a terminal no-op; until it
@@ -958,13 +957,14 @@ async fn reembed_under_lease(
 /// Store errors or negative/corrupt aggregate values.
 pub async fn queue_health(
     store: &StoreHandle,
-    _scope_id: &str,
+    scope_id: &str,
     now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {
     let revision_offset = i64::try_from(EMBEDDING_PROCESSOR.len() + 3)
         .map_err(|_| Error::Integrity("processor prefix is too long".to_owned()))?;
     let row = embedding_queue_counts(
         store,
+        scope_id,
         EMBEDDING_NAMESPACE,
         &format!("{EMBEDDING_PROCESSOR}.r[0-9]*"),
         revision_offset,

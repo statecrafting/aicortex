@@ -570,6 +570,9 @@ fn embedding_sources_do_not_own_memory_table_sql() {
             );
         }
     }
+    let store_source = include_str!("../../aicortex-store/src/embedding_memory.rs");
+    assert!(store_source.contains("memory.scope_id = ?1"));
+    assert!(store_source.contains("processing.tenant = ?1"));
 }
 
 #[test]
@@ -1901,7 +1904,7 @@ async fn a_worker_never_claims_a_stored_revision_with_another_vector_layout() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn queue_health_excludes_foreign_namespaces_and_non_revision_processors() {
+async fn queue_health_excludes_foreign_scopes_namespaces_and_non_revision_processors() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();
     let mut txn = TxnBuilder::new();
@@ -1922,6 +1925,15 @@ async fn queue_health_excludes_foreign_namespaces_and_non_revision_processors() 
         let work = ProcessingKey::new(receipt, 1, processor, "test").expect("processing key");
         Work::stage_work(&mut txn, &work, UnixSeconds::new(2));
     }
+    let foreign_receipt = ReceiptKey::new(
+        "scope-b",
+        aicortex_store::EMBEDDING_NAMESPACE,
+        MemoryId::now_v7().to_string(),
+    )
+    .expect("foreign receipt key");
+    let foreign_work =
+        ProcessingKey::new(foreign_receipt, 1, "embed.r1", "test").expect("foreign processing key");
+    Work::stage_work(&mut txn, &foreign_work, UnixSeconds::new(2));
     store
         .txn(txn.into_statements())
         .await

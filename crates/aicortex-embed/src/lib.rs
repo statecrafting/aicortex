@@ -24,8 +24,8 @@ pub use provider::{EmbeddingProvider, ModelId, Vector};
 pub use registry::{Coverage, ModelRegistry, ModelRevision};
 pub use remote::{EmbeddingTransport, RemoteProvider};
 pub use worker::{
-    ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingDeployment,
-    EmbeddingPreflight, EmbeddingWorker, MAX_REEMBED_BATCH, QueueHealth, ReembeddingBatch,
-    WorkerConfig, WorkerReport, embedding_processor, embedding_work_key, queue_health,
-    stage_active_embedding, stage_embedding, stage_live_embedding, stage_reembedding_batch,
+    ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingPreflight, EmbeddingScope,
+    EmbeddingWorker, MAX_REEMBED_BATCH, QueueHealth, ReembeddingBatch, WorkerConfig, WorkerReport,
+    embedding_processor, embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
+    stage_live_embedding, stage_reembedding_batch,
 };
