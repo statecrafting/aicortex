@@ -449,8 +449,18 @@ async fn claimed_work_stays_reportable_when_no_model_is_active() {
         .drain(&store, UnixSeconds::new(3))
         .await
         .expect("inactive work remains reportable");
+    assert_eq!(report.claimed, 0);
     assert_eq!(report.completed, 0);
-    assert_eq!(report.failed, 1);
+    assert_eq!(report.failed, 0);
+    assert_eq!(
+        count(
+            &store,
+            "SELECT attempt AS count FROM rahi_processing LIMIT 1",
+            vec![],
+        )
+        .await,
+        0
+    );
     let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
         .await
         .expect("queue health reads");
@@ -812,10 +822,19 @@ async fn a_worker_never_completes_same_revision_work_for_another_model() {
     let report = mismatched
         .drain(&store, UnixSeconds::new(3))
         .await
-        .expect("mismatch is recorded through the queue");
-    assert_eq!(report.claimed, 1);
+        .expect("mismatch leaves the queue untouched");
+    assert_eq!(report.claimed, 0);
     assert_eq!(report.completed, 0);
-    assert_eq!(report.failed, 1);
+    assert_eq!(report.failed, 0);
+    assert_eq!(
+        count(
+            &store,
+            "SELECT attempt AS count FROM rahi_processing LIMIT 1",
+            vec![],
+        )
+        .await,
+        0
+    );
     assert_eq!(
         count(
             &store,

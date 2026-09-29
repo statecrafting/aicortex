@@ -184,6 +184,12 @@ struct MemoryIdRow {
     id: String,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ProcessOutcome {
+    Completed,
+    Deferred,
+}
+
 impl<P: EmbeddingProvider> EmbeddingWorker<P> {
     /// Bind one process to the provider resolved at boot.
     ///
@@ -242,37 +248,37 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         let is_active_worker = active.as_ref().is_some_and(|active| {
             active.revision == self.model.revision && active.model_id == self.model.model_id
         });
+        if !is_active_worker {
+            return Ok(WorkerReport::default());
+        }
         let mut claims = Vec::new();
         let mut remaining = self.config.batch_size;
-        if is_active_worker {
-            let counts = Work::counts(store).await?;
-            for count in counts.iter().filter(|count| {
-                count
-                    .processor
-                    .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
-                    && count.processor != self.processor
-                    && count
-                        .pending
-                        .saturating_add(count.claimed)
-                        .saturating_add(count.failed)
-                        > 0
-            }) {
-                let mut stale = Work::next(
-                    store,
-                    EMBEDDING_NAMESPACE,
-                    &count.processor,
-                    &self.holder,
-                    self.config.hold_for,
-                    now,
-                    remaining,
-                )
-                .await?;
-                remaining =
-                    remaining.saturating_sub(u32::try_from(stale.len()).unwrap_or(u32::MAX));
-                claims.append(&mut stale);
-                if remaining == 0 {
-                    break;
-                }
+        let counts = Work::counts(store).await?;
+        for count in counts.iter().filter(|count| {
+            count
+                .processor
+                .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
+                && count.processor != self.processor
+                && count
+                    .pending
+                    .saturating_add(count.claimed)
+                    .saturating_add(count.failed)
+                    > 0
+        }) {
+            let mut stale = Work::next(
+                store,
+                EMBEDDING_NAMESPACE,
+                &count.processor,
+                &self.holder,
+                self.config.hold_for,
+                now,
+                remaining,
+            )
+            .await?;
+            remaining = remaining.saturating_sub(u32::try_from(stale.len()).unwrap_or(u32::MAX));
+            claims.append(&mut stale);
+            if remaining == 0 {
+                break;
             }
         }
         if remaining > 0 {
@@ -301,7 +307,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 Err(error) => return Err(error),
             };
             match self.process(store, &claim, now, started).await {
-                Ok(()) => report.completed = report.completed.saturating_add(1),
+                Ok(ProcessOutcome::Completed) => {
+                    report.completed = report.completed.saturating_add(1);
+                }
+                Ok(ProcessOutcome::Deferred) => {}
                 Err(error) => {
                     match self
                         .record_failure(store, &claim, &error, elapsed_now(now, started))
@@ -328,7 +337,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         claim: &Claim,
         origin: UnixSeconds,
         started: Instant,
-    ) -> Result<(), Error> {
+    ) -> Result<ProcessOutcome, Error> {
         let now = elapsed_now(origin, started);
         if claim.key.processor != embedding_processor(claim.key.revision) {
             return Err(Error::Conflict(format!(
@@ -343,17 +352,13 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     && active.revision == self.model.revision
                     && active.model_id == self.model.model_id => {}
             Some(active) if active.revision == claim.key.revision => {
-                return Err(Error::Config(format!(
-                    "embedding worker {} cannot process active work for {} at revision {}",
-                    self.model.model_id, claim.key.processor_revision, claim.key.revision
-                )));
+                return Ok(ProcessOutcome::Deferred);
             }
-            Some(active) => return self.restage_active(store, claim, &active, now).await,
-            None => {
-                return Err(Error::Config(
-                    "embedding work cannot complete without an active model revision".to_owned(),
-                ));
+            Some(active) => {
+                self.restage_active(store, claim, &active, now).await?;
+                return Ok(ProcessOutcome::Completed);
             }
+            None => return Ok(ProcessOutcome::Deferred),
         }
         let rows: Vec<MemoryRow> = store
             .query_consistent(
@@ -365,7 +370,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             )
             .await?;
         let Some(row) = rows.into_iter().next() else {
-            return self.complete_empty(store, claim, now).await;
+            self.complete_empty(store, claim, now).await?;
+            return Ok(ProcessOutcome::Completed);
         };
         let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
             Error::Integrity(format!(
@@ -374,7 +380,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             ))
         })?;
         if memory.status == Status::Erased {
-            return self.complete_empty(store, claim, now).await;
+            self.complete_empty(store, claim, now).await?;
+            return Ok(ProcessOutcome::Completed);
         }
         let chunks = self.chunker.split(&memory.body.text)?;
         if chunks.is_empty() {
@@ -455,7 +462,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         }
         Work::complete(&mut txn, &claim, now);
         store.txn(txn.into_statements()).await?;
-        Ok(())
+        Ok(ProcessOutcome::Completed)
     }
 
     async fn complete_empty(

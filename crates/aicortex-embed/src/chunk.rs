@@ -85,6 +85,7 @@ impl Chunker {
         let mut chunks = Vec::new();
         let mut start = 0;
         while start < body.len() {
+            let previous_end = chunks.last().map_or(0, |chunk: &Chunk| chunk.byte_end);
             let target = start
                 .saturating_add(self.config.target_bytes)
                 .min(body.len());
@@ -94,6 +95,9 @@ impl Chunker {
                 .rfind(|boundary| *boundary > start && *boundary <= target)
                 .unwrap_or_else(|| utf8_floor(body, target));
             if end < body.len() && end.saturating_sub(start) <= self.config.overlap_bytes {
+                end = utf8_floor(body, target);
+            }
+            if end <= previous_end {
                 end = utf8_floor(body, target);
             }
             if end <= start {
