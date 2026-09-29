@@ -945,12 +945,16 @@ pub async fn queue_health(
                END), 0) AS pending,
                COALESCE(SUM(CASE
                  WHEN processing.state = 'dead'
-                  AND COALESCE(attempt.error_class, '') != 'quarantined' THEN 1
+                  AND NOT (
+                    COALESCE(attempt.error_class, '') = 'quarantined'
+                    AND COALESCE(memory.status, '') = 'quarantined'
+                  ) THEN 1
                  ELSE 0
                END), 0) AS dead,
                COALESCE(SUM(CASE
                  WHEN processing.state = 'dead'
-                  AND attempt.error_class = 'quarantined' THEN 1
+                  AND attempt.error_class = 'quarantined'
+                  AND memory.status = 'quarantined' THEN 1
                  ELSE 0
                END), 0) AS quarantined
              FROM rahi_processing AS processing
@@ -961,6 +965,9 @@ pub async fn queue_health(
               AND attempt.processor_revision = processing.processor_revision
               AND attempt.attempt = processing.attempt
               AND attempt.outcome = 'dead'
+             LEFT JOIN memory
+               ON memory.scope_id = processing.tenant
+              AND memory.id = processing.key
              WHERE processing.state IN ('pending', 'claimed', 'failed', 'dead')
                AND processing.namespace = ?1
                AND processing.processor GLOB ?2

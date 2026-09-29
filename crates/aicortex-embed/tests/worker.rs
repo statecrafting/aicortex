@@ -1307,6 +1307,15 @@ async fn terminal_memory_work_stays_recoverable_without_embedding() {
                 )
                 .await
                 .expect("review admits the memory");
+            let admitted_health = queue_health(&store, "scope-a", UnixSeconds::new(4))
+                .await
+                .expect("admitted dead letter remains visible");
+            assert_eq!((admitted_health.dead, admitted_health.quarantined), (1, 0));
+            let admitted_preflight =
+                EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(4))
+                    .await
+                    .expect("admitted preflight reads");
+            assert!(admitted_preflight.readiness_warning().is_some());
             let mut requeue = TxnBuilder::new();
             Work::requeue(
                 &mut requeue,

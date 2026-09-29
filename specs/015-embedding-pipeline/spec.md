@@ -228,6 +228,14 @@ configuration with a pinned digest rather than a spec-level commitment.
   payloads above 1 MiB before opening the derivative transaction. This leaves
   headroom below the pinned engine's 2 MiB WAL ceiling, so the queue can record
   a retry instead of submitting an entry the store cannot accept.
+- **D-15 (2026-09-29, implementation).** The pinned chassis has no product
+  preflight extension hook. Until Rahi provides one, the binary recognizes only
+  the chassis-parsed `preflight` verb, lets `rahi_cli::run_with` own the chassis
+  attempt and exit code, then runs the product embedding report only after a
+  successful chassis result. This temporarily extends spec 010 B-3's one-call
+  binary and B-6's inherited exit-code path without adding a new exit-code
+  meaning. The application wrapper must be removed when the chassis exposes a
+  preflight extension hook; no other verb may use this stopgap.
 
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
