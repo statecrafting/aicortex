@@ -69,10 +69,14 @@ impl WeightArtifact {
     /// [`Error::Io`] when the file cannot be read; [`Error::Integrity`] when
     /// its digest differs from the pin.
     pub fn verify(&self) -> Result<(), Error> {
-        let mut file = std::fs::File::open(&self.path).map_err(|error| {
+        self.verify_path(&self.path)
+    }
+
+    fn verify_path(&self, path: &Path) -> Result<(), Error> {
+        let mut file = std::fs::File::open(path).map_err(|error| {
             Error::Io(format!(
                 "cannot read model artifact {}: {error}",
-                self.path.display()
+                path.display()
             ))
         })?;
         let mut context = Context::new(&SHA256);
@@ -81,7 +85,7 @@ impl WeightArtifact {
             let read = file.read(&mut buffer).map_err(|error| {
                 Error::Io(format!(
                     "cannot read model artifact {}: {error}",
-                    self.path.display()
+                    path.display()
                 ))
             })?;
             if read == 0 {
@@ -96,7 +100,7 @@ impl WeightArtifact {
         if actual != self.sha256 {
             return Err(Error::Integrity(format!(
                 "model artifact {} has SHA-256 {actual}, expected {}",
-                self.path.display(),
+                path.display(),
                 self.sha256
             )));
         }
@@ -175,7 +179,8 @@ impl<E> LocalProvider<E> {
         fetcher: &impl WeightFetcher,
     ) -> Result<(), Error> {
         artifact.validate(models_dir)?;
-        if artifact.verify().is_ok() {
+        let destination = confined_destination(&artifact.path, models_dir)?;
+        if artifact.verify_path(&destination).is_ok() {
             return Ok(());
         }
         let bytes = fetcher.fetch(&artifact.url).await?;
@@ -186,19 +191,11 @@ impl<E> LocalProvider<E> {
                 artifact.sha256
             )));
         }
-        let parent = artifact.path.parent().ok_or_else(|| {
-            Error::Config(format!(
-                "model artifact {} has no parent directory",
-                artifact.path.display()
-            ))
+        let destination = confined_destination(&artifact.path, models_dir)?;
+        let parent = destination.parent().ok_or_else(|| {
+            Error::Config("canonical model artifact has no parent directory".to_owned())
         })?;
-        std::fs::create_dir_all(parent).map_err(|error| {
-            Error::Io(format!(
-                "cannot create model directory {}: {error}",
-                parent.display()
-            ))
-        })?;
-        let (temporary, mut file) = temporary_file(&artifact.path)?;
+        let (temporary, mut file) = temporary_file(&destination)?;
         if let Err(error) = file.write_all(&bytes) {
             let _ = std::fs::remove_file(&temporary);
             return Err(Error::Io(format!(
@@ -214,11 +211,11 @@ impl<E> LocalProvider<E> {
             )));
         }
         drop(file);
-        std::fs::rename(&temporary, &artifact.path).map_err(|error| {
+        std::fs::rename(&temporary, &destination).map_err(|error| {
             let _ = std::fs::remove_file(&temporary);
             Error::Io(format!(
                 "cannot install model artifact {}: {error}",
-                artifact.path.display()
+                destination.display()
             ))
         })?;
         std::fs::File::open(parent)
@@ -229,8 +226,111 @@ impl<E> LocalProvider<E> {
                     parent.display()
                 ))
             })?;
-        artifact.verify()
+        artifact.verify_path(&destination)
     }
+}
+
+fn confined_destination(path: &Path, models_dir: &Path) -> Result<PathBuf, Error> {
+    if let Ok(metadata) = std::fs::symlink_metadata(models_dir)
+        && metadata.file_type().is_symlink()
+    {
+        return Err(Error::Config(format!(
+            "configured models directory {} must not be a symlink",
+            models_dir.display()
+        )));
+    }
+    std::fs::create_dir_all(models_dir).map_err(|error| {
+        Error::Io(format!(
+            "cannot create models directory {}: {error}",
+            models_dir.display()
+        ))
+    })?;
+    let parent = path.parent().ok_or_else(|| {
+        Error::Config(format!(
+            "model artifact {} has no parent directory",
+            path.display()
+        ))
+    })?;
+    let relative_parent = parent.strip_prefix(models_dir).map_err(|_| {
+        Error::Config(format!(
+            "model artifact {} is outside configured models directory {}",
+            path.display(),
+            models_dir.display()
+        ))
+    })?;
+    let mut current = models_dir.to_path_buf();
+    for component in relative_parent.components() {
+        let Component::Normal(component) = component else {
+            return Err(Error::Config(format!(
+                "model artifact {} has an invalid directory component",
+                path.display()
+            )));
+        };
+        current.push(component);
+        match std::fs::symlink_metadata(&current) {
+            Ok(metadata) if metadata.file_type().is_symlink() => {
+                return Err(Error::Config(format!(
+                    "model directory {} must not be a symlink",
+                    current.display()
+                )));
+            }
+            Ok(metadata) if !metadata.is_dir() => {
+                return Err(Error::Config(format!(
+                    "model directory {} is not a directory",
+                    current.display()
+                )));
+            }
+            Ok(_) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+                std::fs::create_dir(&current).map_err(|error| {
+                    Error::Io(format!(
+                        "cannot create model directory {}: {error}",
+                        current.display()
+                    ))
+                })?;
+            }
+            Err(error) => {
+                return Err(Error::Io(format!(
+                    "cannot inspect model directory {}: {error}",
+                    current.display()
+                )));
+            }
+        }
+    }
+    if let Ok(metadata) = std::fs::symlink_metadata(path)
+        && metadata.file_type().is_symlink()
+    {
+        return Err(Error::Config(format!(
+            "model artifact {} must not be a symlink",
+            path.display()
+        )));
+    }
+    let canonical_root = std::fs::canonicalize(models_dir).map_err(|error| {
+        Error::Io(format!(
+            "cannot resolve models directory {}: {error}",
+            models_dir.display()
+        ))
+    })?;
+    let canonical_parent = std::fs::canonicalize(parent).map_err(|error| {
+        Error::Io(format!(
+            "cannot resolve model directory {}: {error}",
+            parent.display()
+        ))
+    })?;
+    if !canonical_parent.starts_with(&canonical_root) {
+        return Err(Error::Config(format!(
+            "model directory {} resolves outside configured models directory {}",
+            parent.display(),
+            models_dir.display()
+        )));
+    }
+    let name = path.file_name().ok_or_else(|| {
+        Error::Config(format!(
+            "model artifact {} has no file name",
+            path.display()
+        ))
+    })?;
+    Ok(canonical_parent.join(name))
 }
 
 fn temporary_file(destination: &Path) -> Result<(PathBuf, std::fs::File), Error> {
@@ -292,4 +392,26 @@ fn hex(bytes: &[u8]) -> String {
         let _ = write!(value, "{byte:02x}");
     }
     value
+}
+
+#[cfg(all(test, unix))]
+#[allow(clippy::expect_used)]
+mod tests {
+    use std::os::unix::fs::symlink;
+
+    use super::*;
+
+    #[test]
+    fn confined_destination_rejects_a_symlinked_subdirectory() {
+        let root = tempfile::tempdir().expect("temporary root");
+        let models = root.path().join("models");
+        let outside = root.path().join("outside");
+        std::fs::create_dir_all(&models).expect("models directory");
+        std::fs::create_dir_all(&outside).expect("outside directory");
+        symlink(&outside, models.join("linked")).expect("symlink fixture");
+
+        let destination = models.join("linked/model.bin");
+        assert!(confined_destination(&destination, &models).is_err());
+        assert!(!outside.join("model.bin").exists());
+    }
 }
