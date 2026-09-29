@@ -415,6 +415,13 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             self.complete_empty(store, claim, now).await?;
             return Ok(ProcessOutcome::Completed);
         };
+        if row.status == Status::Erased.label() {
+            self.complete_empty(store, claim, now).await?;
+            return Ok(ProcessOutcome::Completed);
+        }
+        if row.status == Status::Quarantined.label() {
+            return Ok(ProcessOutcome::Quarantined);
+        }
         let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
             ProcessError::item(
                 Error::Integrity(format!(
@@ -424,13 +431,6 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 claim,
             )
         })?;
-        if row.status == Status::Erased.label() {
-            self.complete_empty(store, claim, now).await?;
-            return Ok(ProcessOutcome::Completed);
-        }
-        if row.status == Status::Quarantined.label() {
-            return Ok(ProcessOutcome::Quarantined);
-        }
         let chunks = self
             .chunker
             .split(&memory.body.text)

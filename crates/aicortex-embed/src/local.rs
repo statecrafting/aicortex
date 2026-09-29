@@ -3,6 +3,7 @@
 use std::ffi::{OsStr, OsString};
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
+use std::sync::Arc;
 use std::sync::atomic::{AtomicU64, Ordering};
 
 use rahi_types::Error;
@@ -77,17 +78,38 @@ impl WeightArtifact {
     /// [`Error::Io`] when the file cannot be read; [`Error::Integrity`] when
     /// its digest differs from the pin.
     pub fn verify(&self) -> Result<(), Error> {
-        self.verify_path(&self.path)
+        self.read_verified_path(&self.path).map(|_| ())
     }
 
-    fn verify_path(&self, path: &Path) -> Result<(), Error> {
+    fn read_verified_path(&self, path: &Path) -> Result<Vec<u8>, Error> {
         let mut file = std::fs::File::open(path).map_err(|error| {
             Error::Io(format!(
                 "cannot read model artifact {}: {error}",
                 path.display()
             ))
         })?;
+        let size = file
+            .metadata()
+            .map_err(|error| {
+                Error::Io(format!(
+                    "cannot inspect model artifact {}: {error}",
+                    path.display()
+                ))
+            })?
+            .len();
+        if size > MAX_WEIGHT_BYTES as u64 {
+            return Err(Error::Integrity(format!(
+                "model artifact {} exceeds the {MAX_WEIGHT_BYTES}-byte limit",
+                path.display()
+            )));
+        }
         let mut context = Context::new(&SHA256);
+        let mut bytes = Vec::with_capacity(usize::try_from(size).map_err(|_| {
+            Error::Integrity(format!(
+                "model artifact {} is too large for this platform",
+                path.display()
+            ))
+        })?);
         let mut buffer = [0_u8; 64 * 1024];
         loop {
             let read = file.read(&mut buffer).map_err(|error| {
@@ -103,6 +125,13 @@ impl WeightArtifact {
                 Error::Integrity("artifact read exceeded its fixed buffer".to_owned())
             })?;
             context.update(chunk);
+            bytes.extend_from_slice(chunk);
+            if bytes.len() > MAX_WEIGHT_BYTES {
+                return Err(Error::Integrity(format!(
+                    "model artifact {} exceeds the {MAX_WEIGHT_BYTES}-byte limit",
+                    path.display()
+                )));
+            }
         }
         let actual = hex(context.finish().as_ref());
         if actual != self.sha256 {
@@ -112,7 +141,7 @@ impl WeightArtifact {
                 self.sha256
             )));
         }
-        Ok(())
+        Ok(bytes)
     }
 }
 
@@ -133,7 +162,7 @@ pub trait WeightFetcher: Send + Sync {
 #[allow(async_fn_in_trait)]
 pub trait LocalEngine: Send + Sync {
     /// Run CPU inference over the already loaded artifact.
-    async fn infer(&self, weights: &Path, batch: &[&str]) -> Result<Vec<Vector>, Error>;
+    async fn infer(&self, weights: &[u8], batch: &[&str]) -> Result<Vec<Vector>, Error>;
 }
 
 /// The local default. Calling [`EmbeddingProvider::embed`] performs no file
@@ -143,7 +172,7 @@ pub struct LocalProvider<E> {
     id: ModelId,
     dims: u16,
     normalized: bool,
-    weights: WeightArtifact,
+    weights: Arc<[u8]>,
     engine: E,
 }
 
@@ -168,12 +197,12 @@ impl<E> LocalProvider<E> {
         }
         weights.validate(models_dir)?;
         weights.path = confined_destination(&weights.path, models_dir, false)?;
-        weights.verify()?;
+        let verified_weights = weights.read_verified_path(&weights.path)?;
         Ok(Self {
             id,
             dims,
             normalized,
-            weights,
+            weights: Arc::from(verified_weights),
             engine,
         })
     }
@@ -194,7 +223,7 @@ impl<E> LocalProvider<E> {
     ) -> Result<(), Error> {
         artifact.validate(models_dir)?;
         let destination = confined_destination(&artifact.path, models_dir, true)?;
-        if artifact.verify_path(&destination).is_ok() {
+        if artifact.read_verified_path(&destination).is_ok() {
             return Ok(());
         }
         let bytes = fetcher.fetch(&artifact.url, MAX_WEIGHT_BYTES).await?;
@@ -242,7 +271,7 @@ impl<E> LocalProvider<E> {
                 destination.display()
             ))
         })?;
-        artifact.verify_path(&destination)
+        artifact.read_verified_path(&destination).map(|_| ())
     }
 }
 
@@ -492,7 +521,7 @@ impl<E: LocalEngine> EmbeddingProvider for LocalProvider<E> {
     }
 
     async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
-        let vectors = self.engine.infer(&self.weights.path, batch).await?;
+        let vectors = self.engine.infer(&self.weights, batch).await?;
         validate_batch(self, batch.len(), &vectors)?;
         Ok(vectors)
     }

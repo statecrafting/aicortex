@@ -6,7 +6,7 @@
 )]
 
 use std::net::{SocketAddr, TcpListener};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
@@ -36,7 +36,7 @@ use serde::Deserialize;
 struct FixedEngine;
 
 impl LocalEngine for FixedEngine {
-    async fn infer(&self, _weights: &Path, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+    async fn infer(&self, _weights: &[u8], batch: &[&str]) -> Result<Vec<Vector>, Error> {
         (0..batch.len())
             .map(|_| Vector::new(vec![1.0, 0.0]))
             .collect()
@@ -624,6 +624,53 @@ fn local_provider_boots_only_with_verified_weights() {
     assert!(provider.normalized());
 }
 
+#[derive(Clone, Debug)]
+struct CheckedWeightsEngine {
+    expected: Vec<u8>,
+}
+
+impl LocalEngine for CheckedWeightsEngine {
+    async fn infer(&self, weights: &[u8], batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        assert_eq!(weights, self.expected);
+        (0..batch.len())
+            .map(|_| Vector::new(vec![1.0, 0.0]))
+            .collect()
+    }
+}
+
+#[tokio::test]
+async fn local_provider_keeps_the_verified_weight_snapshot() {
+    let directory = tempfile::tempdir().expect("temporary models directory");
+    let path = directory.path().join("model.bin");
+    let bytes = b"verified test weights";
+    std::fs::write(&path, bytes).expect("write weights");
+    let sha256 = digest(&SHA256, bytes)
+        .as_ref()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    let provider = LocalProvider::boot(
+        ModelId::new("configured-local-model").expect("model id"),
+        2,
+        true,
+        WeightArtifact {
+            path: path.clone(),
+            url: "https://models.example/model.bin".to_owned(),
+            sha256,
+        },
+        directory.path(),
+        CheckedWeightsEngine {
+            expected: bytes.to_vec(),
+        },
+    )
+    .expect("verified provider");
+    std::fs::write(path, b"swapped after boot").expect("replace path contents");
+    provider
+        .embed(&["one sentence"])
+        .await
+        .expect("inference uses verified bytes");
+}
+
 #[cfg(unix)]
 #[test]
 fn local_provider_rejects_a_symlinked_artifact() {
@@ -840,9 +887,11 @@ async fn terminal_memory_work_stays_recoverable_without_embedding() {
             .await
             .expect("work commits");
         let sql = match state {
-            "erased" => "UPDATE memory SET status = 'erased' WHERE scope_id = ?1 AND id = ?2",
+            "erased" => {
+                "UPDATE memory SET status = 'erased', record = 'not json' WHERE scope_id = ?1 AND id = ?2"
+            }
             "quarantined" => {
-                "UPDATE memory SET status = 'quarantined' WHERE scope_id = ?1 AND id = ?2"
+                "UPDATE memory SET status = 'quarantined', record = 'not json' WHERE scope_id = ?1 AND id = ?2"
             }
             "missing" => "DELETE FROM memory WHERE scope_id = ?1 AND id = ?2",
             _ => unreachable!("the test lists every terminal state"),
@@ -890,8 +939,12 @@ async fn terminal_memory_work_stays_recoverable_without_embedding() {
 
             store
                 .execute(
-                    "UPDATE memory SET status = 'active' WHERE scope_id = ?1 AND id = ?2",
-                    vec![Value::from("scope-a"), Value::from(memory.id.to_string())],
+                    "UPDATE memory SET status = 'active', record = ?3 WHERE scope_id = ?1 AND id = ?2",
+                    vec![
+                        Value::from("scope-a"),
+                        Value::from(memory.id.to_string()),
+                        Value::from(serde_json::to_string(&memory).expect("memory serializes")),
+                    ],
                 )
                 .await
                 .expect("review admits the memory");
