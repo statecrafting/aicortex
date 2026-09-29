@@ -117,10 +117,6 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-store/tests/host_library.rs",
-        "source": "spec-edge"
-      },
-      {
         "path": "crates/aicortex-store/tests/lifecycle.rs",
         "source": "spec-edge"
       },
@@ -492,19 +488,6 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-store/tests/host_library.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/tests/host_library.rs"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "crates/aicortex-store/tests/lifecycle.rs"
           }
         ],
@@ -577,5 +560,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ac427ee5af066790bf54f84f1c4d115a0912f5bfec35bb2b975a84016f541e96"
+  "shardHash": "79b54362886c8ec7fd68a1ecd1a525f581a89eb8ceff417898c8b71bd178c6f6"
 }

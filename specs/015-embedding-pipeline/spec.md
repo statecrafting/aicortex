@@ -33,7 +33,6 @@ extends:
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/mod.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/schema.rs", nature: additive }
-  - { spec: "053-host-library-mode", unit: "crates/aicortex-store/tests/host_library.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/repo.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/erasure.rs", nature: additive }
@@ -175,11 +174,12 @@ configuration with a pinned digest rather than a spec-level commitment.
   score rather than a pooled document vector. Pooling dilutes a long note
   until nothing in it matches, which is the failure users describe as the
   system forgetting things it was told.
-- **D-3 (2026-09-26, implementation).** Capture resolves the active model
-  inside its write transaction. The durable-work statement selects the active
-  registry row into its non-null processing identity. An absent active model
-  therefore aborts the complete capture, including a merge, instead of leaving
-  a memory without durable embedding work.
+- **D-3 (2026-09-26, implementation).** Capture reads the active model through
+  the leader before building its write transaction. The durable-work statement
+  carries that model identity, and an in-transaction guard aborts the complete
+  capture if activation changes before commit. An absent active model returns
+  a configuration error before staging any writes, including a merge, instead
+  of leaving a memory without durable embedding work.
 - **D-4 (2026-09-28, implementation).** Each model revision has its own Rahi
   processor identity. Activating a new revision therefore cannot make its
   worker claim old-revision work, and an old worker can drain its partition to
@@ -216,13 +216,19 @@ The spec is not complete. `aicortex serve` still lacks provider configuration,
 a concrete local inference engine, first-activation and model-change wiring,
 the managed background-worker lifecycle, and the re-embed and drop operator
 verbs (B-2, B-4, B-5, B-6, B-9). The application preflight reports the active
-revision, queue counts, and per-scope coverage only after the chassis preflight
-succeeds. Rahi 0.4.0 exposes queue counts globally but does not expose
+revision, queue counts, and per-scope coverage even when another chassis check
+fails. Rahi 0.4.0 exposes queue counts globally but does not expose
 tenant-level counts or enqueue timestamps, so the report cannot yet provide a
 truthful per-scope oldest-pending age or register product collectors in the
 chassis `/metrics` registry (B-3). Dropping a revision refuses while its queue
 partition is non-empty because this chassis version has no public cancellation
 API.
+
+Fresh standalone and library-host deployments are capture-blocked until an
+operator applies the required Rahi migration sets and activates the first
+embedding model. The current application has no first-activation wiring, so
+runtime capture remains unavailable even though the storage contract is
+implemented and tested.
 
 FR-001, FR-002, FR-003, and FR-007 have direct tests. FR-004, FR-005, and
 FR-006 remain open: there is no booted local-provider socket probe, denied-host

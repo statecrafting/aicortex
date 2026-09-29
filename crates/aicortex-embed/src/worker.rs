@@ -630,10 +630,9 @@ fn elapsed_now(origin: UnixSeconds, started: Instant) -> UnixSeconds {
 }
 
 fn chunk_id(scope_id: &str, memory_id: MemoryId, revision: u32, ordinal: u32) -> String {
-    use ring::digest::{SHA256, digest};
     let identity = format!("{scope_id}\u{1f}{memory_id}\u{1f}{revision}\u{1f}{ordinal}");
-    digest(&SHA256, identity.as_bytes())
-        .as_ref()
+    identity
+        .as_bytes()
         .iter()
         .map(|byte| format!("{byte:02x}"))
         .collect()

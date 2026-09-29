@@ -122,7 +122,7 @@ async fn embedding_integrity_upgrade_preserves_version_nine_rows() {
         .await
         .expect("upgraded rows remain readable");
     assert_eq!(rows.len(), 1);
-    assert!(!rows[0].chunk_id.is_empty());
+    assert_eq!(rows[0].chunk_id, "73636f70651f6d656d6f72791f311f30");
     assert_eq!(rows[0].vector_bytes, 8);
 
     let invalid = store

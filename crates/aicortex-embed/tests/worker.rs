@@ -292,6 +292,11 @@ struct CountRow {
     count: i64,
 }
 
+#[derive(Deserialize)]
+struct ChunkIdRow {
+    chunk_id: String,
+}
+
 async fn count(store: &StoreHandle, sql: &str, params: Vec<Value>) -> i64 {
     let rows: Vec<CountRow> = store
         .query_consistent(sql.to_owned(), params)
@@ -493,6 +498,26 @@ async fn concurrent_workers_commit_one_scoped_embedding() {
         .await,
         1
     );
+    let chunks: Vec<ChunkIdRow> = store
+        .query_consistent(
+            "SELECT chunk_id FROM chunk
+             WHERE scope_id = ?1 AND memory_id = ?2 AND model_revision = ?3",
+            vec![
+                Value::from("scope-a"),
+                Value::from(memory.id.to_string()),
+                Value::Integer(1),
+            ],
+        )
+        .await
+        .expect("worker chunk remains readable");
+    let identity = format!("scope-a\u{1f}{}\u{1f}1\u{1f}0", memory.id);
+    let expected = identity
+        .as_bytes()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect::<String>();
+    assert_eq!(chunks.len(), 1);
+    assert_eq!(chunks[0].chunk_id, expected);
     fixture.shutdown().await;
 }
 

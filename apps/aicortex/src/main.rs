@@ -7,10 +7,9 @@ fn main() {
     let env = rahi_cli::process_env();
     let mut code = rahi_cli::run_with::<aicortex::Aicortex>(&args, &env);
     if args.first().is_some_and(|argument| argument == "preflight") {
+        let embedding_code = aicortex::embedding_preflight(&env);
         if code == 0 {
-            code = aicortex::embedding_preflight(&env);
-        } else {
-            eprintln!("embedding: skipped because chassis preflight failed");
+            code = embedding_code;
         }
     }
     std::process::exit(code)

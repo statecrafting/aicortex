@@ -507,14 +507,10 @@ const ERASURE_JOURNAL_TABLE: &str = "CREATE TABLE IF NOT EXISTS erasure_journal 
     PRIMARY KEY (scope_id, batch)
 )";
 
-/// The migrations, in version order (B-1).
+/// Spec 015's immutable additive embedding schema migration.
 ///
-/// Each is idempotent (`IF NOT EXISTS` throughout), so a rerun against a
-/// store that already carries the schema applies nothing, and the chassis
-/// records the version it applied.
-///
-/// Spec 015's embedding migration is constructed here to preserve the
-/// downward-only crate dependency graph while that spec extends this list.
+/// It is constructed here to preserve the downward-only crate dependency
+/// graph while spec 015 extends this list.
 #[must_use]
 pub fn embedding_migration() -> Migration {
     Migration::new(
@@ -537,9 +533,10 @@ pub fn embedding_integrity_migration() -> Migration {
 
 /// The migrations, in version order (B-1).
 ///
-/// Each is idempotent (`IF NOT EXISTS` throughout), so a rerun against a
-/// store that already carries the schema applies nothing, and the chassis
-/// records the version it applied.
+/// The chassis records each applied version and applies only later versions
+/// on a subsequent run. Individual migrations need not be independently
+/// idempotent; their additive declarations describe compatibility while
+/// crossing a version, not whether their SQL can execute twice.
 #[must_use]
 pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
@@ -547,9 +544,10 @@ pub fn migrations() -> &'static [Migration] {
 
 static LIST: std::sync::LazyLock<[Migration; 10]> = std::sync::LazyLock::new(|| {
     [
-        // Every shipped migration only creates tables and indexes, so each is
-        // declared additive (spec 046 B-2, D-2). The declaration is not part
-        // of the SQL, so the checksum rahi records is unchanged (046 B-3).
+        // Migrations through version 9 are additive (spec 046 B-2, D-2).
+        // Version 10 intentionally rebuilds derivative tables to add
+        // constraints, so it is not additive. The declaration is not part of
+        // the SQL, so the checksum rahi records is unchanged (046 B-3).
         rahi_store::coordination_migration(COORDINATION_VERSION).additive(),
         Migration::new(
             MEMORY_TABLES_VERSION,

@@ -85,9 +85,10 @@ pub async fn active_embedding(store: &StoreHandle) -> Result<ActiveEmbedding, Er
 /// Stage embedding work for the model observed active by the caller.
 ///
 /// This primitive lives at the capture boundary so the lower storage crate
-/// never depends upward on an embedding worker. The non-null processing
-/// The guard statement makes an activation change before commit abort the
-/// complete capture instead of staging work under a stale model identity.
+/// never depends upward on an embedding worker. The caller reads the active
+/// model through the leader before building its transaction. The guard
+/// statement makes an activation change before commit abort the complete
+/// capture instead of staging work under a stale model identity.
 ///
 /// # Errors
 ///
