@@ -235,6 +235,17 @@ configuration with a pinned digest rather than a spec-level commitment.
   deactivation cannot consume the configured provider-failure budget. The
   worker offsets recorded deactivation and quarantine attempts when applying
   that budget after either identity is requeued.
+- **D-16 (2026-09-29, implementation).** Embedding erasure now stages Rahi
+  receipt and processing-row deletion, and the worker uses Rahi's coordination
+  tables. The standalone cell must therefore declare the pinned chassis's
+  `rahi.receipts` and `rahi.coordination` migration sets. This extends the
+  migration seam without moving product migrations out of
+  `Aicortex::migrations()`: spec 010 FR-003's application-list assertion is
+  still governed by spec 012 D-7, while spec 012 D-8 owns the binary migration
+  test changed here. The coordination SQL intentionally appears in both the
+  legacy application list and the named chassis set; it is byte-identical and
+  idempotent, and the test asserts that compatibility until a governed
+  migration removes the legacy copy.
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,
