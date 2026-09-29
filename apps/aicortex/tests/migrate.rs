@@ -91,7 +91,8 @@ fn spec015_ac2_preflight_reports_embedding_state() -> Outcome {
                 first_seen: rahi_types::UnixSeconds::new(1_700_000_000),
                 active: true,
             },
-        );
+        )
+        .map_err(|error| error.to_string())?;
         store
             .handle()
             .txn(txn.into_statements())

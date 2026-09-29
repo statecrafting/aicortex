@@ -1,5 +1,6 @@
 //! Local inference and verified model artifacts.
 
+use std::ffi::{OsStr, OsString};
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -10,6 +11,9 @@ use ring::digest::{Context, SHA256, digest};
 use crate::provider::{EmbeddingProvider, ModelId, Vector, validate_batch};
 
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
+
+/// Maximum accepted size of one fetched model artifact.
+pub const MAX_WEIGHT_BYTES: usize = 1024 * 1024 * 1024;
 
 /// The configured model artifact fetched by preflight, or supplied by the
 /// image.
@@ -111,8 +115,11 @@ impl WeightArtifact {
 /// A preflight-owned transport for the one-time artifact fetch.
 #[allow(async_fn_in_trait)]
 pub trait WeightFetcher: Send + Sync {
-    /// Fetch `url` under deployment governance and return its bytes.
-    async fn fetch(&self, url: &str) -> Result<Vec<u8>, Error>;
+    /// Fetch `url` under deployment governance and return at most `max_bytes`.
+    ///
+    /// Implementations should stop reading once this bound is reached. The
+    /// caller checks the returned length again before writing it to disk.
+    async fn fetch(&self, url: &str, max_bytes: usize) -> Result<Vec<u8>, Error>;
 }
 
 /// The configured sentence model implementation.
@@ -146,7 +153,8 @@ impl<E> LocalProvider<E> {
         id: ModelId,
         dims: u16,
         normalized: bool,
-        weights: WeightArtifact,
+        mut weights: WeightArtifact,
+        models_dir: &Path,
         engine: E,
     ) -> Result<Self, Error> {
         if dims == 0 {
@@ -154,6 +162,8 @@ impl<E> LocalProvider<E> {
                 "an embedding model must declare at least one dimension".to_owned(),
             ));
         }
+        weights.validate(models_dir)?;
+        weights.path = confined_destination(&weights.path, models_dir)?;
         weights.verify()?;
         Ok(Self {
             id,
@@ -183,7 +193,12 @@ impl<E> LocalProvider<E> {
         if artifact.verify_path(&destination).is_ok() {
             return Ok(());
         }
-        let bytes = fetcher.fetch(&artifact.url).await?;
+        let bytes = fetcher.fetch(&artifact.url, MAX_WEIGHT_BYTES).await?;
+        if bytes.len() > MAX_WEIGHT_BYTES {
+            return Err(Error::Integrity(format!(
+                "downloaded model artifact exceeds the {MAX_WEIGHT_BYTES}-byte limit"
+            )));
+        }
         let actual = hex(digest(&SHA256, &bytes).as_ref());
         if actual != artifact.sha256 {
             return Err(Error::Integrity(format!(
@@ -192,40 +207,37 @@ impl<E> LocalProvider<E> {
             )));
         }
         let destination = confined_destination(&artifact.path, models_dir)?;
-        let parent = destination.parent().ok_or_else(|| {
-            Error::Config("canonical model artifact has no parent directory".to_owned())
-        })?;
-        let (temporary, mut file) = temporary_file(&destination)?;
+        let (directory, destination_name) = open_destination_directory(&destination, models_dir)?;
+        let (temporary_name, mut file) = temporary_file(&directory, &destination_name)?;
         if let Err(error) = file.write_all(&bytes) {
-            let _ = std::fs::remove_file(&temporary);
+            let _ = rustix::fs::unlinkat(&directory, &temporary_name, rustix::fs::AtFlags::empty());
             return Err(Error::Io(format!(
-                "cannot write model artifact {}: {error}",
-                temporary.display()
+                "cannot write temporary model artifact: {error}"
             )));
         }
         if let Err(error) = file.sync_all() {
-            let _ = std::fs::remove_file(&temporary);
+            let _ = rustix::fs::unlinkat(&directory, &temporary_name, rustix::fs::AtFlags::empty());
             return Err(Error::Io(format!(
-                "cannot sync model artifact {}: {error}",
-                temporary.display()
+                "cannot sync temporary model artifact: {error}"
             )));
         }
         drop(file);
-        std::fs::rename(&temporary, &destination).map_err(|error| {
-            let _ = std::fs::remove_file(&temporary);
+        rustix::fs::renameat(&directory, &temporary_name, &directory, &destination_name).map_err(
+            |error| {
+                let _ =
+                    rustix::fs::unlinkat(&directory, &temporary_name, rustix::fs::AtFlags::empty());
+                Error::Io(format!(
+                    "cannot install model artifact {}: {error}",
+                    destination.display()
+                ))
+            },
+        )?;
+        directory.sync_all().map_err(|error| {
             Error::Io(format!(
-                "cannot install model artifact {}: {error}",
+                "cannot sync model directory for {}: {error}",
                 destination.display()
             ))
         })?;
-        std::fs::File::open(parent)
-            .and_then(|directory| directory.sync_all())
-            .map_err(|error| {
-                Error::Io(format!(
-                    "cannot sync model directory {}: {error}",
-                    parent.display()
-                ))
-            })?;
         artifact.verify_path(&destination)
     }
 }
@@ -333,36 +345,107 @@ fn confined_destination(path: &Path, models_dir: &Path) -> Result<PathBuf, Error
     Ok(canonical_parent.join(name))
 }
 
-fn temporary_file(destination: &Path) -> Result<(PathBuf, std::fs::File), Error> {
+fn open_destination_directory(
+    destination: &Path,
+    models_dir: &Path,
+) -> Result<(std::fs::File, OsString), Error> {
+    let parent = destination.parent().ok_or_else(|| {
+        Error::Config("canonical model artifact has no parent directory".to_owned())
+    })?;
+    let relative_parent = parent
+        .strip_prefix(std::fs::canonicalize(models_dir).map_err(|error| {
+            Error::Io(format!(
+                "cannot resolve models directory {}: {error}",
+                models_dir.display()
+            ))
+        })?)
+        .map_err(|_| {
+            Error::Config(format!(
+                "model directory {} is outside configured models directory {}",
+                parent.display(),
+                models_dir.display()
+            ))
+        })?;
+    let root = rustix::fs::openat(
+        rustix::fs::CWD,
+        models_dir,
+        rustix::fs::OFlags::RDONLY
+            | rustix::fs::OFlags::DIRECTORY
+            | rustix::fs::OFlags::NOFOLLOW
+            | rustix::fs::OFlags::CLOEXEC,
+        rustix::fs::Mode::empty(),
+    )
+    .map_err(|error| {
+        Error::Io(format!(
+            "cannot open models directory {}: {error}",
+            models_dir.display()
+        ))
+    })?;
+    let mut directory = std::fs::File::from(root);
+    for component in relative_parent.components() {
+        let Component::Normal(component) = component else {
+            return Err(Error::Config(format!(
+                "model directory {} has an invalid component",
+                parent.display()
+            )));
+        };
+        let next = rustix::fs::openat(
+            &directory,
+            component,
+            rustix::fs::OFlags::RDONLY
+                | rustix::fs::OFlags::DIRECTORY
+                | rustix::fs::OFlags::NOFOLLOW
+                | rustix::fs::OFlags::CLOEXEC,
+            rustix::fs::Mode::empty(),
+        )
+        .map_err(|error| {
+            Error::Io(format!(
+                "cannot safely open model directory {}: {error}",
+                parent.display()
+            ))
+        })?;
+        directory = std::fs::File::from(next);
+    }
     let name = destination
         .file_name()
-        .ok_or_else(|| Error::Config("model artifact path has no file name".to_owned()))?;
+        .ok_or_else(|| Error::Config("model artifact path has no file name".to_owned()))?
+        .to_os_string();
+    Ok((directory, name))
+}
+
+fn temporary_file(
+    directory: &std::fs::File,
+    destination_name: &OsStr,
+) -> Result<(OsString, std::fs::File), Error> {
     for _ in 0..16 {
         let sequence = TEMP_SEQUENCE.fetch_add(1, Ordering::Relaxed);
-        let candidate = destination.with_file_name(format!(
+        let candidate = OsString::from(format!(
             "{}.partial-{}-{sequence}",
-            name.to_string_lossy(),
+            destination_name.to_string_lossy(),
             std::process::id()
         ));
-        match std::fs::OpenOptions::new()
-            .write(true)
-            .create_new(true)
-            .open(&candidate)
-        {
-            Ok(file) => return Ok((candidate, file)),
-            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
+        match rustix::fs::openat(
+            directory,
+            &candidate,
+            rustix::fs::OFlags::WRONLY
+                | rustix::fs::OFlags::CREATE
+                | rustix::fs::OFlags::EXCL
+                | rustix::fs::OFlags::NOFOLLOW
+                | rustix::fs::OFlags::CLOEXEC,
+            rustix::fs::Mode::RUSR | rustix::fs::Mode::WUSR,
+        ) {
+            Ok(file) => return Ok((candidate, std::fs::File::from(file))),
+            Err(rustix::io::Errno::EXIST) => {}
             Err(error) => {
                 return Err(Error::Io(format!(
-                    "cannot create model artifact {}: {error}",
-                    candidate.display()
+                    "cannot create temporary model artifact: {error}"
                 )));
             }
         }
     }
-    Err(Error::Io(format!(
-        "cannot reserve a temporary file for model artifact {}",
-        destination.display()
-    )))
+    Err(Error::Io(
+        "cannot reserve a temporary model artifact".to_owned(),
+    ))
 }
 
 impl<E: LocalEngine> EmbeddingProvider for LocalProvider<E> {

@@ -106,14 +106,6 @@
         "spec": "014-memory-lifecycle-and-erasure",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-store/src/lifecycle.rs"
-        }
-      },
-      {
-        "nature": "additive",
-        "spec": "014-memory-lifecycle-and-erasure",
-        "unit": {
-          "kind": "file",
           "path": "crates/aicortex-store/src/erasure.rs"
         }
       },
@@ -251,6 +243,6 @@
     "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
-  "shardHash": "1d1e0f2c03e5ca2212642bf50b8853eb4b35c4a9938335496ff4fcd874c0475c",
+  "shardHash": "000cbc4b7428f73ceb8b033ca364b081396e8edb96f135a959db3c3348ebed14",
   "specVersion": "1.8.0"
 }

@@ -222,12 +222,12 @@ impl Lifecycle {
     /// transaction whichever way it went (constitution XI).
     /// A concurrent record change aborts that transaction at commit; the
     /// caller must re-read and stage a fresh capture before retrying.
+    ///
     /// # Errors
     ///
-    /// The store's error from the uniqueness read;
-    /// [`Error::Integrity`] when the existing row does not read back as a
-    /// memory or has gone between the read and the merge; whatever
-    /// [`MemoryRepo::insert`] refuses.
+    /// The store's error from the uniqueness read; [`Error::Integrity`] when
+    /// the existing row does not read back as a memory or has gone between
+    /// the read and the merge; whatever [`MemoryRepo::insert`] refuses.
     pub async fn capture(
         &self,
         store: &StoreHandle,

@@ -356,7 +356,8 @@ async fn migrate(store: &StoreHandle) {
             first_seen: at(0),
             active: true,
         },
-    );
+    )
+    .expect("active model accepted");
     store
         .txn(txn.into_statements())
         .await

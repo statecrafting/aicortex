@@ -97,10 +97,6 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-store/src/lifecycle.rs",
-        "source": "spec-edge"
-      },
-      {
         "path": "crates/aicortex-store/src/memory_repo.rs",
         "source": "spec-edge"
       },
@@ -419,19 +415,6 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-store/src/lifecycle.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/src/lifecycle.rs"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "crates/aicortex-store/src/memory_repo.rs"
           }
         ],
@@ -512,7 +495,7 @@
           {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 109,
+              "endLine": 110,
               "startLine": 20
             }
           }
@@ -543,5 +526,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "76089ccef4c5ac1bd286d03495809d4eb716b8667db3b1ac4560c6dcf9d435e3"
+  "shardHash": "d696659611bde08fba6f3f1530d4eb98f4f9143476fbfed7cd15b9fc97c13828"
 }

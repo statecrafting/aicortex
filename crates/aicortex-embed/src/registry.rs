@@ -91,7 +91,16 @@ impl ModelRegistry {
     /// same revision is activated again after a restart. An identity mismatch
     /// provokes a constraint failure instead of silently reinterpreting stored
     /// vectors.
-    pub fn activate(txn: &mut TxnBuilder, model: &ModelRevision) {
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Validation`] when the supplied revision is not active.
+    pub fn activate(txn: &mut TxnBuilder, model: &ModelRevision) -> Result<(), Error> {
+        if !model.active {
+            return Err(Error::Validation(
+                "cannot activate a model revision marked inactive".to_owned(),
+            ));
+        }
         txn.push(Statement::with_params(
             "UPDATE embedding_model
              SET active = CASE WHEN revision <= ?1 THEN 0 ELSE NULL END
@@ -119,6 +128,7 @@ impl ModelRegistry {
                 Value::Integer(seconds_to_sql(model.first_seen)),
             ],
         ));
+        Ok(())
     }
 
     /// Read the active revision through the leader.

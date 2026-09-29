@@ -107,7 +107,8 @@ async fn activate_test_model(store: &rahi_store::StoreHandle) {
             first_seen: UnixSeconds::new(1_700_000_000),
             active: true,
         },
-    );
+    )
+    .expect("active model accepted");
     store
         .txn(txn.into_statements())
         .await

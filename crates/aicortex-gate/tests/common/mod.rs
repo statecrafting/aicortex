@@ -271,7 +271,8 @@ pub async fn node() -> Node {
             first_seen: UnixSeconds::new(1_700_000_000),
             active: true,
         },
-    );
+    )
+    .expect("active model accepted");
     store
         .handle()
         .txn(txn.into_statements())

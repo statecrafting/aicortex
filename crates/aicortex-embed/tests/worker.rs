@@ -260,7 +260,7 @@ async fn insert_memory(store: &StoreHandle, scope_id: &str, memory: &Memory) {
 
 async fn activate(store: &StoreHandle, model: &ModelRevision) {
     let mut txn = TxnBuilder::new();
-    ModelRegistry::activate(&mut txn, model);
+    ModelRegistry::activate(&mut txn, model).expect("active model accepted");
     store
         .txn(txn.into_statements())
         .await
@@ -385,6 +385,15 @@ fn staging_requires_an_active_revision_and_capture_uses_registry_selection() {
     assert!(statements.contains("ON CONFLICT"));
 }
 
+#[test]
+fn registry_rejects_an_inactive_revision() {
+    let mut txn = TxnBuilder::new();
+    let error = ModelRegistry::activate(&mut txn, &test_model(false))
+        .expect_err("inactive model is not an activation request");
+    assert!(error.message().contains("marked inactive"));
+    assert_eq!(txn.len(), 0);
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn active_model_selection_is_required_before_staging() {
     let fixture = Fixture::migrated().await;
@@ -465,7 +474,7 @@ async fn an_inactive_newer_revision_prevents_reactivating_an_older_revision() {
         .expect("newer model deactivates");
 
     let mut txn = TxnBuilder::new();
-    ModelRegistry::activate(&mut txn, &original);
+    ModelRegistry::activate(&mut txn, &original).expect("active model accepted");
     let error = store
         .txn(txn.into_statements())
         .await
@@ -571,12 +580,40 @@ fn local_provider_boots_only_with_verified_weights() {
             url: "https://models.example/model.bin".to_owned(),
             sha256,
         },
+        directory.path(),
         FixedEngine,
     )
     .expect("verified provider");
     assert_eq!(provider.id().as_str(), "configured-local-model");
     assert_eq!(provider.dims(), 2);
     assert!(provider.normalized());
+}
+
+#[cfg(unix)]
+#[test]
+fn local_provider_rejects_a_symlinked_artifact() {
+    use std::os::unix::fs::symlink;
+
+    let directory = tempfile::tempdir().expect("temporary models directory");
+    let outside = tempfile::NamedTempFile::new().expect("outside weights");
+    let path = directory.path().join("model.bin");
+    symlink(outside.path(), &path).expect("symlink fixture");
+    let artifact = WeightArtifact {
+        path,
+        url: "https://models.example/model.bin".to_owned(),
+        sha256: "0".repeat(64),
+    };
+    assert!(
+        LocalProvider::boot(
+            ModelId::new("configured-local-model").expect("model id"),
+            2,
+            true,
+            artifact,
+            directory.path(),
+            FixedEngine,
+        )
+        .is_err()
+    );
 }
 
 #[test]
