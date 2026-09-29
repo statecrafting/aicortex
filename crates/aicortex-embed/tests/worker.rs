@@ -768,21 +768,32 @@ async fn stale_revision_work_is_replaced_by_active_revision_work() {
         ..test_model(true)
     };
     activate(&store, &active_model).await;
-    let old_report = worker(TestProvider { fail: false }, "old-worker", 3)
-        .drain(&store, UnixSeconds::new(4))
-        .await
-        .expect("old worker replaces stale work");
-    assert_eq!(old_report.completed, 1);
-    let active_report = worker_for_model(
+    let active_worker = worker_for_model(
         TestProvider { fail: false },
         active_model,
         "active-worker",
         3,
-    )
-    .drain(&store, UnixSeconds::new(5))
-    .await
-    .expect("active worker drains replacement");
+    );
+    let old_report = active_worker
+        .drain(&store, UnixSeconds::new(4))
+        .await
+        .expect("active worker replaces stale work");
+    assert_eq!(old_report.completed, 1);
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(4))
+        .await
+        .expect("only active revision work affects readiness");
+    assert_eq!(health.pending, 1);
+    assert_eq!(health.dead, 0);
+    let active_report = active_worker
+        .drain(&store, UnixSeconds::new(5))
+        .await
+        .expect("active worker drains replacement");
     assert_eq!(active_report.completed, 1);
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(5))
+        .await
+        .expect("active revision queue becomes ready");
+    assert_eq!(health.pending, 0);
+    assert_eq!(health.dead, 0);
     assert_eq!(
         count(
             &store,
@@ -942,7 +953,7 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
     .drain(&store, UnixSeconds::new(5))
     .await
     .expect("revision two drains");
-    assert_eq!(report.completed, 2);
+    assert_eq!(report.completed, 3);
     ModelRegistry::drop_revision(&store, "scope-a", 1)
         .await
         .expect("scoped drop ignores another scope's queue");

@@ -238,16 +238,56 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         store: &StoreHandle,
         now: UnixSeconds,
     ) -> Result<WorkerReport, Error> {
-        let claims = Work::next(
-            store,
-            EMBEDDING_NAMESPACE,
-            &self.processor,
-            &self.holder,
-            self.config.hold_for,
-            now,
-            self.config.batch_size,
-        )
-        .await?;
+        let active = ModelRegistry::active(store).await?;
+        let is_active_worker = active.as_ref().is_some_and(|active| {
+            active.revision == self.model.revision && active.model_id == self.model.model_id
+        });
+        let mut claims = Vec::new();
+        let mut remaining = self.config.batch_size;
+        if is_active_worker {
+            let counts = Work::counts(store).await?;
+            for count in counts.iter().filter(|count| {
+                count
+                    .processor
+                    .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
+                    && count.processor != self.processor
+                    && count
+                        .pending
+                        .saturating_add(count.claimed)
+                        .saturating_add(count.failed)
+                        > 0
+            }) {
+                let mut stale = Work::next(
+                    store,
+                    EMBEDDING_NAMESPACE,
+                    &count.processor,
+                    &self.holder,
+                    self.config.hold_for,
+                    now,
+                    remaining,
+                )
+                .await?;
+                remaining =
+                    remaining.saturating_sub(u32::try_from(stale.len()).unwrap_or(u32::MAX));
+                claims.append(&mut stale);
+                if remaining == 0 {
+                    break;
+                }
+            }
+        }
+        if remaining > 0 {
+            let mut current = Work::next(
+                store,
+                EMBEDDING_NAMESPACE,
+                &self.processor,
+                &self.holder,
+                self.config.hold_for,
+                now,
+                remaining,
+            )
+            .await?;
+            claims.append(&mut current);
+        }
         let started = Instant::now();
         let mut report = WorkerReport {
             claimed: u64::try_from(claims.len()).unwrap_or(u64::MAX),
@@ -290,19 +330,18 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         started: Instant,
     ) -> Result<(), Error> {
         let now = elapsed_now(origin, started);
-        if claim.key.revision != self.model.revision
-            || claim.key.processor_revision != self.model.model_id.as_str()
-        {
+        if claim.key.processor != embedding_processor(claim.key.revision) {
             return Err(Error::Conflict(format!(
-                "embedding work revision {}@{} does not match worker {}@{}",
-                claim.key.processor_revision,
-                claim.key.revision,
-                self.model.model_id,
-                self.model.revision
+                "embedding work processor {} does not match revision {}",
+                claim.key.processor, claim.key.revision,
             )));
         }
         match ModelRegistry::active(store).await? {
-            Some(active) if active.revision == self.model.revision => {}
+            Some(active)
+                if claim.key.revision == self.model.revision
+                    && claim.key.processor_revision == self.model.model_id.as_str()
+                    && active.revision == self.model.revision
+                    && active.model_id == self.model.model_id => {}
             Some(active) => return self.restage_active(store, claim, &active, now).await,
             None => {
                 return Err(Error::Config(
@@ -619,11 +658,12 @@ async fn reembed_under_lease(
     })
 }
 
-/// Read the global queue values required by preflight and metrics.
+/// Read the selected model revision's queue values for preflight and metrics.
 ///
 /// Rahi 0.4 exposes processor-level counts but not tenant-level counts or
 /// enqueue timestamps. The scope and clock remain in this API so callers do
 /// not need another compatibility break when the chassis adds those reads.
+/// Before initial model activation, all embedding processors remain visible.
 ///
 /// # Errors
 ///
@@ -634,12 +674,20 @@ pub async fn queue_health(
     _now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {
     let counts = Work::counts(store).await?;
+    let active_processor = ModelRegistry::active(store)
+        .await?
+        .map(|model| embedding_processor(model.revision));
     let mut pending = 0_u64;
     let mut dead = 0_u64;
     for count in counts.iter().filter(|count| {
-        count
-            .processor
-            .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
+        active_processor.as_ref().map_or_else(
+            || {
+                count
+                    .processor
+                    .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
+            },
+            |processor| count.processor == *processor,
+        )
     }) {
         pending = pending
             .saturating_add(count.pending)
