@@ -105,10 +105,6 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-store/src/memory_repo.rs",
-        "source": "spec-edge"
-      },
-      {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
       },
@@ -449,32 +445,6 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-store/src/lib.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/src/lib.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/aicortex-store/src/memory_repo.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/src/memory_repo.rs"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "crates/aicortex-store/src/migrations.rs"
           }
         ],
@@ -573,5 +543,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "41db681c583a3c61e86f6a526443d5d309a2279a19aeda5af9e697781aaf045c"
+  "shardHash": "94343672273695f47790bafd1bd96446b8467e2913aef93a17cff79a9140ec03"
 }

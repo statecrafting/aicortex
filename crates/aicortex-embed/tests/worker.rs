@@ -17,7 +17,7 @@ use aicortex_embed::provider::{EmbeddingProvider, ModelId, Vector};
 use aicortex_embed::registry::{ModelRegistry, ModelRevision};
 use aicortex_embed::{
     ActiveEmbedding, ChunkConfig, Chunker, EmbeddingPreflight, EmbeddingWorker, WorkerConfig,
-    embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
+    embedding_processor, embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
     stage_live_embedding, stage_reembedding_batch,
 };
 use aicortex_types::{
@@ -1003,6 +1003,52 @@ async fn concurrent_workers_commit_one_scoped_embedding() {
         .collect::<String>();
     assert_eq!(chunks.len(), 1);
     assert_eq!(chunks[0].chunk_id, expected);
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn expired_claim_chain_reaches_dead_letter_during_worker_drain() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "A crashing worker must spend its retry budget.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+
+    let processor = embedding_processor(model.revision);
+    for (holder, now) in [("crashed-a", 3), ("crashed-b", 8), ("crashed-c", 13)] {
+        let claims = Work::next(
+            &store,
+            aicortex_store::EMBEDDING_NAMESPACE,
+            &processor,
+            holder,
+            Duration::from_secs(5),
+            UnixSeconds::new(now),
+            1,
+        )
+        .await
+        .expect("expired claim is reclaimed");
+        assert_eq!(claims.len(), 1);
+    }
+
+    let report = worker(TestProvider { fail: false }, "worker-after-crashes", 3)
+        .drain(&store, UnixSeconds::new(18))
+        .await
+        .expect("worker sweep closes the spent expiry chain");
+    assert_eq!(report.dead, 1);
+    assert_eq!(report.claimed, 1);
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(18))
+        .await
+        .expect("queue health");
+    assert_eq!(health.dead, 1);
+    assert_eq!(health.pending, 0);
     fixture.shutdown().await;
 }
 

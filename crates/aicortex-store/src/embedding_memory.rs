@@ -5,9 +5,25 @@
 //! crate receives decoded records, bounded identifiers, and aggregates only.
 
 use aicortex_types::{Memory, MemoryId};
-use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
-use rahi_types::Error;
+use rahi_store::{ProcessingKey, ReceiptKey, Statement, StoreHandle, TxnBuilder, Value, Work};
+use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
+
+/// Rahi processing namespace holding embedding jobs.
+pub const EMBEDDING_NAMESPACE: &str = "aicortex.memory";
+
+/// Rahi processor name holding embedding jobs.
+pub const EMBEDDING_PROCESSOR: &str = "embed";
+
+/// The model identity needed to stage embedding work without depending on
+/// the embedding crate.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ActiveEmbedding {
+    /// Configured provider model identity.
+    pub model_id: String,
+    /// Monotonic model configuration revision.
+    pub revision: u32,
+}
 
 /// One memory as observed by a worker through the leader.
 #[derive(Clone, Debug, PartialEq)]
@@ -59,6 +75,85 @@ struct QueueRow {
     dead: i64,
     quarantined: i64,
     oldest_pending_created_at: Option<i64>,
+}
+
+#[derive(Debug, Deserialize)]
+struct ActiveEmbeddingRow {
+    model_id: String,
+    revision: i64,
+}
+
+/// Rahi processor partition for one model revision.
+#[must_use]
+pub fn embedding_processor(revision: u32) -> String {
+    format!("{EMBEDDING_PROCESSOR}.r{revision}")
+}
+
+/// Read the active embedding model through the leader.
+///
+/// # Errors
+///
+/// Store errors, a missing active model, or an invalid stored revision.
+pub async fn active_embedding(store: &StoreHandle) -> Result<ActiveEmbedding, Error> {
+    let rows: Vec<ActiveEmbeddingRow> = store
+        .query_consistent(
+            "SELECT model_id, revision FROM embedding_model WHERE active = 1",
+            vec![],
+        )
+        .await?;
+    let row = rows.into_iter().next().ok_or_else(|| {
+        Error::Config("no active embedding model; activate one before capture".to_owned())
+    })?;
+    Ok(ActiveEmbedding {
+        model_id: row.model_id,
+        revision: u32::try_from(row.revision)
+            .map_err(|_| Error::Integrity("active model revision is outside u32".to_owned()))?,
+    })
+}
+
+/// Stage embedding work for the model observed active by the caller.
+///
+/// The caller reads the active model through the leader before building its
+/// transaction. The guard statement makes an activation change before commit
+/// abort the complete capture instead of staging work under a stale model
+/// identity.
+///
+/// # Errors
+///
+/// Rahi validation errors for an invalid scope or memory identity.
+pub fn stage_active_embedding(
+    txn: &mut TxnBuilder,
+    scope_id: &str,
+    memory_id: MemoryId,
+    model: &ActiveEmbedding,
+    now: UnixSeconds,
+) -> Result<(), Error> {
+    let receipt = ReceiptKey::new(scope_id, EMBEDDING_NAMESPACE, memory_id.to_string())?;
+    let key = ProcessingKey::new(
+        receipt,
+        model.revision,
+        embedding_processor(model.revision),
+        &model.model_id,
+    )?;
+    // Abort the whole capture if activation changed after the leader read.
+    // The SELECT emits no row when the identity is still active. Otherwise
+    // it attempts an impossible NULL model id, including when the revision
+    // row is absent, so SQLite rolls the complete transaction back.
+    txn.push(Statement::with_params(
+        "INSERT INTO embedding_model
+             (model_id, revision, dims, normalized, first_seen, active)
+         SELECT NULL, ?1, 0, 0, 0, 0
+         WHERE NOT EXISTS (
+             SELECT 1 FROM embedding_model
+             WHERE revision = ?1 AND model_id = ?2 AND active = 1
+         )",
+        vec![
+            Value::Integer(i64::from(model.revision)),
+            Value::from(model.model_id.as_str()),
+        ],
+    ));
+    Work::stage_work(txn, &key, now);
+    Ok(())
 }
 
 /// Read one worker input through the leader.

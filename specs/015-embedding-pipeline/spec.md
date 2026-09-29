@@ -30,8 +30,6 @@ extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/manifest.toml", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
-  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
-  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/mod.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
@@ -258,6 +256,14 @@ configuration with a pinned digest rather than a spec-level commitment.
   wording to preserve the storage isolation invariant: an operator-wide metric
   requires a separately authorized surface and cannot be inferred by a scoped
   preflight read.
+- **D-19 (2026-09-29, implementation).** Each worker drain runs the chassis
+  work sweep for the embedding namespace before claiming new work. The sweep
+  closes expired attempts without applying its namespace-global terminal
+  ceiling; after reclaim, the worker applies the row-specific ceiling that
+  excludes recorded deactivation and quarantine attempts, and dead-letters an
+  exhausted claim before calling the provider. This covers failures that
+  killed or hung a prior worker without letting an administrative deferral
+  consume the provider-failure budget.
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,

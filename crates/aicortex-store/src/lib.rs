@@ -96,9 +96,10 @@ pub use counters::{Counters, ScopeStats};
 pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
 pub use embedding_memory::{
-    EmbeddingMemory, EmbeddingQueueCounts, embedding_coverage, embedding_memory,
-    embedding_queue_counts, live_memory_total, memories_missing_embedding,
-    stage_complete_embedding_coverage_guard, stage_live_memory_guard,
+    ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingMemory,
+    EmbeddingQueueCounts, active_embedding, embedding_coverage, embedding_memory,
+    embedding_processor, embedding_queue_counts, live_memory_total, memories_missing_embedding,
+    stage_active_embedding, stage_complete_embedding_coverage_guard, stage_live_memory_guard,
 };
 pub use erasure::{
     Authority, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE, KIND_ERASE_SCOPE,
@@ -112,9 +113,8 @@ pub use host::{
 };
 pub use lifecycle::{Captured, Expired, Lifecycle, MAX_EXPIRY_BATCH, lifecycle_lease_key};
 pub use memory_repo::{
-    ActiveEmbedding, DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, EMBEDDING_NAMESPACE,
-    EMBEDDING_PROCESSOR, Listing, MAX_PAGE_ROWS, MemoryFilter, MemoryRepo, StatusFilter,
-    active_embedding, embedding_processor, fingerprint, stage_active_embedding,
+    DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, Listing, MAX_PAGE_ROWS, MemoryFilter, MemoryRepo,
+    StatusFilter, fingerprint,
 };
 pub use migrations::{
     EMBEDDING_MIGRATION_VERSION, EXPECTED_SCHEMA_VERSION, embedding_migration, migrations,

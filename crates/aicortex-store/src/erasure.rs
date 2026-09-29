@@ -56,7 +56,7 @@ use rahi_types::{Error, Sub, UnixSeconds};
 use serde::Deserialize;
 
 use crate::decision_key::DecisionKeyRepo;
-use crate::memory_repo::EMBEDDING_NAMESPACE;
+use crate::embedding_memory::EMBEDDING_NAMESPACE;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
 /// The decision kind one erased memory is appended under (B-7).

@@ -308,15 +308,36 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .lease(&format!("aicortex.embed.worker/{}", self.model.revision))
             .await?;
         let result = async {
+            // Rahi's namespace sweep closes expired attempts. Its terminal
+            // ceiling is deliberately disabled here because the chassis sees
+            // raw attempts, while this pipeline excludes administrative
+            // deactivation and quarantine attempts from provider retry
+            // budgets. The row-specific effective ceiling is enforced below
+            // immediately after reclaim and before a provider call.
+            let expiry_sweep_policy = RetryPolicy {
+                max_attempts: u32::MAX,
+                ..self.config.retry
+            };
+            let swept = Work::sweep(
+                store,
+                EMBEDDING_NAMESPACE,
+                &expiry_sweep_policy,
+                now,
+                self.config.batch_size,
+            )
+            .await?;
+            let mut report = WorkerReport {
+                dead: swept.dead,
+                ..WorkerReport::default()
+            };
             let Some(active) = ModelRegistry::active(store).await? else {
-                return Ok(WorkerReport::default());
+                return Ok(report);
             };
             if active.revision == self.model.revision && !same_model_revision(&active, &self.model)
             {
-                return Ok(WorkerReport::default());
+                return Ok(report);
             }
             let started = Instant::now();
-            let mut report = WorkerReport::default();
             for _ in 0..self.config.batch_size {
                 let item_now = elapsed_now(now, started);
                 let mut claims = Work::next(
@@ -333,6 +354,19 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     break;
                 };
                 report.claimed = report.claimed.saturating_add(1);
+                let effective_retry = self.provider_retry_policy(store, &claim).await?;
+                if claim.attempt > effective_retry.max_attempts {
+                    match self
+                        .record_expired_budget(store, &claim, elapsed_now(now, started))
+                        .await
+                    {
+                        Ok(()) => {}
+                        Err(Error::Conflict(_)) => continue,
+                        Err(error) => return Err(error),
+                    }
+                    report.dead = report.dead.saturating_add(1);
+                    break;
+                }
                 match self.process(store, &claim, now, started).await {
                     Ok(ProcessOutcome::Completed) => {
                         report.completed = report.completed.saturating_add(1);
@@ -686,6 +720,31 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         )?;
         store.txn(txn.into_statements()).await?;
         Ok(dead)
+    }
+
+    async fn record_expired_budget(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        now: UnixSeconds,
+    ) -> Result<(), Error> {
+        let terminal = RetryPolicy {
+            max_attempts: claim.attempt,
+            ..self.config.retry
+        };
+        let mut txn = TxnBuilder::new();
+        Work::fail(
+            &mut txn,
+            claim,
+            &FailureDetail {
+                class: "claim_expired".to_owned(),
+                detail: None,
+            },
+            &terminal,
+            now,
+        )?;
+        store.txn(txn.into_statements()).await?;
+        Ok(())
     }
 
     async fn provider_retry_policy(
