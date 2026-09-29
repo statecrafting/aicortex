@@ -1137,7 +1137,7 @@ async fn migration_seven_preserves_v6_rows_and_backfills_them_after_reopen() {
             .await
             .unwrap()
             .applied,
-        vec![8, 9, 10]
+        vec![8, 9]
     );
     assert!(
         fixture

@@ -64,14 +64,11 @@ pub const CLAIM_HISTORY_VERSION: u32 = 8;
 /// The additive embedding schema version introduced by spec 015.
 pub const EMBEDDING_MIGRATION_VERSION: u32 = 9;
 
-/// The append-only repair that adds embedding integrity constraints.
-pub const EMBEDDING_INTEGRITY_VERSION: u32 = 10;
-
 /// The version an up-to-date store records, which is the highest below.
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = EMBEDDING_INTEGRITY_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = EMBEDDING_MIGRATION_VERSION;
 
 const CLAIM_HISTORY_TABLES: &str = "CREATE TABLE claim_tx_counter (
     scope_id TEXT PRIMARY KEY,
@@ -142,35 +139,6 @@ const EMBEDDING_TABLES: &str = "CREATE TABLE IF NOT EXISTS embedding_model (
 CREATE UNIQUE INDEX IF NOT EXISTS embedding_model_one_active
     ON embedding_model (active) WHERE active = 1;
 CREATE TABLE IF NOT EXISTS chunk (
-    scope_id TEXT NOT NULL,
-    memory_id TEXT NOT NULL,
-    model_revision INTEGER NOT NULL,
-    ordinal INTEGER NOT NULL,
-    byte_start INTEGER NOT NULL,
-    byte_end INTEGER NOT NULL,
-    PRIMARY KEY (scope_id, memory_id, model_revision, ordinal)
-);
-CREATE TABLE IF NOT EXISTS embedding (
-    scope_id TEXT NOT NULL,
-    memory_id TEXT NOT NULL,
-    model_id TEXT NOT NULL,
-    model_revision INTEGER NOT NULL,
-    chunk_ordinal INTEGER NOT NULL,
-    dims INTEGER NOT NULL,
-    normalized INTEGER NOT NULL,
-    vector BLOB NOT NULL,
-    updated INTEGER NOT NULL,
-    PRIMARY KEY (scope_id, memory_id, model_revision, chunk_ordinal),
-    FOREIGN KEY (model_revision) REFERENCES embedding_model (revision),
-    FOREIGN KEY (scope_id, memory_id, model_revision, chunk_ordinal)
-        REFERENCES chunk (scope_id, memory_id, model_revision, ordinal)
-);
-CREATE INDEX IF NOT EXISTS embedding_scope_revision_memory
-    ON embedding (scope_id, model_revision, memory_id)";
-
-const EMBEDDING_INTEGRITY: &str = "ALTER TABLE embedding RENAME TO embedding_v9;
-ALTER TABLE chunk RENAME TO chunk_v9;
-CREATE TABLE chunk (
     chunk_id TEXT NOT NULL UNIQUE,
     scope_id TEXT NOT NULL,
     memory_id TEXT NOT NULL,
@@ -181,15 +149,7 @@ CREATE TABLE chunk (
     PRIMARY KEY (scope_id, memory_id, model_revision, ordinal),
     FOREIGN KEY (model_revision) REFERENCES embedding_model (revision)
 );
-INSERT INTO chunk (
-    chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end
-)
-SELECT
-    lower(hex(scope_id || char(31) || memory_id || char(31) ||
-        model_revision || char(31) || ordinal)),
-    scope_id, memory_id, model_revision, ordinal, byte_start, byte_end
-FROM chunk_v9;
-CREATE TABLE embedding (
+CREATE TABLE IF NOT EXISTS embedding (
     scope_id TEXT NOT NULL,
     memory_id TEXT NOT NULL,
     model_id TEXT NOT NULL,
@@ -205,17 +165,7 @@ CREATE TABLE embedding (
     FOREIGN KEY (scope_id, memory_id, model_revision, chunk_ordinal)
         REFERENCES chunk (scope_id, memory_id, model_revision, ordinal)
 );
-INSERT INTO embedding (
-    scope_id, memory_id, model_id, model_revision, chunk_ordinal,
-    dims, normalized, vector, updated
-)
-SELECT
-    scope_id, memory_id, model_id, model_revision, chunk_ordinal,
-    dims, normalized, vector, updated
-FROM embedding_v9;
-DROP TABLE embedding_v9;
-DROP TABLE chunk_v9;
-CREATE INDEX embedding_scope_revision_memory
+CREATE INDEX IF NOT EXISTS embedding_scope_revision_memory
     ON embedding (scope_id, model_revision, memory_id)";
 
 /// The scope a memory lives in (B-2).
@@ -507,7 +457,7 @@ const ERASURE_JOURNAL_TABLE: &str = "CREATE TABLE IF NOT EXISTS erasure_journal 
     PRIMARY KEY (scope_id, batch)
 )";
 
-/// Spec 015's immutable additive embedding schema migration.
+/// Spec 015's additive embedding schema migration.
 ///
 /// It is constructed here to preserve the downward-only crate dependency
 /// graph while spec 015 extends this list.
@@ -521,16 +471,6 @@ pub fn embedding_migration() -> Migration {
     .additive()
 }
 
-/// The append-only schema repair for embedding identifiers and vectors.
-#[must_use]
-pub fn embedding_integrity_migration() -> Migration {
-    Migration::new(
-        EMBEDDING_INTEGRITY_VERSION,
-        "embedding referential and vector integrity",
-        EMBEDDING_INTEGRITY,
-    )
-}
-
 /// The migrations, in version order (B-1).
 ///
 /// The chassis records each applied version and applies only later versions
@@ -542,12 +482,9 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 10]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 9]> = std::sync::LazyLock::new(|| {
     [
         // Migrations through version 9 are additive (spec 046 B-2, D-2).
-        // Version 10 intentionally rebuilds derivative tables to add
-        // constraints, so it is not additive. The declaration is not part of
-        // the SQL, so the checksum rahi records is unchanged (046 B-3).
         rahi_store::coordination_migration(COORDINATION_VERSION).additive(),
         Migration::new(
             MEMORY_TABLES_VERSION,
@@ -645,6 +582,5 @@ static LIST: std::sync::LazyLock<[Migration; 10]> = std::sync::LazyLock::new(|| 
         )
         .additive(),
         embedding_migration(),
-        embedding_integrity_migration(),
     ]
 });

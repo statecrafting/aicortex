@@ -10,9 +10,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use aicortex_embed::local::{LocalEngine, LocalProvider, WeightArtifact};
-use aicortex_embed::migrations::{
-    EMBEDDING_INTEGRITY_VERSION, EMBEDDING_MIGRATION_VERSION, integrity_migration, migration,
-};
+use aicortex_embed::migrations::{EMBEDDING_MIGRATION_VERSION, migration};
 use aicortex_embed::provider::{EmbeddingProvider, ModelId, Vector};
 use aicortex_embed::registry::{ModelRegistry, ModelRevision};
 use aicortex_embed::{
@@ -142,14 +140,12 @@ impl Fixture {
             )
             .await
             .expect("memory fixture table applies");
-        for embedding_migration in [migration(), integrity_migration()] {
-            for statement in embedding_migration.sql.split(';').map(str::trim) {
-                if !statement.is_empty() {
-                    handle
-                        .execute(statement.to_owned(), vec![])
-                        .await
-                        .expect("embedding migration statement applies");
-                }
+        for statement in migration().sql.split(';').map(str::trim) {
+            if !statement.is_empty() {
+                handle
+                    .execute(statement.to_owned(), vec![])
+                    .await
+                    .expect("embedding migration statement applies");
             }
         }
         Self {
@@ -322,7 +318,6 @@ fn vector_bytes_are_little_endian_and_dimension_checked() {
 fn migration_has_exact_tables_and_follows_existing_versions() {
     let migration = migration();
     assert_eq!(EMBEDDING_MIGRATION_VERSION, 9);
-    assert_eq!(EMBEDDING_INTEGRITY_VERSION, 10);
     assert_eq!(migration.version, 9);
     for table in ["embedding_model", "chunk", "embedding"] {
         assert!(
@@ -332,17 +327,14 @@ fn migration_has_exact_tables_and_follows_existing_versions() {
         );
     }
     assert!(migration.sql.contains("scope_id TEXT NOT NULL"));
+    assert!(migration.sql.contains("chunk_id TEXT NOT NULL UNIQUE"));
+    assert!(migration.sql.contains("CHECK (length(vector) = dims * 4)"));
     assert!(
         migration
             .sql
             .contains("PRIMARY KEY (scope_id, memory_id, model_revision")
     );
     assert!(migration.additive);
-    let integrity = integrity_migration();
-    assert_eq!(integrity.version, 10);
-    assert!(!integrity.additive);
-    assert!(integrity.sql.contains("chunk_id TEXT NOT NULL UNIQUE"));
-    assert!(integrity.sql.contains("CHECK (length(vector) = dims * 4)"));
 }
 
 #[test]
@@ -371,7 +363,7 @@ fn staging_requires_an_active_revision_and_capture_uses_registry_selection() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn capture_work_without_an_active_model_is_refused_before_staging() {
+async fn active_model_selection_is_required_before_staging() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();
     assert!(aicortex_store::active_embedding(&store).await.is_err());
@@ -759,6 +751,45 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
     );
     assert_eq!((bob_coverage[0].embedded, bob_coverage[0].total), (1, 1));
 
+    for statement in [
+        "INSERT INTO chunk
+            (chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
+         VALUES ('orphan', 'scope-a', 'missing', 1, 0, 0, 1)",
+        "INSERT INTO embedding
+            (scope_id, memory_id, model_id, model_revision, chunk_ordinal,
+             dims, normalized, vector, updated)
+         VALUES ('scope-a', 'missing', 'test-model', 1, 0, 2, 1,
+             X'0000803F00000000', 3)",
+    ] {
+        store
+            .execute(statement.to_owned(), vec![])
+            .await
+            .expect("orphan derivative fixture commits");
+    }
+    let alice_coverage = ModelRegistry::coverage(&store, "scope-a")
+        .await
+        .expect("coverage ignores orphan derivatives");
+    assert_eq!(
+        (alice_coverage[0].embedded, alice_coverage[0].total),
+        (1, 1)
+    );
+
+    let charlie = test_memory("charlie", "Queued in Bob's scope.", 3);
+    insert_memory(&store, "scope-b", &charlie).await;
+    let mut stale = TxnBuilder::new();
+    stage_embedding(
+        &mut stale,
+        "scope-b",
+        charlie.id,
+        &model,
+        UnixSeconds::new(3),
+    )
+    .expect("other-scope old-revision work stages");
+    store
+        .txn(stale.into_statements())
+        .await
+        .expect("other-scope old-revision work commits");
+
     let model_two = ModelRevision {
         revision: 2,
         first_seen: UnixSeconds::new(4),
@@ -792,7 +823,7 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
     assert_eq!(report.completed, 2);
     ModelRegistry::drop_revision(&store, "scope-a", 1)
         .await
-        .expect("scoped drop commits");
+        .expect("scoped drop ignores another scope's queue");
     assert_eq!(
         count(
             &store,

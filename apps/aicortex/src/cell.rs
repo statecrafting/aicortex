@@ -106,6 +106,14 @@ async fn read_embedding_preflight(env: &dyn EnvReader) -> Result<(), Error> {
 
 async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error> {
     let handle = store.handle();
+    let migrations = handle.recorded_migrations().await?;
+    if !migrations
+        .iter()
+        .any(|migration| migration.version == aicortex_store::EMBEDDING_MIGRATION_VERSION)
+    {
+        println!("embedding: unavailable until migrate");
+        return Ok(());
+    }
     const PAGE: i64 = 100;
     let mut after = String::new();
     let mut reported = false;

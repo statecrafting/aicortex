@@ -1,7 +1,7 @@
 //! Versioned embeddings as durable, governed work (spec 015).
 //!
-//! Capture calls [`stage_embedding`] in the same transaction as the memory
-//! write. [`EmbeddingWorker`] then claims that work through Rahi's fenced
+//! A capture integration calls [`stage_embedding`] in the same transaction as
+//! the memory write. [`EmbeddingWorker`] then claims that work through Rahi's fenced
 //! processing queue, computes chunks and vectors outside the transaction,
 //! and commits all derived rows with the claim completion. A lost delivery
 //! is therefore retried, while a stale worker commits nothing.
@@ -19,9 +19,7 @@ pub mod worker;
 
 pub use chunk::{Chunk, ChunkConfig, Chunker};
 pub use local::{LocalEngine, LocalProvider, WeightArtifact, WeightFetcher};
-pub use migrations::{
-    EMBEDDING_INTEGRITY_VERSION, EMBEDDING_MIGRATION_VERSION, integrity_migration, migration,
-};
+pub use migrations::{EMBEDDING_MIGRATION_VERSION, migration};
 pub use provider::{EmbeddingProvider, ModelId, Vector};
 pub use registry::{Coverage, ModelRegistry, ModelRevision};
 pub use remote::{EmbeddingTransport, RemoteProvider};

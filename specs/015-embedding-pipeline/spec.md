@@ -174,12 +174,12 @@ configuration with a pinned digest rather than a spec-level commitment.
   score rather than a pooled document vector. Pooling dilutes a long note
   until nothing in it matches, which is the failure users describe as the
   system forgetting things it was told.
-- **D-3 (2026-09-26, implementation).** Capture reads the active model through
-  the leader before building its write transaction. The durable-work statement
-  carries that model identity, and an in-transaction guard aborts the complete
-  capture if activation changes before commit. An absent active model returns
-  a configuration error before staging any writes, including a merge, instead
-  of leaving a memory without durable embedding work.
+- **D-3 (2026-09-26, implementation).** The durable-work statement carries the
+  model identity selected through the leader, and an in-transaction guard
+  aborts staging if activation changes before commit. Capture does not call
+  this primitive until the application owns provider configuration, initial
+  activation, and the managed worker lifecycle. Existing capture therefore
+  remains available while the spec is in progress.
 - **D-4 (2026-09-28, implementation).** Each model revision has its own Rahi
   processor identity. Activating a new revision therefore cannot make its
   worker claim old-revision work, and an old worker can drain its partition to
@@ -198,15 +198,16 @@ configuration with a pinned digest rather than a spec-level commitment.
   monotonically. A rollback is a new revision with the former artifact rather
   than reactivating an older number, which preserves the meaning of durable
   work and stored-vector identities.
-- **D-8 (2026-09-28, implementation).** Migration 9 remains byte-for-byte
-  immutable. The chunk identifier, model foreign key, and vector-length
-  constraints land in non-additive migration 10, which rebuilds the two
-  derivative tables and preserves any version 9 rows during upgrade.
+- **D-8 (2026-09-28, implementation).** The unreleased migration 9 creates the
+  derivative tables with the chunk identifier, model foreign key, and
+  vector-length constraints in their final shape. No repair migration or
+  table rebuild is needed before the first release of this schema.
 
 ## Status (2026-09-28, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,
-revision-partitioned durable worker, capture and erasure integration,
+revision-partitioned durable worker, erasure integration and capture-staging
+primitive,
 re-embedding scheduler, artifact verification, governed remote boundary, and
 preflight report are implemented and locally verified. The erasure transaction
 also removes pending, claimed, failed, and dead embedding work plus its attempt
@@ -218,17 +219,15 @@ the managed background-worker lifecycle, and the re-embed and drop operator
 verbs (B-2, B-4, B-5, B-6, B-9). The application preflight reports the active
 revision, queue counts, and per-scope coverage even when another chassis check
 fails. Rahi 0.4.0 exposes queue counts globally but does not expose
-tenant-level counts or enqueue timestamps, so the report cannot yet provide a
+tenant-level queue counts or enqueue timestamps, so the report cannot yet provide a
 truthful per-scope oldest-pending age or register product collectors in the
-chassis `/metrics` registry (B-3). Dropping a revision refuses while its queue
-partition is non-empty because this chassis version has no public cancellation
-API.
+chassis `/metrics` registry (B-3). An inactive revision's queued work completes
+as a terminal no-op, so a scope-local drop does not consult the chassis's
+deployment-global queue counts.
 
-Fresh standalone and library-host deployments are capture-blocked until an
-operator applies the required Rahi migration sets and activates the first
-embedding model. The current application has no first-activation wiring, so
-runtime capture remains unavailable even though the storage contract is
-implemented and tested.
+The current application has no first-activation wiring, so capture does not
+yet stage embedding work. The storage and durable-work contracts are
+implemented and tested without regressing the existing capture path.
 
 FR-001, FR-002, FR-003, and FR-007 have direct tests. FR-004, FR-005, and
 FR-006 remain open: there is no booted local-provider socket probe, denied-host

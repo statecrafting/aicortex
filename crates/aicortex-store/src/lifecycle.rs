@@ -51,7 +51,7 @@ use serde::Deserialize;
 
 use crate::counters::Counters;
 use crate::fingerprint;
-use crate::memory_repo::{MemoryRepo, active_embedding, stage_active_embedding};
+use crate::memory_repo::MemoryRepo;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
 /// The largest expiry batch a single leased pass will claim.
@@ -222,13 +222,9 @@ impl Lifecycle {
     /// transaction whichever way it went (constitution XI).
     /// A concurrent record change aborts that transaction at commit; the
     /// caller must re-read and stage a fresh capture before retrying.
-    /// The deployment must apply the chassis and product migration sets and
-    /// activate an embedding model before accepting captures.
-    ///
     /// # Errors
     ///
-    /// The store's error from the active-model or uniqueness read;
-    /// [`Error::Config`] when no embedding model is active;
+    /// The store's error from the uniqueness read;
     /// [`Error::Integrity`] when the existing row does not read back as a
     /// memory or has gone between the read and the merge; whatever
     /// [`MemoryRepo::insert`] refuses.
@@ -241,7 +237,6 @@ impl Lifecycle {
     ) -> Result<Captured, Error> {
         let memory = admitted.memory();
         let scope_id = ScopeId::of(&memory.scope);
-        let active_model = active_embedding(store).await?;
         let digest = fingerprint::of_memory(memory);
         let holder = self
             .repo
@@ -252,13 +247,6 @@ impl Lifecycle {
             let provenance = memory.provenance.clone();
             self.repo.insert(txn, admitted, &provenance, work)?;
             stage_source(txn, &scope_id, memory.id, &memory.provenance)?;
-            stage_active_embedding(
-                txn,
-                scope_id.as_str(),
-                memory.id,
-                &active_model,
-                memory.updated,
-            )?;
             return Ok(Captured::Inserted(memory.id));
         };
 
@@ -290,13 +278,6 @@ impl Lifecycle {
             ],
         ));
         stage_source(txn, &scope_id, existing_id, &memory.provenance)?;
-        stage_active_embedding(
-            txn,
-            scope_id.as_str(),
-            existing_id,
-            &active_model,
-            existing.updated,
-        )?;
         // The work is staged either way: a merge changed the row, so whatever
         // the capture implies downstream (re-embedding, re-indexing) is owed
         // for the merged row as much as for a new one. Losing it here would

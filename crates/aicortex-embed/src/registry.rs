@@ -1,6 +1,6 @@
 //! The model revision registry and coverage report.
 
-use rahi_store::{Statement, StoreHandle, TxnBuilder, Value, Work};
+use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
@@ -143,12 +143,15 @@ impl ModelRegistry {
         let rows: Vec<CoverageRow> = store
             .query(
                 "SELECT model.revision AS revision,
-                    COUNT(DISTINCT embedding.memory_id) AS embedded,
+                    COUNT(DISTINCT live.id) AS embedded,
                     (SELECT COUNT(*) FROM memory
                      WHERE scope_id = ?1 AND status <> 'erased') AS total
                  FROM embedding_model model
                  LEFT JOIN embedding ON embedding.model_revision = model.revision
                     AND embedding.scope_id = ?1
+                 LEFT JOIN memory live ON live.scope_id = embedding.scope_id
+                    AND live.id = embedding.memory_id
+                    AND live.status <> 'erased'
                  GROUP BY model.revision ORDER BY model.revision",
                 vec![Value::from(scope_id)],
             )
@@ -156,8 +159,7 @@ impl ModelRegistry {
         rows.into_iter().map(coverage_from_row).collect()
     }
 
-    /// Remove one inactive revision only after active coverage is complete
-    /// and its queue partition has drained.
+    /// Remove one inactive revision only after active coverage is complete.
     pub async fn drop_revision(
         store: &StoreHandle,
         scope_id: &str,
@@ -180,20 +182,6 @@ impl ModelRegistry {
             return Err(Error::Conflict(format!(
                 "active revision {} covers {}/{} live memories",
                 active.revision, active_coverage.embedded, active_coverage.total
-            )));
-        }
-        let processor = crate::worker::embedding_processor(revision);
-        if Work::counts(store).await?.iter().any(|count| {
-            count.processor == processor
-                && count
-                    .pending
-                    .saturating_add(count.claimed)
-                    .saturating_add(count.failed)
-                    .saturating_add(count.dead)
-                    > 0
-        }) {
-            return Err(Error::Conflict(format!(
-                "embedding revision {revision} still has queued work"
             )));
         }
         let mut txn = TxnBuilder::new();

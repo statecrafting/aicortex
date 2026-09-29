@@ -386,6 +386,22 @@ async fn fr003_erasure_empties_the_chunk_and_embedding_tables_and_leaves_retriev
 
     let memory = common::memory(&alice, "the spare key is under the mat", 1_700_000_000);
     capture(&node, &memory).await;
+    let active = aicortex_store::active_embedding(&node.handle())
+        .await
+        .expect("the embedding model is active");
+    let mut embedding_work = TxnBuilder::new();
+    aicortex_store::stage_active_embedding(
+        &mut embedding_work,
+        ScopeId::of(&alice).as_str(),
+        memory.id,
+        &active,
+        memory.updated,
+    )
+    .expect("embedding work stages explicitly");
+    node.handle()
+        .txn(embedding_work.into_statements())
+        .await
+        .expect("embedding work commits");
     seed_derivatives(&node, &alice, memory.id).await;
     let claims = Work::next(
         &node.handle(),

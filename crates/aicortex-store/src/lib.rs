@@ -104,8 +104,7 @@ pub use memory_repo::{
     active_embedding, embedding_processor, fingerprint, stage_active_embedding,
 };
 pub use migrations::{
-    EMBEDDING_INTEGRITY_VERSION, EMBEDDING_MIGRATION_VERSION, EXPECTED_SCHEMA_VERSION,
-    embedding_integrity_migration, embedding_migration, migrations,
+    EMBEDDING_MIGRATION_VERSION, EXPECTED_SCHEMA_VERSION, embedding_migration, migrations,
 };
 pub use predicate_registry_repo::{
     KIND_REGISTER, PredicateRegistryRepo, Registration, document_digest,
