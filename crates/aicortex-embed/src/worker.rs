@@ -404,7 +404,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 claim,
             )
         })?;
-        if memory.status == Status::Erased {
+        if matches!(memory.status, Status::Erased | Status::Quarantined) {
             self.complete_empty(store, claim, now).await?;
             return Ok(ProcessOutcome::Completed);
         }
@@ -471,7 +471,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                  (chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
                  SELECT ?7, ?1, ?2, ?3, ?4, ?5, ?6
                  WHERE EXISTS (SELECT 1 FROM memory
-                               WHERE scope_id = ?1 AND id = ?2 AND status <> 'erased')",
+                               WHERE scope_id = ?1 AND id = ?2
+                                 AND status NOT IN ('erased', 'quarantined'))",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(memory.id.to_string()),
@@ -499,7 +500,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                   normalized, vector, updated)
                  SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9
                  WHERE EXISTS (SELECT 1 FROM memory
-                               WHERE scope_id = ?1 AND id = ?2 AND status <> 'erased')",
+                               WHERE scope_id = ?1 AND id = ?2
+                                 AND status NOT IN ('erased', 'quarantined'))",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(memory.id.to_string()),
@@ -663,7 +665,8 @@ async fn reembed_under_lease(
     let rows: Vec<MemoryIdRow> = store
         .query_consistent(
             "SELECT memory.id AS id FROM memory
-             WHERE memory.scope_id = ?1 AND memory.status <> 'erased'
+             WHERE memory.scope_id = ?1
+               AND memory.status NOT IN ('erased', 'quarantined')
                AND memory.id > ?2
                AND NOT EXISTS (
                  SELECT 1 FROM embedding
@@ -731,6 +734,11 @@ async fn reembed_under_lease(
 /// Rahi 0.4 exposes processor-level counts but not tenant-level counts or
 /// enqueue timestamps. The scope and clock remain in this API so callers do
 /// not need another compatibility break when the chassis adds those reads.
+/// Counts deliberately include every model revision: activating a replacement
+/// must not hide unfinished work in the prior revision's durable partition.
+/// The prior revision's worker drains that work to a terminal no-op; until it
+/// does, preflight continues to report the pending work as an operator-visible
+/// defect.
 ///
 /// # Errors
 ///

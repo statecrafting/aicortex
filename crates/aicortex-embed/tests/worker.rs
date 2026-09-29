@@ -824,8 +824,8 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn erased_or_missing_memory_completes_without_dead_letter() {
-    for missing in [false, true] {
+async fn erased_quarantined_or_missing_memory_completes_without_dead_letter() {
+    for state in ["erased", "quarantined", "missing"] {
         let fixture = Fixture::migrated().await;
         let store = fixture.handle();
         let model = test_model(true);
@@ -839,10 +839,13 @@ async fn erased_or_missing_memory_completes_without_dead_letter() {
             .txn(txn.into_statements())
             .await
             .expect("work commits");
-        let sql = if missing {
-            "DELETE FROM memory WHERE scope_id = ?1 AND id = ?2"
-        } else {
-            "UPDATE memory SET status = 'erased' WHERE scope_id = ?1 AND id = ?2"
+        let sql = match state {
+            "erased" => "UPDATE memory SET status = 'erased' WHERE scope_id = ?1 AND id = ?2",
+            "quarantined" => {
+                "UPDATE memory SET status = 'quarantined' WHERE scope_id = ?1 AND id = ?2"
+            }
+            "missing" => "DELETE FROM memory WHERE scope_id = ?1 AND id = ?2",
+            _ => unreachable!("the test lists every terminal state"),
         };
         store
             .execute(
@@ -856,10 +859,25 @@ async fn erased_or_missing_memory_completes_without_dead_letter() {
             .await
             .expect("terminal work drains");
         assert_eq!(report.completed, 1);
+        assert_eq!(
+            count(
+                &store,
+                "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+                vec![Value::from(memory.id.to_string())],
+            )
+            .await,
+            0
+        );
         let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
             .await
             .expect("health reads");
         assert_eq!(health.dead, 0);
+        if state == "quarantined" {
+            let coverage = ModelRegistry::coverage(&store, "scope-a")
+                .await
+                .expect("coverage excludes quarantined memories");
+            assert_eq!((coverage[0].embedded, coverage[0].total), (0, 0));
+        }
         fixture.shutdown().await;
     }
 }
@@ -1033,6 +1051,10 @@ async fn inactive_revision_work_completes_before_active_reembedding() {
         ..test_model(true)
     };
     activate(&store, &active_model).await;
+    let transition_health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("old revision work remains visible during the transition");
+    assert_eq!(transition_health.pending, 1);
     let old_worker = worker_for_model(TestProvider { fail: false }, old_model, "old-worker", 3);
     let old_report = old_worker
         .drain(&store, UnixSeconds::new(4))

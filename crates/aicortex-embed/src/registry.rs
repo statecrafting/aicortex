@@ -161,13 +161,14 @@ impl ModelRegistry {
                 "SELECT model.revision AS revision,
                     COUNT(DISTINCT live.id) AS embedded,
                     (SELECT COUNT(*) FROM memory
-                     WHERE scope_id = ?1 AND status <> 'erased') AS total
+                     WHERE scope_id = ?1
+                       AND status NOT IN ('erased', 'quarantined')) AS total
                  FROM embedding_model model
                  LEFT JOIN embedding ON embedding.model_revision = model.revision
                     AND embedding.scope_id = ?1
                  LEFT JOIN memory live ON live.scope_id = embedding.scope_id
                     AND live.id = embedding.memory_id
-                    AND live.status <> 'erased'
+                    AND live.status NOT IN ('erased', 'quarantined')
                  GROUP BY model.revision ORDER BY model.revision",
                 vec![Value::from(scope_id)],
             )
@@ -206,7 +207,8 @@ impl ModelRegistry {
              WHERE revision = ?2 AND active = 0
              AND NOT EXISTS (
                SELECT 1 FROM memory m
-               WHERE m.scope_id = ?1 AND m.status <> 'erased'
+               WHERE m.scope_id = ?1
+                 AND m.status NOT IN ('erased', 'quarantined')
                  AND NOT EXISTS (
                    SELECT 1 FROM embedding e
                    WHERE e.scope_id = ?1 AND e.memory_id = m.id
@@ -221,7 +223,8 @@ impl ModelRegistry {
                          WHERE revision = ?2 AND active = 0)
              AND NOT EXISTS (
                SELECT 1 FROM memory m
-               WHERE m.scope_id = ?1 AND m.status <> 'erased'
+               WHERE m.scope_id = ?1
+                 AND m.status NOT IN ('erased', 'quarantined')
                  AND NOT EXISTS (
                    SELECT 1 FROM embedding e
                    WHERE e.scope_id = ?1 AND e.memory_id = m.id
@@ -233,7 +236,8 @@ impl ModelRegistry {
                          WHERE revision = ?2 AND active = 0)
              AND NOT EXISTS (
                SELECT 1 FROM memory m
-               WHERE m.scope_id = ?1 AND m.status <> 'erased'
+               WHERE m.scope_id = ?1
+                 AND m.status NOT IN ('erased', 'quarantined')
                  AND NOT EXISTS (
                    SELECT 1 FROM embedding e
                    WHERE e.scope_id = ?1 AND e.memory_id = m.id

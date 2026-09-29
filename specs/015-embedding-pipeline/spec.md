@@ -201,6 +201,16 @@ configuration with a pinned digest rather than a spec-level commitment.
   derivative tables with the chunk identifier, model foreign key, and
   vector-length constraints in their final shape. No repair migration or
   table rebuild is needed before the first release of this schema.
+- **D-9 (2026-09-29, implementation).** Quarantined content is not eligible
+  for embedding. Its staged durable job completes as a terminal no-op, and
+  re-embedding and coverage exclude it until a later governed promotion makes
+  it retrievable and stages new work. This keeps content with unestablished
+  origin out of both local derivatives and remote provider calls.
+- **D-10 (2026-09-29, implementation).** Queue health is deployment-wide and
+  includes unfinished work for inactive revisions. Activating a replacement
+  revision must not hide the prior partition: its revision-bound worker drains
+  those jobs to a terminal no-op, and preflight remains loud until that drain
+  occurs.
 
 ## Status (2026-09-28, in progress: runtime and chassis hooks required)
 
