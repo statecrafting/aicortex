@@ -92,6 +92,50 @@ fn overlap_is_preserved_after_a_short_leading_sentence() {
 }
 
 #[test]
+fn each_chunk_extends_coverage_past_the_previous_chunk() {
+    let body = format!(
+        "{}. {}. {}",
+        "a".repeat(48),
+        "b".repeat(43),
+        "c".repeat(100)
+    );
+    let chunks = Chunker::new(ChunkConfig {
+        threshold_bytes: 1,
+        target_bytes: 100,
+        overlap_bytes: 10,
+        max_chunks_per_memory: 16,
+    })
+    .expect("valid chunk configuration")
+    .split(&body)
+    .expect("body chunks");
+
+    assert!(
+        chunks
+            .windows(2)
+            .all(|pair| pair[1].byte_end > pair[0].byte_end)
+    );
+}
+
+#[test]
+fn newline_is_a_boundary_without_trailing_whitespace() {
+    let body = "line one\nLine two continues";
+    let chunks = Chunker::new(ChunkConfig {
+        threshold_bytes: 1,
+        target_bytes: 9,
+        overlap_bytes: 2,
+        max_chunks_per_memory: 16,
+    })
+    .expect("valid chunk configuration")
+    .split(body)
+    .expect("body chunks");
+    assert_eq!(chunks.first().map(|chunk| chunk.byte_end), Some(9));
+    assert_eq!(
+        chunks.first().map(|chunk| chunk.text.as_str()),
+        Some("line one\n")
+    );
+}
+
+#[test]
 fn amplification_is_bounded_by_configuration() {
     let chunker = Chunker::new(ChunkConfig {
         threshold_bytes: 1,

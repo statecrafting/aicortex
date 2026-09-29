@@ -56,7 +56,7 @@ use rahi_types::{Error, Sub, UnixSeconds};
 use serde::Deserialize;
 
 use crate::decision_key::DecisionKeyRepo;
-use crate::memory_repo::EMBEDDING_NAMESPACE;
+use crate::embedding_memory::EMBEDDING_NAMESPACE;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
 /// The decision kind one erased memory is appended under (B-7).
@@ -73,10 +73,14 @@ pub const KIND_ERASE_SCOPE: &str = "memory.erase_scope";
 /// can commit without a long stall on every other writer of the scope.
 pub const MAX_ERASURE_BATCH: u32 = 500;
 
-// Accounting adds statements to each row's sweep. Keep the current sweep
-// below the pinned engine's 2 MiB WAL entry ceiling even when the caller's
-// row ceiling is 500. This is a row bound, not a lease timing assumption.
-const MAX_ACCOUNTED_BATCH: u32 = 200;
+/// Maximum rows committed by one fully accounted erasure transaction.
+///
+/// Accounting adds statements to each row's sweep. Keep the current sweep
+/// below the pinned engine's 2 MiB WAL entry ceiling even when the caller's
+/// row ceiling is 500. The 5,000-row integration test exercises full batches
+/// with receipt and derivative cleanup enabled. This is a row bound, not a
+/// lease timing assumption.
+pub const MAX_ACCOUNTED_ERASURE_BATCH: u32 = 200;
 
 /// The source system a tombstone's stripped provenance names.
 const ERASED: &str = "erased";
@@ -187,9 +191,9 @@ pub const DERIVATIVES: &[Derivative] = &[
 /// Naming it anyway is the difference between a requirement deferred and a
 /// requirement forgotten. Spec 016 moves its entry into [`DERIVATIVES`] in the same change as the migration that
 /// creates the table, under an `extends` edge on this file, and the sweep
-/// itself needs no edit. Until then [`Eraser::also`] registers them against a
-/// table the caller has created, which is how this spec's own tests assert
-/// FR-003 over real chunk and embedding rows rather than over their absence.
+/// itself needs no edit. Until then [`Eraser::also`] registers the planned
+/// derivative against a table the caller has created so tests can exercise
+/// the future-table contract without weakening missing-table failures.
 pub const PLANNED: &[Derivative] = &[
     // Spec 016 section 2: the application-owned text index.
     Derivative::new("chunk_token", "memory_id", "scope_id"),
@@ -462,12 +466,12 @@ impl Eraser {
 
     /// The same, also sweeping `derivative`.
     ///
-    /// For a table this schema version does not carry yet: specs 015 and 016
-    /// move their [`PLANNED`] entries into [`DERIVATIVES`] when their
-    /// migrations land, and until then a caller that has created the table
-    /// itself registers it here. Registering a table that does not exist
-    /// fails the erasure rather than silently skipping it, which is the right
-    /// way round for an invariant that is frozen.
+    /// For a table this schema version does not carry yet: spec 016 moves its
+    /// [`PLANNED`] entry into [`DERIVATIVES`] when its migration lands, and
+    /// until then a caller that has created the table itself registers it
+    /// here. Registering a table that does not exist fails the erasure rather
+    /// than silently skipping it, which is the right way round for an
+    /// invariant that is frozen.
     #[must_use]
     pub fn also(mut self, derivative: Derivative) -> Self {
         if !self.derivatives.contains(&derivative) {
@@ -531,7 +535,7 @@ impl Eraser {
         }
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
-        stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
+        let queue = stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
         let mark_at = txn.len();
         txn.push(Statement::with_params(
             MARK_DERIVED_SQL,
@@ -577,6 +581,7 @@ impl Eraser {
             &Counts {
                 sweep,
                 keys,
+                queue,
                 tombstones,
                 marked: Some(mark_at),
             },
@@ -836,7 +841,7 @@ impl Eraser {
                 BATCH_SQL,
                 vec![
                     Value::from(&scope_id),
-                    Value::Integer(i64::from(batch.min(MAX_ACCOUNTED_BATCH))),
+                    Value::Integer(i64::from(batch.min(MAX_ACCOUNTED_ERASURE_BATCH))),
                 ],
             )
             .await?;
@@ -850,7 +855,7 @@ impl Eraser {
         DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
-        stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
+        let queue = stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
         txn.push(Statement::with_params(
             ERASE_SCOPE_CLAIMS_SQL,
             vec![Value::from(&scope_id)],
@@ -881,6 +886,7 @@ impl Eraser {
             &Counts {
                 sweep,
                 keys,
+                queue,
                 tombstones,
                 marked: None,
             },
@@ -1118,12 +1124,28 @@ fn stage_embedding_queue_erasure(
     scope_id: &ScopeId,
     shells: &[Shell],
     now: UnixSeconds,
-) -> Result<(), Error> {
-    for shell in shells {
-        let key = ReceiptKey::new(scope_id.as_str(), EMBEDDING_NAMESPACE, shell.id.to_string())?;
+) -> Result<core::ops::Range<usize>, Error> {
+    let keys = shells
+        .iter()
+        .map(|shell| ReceiptKey::new(scope_id.as_str(), EMBEDDING_NAMESPACE, shell.id.to_string()))
+        .collect::<Result<Vec<_>, _>>()?;
+    let start = txn.len();
+    for key in &keys {
+        let digest = key.key_digest();
+        txn.push(Statement::with_params(
+            "DELETE FROM rahi_processing_attempt WHERE key_digest = ?1",
+            vec![Value::from(digest.clone())],
+        ));
+        txn.push(Statement::with_params(
+            "DELETE FROM rahi_processing WHERE key_digest = ?1",
+            vec![Value::from(digest)],
+        ));
+    }
+    let queue = start..txn.len();
+    for key in keys {
         Receipts::stage_erasure(txn, &EraseScope::Identity(key), now);
     }
-    Ok(())
+    Ok(queue)
 }
 
 /// Ranges refer to the original destructive transaction, before accounting
@@ -1132,6 +1154,7 @@ fn stage_embedding_queue_erasure(
 struct Counts {
     sweep: core::ops::Range<usize>,
     keys: core::ops::Range<usize>,
+    queue: core::ops::Range<usize>,
     tombstones: core::ops::Range<usize>,
     marked: Option<usize>,
 }
@@ -1157,7 +1180,7 @@ fn accounted_batch(
         statements.push(statement);
         let update = if counts.keys.contains(&index) {
             "keys_destroyed = keys_destroyed + changes(), derivatives = derivatives + changes()"
-        } else if counts.sweep.contains(&index) {
+        } else if counts.sweep.contains(&index) || counts.queue.contains(&index) {
             "derivatives = derivatives + changes()"
         } else if counts.tombstones.contains(&index) {
             "memories = memories + changes()"

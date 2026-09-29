@@ -13,6 +13,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "apps/aicortex/manifest.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "apps/aicortex/src/cell.rs",
         "source": "spec-edge"
       },
@@ -89,6 +93,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/src/embedding_memory.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/erasure.rs",
         "source": "spec-edge"
       },
@@ -114,10 +122,6 @@
       },
       {
         "path": "crates/aicortex-store/tests/erasure.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/aicortex-store/tests/host_library.rs",
         "source": "spec-edge"
       },
       {
@@ -297,6 +301,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/embedding_memory.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/embedding_memory.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "fixtures/external-host"
           }
         ],
@@ -318,6 +335,19 @@
         "unit": {
           "kind": "file",
           "path": "apps/aicortex/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/manifest.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/manifest.toml"
         }
       },
       {
@@ -492,19 +522,6 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-store/tests/host_library.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/tests/host_library.rs"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "crates/aicortex-store/tests/lifecycle.rs"
           }
         ],
@@ -546,7 +563,7 @@
           {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 109,
+              "endLine": 115,
               "startLine": 20
             }
           }
@@ -577,5 +594,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "ac427ee5af066790bf54f84f1c4d115a0912f5bfec35bb2b975a84016f541e96"
+  "shardHash": "f793dc0ea6b632f95e66f9b7e5cc1a831e015aa4092d728492cefe54d8eaf619"
 }

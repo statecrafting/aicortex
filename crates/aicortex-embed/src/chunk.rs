@@ -20,8 +20,8 @@ impl ChunkConfig {
     ///
     /// # Errors
     ///
-    /// [`Error::Config`] when a bound is zero or overlap is not smaller than
-    /// the target.
+    /// [`Error::Config`] when a bound is zero or overlap exceeds half the
+    /// target.
     pub fn validate(self) -> Result<Self, Error> {
         if self.threshold_bytes == 0 || self.target_bytes == 0 || self.max_chunks_per_memory == 0 {
             return Err(Error::Config(
@@ -85,6 +85,7 @@ impl Chunker {
         let mut chunks = Vec::new();
         let mut start = 0;
         while start < body.len() {
+            let previous_end = chunks.last().map_or(0, |chunk: &Chunk| chunk.byte_end);
             let target = start
                 .saturating_add(self.config.target_bytes)
                 .min(body.len());
@@ -96,10 +97,13 @@ impl Chunker {
             if end < body.len() && end.saturating_sub(start) <= self.config.overlap_bytes {
                 end = utf8_floor(body, target);
             }
+            if end <= previous_end {
+                end = utf8_floor(body, target);
+            }
             if end <= start {
-                end = body[start..]
-                    .char_indices()
-                    .nth(1)
+                end = body
+                    .get(start..)
+                    .and_then(|tail| tail.char_indices().nth(1))
                     .map_or(body.len(), |(offset, _)| start.saturating_add(offset));
             }
             let ordinal = u32::try_from(chunks.len()).unwrap_or(u32::MAX);
@@ -123,9 +127,9 @@ impl Chunker {
             if next > start {
                 start = next;
             } else {
-                start = body[start..]
-                    .char_indices()
-                    .nth(1)
+                start = body
+                    .get(start..)
+                    .and_then(|tail| tail.char_indices().nth(1))
                     .map_or(end, |(offset, _)| start.saturating_add(offset));
             }
         }
@@ -155,7 +159,10 @@ fn sentence_boundaries(text: &str) -> Vec<usize> {
     let mut sentence_end = false;
     for (offset, character) in text.char_indices() {
         let after = offset.saturating_add(character.len_utf8());
-        if matches!(character, '.' | '!' | '?' | '\n') {
+        if character == '\n' {
+            boundaries.push(after);
+            sentence_end = false;
+        } else if matches!(character, '.' | '!' | '?') {
             sentence_end = true;
         } else if sentence_end && character.is_whitespace() {
             boundaries.push(after);

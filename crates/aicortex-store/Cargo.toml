@@ -46,8 +46,9 @@ base64 = { workspace = true }
 # The tests open rahi's single-voter node in a throwaway directory (FR-001)
 # and need a multi-thread runtime to drive it.
 [dev-dependencies]
-# Spec 015 test setup activates a model before exercising capture. This is a
-# test-only cycle: the production edge remains embed -> store.
+# Spec 014 erasure tests stage spec 015 embedding work explicitly before
+# proving that erasure removes its queue rows. This is a test-only cycle: the
+# production edge remains embed -> store.
 aicortex-embed = { workspace = true }
 # Spec 050 B-15: the registration test appends the Decision it stages.
 rahi-ledger = { workspace = true }

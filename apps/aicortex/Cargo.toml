@@ -13,7 +13,7 @@ publish = false
 spec = "010-chassis-adoption-and-workspace"
 
 # The cell is the library root so that tests/cell.rs can hold `Aicortex` to
-# its declarations; the binary is the one line of B-3 (D-4).
+# its declarations.
 [lib]
 path = "src/cell.rs"
 
@@ -22,21 +22,19 @@ name = "aicortex"
 path = "src/main.rs"
 
 [dependencies]
-aicortex-embed = { workspace = true }
 aicortex-store = { workspace = true }
 rahi-cli = { workspace = true }
 rahi-edge = { workspace = true }
-rahi-ops = { workspace = true }
 rahi-store = { workspace = true }
-rahi-types = { workspace = true }
 axum = { workspace = true }
-serde = { workspace = true }
-tokio = { workspace = true }
 
 [dev-dependencies]
 rahi-kernel = { workspace = true }
+rahi-ops = { workspace = true }
+rahi-types = { workspace = true }
 serde_json = { workspace = true }
 tempfile = { workspace = true }
+tokio = { workspace = true }
 toml = { workspace = true }
 
 [lints]

@@ -52,6 +52,12 @@
 //! depends on the gate: the admission boundary is a type, and a type has to
 //! be nameable at the seam it guards.
 //!
+//! A library host installs [`migration_set`] together with the Rahi
+//! coordination and receipt sets that it requires. Calling [`migrations`]
+//! directly is the standalone cell compatibility path; it is not the host
+//! composition contract. Erasure and embedding work use the required Rahi
+//! receipt tables in the same transaction as Aicortex state.
+//!
 //! # Reading
 //!
 //! Every read names its consistency and says why (B-5). Admission and
@@ -70,6 +76,7 @@ pub mod claim_repo;
 pub mod counters;
 pub mod cursor;
 pub mod decision_key;
+pub mod embedding_memory;
 pub mod erasure;
 pub mod fingerprint;
 pub mod host;
@@ -88,9 +95,16 @@ pub use claim_repo::{ClaimAppend, ClaimHistoryPage, ClaimRepo, MAX_CLAIM_PAGE_RO
 pub use counters::{Counters, ScopeStats};
 pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
+pub use embedding_memory::{
+    ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingMemory,
+    EmbeddingQueueCounts, active_embedding, embedding_coverage, embedding_memory,
+    embedding_processor, embedding_queue_counts, live_memory_total, memories_missing_embedding,
+    stage_active_embedding, stage_complete_embedding_coverage_guard, stage_live_memory_guard,
+};
 pub use erasure::{
     Authority, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE, KIND_ERASE_SCOPE,
-    MAX_ERASURE_BATCH, PLANNED, PreparedErasure, ScopeErased, erasure_lease_key,
+    MAX_ACCOUNTED_ERASURE_BATCH, MAX_ERASURE_BATCH, PLANNED, PreparedErasure, ScopeErased,
+    erasure_lease_key,
 };
 pub use host::{
     AICORTEX_MIGRATION_SET_NAME, AuthorizedPredicateRegistration, OperatorPredicateConfig,
@@ -99,13 +113,11 @@ pub use host::{
 };
 pub use lifecycle::{Captured, Expired, Lifecycle, MAX_EXPIRY_BATCH, lifecycle_lease_key};
 pub use memory_repo::{
-    ActiveEmbedding, DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, EMBEDDING_NAMESPACE,
-    EMBEDDING_PROCESSOR, Listing, MAX_PAGE_ROWS, MemoryFilter, MemoryRepo, StatusFilter,
-    active_embedding, embedding_processor, fingerprint, stage_active_embedding,
+    DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, Listing, MAX_PAGE_ROWS, MemoryFilter, MemoryRepo,
+    StatusFilter, fingerprint,
 };
 pub use migrations::{
-    EMBEDDING_INTEGRITY_VERSION, EMBEDDING_MIGRATION_VERSION, EXPECTED_SCHEMA_VERSION,
-    embedding_integrity_migration, embedding_migration, migrations,
+    EMBEDDING_MIGRATION_VERSION, EXPECTED_SCHEMA_VERSION, embedding_migration, migrations,
 };
 pub use predicate_registry_repo::{
     KIND_REGISTER, PredicateRegistryRepo, Registration, document_digest,

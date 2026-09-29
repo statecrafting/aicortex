@@ -24,18 +24,19 @@ establishes:
   - "crates/aicortex-embed/tests/worker.rs"
   - "crates/aicortex-embed/tests/chunk.rs"
   - "crates/aicortex-embed/testdata/vectors/"
+  - "crates/aicortex-store/src/embedding_memory.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
-  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lifecycle.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
-  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/lifecycle.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/manifest.toml", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/mod.rs", nature: additive }
-  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/schema.rs", nature: additive }
-  - { spec: "053-host-library-mode", unit: "crates/aicortex-store/tests/host_library.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/repo.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/schema.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/erasure.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/common/mod.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/Cargo.toml", nature: additive }
@@ -175,11 +176,13 @@ configuration with a pinned digest rather than a spec-level commitment.
   score rather than a pooled document vector. Pooling dilutes a long note
   until nothing in it matches, which is the failure users describe as the
   system forgetting things it was told.
-- **D-3 (2026-09-26, implementation).** Capture resolves the active model
-  inside its write transaction. The durable-work statement selects the active
-  registry row into its non-null processing identity. An absent active model
-  therefore aborts the complete capture, including a merge, instead of leaving
-  a memory without durable embedding work.
+- **D-3 (2026-09-26, implementation).** The durable-work statement carries the
+  model identity selected through the leader, and an in-transaction guard
+  aborts staging if activation changes or the named revision is absent before
+  commit. Capture does not call this primitive until the application owns
+  provider configuration, initial activation, and the managed worker
+  lifecycle. Existing capture therefore remains available while the spec is
+  in progress.
 - **D-4 (2026-09-28, implementation).** Each model revision has its own Rahi
   processor identity. Activating a new revision therefore cannot make its
   worker claim old-revision work, and an old worker can drain its partition to
@@ -198,15 +201,77 @@ configuration with a pinned digest rather than a spec-level commitment.
   monotonically. A rollback is a new revision with the former artifact rather
   than reactivating an older number, which preserves the meaning of durable
   work and stored-vector identities.
-- **D-8 (2026-09-28, implementation).** Migration 9 remains byte-for-byte
-  immutable. The chunk identifier, model foreign key, and vector-length
-  constraints land in non-additive migration 10, which rebuilds the two
-  derivative tables and preserves any version 9 rows during upgrade.
-
-## Status (2026-09-28, in progress: runtime and chassis hooks required)
+- **D-8 (2026-09-28, implementation).** The unreleased migration 9 creates the
+  derivative tables with the chunk identifier, model foreign key, and
+  vector-length constraints in their final shape. No repair migration or
+  table rebuild is needed before the first release of this schema.
+- **D-9 (2026-09-29, implementation).** Quarantined content is not eligible
+  for embedding. Its staged durable job moves directly to the chassis dead
+  letter so the same processing identity remains available to `Work::requeue`;
+  spec 023's governed admission must activate the memory and requeue that
+  identity in one transaction. Re-embedding and coverage exclude it until
+  then. This keeps content with unestablished origin out of both local
+  derivatives and remote provider calls without making later admission a
+  silent no-op against a terminal `done` row.
+- **D-10 (2026-09-29, implementation).** Queue health is deployment-wide and
+  includes unfinished work for inactive revisions. Activating a replacement
+  revision must not hide the prior partition: its revision-bound worker drains
+  those jobs to a terminal no-op, and preflight remains loud until that drain
+  occurs.
+- **D-11 (2026-09-29, implementation).** Migration 9 is non-additive because
+  an older binary cannot erase the chunk, vector, or embedding-queue rows it
+  does not know about. Rollback across this schema version must therefore be
+  refused.
+- **D-12 (2026-09-29, implementation).** A failed per-item derivative commit
+  consumes the durable work retry budget unless it is a claim conflict. This
+  keeps deterministic store-limit failures from blocking the rest of a batch.
+- **D-13 (2026-09-29, implementation).** Worker reports count quarantined work
+  separately from exhausted failures, matching queue health and readiness.
+- **D-14 (2026-09-29, implementation).** One worker item refuses raw vector
+  payloads above 1 MiB before opening the derivative transaction. This leaves
+  headroom below the pinned engine's 2 MiB WAL ceiling, so the queue can record
+  a retry instead of submitting an entry the store cannot accept.
+- **D-15 (2026-09-29, implementation).** A model deactivation that races an
+  already-held claim atomically records the deferred attempt and requeues the
+  same processing identity through Rahi's public work API. The row does not
+  wait for claim expiry or become an observable dead letter, so temporary
+  deactivation cannot consume the configured provider-failure budget. The
+  worker offsets recorded deactivation and quarantine attempts when applying
+  that budget after either identity is requeued.
+- **D-16 (2026-09-29, implementation).** Embedding erasure now stages Rahi
+  receipt and processing-row deletion, and the worker uses Rahi's coordination
+  tables. The standalone cell must therefore declare the pinned chassis's
+  `rahi.receipts` and `rahi.coordination` migration sets. This extends the
+  migration seam without moving product migrations out of
+  `Aicortex::migrations()`: spec 010 FR-003's application-list assertion is
+  still governed by spec 012 D-7, while spec 012 D-8 owns the binary migration
+  test changed here. The coordination SQL intentionally appears in both the
+  legacy application list and the named chassis set; it is byte-identical and
+  idempotent, and the test asserts that compatibility until a governed
+  migration removes the legacy copy.
+- **D-17 (2026-09-29, implementation).** The embedding pipeline reaches the
+  memory table only through the storage crate's scoped adapter. Worker input,
+  re-embedding selection, lifecycle guards, coverage, and queue classification
+  therefore remain inside spec 012's SQL scope-predicate ratchet. Live totals
+  come from the maintained scope counters rather than scanning memory rows.
+- **D-18 (2026-09-29, implementation).** Product preflight queue health is
+  scope-bound across every model revision. This narrows D-10's deployment-wide
+  wording to preserve the storage isolation invariant: an operator-wide metric
+  requires a separately authorized surface and cannot be inferred by a scoped
+  preflight read.
+- **D-19 (2026-09-29, implementation).** Each worker drain runs the chassis
+  work sweep for the embedding namespace before claiming new work. The sweep
+  closes expired attempts without applying its namespace-global terminal
+  ceiling; after reclaim, the worker applies the row-specific ceiling that
+  excludes recorded deactivation and quarantine attempts, and dead-letters an
+  exhausted claim before calling the provider. This covers failures that
+  killed or hung a prior worker without letting an administrative deferral
+  consume the provider-failure budget.
+## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,
-revision-partitioned durable worker, capture and erasure integration,
+revision-partitioned durable worker, erasure integration and capture-staging
+primitive,
 re-embedding scheduler, artifact verification, governed remote boundary, and
 preflight report are implemented and locally verified. The erasure transaction
 also removes pending, claimed, failed, and dead embedding work plus its attempt
@@ -215,20 +280,28 @@ history, so an in-flight stale worker cannot recreate vectors after erasure.
 The spec is not complete. `aicortex serve` still lacks provider configuration,
 a concrete local inference engine, first-activation and model-change wiring,
 the managed background-worker lifecycle, and the re-embed and drop operator
-verbs (B-2, B-4, B-5, B-6, B-9). The application preflight reports the active
-revision, queue counts, and per-scope coverage only after the chassis preflight
-succeeds. Rahi 0.4.0 exposes queue counts globally but does not expose
-tenant-level counts or enqueue timestamps, so the report cannot yet provide a
-truthful per-scope oldest-pending age or register product collectors in the
-chassis `/metrics` registry (B-3). Dropping a revision refuses while its queue
-partition is non-empty because this chassis version has no public cancellation
-API.
+verbs (B-2, B-4, B-5, B-6, B-9). The product preflight report can read the
+active revision, scope-bound queue counts and oldest-pending age, and
+per-scope coverage, but the pinned chassis has no product preflight extension
+hook through which to invoke it without violating spec 010 B-3 and B-6. Rahi
+0.4.0 also does not expose tenant-level queue counts or a product collector
+hook in the chassis `/metrics` registry (B-3). Expected quarantine dead letters
+are reported separately from failed work and do not degrade readiness. An
+inactive revision's queued work completes as a terminal no-op, so a
+scope-local drop does not consult another scope's queue counts.
 
-FR-001, FR-002, FR-003, and FR-007 have direct tests. FR-004, FR-005, and
-FR-006 remain open: there is no booted local-provider socket probe, denied-host
-application preflight fixture, or query predicate until the runtime wiring and
-spec 016 recall implementation exist. These are recorded as open requirements,
-not inferred from lower-level unit tests.
+The current application has no first-activation wiring, so capture does not
+yet stage embedding work. The storage and durable-work contracts are
+implemented and tested without regressing the existing capture path.
+
+FR-002 and FR-007 have direct tests. FR-003 has direct dead-letter transition
+and library report coverage, but its application preflight reporting path
+remains open with the chassis hook. FR-001, FR-004, FR-005, and FR-006 also
+remain open: capture does not stage the job yet, and there is no booted
+local-provider socket probe, denied-host application preflight fixture, or
+query predicate until the runtime wiring and spec 016 recall implementation
+exist. These are recorded as open requirements, not inferred from lower-level
+unit tests.
 
 ## Verification
 

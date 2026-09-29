@@ -1,8 +1,12 @@
 //! The model revision registry and coverage report.
 
-use rahi_store::{Statement, StoreHandle, TxnBuilder, Value, Work};
+use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
+
+use aicortex_store::{
+    embedding_coverage, live_memory_total, stage_complete_embedding_coverage_guard,
+};
 
 use crate::provider::{EmbeddingProvider, ModelId};
 
@@ -79,17 +83,26 @@ struct ModelRow {
 #[derive(Debug, Deserialize)]
 struct CoverageRow {
     revision: i64,
-    embedded: i64,
-    total: i64,
 }
 
 impl ModelRegistry {
     /// Stage activation atomically.
     ///
-    /// An existing identity must retain the same dimensions, normalization,
-    /// and first-seen instant. A mismatch provokes a constraint failure
-    /// instead of silently reinterpreting stored vectors.
-    pub fn activate(txn: &mut TxnBuilder, model: &ModelRevision) {
+    /// An existing identity must retain the same model, dimensions, and
+    /// normalization. Its recorded first-seen instant is preserved when the
+    /// same revision is activated again after a restart. An identity mismatch
+    /// provokes a constraint failure instead of silently reinterpreting stored
+    /// vectors.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Validation`] when the supplied revision is not active.
+    pub fn activate(txn: &mut TxnBuilder, model: &ModelRevision) -> Result<(), Error> {
+        if !model.active {
+            return Err(Error::Validation(
+                "cannot activate a model revision marked inactive".to_owned(),
+            ));
+        }
         txn.push(Statement::with_params(
             "UPDATE embedding_model
              SET active = CASE WHEN revision <= ?1 THEN 0 ELSE NULL END
@@ -99,11 +112,15 @@ impl ModelRegistry {
         txn.push(Statement::with_params(
             "INSERT INTO embedding_model
              (model_id, revision, dims, normalized, first_seen, active)
-             VALUES (?1, ?2, ?3, ?4, ?5, 1)
+             VALUES (
+               ?1, ?2, ?3, ?4, ?5,
+               CASE WHEN EXISTS (
+                 SELECT 1 FROM embedding_model WHERE revision > ?2
+               ) THEN NULL ELSE 1 END
+             )
              ON CONFLICT(revision) DO UPDATE SET
                active = CASE
-                 WHEN model_id = ?1 AND dims = ?3 AND normalized = ?4
-                      AND first_seen = ?5 THEN 1
+                 WHEN model_id = ?1 AND dims = ?3 AND normalized = ?4 THEN 1
                  ELSE NULL END",
             vec![
                 Value::from(model.model_id.as_str()),
@@ -113,6 +130,7 @@ impl ModelRegistry {
                 Value::Integer(seconds_to_sql(model.first_seen)),
             ],
         ));
+        Ok(())
     }
 
     /// Read the active revision through the leader.
@@ -140,24 +158,40 @@ impl ModelRegistry {
     ///
     /// Store errors or negative counts in a corrupted row.
     pub async fn coverage(store: &StoreHandle, scope_id: &str) -> Result<Vec<Coverage>, Error> {
+        let total = live_memory_total(store, scope_id).await?;
+        let embedded = embedding_coverage(store, scope_id)
+            .await?
+            .into_iter()
+            .collect::<std::collections::BTreeMap<_, _>>();
         let rows: Vec<CoverageRow> = store
             .query(
-                "SELECT model.revision AS revision,
-                    COUNT(DISTINCT embedding.memory_id) AS embedded,
-                    (SELECT COUNT(*) FROM memory
-                     WHERE scope_id = ?1 AND status <> 'erased') AS total
-                 FROM embedding_model model
-                 LEFT JOIN embedding ON embedding.model_revision = model.revision
-                    AND embedding.scope_id = ?1
-                 GROUP BY model.revision ORDER BY model.revision",
-                vec![Value::from(scope_id)],
+                "SELECT revision FROM embedding_model ORDER BY revision",
+                vec![],
             )
             .await?;
-        rows.into_iter().map(coverage_from_row).collect()
+        rows.into_iter()
+            .map(|row| {
+                let revision = u32::try_from(row.revision)
+                    .map_err(|_| Error::Integrity("coverage revision is outside u32".to_owned()))?;
+                Ok(Coverage {
+                    revision,
+                    embedded: embedded.get(&revision).copied().unwrap_or(0),
+                    total,
+                })
+            })
+            .collect()
     }
 
-    /// Remove one inactive revision only after active coverage is complete
-    /// and its queue partition has drained.
+    /// Count live memories eligible for embedding, even before a model exists.
+    ///
+    /// # Errors
+    ///
+    /// Store errors or a negative count in a corrupted row.
+    pub async fn live_total(store: &StoreHandle, scope_id: &str) -> Result<u64, Error> {
+        live_memory_total(store, scope_id).await
+    }
+
+    /// Remove one inactive revision only after active coverage is complete.
     pub async fn drop_revision(
         store: &StoreHandle,
         scope_id: &str,
@@ -182,54 +216,46 @@ impl ModelRegistry {
                 active.revision, active_coverage.embedded, active_coverage.total
             )));
         }
-        let processor = crate::worker::embedding_processor(revision);
-        if Work::counts(store).await?.iter().any(|count| {
-            count.processor == processor
-                && count
-                    .pending
-                    .saturating_add(count.claimed)
-                    .saturating_add(count.failed)
-                    .saturating_add(count.dead)
-                    > 0
-        }) {
-            return Err(Error::Conflict(format!(
-                "embedding revision {revision} still has queued work"
-            )));
-        }
         let mut txn = TxnBuilder::new();
+        stage_complete_embedding_coverage_guard(&mut txn, scope_id);
+        txn.push(Statement::with_params(
+            "UPDATE embedding_model SET revision = revision
+             WHERE revision = ?1 AND active = 0",
+            vec![Value::Integer(i64::from(revision))],
+        ));
         for sql in [
             "DELETE FROM embedding WHERE scope_id = ?1 AND model_revision = ?2
              AND EXISTS (SELECT 1 FROM embedding_model
-                         WHERE revision = ?2 AND active = 0)
-             AND NOT EXISTS (
-               SELECT 1 FROM memory m
-               WHERE m.scope_id = ?1 AND m.status <> 'erased'
-                 AND NOT EXISTS (
-                   SELECT 1 FROM embedding e
-                   WHERE e.scope_id = ?1 AND e.memory_id = m.id
-                     AND e.model_revision = (SELECT revision FROM embedding_model WHERE active = 1)
-                 )
-             )",
+                         WHERE revision = ?2 AND active = 0)",
             "DELETE FROM chunk WHERE scope_id = ?1 AND model_revision = ?2
              AND EXISTS (SELECT 1 FROM embedding_model
-                         WHERE revision = ?2 AND active = 0)
-             AND NOT EXISTS (
-               SELECT 1 FROM memory m
-               WHERE m.scope_id = ?1 AND m.status <> 'erased'
-                 AND NOT EXISTS (
-                   SELECT 1 FROM embedding e
-                   WHERE e.scope_id = ?1 AND e.memory_id = m.id
-                     AND e.model_revision = (SELECT revision FROM embedding_model WHERE active = 1)
-                 )
-             )",
+                         WHERE revision = ?2 AND active = 0)",
         ] {
             txn.push(Statement::with_params(
                 sql,
                 vec![Value::from(scope_id), Value::Integer(i64::from(revision))],
             ));
         }
-        store.txn(txn.into_statements()).await?;
+        let results = store.txn(txn.into_statements()).await?;
+        if results
+            .get(1)
+            .is_none_or(|result| result.rows_affected != 1)
+        {
+            return Err(Error::Conflict(format!(
+                "embedding revision {revision} is not inactive or active coverage changed"
+            )));
+        }
         Ok(())
+    }
+}
+
+impl std::fmt::Display for Coverage {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "{}:{}/{}",
+            self.revision, self.embedded, self.total
+        )
     }
 }
 
@@ -255,17 +281,6 @@ fn model_from_row(row: ModelRow) -> Result<ModelRevision, Error> {
                 .map_err(|_| Error::Integrity("model first_seen is negative".to_owned()))?,
         ),
         active: row.active == 1,
-    })
-}
-
-fn coverage_from_row(row: CoverageRow) -> Result<Coverage, Error> {
-    Ok(Coverage {
-        revision: u32::try_from(row.revision)
-            .map_err(|_| Error::Integrity("coverage revision is outside u32".to_owned()))?,
-        embedded: u64::try_from(row.embedded)
-            .map_err(|_| Error::Integrity("embedded coverage is negative".to_owned()))?,
-        total: u64::try_from(row.total)
-            .map_err(|_| Error::Integrity("total coverage is negative".to_owned()))?,
     })
 }
 

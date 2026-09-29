@@ -139,7 +139,6 @@ pub trait EmbeddingProvider: Send + Sync {
 }
 
 /// Validate the common result invariants at the provider boundary.
-#[allow(clippy::float_arithmetic)]
 pub(crate) fn validate_batch(
     provider: &impl EmbeddingProvider,
     input_len: usize,
@@ -163,30 +162,80 @@ pub(crate) fn validate_batch(
             vector.dims()
         )));
     }
-    const NORM_TOLERANCE: f32 = 1.0e-3;
     for vector in vectors {
-        let squared_norm = vector
+        if vector
             .values()
             .iter()
-            .map(|value| value * value)
-            .sum::<f32>();
-        if squared_norm == 0.0 {
+            .all(|value| value.to_bits() & 0x7fff_ffff == 0)
+        {
             return Err(Error::Integrity(format!(
                 "provider {} returned a zero vector",
                 provider.id()
             )));
         }
-        if provider.normalized() {
-            let norm = squared_norm.sqrt();
-            if (norm - 1.0).abs() > NORM_TOLERANCE {
-                return Err(Error::Integrity(format!(
-                    "provider {} declares normalized vectors but returned norm {norm}",
-                    provider.id()
-                )));
-            }
+        if provider.normalized() && !has_normalized_norm(vector) {
+            return Err(Error::Integrity(format!(
+                "provider {} declares normalized vectors but returned a vector outside tolerance",
+                provider.id()
+            )));
         }
     }
     Ok(())
+}
+
+/// Check a squared norm against `(0.999)..=(1.001)` without violating the
+/// workspace prohibition on floating-point arithmetic outside index and recall.
+/// Each finite `f32` is decoded into a Q48 integer, then the exact integer
+/// squares are compared with the rational squared bounds.
+fn has_normalized_norm(vector: &Vector) -> bool {
+    const FRACTION_MASK: u32 = 0x007f_ffff;
+    const EXPONENT_SHIFT: u32 = 23;
+    const EXPONENT_MASK: u32 = 0xff;
+    const IMPLICIT_BIT: u128 = 1 << 23;
+    const Q_BITS: u32 = 48;
+    const F32_MANTISSA_SCALE_EXPONENT: i32 = 150;
+    const DENOMINATOR: u128 = 1_000_000;
+    const LOWER_NUMERATOR: u128 = 998_001;
+    const UPPER_NUMERATOR: u128 = 1_002_001;
+    const Q_SQUARED: u128 = 1_u128 << (Q_BITS * 2);
+
+    let mut squared_norm = 0_u128;
+    for value in vector.values() {
+        let bits = value.to_bits() & 0x7fff_ffff;
+        let exponent = (bits >> EXPONENT_SHIFT) & EXPONENT_MASK;
+        if exponent >= 128 {
+            return false;
+        }
+        let mantissa = if exponent == 0 {
+            u128::from(bits & FRACTION_MASK)
+        } else {
+            IMPLICIT_BIT | u128::from(bits & FRACTION_MASK)
+        };
+        let shift = i32::try_from(exponent).unwrap_or_default() - F32_MANTISSA_SCALE_EXPONENT
+            + i32::try_from(Q_BITS).unwrap_or_default();
+        let fixed = if shift >= 0 {
+            mantissa
+                .checked_shl(shift.unsigned_abs())
+                .unwrap_or(u128::MAX)
+        } else {
+            mantissa
+                .checked_shr(shift.unsigned_abs())
+                .unwrap_or_default()
+        };
+        let Some(square) = fixed.checked_mul(fixed) else {
+            return false;
+        };
+        let Some(sum) = squared_norm.checked_add(square) else {
+            return false;
+        };
+        squared_norm = sum;
+    }
+    let Some(scaled_norm) = squared_norm.checked_mul(DENOMINATOR) else {
+        return false;
+    };
+    let lower = Q_SQUARED.saturating_mul(LOWER_NUMERATOR);
+    let upper = Q_SQUARED.saturating_mul(UPPER_NUMERATOR);
+    (lower..=upper).contains(&scaled_norm)
 }
 
 #[cfg(test)]

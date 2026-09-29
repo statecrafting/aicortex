@@ -1,8 +1,12 @@
 //! Durable embedding work over Rahi's fenced processing queue.
 
+use std::mem::size_of;
 use std::time::{Duration, Instant};
 
-use aicortex_types::{Memory, MemoryId, Status};
+use aicortex_store::{
+    embedding_memory, embedding_queue_counts, memories_missing_embedding, stage_live_memory_guard,
+};
+use aicortex_types::{MemoryId, Status};
 use rahi_store::{
     Claim, FailureDetail, ProcessingKey, ReceiptKey, RetryPolicy, Statement, StoreHandle,
     TxnBuilder, Value, Work,
@@ -21,6 +25,9 @@ use crate::registry::{Coverage, ModelRegistry, ModelRevision, seconds_to_sql};
 
 /// Maximum number of memories one re-embedding scheduler pass may stage.
 pub const MAX_REEMBED_BATCH: u32 = 500;
+
+/// Maximum raw vector bytes submitted by one derivative transaction.
+const MAX_DERIVATIVE_VECTOR_BYTES: usize = 1024 * 1024;
 
 /// Bounds for one worker drain.
 #[derive(Clone, Copy, Debug)]
@@ -41,13 +48,14 @@ impl WorkerConfig {
     /// [`Error::Config`] for a zero batch, hold time, attempts, or backoff.
     pub fn validate(self) -> Result<Self, Error> {
         if self.batch_size == 0
-            || self.hold_for.is_zero()
+            || self.hold_for < Duration::from_secs(2)
             || self.retry.max_attempts == 0
             || self.retry.base.is_zero()
             || self.retry.cap.is_zero()
         {
             return Err(Error::Config(
-                "embedding worker bounds must all be non-zero".to_owned(),
+                "embedding worker bounds must be non-zero and hold_for must be at least two seconds"
+                    .to_owned(),
             ));
         }
         Ok(self)
@@ -65,6 +73,8 @@ pub struct WorkerReport {
     pub failed: u64,
     /// Claims moved to the dead letter.
     pub dead: u64,
+    /// Claims retained as quarantined work for later governed admission.
+    pub quarantined: u64,
 }
 
 /// Queue state surfaced by preflight and metrics.
@@ -72,8 +82,10 @@ pub struct WorkerReport {
 pub struct QueueHealth {
     /// Pending, claimed, or retrying jobs.
     pub pending: u64,
-    /// Jobs that exhausted the configured attempt ceiling.
+    /// Failed jobs that exhausted the configured attempt ceiling.
     pub dead: u64,
+    /// Quarantined jobs retained for later governed admission.
+    pub quarantined: u64,
     /// Age in seconds of the oldest unfinished job.
     pub oldest_pending_age_seconds: Option<u64>,
 }
@@ -83,14 +95,23 @@ pub struct QueueHealth {
 pub struct EmbeddingPreflight {
     /// Revision serving queries now, if one has been activated.
     pub active: Option<ModelRevision>,
-    /// Durable work state across every embedding revision and scope.
+    /// Durable work state across every embedding revision in this scope.
     pub queue: QueueHealth,
     /// Live-memory coverage for each known revision in this scope.
     pub coverage: Vec<Coverage>,
+    /// Live memories in this scope, including when no model is registered.
+    pub live_memories: u64,
 }
 
+/// Scope-wide embedding state without coverage details.
+#[derive(Clone, Copy, Debug)]
+pub struct EmbeddingScope<'a>(&'a EmbeddingPreflight);
+
 impl EmbeddingPreflight {
-    /// Read one internally consistent preflight shape for `scope_id`.
+    /// Read the current preflight observations for `scope_id`.
+    ///
+    /// The active model, queue, and coverage are separate store observations,
+    /// not an atomic snapshot.
     ///
     /// # Errors
     ///
@@ -104,45 +125,79 @@ impl EmbeddingPreflight {
             active: ModelRegistry::active(store).await?,
             queue: queue_health(store, scope_id, now).await?,
             coverage: ModelRegistry::coverage(store, scope_id).await?,
+            live_memories: ModelRegistry::live_total(store, scope_id).await?,
         })
     }
 
     /// Warning text when dead embedding work makes readiness degraded.
     #[must_use]
-    pub const fn readiness_warning(&self) -> Option<&'static str> {
+    pub fn readiness_warning(&self) -> Option<&'static str> {
         if self.queue.dead > 0 {
             Some("dead embedding work requires operator attention")
+        } else if self.live_memories > 0 && self.active.is_none() {
+            Some("live memories have no active embedding model")
+        } else if let Some(active) = &self.active
+            && self
+                .coverage
+                .iter()
+                .find(|coverage| coverage.revision == active.revision)
+                .is_none_or(|coverage| coverage.embedded < self.live_memories)
+        {
+            Some("active embedding coverage is incomplete")
         } else {
             None
         }
+    }
+
+    /// Format scope-wide state separately from coverage details.
+    #[must_use]
+    pub const fn scope_summary(&self) -> EmbeddingScope<'_> {
+        EmbeddingScope(self)
+    }
+}
+
+impl std::fmt::Display for EmbeddingScope<'_> {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let active = self.0.active.as_ref().map_or_else(
+            || "none".to_owned(),
+            |model| format!("{}@{}", model.model_id.as_str(), model.revision),
+        );
+        let oldest = self.0.queue.oldest_pending_age_seconds.map_or_else(
+            || {
+                if self.0.queue.pending == 0 {
+                    "none".to_owned()
+                } else {
+                    "unknown".to_owned()
+                }
+            },
+            |age| age.to_string(),
+        );
+        write!(
+            formatter,
+            "active={active} pending={} dead={} quarantined={} oldest_pending_seconds={oldest}",
+            self.0.queue.pending, self.0.queue.dead, self.0.queue.quarantined
+        )?;
+        if let Some(warning) = self.0.readiness_warning() {
+            write!(formatter, " warning={warning}")?;
+        }
+        Ok(())
     }
 }
 
 impl std::fmt::Display for EmbeddingPreflight {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let active = self.active.as_ref().map_or_else(
-            || "none".to_owned(),
-            |model| format!("{}@{}", model.model_id.as_str(), model.revision),
-        );
-        let oldest = self
-            .queue
-            .oldest_pending_age_seconds
-            .map_or_else(|| "none".to_owned(), |age| age.to_string());
         let coverage = self
             .coverage
             .iter()
-            .map(|item| format!("{}:{}/{}", item.revision, item.embedded, item.total))
+            .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(",");
         write!(
             formatter,
-            "active={active} pending={} dead={} oldest_pending_seconds={oldest} coverage=[{coverage}]",
-            self.queue.pending, self.queue.dead
-        )?;
-        if let Some(warning) = self.readiness_warning() {
-            write!(formatter, " warning={warning}")?;
-        }
-        Ok(())
+            "{} live={} coverage=[{coverage}]",
+            self.scope_summary(),
+            self.live_memories
+        )
     }
 }
 
@@ -169,13 +224,30 @@ pub struct EmbeddingWorker<P> {
 }
 
 #[derive(Debug, Deserialize)]
-struct MemoryRow {
-    record: String,
+struct AttemptCountRow {
+    count: i64,
 }
 
-#[derive(Debug, Deserialize)]
-struct MemoryIdRow {
-    id: String,
+#[derive(Clone, Debug, PartialEq, Eq)]
+enum ProcessOutcome {
+    Completed,
+    Deferred,
+    Quarantined(Claim),
+}
+
+#[derive(Debug)]
+enum ProcessError {
+    Item { error: Error, claim: Claim },
+    Infrastructure(Error),
+}
+
+impl ProcessError {
+    fn item(error: Error, claim: &Claim) -> Self {
+        Self::Item {
+            error,
+            claim: claim.clone(),
+        }
+    }
 }
 
 impl<P: EmbeddingProvider> EmbeddingWorker<P> {
@@ -232,48 +304,110 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         store: &StoreHandle,
         now: UnixSeconds,
     ) -> Result<WorkerReport, Error> {
-        let claims = Work::next(
-            store,
-            EMBEDDING_NAMESPACE,
-            &self.processor,
-            &self.holder,
-            self.config.hold_for,
-            now,
-            self.config.batch_size,
-        )
-        .await?;
-        let started = Instant::now();
-        let mut report = WorkerReport {
-            claimed: u64::try_from(claims.len()).unwrap_or(u64::MAX),
-            ..WorkerReport::default()
-        };
-        for claim in claims {
-            let item_now = elapsed_now(now, started);
-            let claim = match Work::renew(store, &claim, self.config.hold_for, item_now).await {
-                Ok(claim) => claim,
-                Err(Error::Conflict(_)) => continue,
-                Err(error) => return Err(error),
+        let lease = store
+            .lease(&format!("aicortex.embed.worker/{}", self.model.revision))
+            .await?;
+        let result = async {
+            // Rahi's namespace sweep closes expired attempts. Its terminal
+            // ceiling is deliberately disabled here because the chassis sees
+            // raw attempts, while this pipeline excludes administrative
+            // deactivation and quarantine attempts from provider retry
+            // budgets. The row-specific effective ceiling is enforced below
+            // immediately after reclaim and before a provider call.
+            let expiry_sweep_policy = RetryPolicy {
+                max_attempts: u32::MAX,
+                ..self.config.retry
             };
-            match self.process(store, &claim, now, started).await {
-                Ok(()) => report.completed = report.completed.saturating_add(1),
-                Err(error) => {
+            let swept = Work::sweep(
+                store,
+                EMBEDDING_NAMESPACE,
+                &expiry_sweep_policy,
+                now,
+                self.config.batch_size,
+            )
+            .await?;
+            let mut report = WorkerReport {
+                dead: swept.dead,
+                ..WorkerReport::default()
+            };
+            let Some(active) = ModelRegistry::active(store).await? else {
+                return Ok(report);
+            };
+            if active.revision == self.model.revision && !same_model_revision(&active, &self.model)
+            {
+                return Ok(report);
+            }
+            let started = Instant::now();
+            for _ in 0..self.config.batch_size {
+                let item_now = elapsed_now(now, started);
+                let mut claims = Work::next(
+                    store,
+                    EMBEDDING_NAMESPACE,
+                    &self.processor,
+                    &self.holder,
+                    self.config.hold_for,
+                    item_now,
+                    1,
+                )
+                .await?;
+                let Some(claim) = claims.pop() else {
+                    break;
+                };
+                report.claimed = report.claimed.saturating_add(1);
+                let effective_retry = self.provider_retry_policy(store, &claim).await?;
+                if claim.attempt > effective_retry.max_attempts {
                     match self
-                        .record_failure(store, &claim, &error, elapsed_now(now, started))
+                        .record_expired_budget(store, &claim, elapsed_now(now, started))
                         .await
                     {
                         Ok(()) => {}
                         Err(Error::Conflict(_)) => continue,
                         Err(error) => return Err(error),
                     }
-                    if claim.attempt >= self.config.retry.max_attempts {
-                        report.dead = report.dead.saturating_add(1);
-                    } else {
-                        report.failed = report.failed.saturating_add(1);
+                    report.dead = report.dead.saturating_add(1);
+                    break;
+                }
+                match self.process(store, &claim, now, started).await {
+                    Ok(ProcessOutcome::Completed) => {
+                        report.completed = report.completed.saturating_add(1);
                     }
+                    Ok(ProcessOutcome::Deferred) => break,
+                    Ok(ProcessOutcome::Quarantined(quarantined_claim)) => {
+                        match self
+                            .record_quarantine(store, &quarantined_claim, elapsed_now(now, started))
+                            .await
+                        {
+                            Ok(()) => {}
+                            Err(Error::Conflict(_)) => continue,
+                            Err(error) => return Err(error),
+                        }
+                        report.quarantined = report.quarantined.saturating_add(1);
+                    }
+                    Err(ProcessError::Item { error, claim }) => {
+                        let dead = match self
+                            .record_failure(store, &claim, &error, elapsed_now(now, started))
+                            .await
+                        {
+                            Ok(dead) => dead,
+                            Err(Error::Conflict(_)) => continue,
+                            Err(error) => return Err(error),
+                        };
+                        if dead {
+                            report.dead = report.dead.saturating_add(1);
+                        } else {
+                            report.failed = report.failed.saturating_add(1);
+                        }
+                        break;
+                    }
+                    Err(ProcessError::Infrastructure(Error::Conflict(_))) => continue,
+                    Err(ProcessError::Infrastructure(error)) => return Err(error),
                 }
             }
+            Ok(report)
         }
-        Ok(report)
+        .await;
+        lease.release().await;
+        result
     }
 
     async fn process(
@@ -282,63 +416,124 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         claim: &Claim,
         origin: UnixSeconds,
         started: Instant,
-    ) -> Result<(), Error> {
+    ) -> Result<ProcessOutcome, ProcessError> {
         let now = elapsed_now(origin, started);
-        if claim.key.revision != self.model.revision
-            || claim.key.processor_revision != self.model.model_id.as_str()
-        {
-            return Err(Error::Conflict(format!(
-                "embedding work revision {}@{} does not match worker {}@{}",
-                claim.key.processor_revision,
-                claim.key.revision,
-                self.model.model_id,
-                self.model.revision
-            )));
+        if claim.key.processor != embedding_processor(claim.key.revision) {
+            return Err(ProcessError::item(
+                Error::Conflict(format!(
+                    "embedding work processor {} does not match revision {}",
+                    claim.key.processor, claim.key.revision,
+                )),
+                claim,
+            ));
         }
-        if ModelRegistry::active(store)
-            .await?
-            .is_none_or(|active| active.revision != self.model.revision)
+        match ModelRegistry::active(store)
+            .await
+            .map_err(ProcessError::Infrastructure)?
         {
-            return self.complete_empty(store, claim, now).await;
+            Some(active)
+                if claim.key.revision == self.model.revision
+                    && claim.key.processor_revision == self.model.model_id.as_str()
+                    && same_model_revision(&active, &self.model) => {}
+            Some(_) => {
+                self.complete_empty(store, claim, now).await?;
+                return Ok(ProcessOutcome::Completed);
+            }
+            None => {
+                // The pre-claim check handles the steady state. If deactivation
+                // races a held claim, immediately return the same durable key to
+                // pending. Completing it would prevent a later activation of
+                // this revision from ever embedding the memory.
+                self.defer_inactive_model(store, claim, now).await?;
+                return Ok(ProcessOutcome::Deferred);
+            }
         }
-        let rows: Vec<MemoryRow> = store
-            .query_consistent(
-                "SELECT record FROM memory WHERE scope_id = ?1 AND id = ?2",
-                vec![
-                    Value::from(claim.key.receipt.tenant.as_str()),
-                    Value::from(claim.key.receipt.key.as_str()),
-                ],
+        let memory_id = claim.key.receipt.key.parse::<MemoryId>().map_err(|error| {
+            ProcessError::item(
+                Error::Integrity(format!("embedding work memory id is invalid: {error}")),
+                claim,
             )
-            .await?;
-        let Some(row) = rows.into_iter().next() else {
-            return self.complete_empty(store, claim, now).await;
-        };
-        let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
-            Error::Integrity(format!(
-                "memory {} cannot be decoded for embedding: {error}",
-                claim.key.receipt.key
-            ))
         })?;
-        if memory.status == Status::Erased {
-            return self.complete_empty(store, claim, now).await;
+        let Some(row) = embedding_memory(store, claim.key.receipt.tenant.as_str(), memory_id)
+            .await
+            .map_err(ProcessError::Infrastructure)?
+        else {
+            self.complete_empty(store, claim, now).await?;
+            return Ok(ProcessOutcome::Completed);
+        };
+        if row.status == Status::Erased.label() {
+            self.complete_empty(store, claim, now).await?;
+            return Ok(ProcessOutcome::Completed);
         }
-        let chunks = self.chunker.split(&memory.body.text)?;
+        if row.status == Status::Quarantined.label() {
+            return Ok(ProcessOutcome::Quarantined(claim.clone()));
+        }
+        let memory = row.memory.ok_or_else(|| {
+            ProcessError::item(
+                Error::Integrity(format!(
+                    "live memory {} has no decodable record",
+                    claim.key.receipt.key
+                )),
+                claim,
+            )
+        })?;
+        let chunks = self
+            .chunker
+            .split(&memory.body.text)
+            .map_err(|error| ProcessError::item(error, claim))?;
         if chunks.is_empty() {
-            return Err(Error::Validation(format!(
-                "memory {} has no text to embed",
-                memory.id
-            )));
+            return Err(ProcessError::item(
+                Error::Validation(format!("memory {} has no text to embed", memory.id)),
+                claim,
+            ));
+        }
+        let vector_bytes = chunks
+            .len()
+            .checked_mul(usize::from(self.model.dims))
+            .and_then(|values| values.checked_mul(size_of::<f32>()));
+        if vector_bytes.is_none_or(|bytes| bytes > MAX_DERIVATIVE_VECTOR_BYTES) {
+            return Err(ProcessError::item(
+                Error::Validation(format!(
+                    "embedding derivative payload exceeds the {MAX_DERIVATIVE_VECTOR_BYTES}-byte worker limit"
+                )),
+                claim,
+            ));
         }
         let text = chunks
             .iter()
             .map(|chunk| chunk.text.as_str())
             .collect::<Vec<_>>();
-        let vectors = self.provider.embed(&text).await?;
-        validate_batch(&self.provider, chunks.len(), &vectors)?;
+        let claim = Work::renew(
+            store,
+            claim,
+            self.config.hold_for,
+            elapsed_now(origin, started),
+        )
+        .await
+        .map_err(ProcessError::Infrastructure)?;
+        let vectors = tokio::time::timeout(self.config.hold_for / 2, self.provider.embed(&text))
+            .await
+            .map_err(|_| {
+                ProcessError::item(
+                    Error::Upstream(format!(
+                        "embedding provider exceeded its {:?} processing deadline",
+                        self.config.hold_for / 2
+                    )),
+                    &claim,
+                )
+            })?
+            .map_err(|error| ProcessError::item(error, &claim))?;
+        validate_batch(&self.provider, chunks.len(), &vectors)
+            .map_err(|error| ProcessError::item(error, &claim))?;
         let now = elapsed_now(origin, started);
-        let claim = Work::renew(store, claim, self.config.hold_for, now).await?;
 
         let mut txn = TxnBuilder::new();
+        stage_derivative_commit_guards(
+            &mut txn,
+            claim.key.receipt.tenant.as_str(),
+            memory.id,
+            &self.model,
+        );
         txn.push(Statement::with_params(
             "DELETE FROM embedding
              WHERE scope_id = ?1 AND memory_id = ?2 AND model_revision = ?3",
@@ -361,16 +556,20 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             txn.push(Statement::with_params(
                 "INSERT INTO chunk
                  (chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
-                 SELECT ?7, ?1, ?2, ?3, ?4, ?5, ?6
-                 WHERE EXISTS (SELECT 1 FROM memory
-                               WHERE scope_id = ?1 AND id = ?2 AND status <> 'erased')",
+                 VALUES (?7, ?1, ?2, ?3, ?4, ?5, ?6)",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(memory.id.to_string()),
                     Value::Integer(i64::from(self.model.revision)),
                     Value::Integer(i64::from(chunk.ordinal)),
-                    Value::Integer(usize_to_sql(chunk.byte_start)?),
-                    Value::Integer(usize_to_sql(chunk.byte_end)?),
+                    Value::Integer(
+                        usize_to_sql(chunk.byte_start)
+                            .map_err(|error| ProcessError::item(error, &claim))?,
+                    ),
+                    Value::Integer(
+                        usize_to_sql(chunk.byte_end)
+                            .map_err(|error| ProcessError::item(error, &claim))?,
+                    ),
                     Value::from(chunk_id(
                         claim.key.receipt.tenant.as_str(),
                         memory.id,
@@ -383,9 +582,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 "INSERT INTO embedding
                  (scope_id, memory_id, model_id, model_revision, chunk_ordinal, dims,
                   normalized, vector, updated)
-                 SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9
-                 WHERE EXISTS (SELECT 1 FROM memory
-                               WHERE scope_id = ?1 AND id = ?2 AND status <> 'erased')",
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(memory.id.to_string()),
@@ -400,7 +597,89 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             ));
         }
         Work::complete(&mut txn, &claim, now);
-        store.txn(txn.into_statements()).await?;
+        match store.txn(txn.into_statements()).await {
+            Ok(_) => Ok(ProcessOutcome::Completed),
+            Err(error) => {
+                self.reconcile_commit_failure(store, &claim, error, now)
+                    .await
+            }
+        }
+    }
+
+    async fn reconcile_commit_failure(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        error: Error,
+        now: UnixSeconds,
+    ) -> Result<ProcessOutcome, ProcessError> {
+        let memory_id = claim.key.receipt.key.parse::<MemoryId>().map_err(|error| {
+            ProcessError::item(
+                Error::Integrity(format!("embedding work memory id is invalid: {error}")),
+                claim,
+            )
+        })?;
+        let row = embedding_memory(store, claim.key.receipt.tenant.as_str(), memory_id)
+            .await
+            .map_err(ProcessError::Infrastructure)?;
+        match row.as_ref().map(|row| row.status.as_str()) {
+            Some(status) if status == Status::Quarantined.label() => {
+                return Ok(ProcessOutcome::Quarantined(claim.clone()));
+            }
+            None => {
+                self.complete_empty(store, claim, now).await?;
+                return Ok(ProcessOutcome::Completed);
+            }
+            Some(status) if status == Status::Erased.label() => {
+                self.complete_empty(store, claim, now).await?;
+                return Ok(ProcessOutcome::Completed);
+            }
+            Some(_) => {}
+        }
+        let active = ModelRegistry::active(store)
+            .await
+            .map_err(ProcessError::Infrastructure)?;
+        match active.as_ref() {
+            None => {
+                self.defer_inactive_model(store, claim, now).await?;
+                return Ok(ProcessOutcome::Deferred);
+            }
+            Some(model) if !same_model_revision(model, &self.model) => {
+                self.complete_empty(store, claim, now).await?;
+                return Ok(ProcessOutcome::Completed);
+            }
+            Some(_) => {}
+        }
+        Err(ProcessError::item(error, claim))
+    }
+
+    async fn defer_inactive_model(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        now: UnixSeconds,
+    ) -> Result<(), ProcessError> {
+        let mut txn = TxnBuilder::new();
+        let terminal = RetryPolicy {
+            max_attempts: claim.attempt,
+            ..self.config.retry
+        };
+        Work::fail(
+            &mut txn,
+            claim,
+            &FailureDetail {
+                class: "model_deactivated".to_owned(),
+                detail: None,
+            },
+            &terminal,
+            now,
+        )
+        .map_err(ProcessError::Infrastructure)?;
+        Work::requeue(&mut txn, &claim.key, now);
+        store
+            .txn(txn.into_statements())
+            .await
+            .map_err(ProcessError::Infrastructure)?;
         Ok(())
     }
 
@@ -409,10 +688,13 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         store: &StoreHandle,
         claim: &Claim,
         now: UnixSeconds,
-    ) -> Result<(), Error> {
+    ) -> Result<(), ProcessError> {
         let mut txn = TxnBuilder::new();
         Work::complete(&mut txn, claim, now);
-        store.txn(txn.into_statements()).await?;
+        store
+            .txn(txn.into_statements())
+            .await
+            .map_err(ProcessError::Infrastructure)?;
         Ok(())
     }
 
@@ -422,7 +704,9 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         claim: &Claim,
         error: &Error,
         now: UnixSeconds,
-    ) -> Result<(), Error> {
+    ) -> Result<bool, Error> {
+        let retry = self.provider_retry_policy(store, claim).await?;
+        let dead = claim.attempt >= retry.max_attempts;
         let mut txn = TxnBuilder::new();
         Work::fail(
             &mut txn,
@@ -431,12 +715,121 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 class: error_class(error).to_owned(),
                 detail: None,
             },
-            &self.config.retry,
+            &retry,
+            now,
+        )?;
+        store.txn(txn.into_statements()).await?;
+        Ok(dead)
+    }
+
+    async fn record_expired_budget(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        now: UnixSeconds,
+    ) -> Result<(), Error> {
+        let terminal = RetryPolicy {
+            max_attempts: claim.attempt,
+            ..self.config.retry
+        };
+        let mut txn = TxnBuilder::new();
+        Work::fail(
+            &mut txn,
+            claim,
+            &FailureDetail {
+                class: "claim_expired".to_owned(),
+                detail: None,
+            },
+            &terminal,
             now,
         )?;
         store.txn(txn.into_statements()).await?;
         Ok(())
     }
+
+    async fn provider_retry_policy(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+    ) -> Result<RetryPolicy, Error> {
+        let rows: Vec<AttemptCountRow> = store
+            .query_consistent(
+                "SELECT COUNT(*) AS count FROM rahi_processing_attempt
+                 WHERE key_digest = ?1 AND revision = ?2 AND processor = ?3
+                   AND processor_revision = ?4
+                   AND error_class IN ('model_deactivated', 'quarantined')",
+                vec![
+                    Value::from(claim.key.receipt.key_digest()),
+                    Value::Integer(i64::from(claim.key.revision)),
+                    Value::from(claim.key.processor.as_str()),
+                    Value::from(claim.key.processor_revision.as_str()),
+                ],
+            )
+            .await?;
+        let administrative_attempts = rows.first().map_or(0, |row| row.count);
+        let administrative_attempts = u32::try_from(administrative_attempts).map_err(|_| {
+            Error::Integrity("embedding administrative attempt count is invalid".to_owned())
+        })?;
+        let max_attempts = self
+            .config
+            .retry
+            .max_attempts
+            .checked_add(administrative_attempts)
+            .ok_or_else(|| Error::Integrity("embedding retry ceiling overflowed".to_owned()))?;
+        Ok(RetryPolicy {
+            max_attempts,
+            ..self.config.retry
+        })
+    }
+
+    async fn record_quarantine(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        now: UnixSeconds,
+    ) -> Result<(), Error> {
+        let mut txn = TxnBuilder::new();
+        let terminal = RetryPolicy {
+            max_attempts: claim.attempt,
+            ..self.config.retry
+        };
+        Work::fail(
+            &mut txn,
+            claim,
+            &FailureDetail {
+                class: "quarantined".to_owned(),
+                detail: None,
+            },
+            &terminal,
+            now,
+        )?;
+        store.txn(txn.into_statements()).await?;
+        Ok(())
+    }
+}
+
+fn stage_derivative_commit_guards(
+    txn: &mut TxnBuilder,
+    scope_id: &str,
+    memory_id: MemoryId,
+    model: &ModelRevision,
+) {
+    stage_live_memory_guard(txn, scope_id, memory_id);
+    txn.push(Statement::with_params(
+        "INSERT INTO embedding_model (revision)
+         SELECT ?1
+         WHERE NOT EXISTS (
+             SELECT 1 FROM embedding_model
+             WHERE revision = ?1 AND model_id = ?2 AND dims = ?3
+               AND normalized = ?4 AND active = 1
+         )",
+        vec![
+            Value::Integer(i64::from(model.revision)),
+            Value::from(model.model_id.as_str()),
+            Value::Integer(i64::from(model.dims)),
+            Value::from(model.normalized),
+        ],
+    ));
 }
 
 /// Build the durable identity for one memory and model revision.
@@ -477,18 +870,39 @@ pub fn stage_embedding(
             "embedding work requires an active model revision".to_owned(),
         ));
     }
-    txn.push(Statement::with_params(
-        "UPDATE embedding_model
-         SET model_id = CASE WHEN active = 1 AND model_id = ?2 THEN model_id ELSE NULL END
-         WHERE revision = ?1",
-        vec![
-            Value::Integer(i64::from(model.revision)),
-            Value::from(model.model_id.as_str()),
-        ],
-    ));
-    let key = embedding_work_key(scope_id, memory_id, model)?;
-    Work::stage_work(txn, &key, now);
-    Ok(())
+    stage_active_embedding(
+        txn,
+        scope_id,
+        memory_id,
+        &ActiveEmbedding {
+            model_id: model.model_id.as_str().to_owned(),
+            revision: model.revision,
+        },
+        now,
+    )
+}
+
+/// Stage embedding work only while the selected memory remains live.
+///
+/// Re-embedding selects candidates before it opens the staging transaction.
+/// This guard rechecks the selection inside that transaction, so erasure or
+/// quarantine committed in between aborts the complete batch. If the memory
+/// is no longer live, the guard deliberately violates `chunk.chunk_id`'s
+/// `NOT NULL` constraint without opening an insert path into `memory`.
+///
+/// # Errors
+///
+/// Rahi validation errors from [`stage_embedding`]. The submitted transaction
+/// also fails when the memory is absent, erased, or quarantined at commit.
+pub fn stage_live_embedding(
+    txn: &mut TxnBuilder,
+    scope_id: &str,
+    memory_id: MemoryId,
+    model: &ModelRevision,
+    now: UnixSeconds,
+) -> Result<(), Error> {
+    stage_live_memory_guard(txn, scope_id, memory_id);
+    stage_embedding(txn, scope_id, memory_id, model, now)
 }
 
 /// Stage one bounded, idempotent re-embedding pass for a target revision.
@@ -542,43 +956,42 @@ async fn reembed_under_lease(
 ) -> Result<ReembeddingBatch, Error> {
     let after = cursor.map_or_else(String::new, |id| id.to_string());
     let fetch = i64::from(limit).saturating_add(1);
-    let rows: Vec<MemoryIdRow> = store
-        .query_consistent(
-            "SELECT memory.id AS id FROM memory
-             WHERE memory.scope_id = ?1 AND memory.status <> 'erased'
-               AND memory.id > ?2
-               AND NOT EXISTS (
-                 SELECT 1 FROM embedding
-                 WHERE embedding.scope_id = ?1
-                   AND embedding.memory_id = memory.id
-                   AND embedding.model_revision = ?3
-               )
-             ORDER BY memory.id LIMIT ?4",
-            vec![
-                Value::from(scope_id),
-                Value::from(after),
-                Value::Integer(i64::from(model.revision)),
-                Value::Integer(fetch),
-            ],
-        )
-        .await?;
+    let rows = memories_missing_embedding(store, scope_id, model.revision, &after, fetch).await?;
     let more = rows.len() > usize::try_from(limit).unwrap_or(usize::MAX);
     let mut txn = TxnBuilder::new();
     let mut last = None;
-    let mut staged = 0_u32;
+    let mut selected = 0_usize;
     let take = usize::try_from(limit).unwrap_or(usize::MAX);
-    for row in rows.into_iter().take(take) {
-        let memory_id = row
-            .id
-            .parse::<MemoryId>()
-            .map_err(|error| Error::Integrity(format!("stored memory id is invalid: {error}")))?;
-        stage_embedding(&mut txn, scope_id, memory_id, model, now)?;
+    for memory_id in rows.into_iter().take(take) {
+        stage_live_embedding(&mut txn, scope_id, memory_id, model, now)?;
         last = Some(memory_id);
-        staged = staged.saturating_add(1);
+        selected = selected.saturating_add(1);
     }
-    if !txn.is_empty() {
-        store.txn(txn.into_statements()).await?;
-    }
+    let staged = if txn.is_empty() {
+        0
+    } else {
+        let results = store.txn(txn.into_statements()).await?;
+        let expected = selected.saturating_mul(3);
+        if results.len() != expected {
+            return Err(Error::Integrity(format!(
+                "embedding staging returned {} results for {selected} memories",
+                results.len()
+            )));
+        }
+        let mut staged = 0_u32;
+        for result in results.iter().skip(2).step_by(3) {
+            match result.rows_affected {
+                0 => {}
+                1 => staged = staged.saturating_add(1),
+                count => {
+                    return Err(Error::Integrity(format!(
+                        "embedding work staging affected {count} rows"
+                    )));
+                }
+            }
+        }
+        staged
+    };
     Ok(ReembeddingBatch {
         staged,
         cursor: last.or(cursor),
@@ -586,38 +999,53 @@ async fn reembed_under_lease(
     })
 }
 
-/// Read the global queue values required by preflight and metrics.
+/// Read the scoped queue values required by preflight and metrics.
 ///
-/// Rahi 0.4 exposes processor-level counts but not tenant-level counts or
-/// enqueue timestamps. The scope and clock remain in this API so callers do
-/// not need another compatibility break when the chassis adds those reads.
+/// Rahi 0.4 exposes processing rows but not a tenant-level queue aggregate,
+/// so this adapter binds the scope in its storage predicate.
+/// Counts deliberately include every model revision: activating a replacement
+/// must not hide unfinished work in the prior revision's durable partition.
+/// The prior revision's worker drains that work to a terminal no-op; until it
+/// does, preflight continues to report the pending work as an operator-visible
+/// defect. Quarantined work is retained in Rahi's dead-letter state for later
+/// governed admission, but is reported separately from failed work so a normal
+/// gate outcome does not degrade readiness.
 ///
 /// # Errors
 ///
 /// Store errors or negative/corrupt aggregate values.
 pub async fn queue_health(
     store: &StoreHandle,
-    _scope_id: &str,
-    _now: UnixSeconds,
+    scope_id: &str,
+    now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {
-    let counts = Work::counts(store).await?;
-    let mut pending = 0_u64;
-    let mut dead = 0_u64;
-    for count in counts.iter().filter(|count| {
-        count
-            .processor
-            .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
-    }) {
-        pending = pending
-            .saturating_add(count.pending)
-            .saturating_add(count.claimed)
-            .saturating_add(count.failed);
-        dead = dead.saturating_add(count.dead);
-    }
+    let revision_offset = i64::try_from(EMBEDDING_PROCESSOR.len() + 3)
+        .map_err(|_| Error::Integrity("processor prefix is too long".to_owned()))?;
+    let row = embedding_queue_counts(
+        store,
+        scope_id,
+        EMBEDDING_NAMESPACE,
+        &format!("{EMBEDDING_PROCESSOR}.r[0-9]*"),
+        revision_offset,
+    )
+    .await?;
+    let pending = u64::try_from(row.pending)
+        .map_err(|_| Error::Integrity("pending embedding work count is negative".to_owned()))?;
+    let dead = u64::try_from(row.dead)
+        .map_err(|_| Error::Integrity("dead embedding work count is negative".to_owned()))?;
+    let quarantined = u64::try_from(row.quarantined)
+        .map_err(|_| Error::Integrity("quarantined embedding work count is negative".to_owned()))?;
+    let oldest_pending_age_seconds = row
+        .oldest_pending_created_at
+        .map(u64::try_from)
+        .transpose()
+        .map_err(|_| Error::Integrity("embedding work creation time is negative".to_owned()))?
+        .map(|created_at| now.get().saturating_sub(created_at));
     Ok(QueueHealth {
         pending,
         dead,
-        oldest_pending_age_seconds: None,
+        quarantined,
+        oldest_pending_age_seconds,
     })
 }
 
@@ -629,11 +1057,17 @@ fn elapsed_now(origin: UnixSeconds, started: Instant) -> UnixSeconds {
     UnixSeconds::new(origin.get().saturating_add(started.elapsed().as_secs()))
 }
 
+fn same_model_revision(left: &ModelRevision, right: &ModelRevision) -> bool {
+    left.model_id == right.model_id
+        && left.revision == right.revision
+        && left.dims == right.dims
+        && left.normalized == right.normalized
+}
+
 fn chunk_id(scope_id: &str, memory_id: MemoryId, revision: u32, ordinal: u32) -> String {
-    use ring::digest::{SHA256, digest};
     let identity = format!("{scope_id}\u{1f}{memory_id}\u{1f}{revision}\u{1f}{ordinal}");
-    digest(&SHA256, identity.as_bytes())
-        .as_ref()
+    identity
+        .as_bytes()
         .iter()
         .map(|byte| format!("{byte:02x}"))
         .collect()
