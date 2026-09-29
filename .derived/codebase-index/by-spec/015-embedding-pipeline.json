@@ -93,6 +93,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/src/embedding_memory.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/erasure.rs",
         "source": "spec-edge"
       },
@@ -289,6 +293,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/embedding_memory.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/embedding_memory.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "fixtures/external-host"
           }
         ],
@@ -432,6 +449,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/src/memory_repo.rs"
           }
         ],
@@ -543,5 +573,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "6a3fa53c333818a4ff62e4e88944f1b0bc13069ff718055bd4741c3677ce7108"
+  "shardHash": "434675b582983aa0714df46402a2319dd347ce56c03c695161f519ff1c304173"
 }

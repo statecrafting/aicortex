@@ -4,6 +4,10 @@ use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
+use aicortex_store::{
+    embedding_coverage, live_memory_total, stage_complete_embedding_coverage_guard,
+};
+
 use crate::provider::{EmbeddingProvider, ModelId};
 
 /// One immutable model revision.
@@ -79,13 +83,6 @@ struct ModelRow {
 #[derive(Debug, Deserialize)]
 struct CoverageRow {
     revision: i64,
-    embedded: i64,
-    total: i64,
-}
-
-#[derive(Debug, Deserialize)]
-struct LiveTotalRow {
-    total: i64,
 }
 
 impl ModelRegistry {
@@ -161,24 +158,28 @@ impl ModelRegistry {
     ///
     /// Store errors or negative counts in a corrupted row.
     pub async fn coverage(store: &StoreHandle, scope_id: &str) -> Result<Vec<Coverage>, Error> {
+        let total = live_memory_total(store, scope_id).await?;
+        let embedded = embedding_coverage(store, scope_id)
+            .await?
+            .into_iter()
+            .collect::<std::collections::BTreeMap<_, _>>();
         let rows: Vec<CoverageRow> = store
             .query(
-                "SELECT model.revision AS revision,
-                    COUNT(DISTINCT live.id) AS embedded,
-                    (SELECT COUNT(*) FROM memory
-                     WHERE scope_id = ?1
-                       AND status NOT IN ('erased', 'quarantined')) AS total
-                 FROM embedding_model model
-                 LEFT JOIN embedding ON embedding.model_revision = model.revision
-                    AND embedding.scope_id = ?1
-                 LEFT JOIN memory live ON live.scope_id = embedding.scope_id
-                    AND live.id = embedding.memory_id
-                    AND live.status NOT IN ('erased', 'quarantined')
-                 GROUP BY model.revision ORDER BY model.revision",
-                vec![Value::from(scope_id)],
+                "SELECT revision FROM embedding_model ORDER BY revision",
+                vec![],
             )
             .await?;
-        rows.into_iter().map(coverage_from_row).collect()
+        rows.into_iter()
+            .map(|row| {
+                let revision = u32::try_from(row.revision)
+                    .map_err(|_| Error::Integrity("coverage revision is outside u32".to_owned()))?;
+                Ok(Coverage {
+                    revision,
+                    embedded: embedded.get(&revision).copied().unwrap_or(0),
+                    total,
+                })
+            })
+            .collect()
     }
 
     /// Count live memories eligible for embedding, even before a model exists.
@@ -187,19 +188,7 @@ impl ModelRegistry {
     ///
     /// Store errors or a negative count in a corrupted row.
     pub async fn live_total(store: &StoreHandle, scope_id: &str) -> Result<u64, Error> {
-        let rows: Vec<LiveTotalRow> = store
-            .query(
-                "SELECT COUNT(*) AS total FROM memory
-                 WHERE scope_id = ?1
-                   AND status NOT IN ('erased', 'quarantined')",
-                vec![Value::from(scope_id)],
-            )
-            .await?;
-        let row = rows.first().ok_or_else(|| {
-            Error::Integrity("live memory count query returned no aggregate row".to_owned())
-        })?;
-        u64::try_from(row.total)
-            .map_err(|_| Error::Integrity("live memory count is negative".to_owned()))
+        live_memory_total(store, scope_id).await
     }
 
     /// Remove one inactive revision only after active coverage is complete.
@@ -228,48 +217,19 @@ impl ModelRegistry {
             )));
         }
         let mut txn = TxnBuilder::new();
+        stage_complete_embedding_coverage_guard(&mut txn, scope_id);
         txn.push(Statement::with_params(
             "UPDATE embedding_model SET revision = revision
-             WHERE revision = ?2 AND active = 0
-             AND NOT EXISTS (
-               SELECT 1 FROM memory m
-               WHERE m.scope_id = ?1
-                 AND m.status NOT IN ('erased', 'quarantined')
-                 AND NOT EXISTS (
-                   SELECT 1 FROM embedding e
-                   WHERE e.scope_id = ?1 AND e.memory_id = m.id
-                     AND e.model_revision = (SELECT revision FROM embedding_model WHERE active = 1)
-                 )
-             )",
-            vec![Value::from(scope_id), Value::Integer(i64::from(revision))],
+             WHERE revision = ?1 AND active = 0",
+            vec![Value::Integer(i64::from(revision))],
         ));
         for sql in [
             "DELETE FROM embedding WHERE scope_id = ?1 AND model_revision = ?2
              AND EXISTS (SELECT 1 FROM embedding_model
-                         WHERE revision = ?2 AND active = 0)
-             AND NOT EXISTS (
-               SELECT 1 FROM memory m
-               WHERE m.scope_id = ?1
-                 AND m.status NOT IN ('erased', 'quarantined')
-                 AND NOT EXISTS (
-                   SELECT 1 FROM embedding e
-                   WHERE e.scope_id = ?1 AND e.memory_id = m.id
-                     AND e.model_revision = (SELECT revision FROM embedding_model WHERE active = 1)
-                 )
-             )",
+                         WHERE revision = ?2 AND active = 0)",
             "DELETE FROM chunk WHERE scope_id = ?1 AND model_revision = ?2
              AND EXISTS (SELECT 1 FROM embedding_model
-                         WHERE revision = ?2 AND active = 0)
-             AND NOT EXISTS (
-               SELECT 1 FROM memory m
-               WHERE m.scope_id = ?1
-                 AND m.status NOT IN ('erased', 'quarantined')
-                 AND NOT EXISTS (
-                   SELECT 1 FROM embedding e
-                   WHERE e.scope_id = ?1 AND e.memory_id = m.id
-                     AND e.model_revision = (SELECT revision FROM embedding_model WHERE active = 1)
-                 )
-             )",
+                         WHERE revision = ?2 AND active = 0)",
         ] {
             txn.push(Statement::with_params(
                 sql,
@@ -278,7 +238,7 @@ impl ModelRegistry {
         }
         let results = store.txn(txn.into_statements()).await?;
         if results
-            .first()
+            .get(1)
             .is_none_or(|result| result.rows_affected != 1)
         {
             return Err(Error::Conflict(format!(
@@ -321,17 +281,6 @@ fn model_from_row(row: ModelRow) -> Result<ModelRevision, Error> {
                 .map_err(|_| Error::Integrity("model first_seen is negative".to_owned()))?,
         ),
         active: row.active == 1,
-    })
-}
-
-fn coverage_from_row(row: CoverageRow) -> Result<Coverage, Error> {
-    Ok(Coverage {
-        revision: u32::try_from(row.revision)
-            .map_err(|_| Error::Integrity("coverage revision is outside u32".to_owned()))?,
-        embedded: u64::try_from(row.embedded)
-            .map_err(|_| Error::Integrity("embedded coverage is negative".to_owned()))?,
-        total: u64::try_from(row.total)
-            .map_err(|_| Error::Integrity("total coverage is negative".to_owned()))?,
     })
 }
 

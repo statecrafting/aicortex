@@ -24,8 +24,10 @@ establishes:
   - "crates/aicortex-embed/tests/worker.rs"
   - "crates/aicortex-embed/tests/chunk.rs"
   - "crates/aicortex-embed/testdata/vectors/"
+  - "crates/aicortex-store/src/embedding_memory.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/manifest.toml", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
@@ -246,6 +248,11 @@ configuration with a pinned digest rather than a spec-level commitment.
   legacy application list and the named chassis set; it is byte-identical and
   idempotent, and the test asserts that compatibility until a governed
   migration removes the legacy copy.
+- **D-17 (2026-09-29, implementation).** The embedding pipeline reaches the
+  memory table only through the storage crate's scoped adapter. Worker input,
+  re-embedding selection, lifecycle guards, coverage, and queue classification
+  therefore remain inside spec 012's SQL scope-predicate ratchet. Live totals
+  come from the maintained scope counters rather than scanning memory rows.
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,

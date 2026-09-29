@@ -347,6 +347,41 @@ impl Fixture {
             )
             .await
             .expect("memory fixture table applies");
+        for statement in [
+            "CREATE TABLE scope_counter (
+                scope_id TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                status TEXT NOT NULL,
+                count INTEGER NOT NULL,
+                PRIMARY KEY (scope_id, kind, status)
+            )",
+            "CREATE TRIGGER memory_counter_insert AFTER INSERT ON memory BEGIN
+                INSERT INTO scope_counter (scope_id, kind, status, count)
+                VALUES (NEW.scope_id, 'observation', NEW.status, 1)
+                ON CONFLICT (scope_id, kind, status)
+                DO UPDATE SET count = scope_counter.count + 1;
+            END",
+            "CREATE TRIGGER memory_counter_update AFTER UPDATE OF status ON memory
+             WHEN OLD.status <> NEW.status BEGIN
+                UPDATE scope_counter SET count = max(0, count - 1)
+                WHERE scope_id = OLD.scope_id AND kind = 'observation'
+                  AND status = OLD.status;
+                INSERT INTO scope_counter (scope_id, kind, status, count)
+                VALUES (NEW.scope_id, 'observation', NEW.status, 1)
+                ON CONFLICT (scope_id, kind, status)
+                DO UPDATE SET count = scope_counter.count + 1;
+            END",
+            "CREATE TRIGGER memory_counter_delete AFTER DELETE ON memory BEGIN
+                UPDATE scope_counter SET count = max(0, count - 1)
+                WHERE scope_id = OLD.scope_id AND kind = 'observation'
+                  AND status = OLD.status;
+            END",
+        ] {
+            handle
+                .execute(statement, vec![])
+                .await
+                .expect("memory counter fixture applies");
+        }
         for statement in migration().sql.split(';').map(str::trim) {
             if !statement.is_empty() {
                 handle
@@ -519,6 +554,22 @@ fn vector_bytes_are_little_endian_and_dimension_checked() {
         vector
     );
     assert!(Vector::from_le_bytes(&bytes, 3).is_err());
+}
+
+#[test]
+fn embedding_sources_do_not_own_memory_table_sql() {
+    for (name, source) in [
+        ("worker.rs", include_str!("../src/worker.rs")),
+        ("registry.rs", include_str!("../src/registry.rs")),
+    ] {
+        let source = source.to_ascii_lowercase();
+        for fragment in ["from memory", "join memory"] {
+            assert!(
+                !source.contains(fragment),
+                "{name} bypasses the storage repository with {fragment:?}"
+            );
+        }
+    }
 }
 
 #[test]

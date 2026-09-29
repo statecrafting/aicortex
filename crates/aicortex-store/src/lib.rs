@@ -76,6 +76,7 @@ pub mod claim_repo;
 pub mod counters;
 pub mod cursor;
 pub mod decision_key;
+pub mod embedding_memory;
 pub mod erasure;
 pub mod fingerprint;
 pub mod host;
@@ -94,6 +95,11 @@ pub use claim_repo::{ClaimAppend, ClaimHistoryPage, ClaimRepo, MAX_CLAIM_PAGE_RO
 pub use counters::{Counters, ScopeStats};
 pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
+pub use embedding_memory::{
+    EmbeddingMemory, EmbeddingQueueCounts, embedding_coverage, embedding_memory,
+    embedding_queue_counts, live_memory_total, memories_missing_embedding,
+    stage_complete_embedding_coverage_guard, stage_live_memory_guard,
+};
 pub use erasure::{
     Authority, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE, KIND_ERASE_SCOPE,
     MAX_ACCOUNTED_ERASURE_BATCH, MAX_ERASURE_BATCH, PLANNED, PreparedErasure, ScopeErased,

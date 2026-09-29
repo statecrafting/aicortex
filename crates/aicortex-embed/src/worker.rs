@@ -3,7 +3,10 @@
 use std::mem::size_of;
 use std::time::{Duration, Instant};
 
-use aicortex_types::{Memory, MemoryId, Status};
+use aicortex_store::{
+    embedding_memory, embedding_queue_counts, memories_missing_embedding, stage_live_memory_guard,
+};
+use aicortex_types::{MemoryId, Status};
 use rahi_store::{
     Claim, FailureDetail, ProcessingKey, ReceiptKey, RetryPolicy, Statement, StoreHandle,
     TxnBuilder, Value, Work,
@@ -221,25 +224,6 @@ pub struct EmbeddingWorker<P> {
 }
 
 #[derive(Debug, Deserialize)]
-struct MemoryRow {
-    record: String,
-    status: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct MemoryIdRow {
-    id: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct QueueHealthRow {
-    pending: i64,
-    dead: i64,
-    quarantined: i64,
-    oldest_pending_created_at: Option<i64>,
-}
-
-#[derive(Debug, Deserialize)]
 struct AttemptCountRow {
     count: i64,
 }
@@ -430,17 +414,16 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 return Ok(ProcessOutcome::Deferred);
             }
         }
-        let rows: Vec<MemoryRow> = store
-            .query_consistent(
-                "SELECT record, status FROM memory WHERE scope_id = ?1 AND id = ?2",
-                vec![
-                    Value::from(claim.key.receipt.tenant.as_str()),
-                    Value::from(claim.key.receipt.key.as_str()),
-                ],
+        let memory_id = claim.key.receipt.key.parse::<MemoryId>().map_err(|error| {
+            ProcessError::item(
+                Error::Integrity(format!("embedding work memory id is invalid: {error}")),
+                claim,
             )
+        })?;
+        let Some(row) = embedding_memory(store, claim.key.receipt.tenant.as_str(), memory_id)
             .await
-            .map_err(ProcessError::Infrastructure)?;
-        let Some(row) = rows.into_iter().next() else {
+            .map_err(ProcessError::Infrastructure)?
+        else {
             self.complete_empty(store, claim, now).await?;
             return Ok(ProcessOutcome::Completed);
         };
@@ -451,10 +434,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         if row.status == Status::Quarantined.label() {
             return Ok(ProcessOutcome::Quarantined(claim.clone()));
         }
-        let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
+        let memory = row.memory.ok_or_else(|| {
             ProcessError::item(
                 Error::Integrity(format!(
-                    "memory {} cannot be decoded for embedding: {error}",
+                    "live memory {} has no decodable record",
                     claim.key.receipt.key
                 )),
                 claim,
@@ -539,10 +522,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             txn.push(Statement::with_params(
                 "INSERT INTO chunk
                  (chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
-                 SELECT ?7, ?1, ?2, ?3, ?4, ?5, ?6
-                 WHERE EXISTS (SELECT 1 FROM memory
-                               WHERE scope_id = ?1 AND id = ?2
-                                 AND status NOT IN ('erased', 'quarantined'))",
+                 VALUES (?7, ?1, ?2, ?3, ?4, ?5, ?6)",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(memory.id.to_string()),
@@ -568,10 +548,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 "INSERT INTO embedding
                  (scope_id, memory_id, model_id, model_revision, chunk_ordinal, dims,
                   normalized, vector, updated)
-                 SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9
-                 WHERE EXISTS (SELECT 1 FROM memory
-                               WHERE scope_id = ?1 AND id = ?2
-                                 AND status NOT IN ('erased', 'quarantined'))",
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(memory.id.to_string()),
@@ -602,17 +579,16 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         error: Error,
         now: UnixSeconds,
     ) -> Result<ProcessOutcome, ProcessError> {
-        let rows: Vec<MemoryRow> = store
-            .query_consistent(
-                "SELECT record, status FROM memory WHERE scope_id = ?1 AND id = ?2",
-                vec![
-                    Value::from(claim.key.receipt.tenant.as_str()),
-                    Value::from(claim.key.receipt.key.as_str()),
-                ],
+        let memory_id = claim.key.receipt.key.parse::<MemoryId>().map_err(|error| {
+            ProcessError::item(
+                Error::Integrity(format!("embedding work memory id is invalid: {error}")),
+                claim,
             )
+        })?;
+        let row = embedding_memory(store, claim.key.receipt.tenant.as_str(), memory_id)
             .await
             .map_err(ProcessError::Infrastructure)?;
-        match rows.first().map(|row| row.status.as_str()) {
+        match row.as_ref().map(|row| row.status.as_str()) {
             Some(status) if status == Status::Quarantined.label() => {
                 return Ok(ProcessOutcome::Quarantined(claim.clone()));
             }
@@ -797,19 +773,6 @@ fn stage_derivative_commit_guards(
     ));
 }
 
-fn stage_live_memory_guard(txn: &mut TxnBuilder, scope_id: &str, memory_id: MemoryId) {
-    txn.push(Statement::with_params(
-        "INSERT INTO chunk (chunk_id)
-         SELECT NULL
-         WHERE NOT EXISTS (
-             SELECT 1 FROM memory
-             WHERE scope_id = ?1 AND id = ?2
-               AND status NOT IN ('erased', 'quarantined')
-         )",
-        vec![Value::from(scope_id), Value::from(memory_id.to_string())],
-    ));
-}
-
 /// Build the durable identity for one memory and model revision.
 ///
 /// # Errors
@@ -934,37 +897,13 @@ async fn reembed_under_lease(
 ) -> Result<ReembeddingBatch, Error> {
     let after = cursor.map_or_else(String::new, |id| id.to_string());
     let fetch = i64::from(limit).saturating_add(1);
-    let rows: Vec<MemoryIdRow> = store
-        .query_consistent(
-            "SELECT memory.id AS id FROM memory
-             WHERE memory.scope_id = ?1
-               AND memory.status NOT IN ('erased', 'quarantined')
-               AND memory.id > ?2
-               AND NOT EXISTS (
-                 SELECT 1 FROM embedding
-                 WHERE embedding.scope_id = ?1
-                   AND embedding.memory_id = memory.id
-                   AND embedding.model_revision = ?3
-               )
-             ORDER BY memory.id LIMIT ?4",
-            vec![
-                Value::from(scope_id),
-                Value::from(after),
-                Value::Integer(i64::from(model.revision)),
-                Value::Integer(fetch),
-            ],
-        )
-        .await?;
+    let rows = memories_missing_embedding(store, scope_id, model.revision, &after, fetch).await?;
     let more = rows.len() > usize::try_from(limit).unwrap_or(usize::MAX);
     let mut txn = TxnBuilder::new();
     let mut last = None;
     let mut selected = 0_usize;
     let take = usize::try_from(limit).unwrap_or(usize::MAX);
-    for row in rows.into_iter().take(take) {
-        let memory_id = row
-            .id
-            .parse::<MemoryId>()
-            .map_err(|error| Error::Integrity(format!("stored memory id is invalid: {error}")))?;
+    for memory_id in rows.into_iter().take(take) {
         stage_live_embedding(&mut txn, scope_id, memory_id, model, now)?;
         last = Some(memory_id);
         selected = selected.saturating_add(1);
@@ -1022,59 +961,15 @@ pub async fn queue_health(
     _scope_id: &str,
     now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {
-    let rows: Vec<QueueHealthRow> = store
-        .query_consistent(
-            "SELECT
-               COALESCE(SUM(CASE
-                 WHEN processing.state IN ('pending', 'claimed', 'failed') THEN 1
-                 ELSE 0
-               END), 0) AS pending,
-               COALESCE(SUM(CASE
-                 WHEN processing.state = 'dead'
-                  AND NOT (
-                    COALESCE(attempt.error_class, '') = 'quarantined'
-                    AND COALESCE(memory.status, '') = 'quarantined'
-                  ) THEN 1
-                 ELSE 0
-               END), 0) AS dead,
-               COALESCE(SUM(CASE
-                 WHEN processing.state = 'dead'
-                  AND attempt.error_class = 'quarantined'
-                  AND memory.status = 'quarantined' THEN 1
-                 ELSE 0
-               END), 0) AS quarantined,
-               MIN(CASE
-                 WHEN processing.state IN ('pending', 'claimed', 'failed')
-                 THEN processing.created_at
-               END) AS oldest_pending_created_at
-             FROM rahi_processing AS processing
-             LEFT JOIN rahi_processing_attempt AS attempt
-               ON attempt.key_digest = processing.key_digest
-              AND attempt.revision = processing.revision
-              AND attempt.processor = processing.processor
-              AND attempt.processor_revision = processing.processor_revision
-              AND attempt.attempt = processing.attempt
-              AND attempt.outcome = 'dead'
-             LEFT JOIN memory
-               ON memory.scope_id = processing.tenant
-              AND memory.id = processing.key
-             WHERE processing.state IN ('pending', 'claimed', 'failed', 'dead')
-               AND processing.namespace = ?1
-               AND processing.processor GLOB ?2
-               AND substr(processing.processor, ?3) NOT GLOB '*[^0-9]*'",
-            vec![
-                Value::from(EMBEDDING_NAMESPACE),
-                Value::from(format!("{EMBEDDING_PROCESSOR}.r[0-9]*")),
-                Value::Integer(
-                    i64::try_from(EMBEDDING_PROCESSOR.len() + 3)
-                        .map_err(|_| Error::Integrity("processor prefix is too long".to_owned()))?,
-                ),
-            ],
-        )
-        .await?;
-    let row = rows.first().ok_or_else(|| {
-        Error::Integrity("embedding queue health query returned no aggregate row".to_owned())
-    })?;
+    let revision_offset = i64::try_from(EMBEDDING_PROCESSOR.len() + 3)
+        .map_err(|_| Error::Integrity("processor prefix is too long".to_owned()))?;
+    let row = embedding_queue_counts(
+        store,
+        EMBEDDING_NAMESPACE,
+        &format!("{EMBEDDING_PROCESSOR}.r[0-9]*"),
+        revision_offset,
+    )
+    .await?;
     let pending = u64::try_from(row.pending)
         .map_err(|_| Error::Integrity("pending embedding work count is negative".to_owned()))?;
     let dead = u64::try_from(row.dead)
