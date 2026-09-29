@@ -126,7 +126,7 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
         return Ok(());
     }
     let deployment = aicortex_embed::EmbeddingPreflight::read(&handle, "", now).await?;
-    println!("embedding: deployment {deployment}");
+    println!("embedding: deployment {}", deployment.deployment());
 
     const PAGE: i64 = 100;
     let mut after = String::new();

@@ -89,6 +89,10 @@ pub struct EmbeddingPreflight {
     pub coverage: Vec<Coverage>,
 }
 
+/// Deployment-wide embedding state without scope-specific coverage.
+#[derive(Clone, Copy, Debug)]
+pub struct EmbeddingDeployment<'a>(&'a EmbeddingPreflight);
+
 impl EmbeddingPreflight {
     /// Read the current preflight observations for `scope_id`.
     ///
@@ -119,17 +123,23 @@ impl EmbeddingPreflight {
             None
         }
     }
+
+    /// Format deployment-wide state separately from per-scope coverage.
+    #[must_use]
+    pub const fn deployment(&self) -> EmbeddingDeployment<'_> {
+        EmbeddingDeployment(self)
+    }
 }
 
-impl std::fmt::Display for EmbeddingPreflight {
+impl std::fmt::Display for EmbeddingDeployment<'_> {
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let active = self.active.as_ref().map_or_else(
+        let active = self.0.active.as_ref().map_or_else(
             || "none".to_owned(),
             |model| format!("{}@{}", model.model_id.as_str(), model.revision),
         );
-        let oldest = self.queue.oldest_pending_age_seconds.map_or_else(
+        let oldest = self.0.queue.oldest_pending_age_seconds.map_or_else(
             || {
-                if self.queue.pending == 0 {
+                if self.0.queue.pending == 0 {
                     "none".to_owned()
                 } else {
                     "unknown".to_owned()
@@ -137,21 +147,27 @@ impl std::fmt::Display for EmbeddingPreflight {
             },
             |age| age.to_string(),
         );
+        write!(
+            formatter,
+            "active={active} pending={} dead={} oldest_pending_seconds={oldest}",
+            self.0.queue.pending, self.0.queue.dead
+        )?;
+        if let Some(warning) = self.0.readiness_warning() {
+            write!(formatter, " warning={warning}")?;
+        }
+        Ok(())
+    }
+}
+
+impl std::fmt::Display for EmbeddingPreflight {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let coverage = self
             .coverage
             .iter()
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(",");
-        write!(
-            formatter,
-            "active={active} pending={} dead={} oldest_pending_seconds={oldest} coverage=[{coverage}]",
-            self.queue.pending, self.queue.dead
-        )?;
-        if let Some(warning) = self.readiness_warning() {
-            write!(formatter, " warning={warning}")?;
-        }
-        Ok(())
+        write!(formatter, "{} coverage=[{coverage}]", self.deployment())
     }
 }
 
@@ -185,6 +201,12 @@ struct MemoryRow {
 #[derive(Debug, Deserialize)]
 struct MemoryIdRow {
     id: String,
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum ProcessOutcome {
+    Completed,
+    Deferred,
 }
 
 #[derive(Debug)]
@@ -310,9 +332,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 Err(error) => return Err(error),
             };
             match self.process(store, &claim, now, started).await {
-                Ok(()) => {
+                Ok(ProcessOutcome::Completed) => {
                     report.completed = report.completed.saturating_add(1);
                 }
+                Ok(ProcessOutcome::Deferred) => {}
                 Err(ProcessError::Item(error)) => {
                     match self
                         .record_failure(store, &claim, &error, elapsed_now(now, started))
@@ -341,7 +364,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         claim: &Claim,
         origin: UnixSeconds,
         started: Instant,
-    ) -> Result<(), ProcessError> {
+    ) -> Result<ProcessOutcome, ProcessError> {
         let now = elapsed_now(origin, started);
         if claim.key.processor != embedding_processor(claim.key.revision) {
             return Err(ProcessError::Item(Error::Conflict(format!(
@@ -360,15 +383,15 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     && active.model_id == self.model.model_id => {}
             Some(active) => {
                 self.restage_active(store, claim, &active, now).await?;
-                return Ok(());
+                return Ok(ProcessOutcome::Completed);
             }
             None => {
                 // The pre-claim check handles the steady state. If deactivation
-                // races a held claim, close that obsolete revision so it cannot
-                // age into a retry or dead letter. A later activation stages its
-                // own revision through the re-embedding scheduler.
-                self.complete_empty(store, claim, now).await?;
-                return Ok(());
+                // races a held claim, leave it claimed so the same durable key
+                // becomes eligible again after its lease expires. Completing it
+                // would prevent a later activation of this revision from ever
+                // embedding the memory.
+                return Ok(ProcessOutcome::Deferred);
             }
         }
         let rows: Vec<MemoryRow> = store
@@ -383,7 +406,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .map_err(ProcessError::Infrastructure)?;
         let Some(row) = rows.into_iter().next() else {
             self.complete_empty(store, claim, now).await?;
-            return Ok(());
+            return Ok(ProcessOutcome::Completed);
         };
         let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
             ProcessError::Item(Error::Integrity(format!(
@@ -393,7 +416,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         })?;
         if memory.status == Status::Erased {
             self.complete_empty(store, claim, now).await?;
-            return Ok(());
+            return Ok(ProcessOutcome::Completed);
         }
         let chunks = self
             .chunker
@@ -486,7 +509,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .txn(txn.into_statements())
             .await
             .map_err(ProcessError::Infrastructure)?;
-        Ok(())
+        Ok(ProcessOutcome::Completed)
     }
 
     async fn complete_empty(
@@ -681,7 +704,7 @@ async fn reembed_under_lease(
     let more = rows.len() > usize::try_from(limit).unwrap_or(usize::MAX);
     let mut txn = TxnBuilder::new();
     let mut last = None;
-    let mut staged = 0_u32;
+    let mut selected = 0_usize;
     let take = usize::try_from(limit).unwrap_or(usize::MAX);
     for row in rows.into_iter().take(take) {
         let memory_id = row
@@ -690,11 +713,33 @@ async fn reembed_under_lease(
             .map_err(|error| Error::Integrity(format!("stored memory id is invalid: {error}")))?;
         stage_embedding(&mut txn, scope_id, memory_id, model, now)?;
         last = Some(memory_id);
-        staged = staged.saturating_add(1);
+        selected = selected.saturating_add(1);
     }
-    if !txn.is_empty() {
-        store.txn(txn.into_statements()).await?;
-    }
+    let staged = if txn.is_empty() {
+        0
+    } else {
+        let results = store.txn(txn.into_statements()).await?;
+        let expected = selected.saturating_mul(2);
+        if results.len() != expected {
+            return Err(Error::Integrity(format!(
+                "embedding staging returned {} results for {selected} memories",
+                results.len()
+            )));
+        }
+        let mut staged = 0_u32;
+        for result in results.iter().skip(1).step_by(2) {
+            match result.rows_affected {
+                0 => {}
+                1 => staged = staged.saturating_add(1),
+                count => {
+                    return Err(Error::Integrity(format!(
+                        "embedding work staging affected {count} rows"
+                    )));
+                }
+            }
+        }
+        staged
+    };
     Ok(ReembeddingBatch {
         staged,
         cursor: last.or(cursor),

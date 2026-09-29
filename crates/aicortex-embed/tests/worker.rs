@@ -16,6 +16,7 @@ use aicortex_embed::registry::{ModelRegistry, ModelRevision};
 use aicortex_embed::{
     ActiveEmbedding, ChunkConfig, Chunker, EmbeddingPreflight, EmbeddingWorker, WorkerConfig,
     embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
+    stage_reembedding_batch,
 };
 use aicortex_types::{
     Actor, ActorId, Importance, Memory, MemoryBody, MemoryId, MemoryKind, MemoryParts, Provenance,
@@ -1009,6 +1010,12 @@ async fn provider_failures_retry_then_reach_dead_letter_and_preflight_warns() {
     assert!(preflight.readiness_warning().is_some());
     assert!(preflight.to_string().contains("dead=1"));
     assert!(preflight.to_string().contains("warning="));
+    let restaged =
+        stage_reembedding_batch(&store, "scope-a", &model, None, 10, UnixSeconds::new(6))
+            .await
+            .expect("dead work remains an operator-visible terminal item");
+    assert_eq!(restaged.staged, 0);
+    assert_eq!(restaged.cursor, Some(memory.id));
 
     let replacement = ModelRevision {
         revision: 2,
