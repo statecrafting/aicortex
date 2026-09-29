@@ -155,7 +155,10 @@ fn sentence_boundaries(text: &str) -> Vec<usize> {
     let mut sentence_end = false;
     for (offset, character) in text.char_indices() {
         let after = offset.saturating_add(character.len_utf8());
-        if matches!(character, '.' | '!' | '?' | '\n') {
+        if character == '\n' {
+            boundaries.push(after);
+            sentence_end = false;
+        } else if matches!(character, '.' | '!' | '?') {
             sentence_end = true;
         } else if sentence_end && character.is_whitespace() {
             boundaries.push(after);

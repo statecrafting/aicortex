@@ -92,6 +92,25 @@ fn overlap_is_preserved_after_a_short_leading_sentence() {
 }
 
 #[test]
+fn newline_is_a_boundary_without_trailing_whitespace() {
+    let body = "line one\nLine two continues";
+    let chunks = Chunker::new(ChunkConfig {
+        threshold_bytes: 1,
+        target_bytes: 9,
+        overlap_bytes: 2,
+        max_chunks_per_memory: 16,
+    })
+    .expect("valid chunk configuration")
+    .split(body)
+    .expect("body chunks");
+    assert_eq!(chunks.first().map(|chunk| chunk.byte_end), Some(9));
+    assert_eq!(
+        chunks.first().map(|chunk| chunk.text.as_str()),
+        Some("line one\n")
+    );
+}
+
+#[test]
 fn amplification_is_bounded_by_configuration() {
     let chunker = Chunker::new(ChunkConfig {
         threshold_bytes: 1,
