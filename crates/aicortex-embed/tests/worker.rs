@@ -83,6 +83,12 @@ struct SwitchingProvider {
     replacement: ModelRevision,
 }
 
+#[derive(Clone, Debug)]
+struct DeactivatingProvider {
+    store: StoreHandle,
+    deactivated: Arc<AtomicBool>,
+}
+
 impl EmbeddingProvider for ErasingProvider {
     fn id(&self) -> ModelId {
         ModelId::new("test-model").expect("static model id")
@@ -164,6 +170,29 @@ impl EmbeddingProvider for SwitchingProvider {
         let mut txn = TxnBuilder::new();
         ModelRegistry::activate(&mut txn, &self.replacement)?;
         self.store.txn(txn.into_statements()).await?;
+        batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
+    }
+}
+
+impl EmbeddingProvider for DeactivatingProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("test-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        2
+    }
+
+    fn normalized(&self) -> bool {
+        true
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        if !self.deactivated.swap(true, Ordering::SeqCst) {
+            self.store
+                .execute("UPDATE embedding_model SET active = 0", vec![])
+                .await?;
+        }
         batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
     }
 }
@@ -1120,6 +1149,76 @@ async fn activation_during_inference_cannot_restore_stale_revision_vectors() {
     assert_eq!(
         ModelRegistry::active(&store).await.expect("active model"),
         Some(replacement)
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn deactivation_during_inference_defers_until_the_revision_is_reactivated() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "A temporary deactivation preserves its work.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    let embedding_worker = EmbeddingWorker::new(
+        DeactivatingProvider {
+            store: store.clone(),
+            deactivated: Arc::new(AtomicBool::new(false)),
+        },
+        model.clone(),
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 1,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 3,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "deactivation-race",
+    )
+    .expect("worker config");
+
+    let deferred = embedding_worker
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("deactivation defers the claim");
+    assert_eq!(
+        (deferred.claimed, deferred.completed, deferred.failed),
+        (1, 0, 0)
+    );
+    activate(&store, &model).await;
+    let completed = embedding_worker
+        .drain(&store, UnixSeconds::new(9))
+        .await
+        .expect("reactivated revision reclaims and completes work");
+    assert_eq!(
+        (completed.claimed, completed.completed, completed.failed),
+        (1, 1, 0)
+    );
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1 AND model_revision = 1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        1
     );
     fixture.shutdown().await;
 }

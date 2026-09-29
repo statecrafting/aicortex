@@ -608,12 +608,13 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         let active = ModelRegistry::active(store)
             .await
             .map_err(ProcessError::Infrastructure)?;
-        if active
-            .as_ref()
-            .is_none_or(|model| !same_model_revision(model, &self.model))
-        {
-            self.complete_empty(store, claim, now).await?;
-            return Ok(ProcessOutcome::Completed);
+        match active.as_ref() {
+            None => return Ok(ProcessOutcome::Deferred),
+            Some(model) if !same_model_revision(model, &self.model) => {
+                self.complete_empty(store, claim, now).await?;
+                return Ok(ProcessOutcome::Completed);
+            }
+            Some(_) => {}
         }
         Err(ProcessError::item(error, claim))
     }
