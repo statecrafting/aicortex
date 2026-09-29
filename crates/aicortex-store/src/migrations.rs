@@ -128,7 +128,7 @@ CREATE TABLE claim_source (
     PRIMARY KEY (scope_id, claim_id, source_memory_id)
 );";
 
-const EMBEDDING_TABLES: &str = "CREATE TABLE IF NOT EXISTS embedding_model (
+const EMBEDDING_TABLES: &str = "CREATE TABLE embedding_model (
     model_id TEXT NOT NULL,
     revision INTEGER PRIMARY KEY,
     dims INTEGER NOT NULL,
@@ -136,9 +136,9 @@ const EMBEDDING_TABLES: &str = "CREATE TABLE IF NOT EXISTS embedding_model (
     first_seen INTEGER NOT NULL,
     active INTEGER NOT NULL DEFAULT 0
 );
-CREATE UNIQUE INDEX IF NOT EXISTS embedding_model_one_active
+CREATE UNIQUE INDEX embedding_model_one_active
     ON embedding_model (active) WHERE active = 1;
-CREATE TABLE IF NOT EXISTS chunk (
+CREATE TABLE chunk (
     chunk_id TEXT NOT NULL UNIQUE,
     scope_id TEXT NOT NULL,
     memory_id TEXT NOT NULL,
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS chunk (
     PRIMARY KEY (scope_id, memory_id, model_revision, ordinal),
     FOREIGN KEY (model_revision) REFERENCES embedding_model (revision)
 );
-CREATE TABLE IF NOT EXISTS embedding (
+CREATE TABLE embedding (
     scope_id TEXT NOT NULL,
     memory_id TEXT NOT NULL,
     model_id TEXT NOT NULL,

@@ -187,9 +187,9 @@ pub const DERIVATIVES: &[Derivative] = &[
 /// Naming it anyway is the difference between a requirement deferred and a
 /// requirement forgotten. Spec 016 moves its entry into [`DERIVATIVES`] in the same change as the migration that
 /// creates the table, under an `extends` edge on this file, and the sweep
-/// itself needs no edit. Until then [`Eraser::also`] registers them against a
-/// table the caller has created, which is how this spec's own tests assert
-/// FR-003 over real chunk and embedding rows rather than over their absence.
+/// itself needs no edit. Until then [`Eraser::also`] registers the planned
+/// derivative against a table the caller has created so tests can exercise
+/// the future-table contract without weakening missing-table failures.
 pub const PLANNED: &[Derivative] = &[
     // Spec 016 section 2: the application-owned text index.
     Derivative::new("chunk_token", "memory_id", "scope_id"),

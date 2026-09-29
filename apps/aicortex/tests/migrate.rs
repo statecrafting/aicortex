@@ -39,10 +39,26 @@ use rahi_store::{Migration, Store};
 type Outcome = Result<(), String>;
 
 #[test]
-fn fr003_standalone_keeps_aicortex_migrations_in_the_app_set_only() {
+fn fr003_standalone_declares_the_exact_chassis_migration_sets() {
     assert_eq!(Aicortex::migrations(), aicortex_store::migrations());
     let sets = Aicortex::migration_sets();
-    assert_eq!(sets.len(), 2);
+    assert_eq!(
+        sets,
+        vec![rahi_store::coordination_set(), rahi_store::receipt_set()]
+    );
+    let app_coordination_sql: Vec<_> = Aicortex::migrations()
+        .iter()
+        .take(1)
+        .map(|migration| migration.sql.as_str())
+        .collect();
+    let named_coordination_sql: Vec<_> = sets
+        .iter()
+        .take(1)
+        .flat_map(|set| set.migrations.iter().take(1))
+        .map(|migration| migration.sql.as_str())
+        .collect();
+    assert_eq!(app_coordination_sql.len(), 1);
+    assert_eq!(app_coordination_sql, named_coordination_sql);
 }
 
 #[test]

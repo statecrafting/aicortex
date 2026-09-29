@@ -320,8 +320,9 @@ fn migration_has_exact_tables_and_follows_existing_versions() {
     assert_eq!(EMBEDDING_MIGRATION_VERSION, 9);
     assert_eq!(migration.version, 9);
     for table in ["embedding_model", "chunk", "embedding"] {
+        assert!(migration.sql.contains(&format!("CREATE TABLE {table}")));
         assert!(
-            migration
+            !migration
                 .sql
                 .contains(&format!("CREATE TABLE IF NOT EXISTS {table}"))
         );

@@ -139,7 +139,6 @@ pub trait EmbeddingProvider: Send + Sync {
 }
 
 /// Validate the common result invariants at the provider boundary.
-#[allow(clippy::float_arithmetic)]
 pub(crate) fn validate_batch(
     provider: &impl EmbeddingProvider,
     input_len: usize,
@@ -163,13 +162,13 @@ pub(crate) fn validate_batch(
             vector.dims()
         )));
     }
-    const NORM_TOLERANCE: f32 = 1.0e-3;
+    const MIN_NORMALIZED_NORM: f32 = 0.999;
+    const MAX_NORMALIZED_NORM: f32 = 1.001;
     for vector in vectors {
         let squared_norm = vector
             .values()
             .iter()
-            .map(|value| value * value)
-            .sum::<f32>();
+            .fold(0.0_f32, |sum, value| value.mul_add(*value, sum));
         if squared_norm == 0.0 {
             return Err(Error::Integrity(format!(
                 "provider {} returned a zero vector",
@@ -178,7 +177,7 @@ pub(crate) fn validate_batch(
         }
         if provider.normalized() {
             let norm = squared_norm.sqrt();
-            if (norm - 1.0).abs() > NORM_TOLERANCE {
+            if !(MIN_NORMALIZED_NORM..=MAX_NORMALIZED_NORM).contains(&norm) {
                 return Err(Error::Integrity(format!(
                     "provider {} declares normalized vectors but returned norm {norm}",
                     provider.id()
