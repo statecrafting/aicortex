@@ -477,18 +477,16 @@ pub fn stage_embedding(
             "embedding work requires an active model revision".to_owned(),
         ));
     }
-    txn.push(Statement::with_params(
-        "UPDATE embedding_model
-         SET model_id = CASE WHEN active = 1 AND model_id = ?2 THEN model_id ELSE NULL END
-         WHERE revision = ?1",
-        vec![
-            Value::Integer(i64::from(model.revision)),
-            Value::from(model.model_id.as_str()),
-        ],
-    ));
-    let key = embedding_work_key(scope_id, memory_id, model)?;
-    Work::stage_work(txn, &key, now);
-    Ok(())
+    stage_active_embedding(
+        txn,
+        scope_id,
+        memory_id,
+        &ActiveEmbedding {
+            model_id: model.model_id.as_str().to_owned(),
+            revision: model.revision,
+        },
+        now,
+    )
 }
 
 /// Stage one bounded, idempotent re-embedding pass for a target revision.

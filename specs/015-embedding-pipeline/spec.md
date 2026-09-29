@@ -176,10 +176,11 @@ configuration with a pinned digest rather than a spec-level commitment.
   system forgetting things it was told.
 - **D-3 (2026-09-26, implementation).** The durable-work statement carries the
   model identity selected through the leader, and an in-transaction guard
-  aborts staging if activation changes before commit. Capture does not call
-  this primitive until the application owns provider configuration, initial
-  activation, and the managed worker lifecycle. Existing capture therefore
-  remains available while the spec is in progress.
+  aborts staging if activation changes or the named revision is absent before
+  commit. Capture does not call this primitive until the application owns
+  provider configuration, initial activation, and the managed worker
+  lifecycle. Existing capture therefore remains available while the spec is
+  in progress.
 - **D-4 (2026-09-28, implementation).** Each model revision has its own Rahi
   processor identity. Activating a new revision therefore cannot make its
   worker claim old-revision work, and an old worker can drain its partition to
@@ -216,9 +217,11 @@ history, so an in-flight stale worker cannot recreate vectors after erasure.
 The spec is not complete. `aicortex serve` still lacks provider configuration,
 a concrete local inference engine, first-activation and model-change wiring,
 the managed background-worker lifecycle, and the re-embed and drop operator
-verbs (B-2, B-4, B-5, B-6, B-9). The application preflight reports the active
-revision, queue counts, and per-scope coverage even when another chassis check
-fails. Rahi 0.4.0 exposes queue counts globally but does not expose
+verbs (B-2, B-4, B-5, B-6, B-9). After the chassis preflight attempt releases
+its store, the application preflight reacquires the chassis cell gate before
+reporting the active revision, queue counts, and per-scope coverage. A held or
+refused gate reports embedding as skipped rather than opening the store around
+the chassis lock. Rahi 0.4.0 exposes queue counts globally but does not expose
 tenant-level queue counts or enqueue timestamps, so the report cannot yet provide a
 truthful per-scope oldest-pending age or register product collectors in the
 chassis `/metrics` registry (B-3). An inactive revision's queued work completes

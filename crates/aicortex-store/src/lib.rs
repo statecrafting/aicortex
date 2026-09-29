@@ -52,6 +52,12 @@
 //! depends on the gate: the admission boundary is a type, and a type has to
 //! be nameable at the seam it guards.
 //!
+//! A library host installs [`migration_set`] together with the Rahi
+//! coordination and receipt sets that it requires. Calling [`migrations`]
+//! directly is the standalone cell compatibility path; it is not the host
+//! composition contract. Erasure and embedding work use the required Rahi
+//! receipt tables in the same transaction as Aicortex state.
+//!
 //! # Reading
 //!
 //! Every read names its consistency and says why (B-5). Admission and

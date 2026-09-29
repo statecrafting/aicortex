@@ -20,8 +20,8 @@ impl ChunkConfig {
     ///
     /// # Errors
     ///
-    /// [`Error::Config`] when a bound is zero or overlap is not smaller than
-    /// the target.
+    /// [`Error::Config`] when a bound is zero or overlap exceeds half the
+    /// target.
     pub fn validate(self) -> Result<Self, Error> {
         if self.threshold_bytes == 0 || self.target_bytes == 0 || self.max_chunks_per_memory == 0 {
             return Err(Error::Config(

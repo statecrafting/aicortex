@@ -358,7 +358,7 @@ fn staging_requires_an_active_revision_and_capture_uses_registry_selection() {
     stage_active_embedding(&mut txn, "scope-a", id, &active, UnixSeconds::new(1))
         .expect("capture work statement");
     let statements = format!("{:?}", txn.statements());
-    assert!(statements.contains("UPDATE embedding_model"));
+    assert!(statements.contains("INSERT INTO embedding_model"));
     assert!(statements.contains("ON CONFLICT"));
 }
 
@@ -367,6 +367,30 @@ async fn active_model_selection_is_required_before_staging() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();
     assert!(aicortex_store::active_embedding(&store).await.is_err());
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM rahi_processing",
+            vec![],
+        )
+        .await,
+        0
+    );
+
+    let mut txn = TxnBuilder::new();
+    stage_embedding(
+        &mut txn,
+        "scope-a",
+        MemoryId::now_v7(),
+        &test_model(true),
+        UnixSeconds::new(1),
+    )
+    .expect("the caller's claimed-active model has a valid shape");
+    let error = store
+        .txn(txn.into_statements())
+        .await
+        .expect_err("an unregistered revision aborts staging");
+    assert!(error.message().contains("NOT NULL"));
     assert_eq!(
         count(
             &store,

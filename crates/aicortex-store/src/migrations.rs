@@ -477,6 +477,11 @@ pub fn embedding_migration() -> Migration {
 /// on a subsequent run. Individual migrations need not be independently
 /// idempotent; their additive declarations describe compatibility while
 /// crossing a version, not whether their SQL can execute twice.
+///
+/// This list retains the standalone cell's `app` history. Library hosts use
+/// [`crate::migration_set`], whose declared requirements make the Rahi
+/// coordination and receipt sets mandatory before any Aicortex migration is
+/// applied.
 #[must_use]
 pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()

@@ -117,6 +117,49 @@ fn spec015_preflight_reports_unmigrated_embedding_schema_without_querying_it() -
     Ok(())
 }
 
+#[test]
+fn spec015_preflight_does_not_reopen_a_store_when_the_chassis_gate_refuses() -> Outcome {
+    let data_dir = tempfile::tempdir().map_err(|error| error.to_string())?;
+    let ports = (free_port()?, free_port()?, free_port()?);
+    assert_eq!(
+        aicortex("first-boot", data_dir.path(), ports)?
+            .status
+            .code(),
+        Some(0)
+    );
+    assert_eq!(
+        aicortex("migrate", data_dir.path(), ports)?.status.code(),
+        Some(0)
+    );
+
+    let mut serving = Serving(
+        command("serve", data_dir.path(), ports)
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .spawn()
+            .map_err(|error| format!("serve did not start: {error}"))?,
+    );
+    let deadline = Instant::now() + Duration::from_secs(60);
+    while !healthy(ports.0) {
+        if let Some(status) = serving.0.try_wait().map_err(|error| error.to_string())? {
+            return Err(format!("serve exited before preflight: {status}"));
+        }
+        if Instant::now() > deadline {
+            return Err("serve never answered /healthz".to_owned());
+        }
+        std::thread::sleep(Duration::from_millis(200));
+    }
+
+    let output = aicortex("preflight", data_dir.path(), ports)?;
+    let stdout = String::from_utf8(output.stdout).map_err(|error| error.to_string())?;
+    assert_eq!(output.status.code(), Some(1));
+    assert!(
+        stdout.contains("embedding: skipped because the chassis cell gate refused"),
+        "embedding preflight did not honor the chassis gate:\n{stdout}"
+    );
+    serving.stop()
+}
+
 /// A port the OS is not using, released before the child takes it.
 fn free_port() -> Result<u16, String> {
     let listener = TcpListener::bind("127.0.0.1:0").map_err(|err| err.to_string())?;

@@ -108,10 +108,17 @@ pub fn stage_active_embedding(
         &model.model_id,
     )?;
     // Abort the whole capture if activation changed after the leader read.
+    // The SELECT emits no row when the identity is still active. Otherwise
+    // it attempts an impossible NULL model id, including when the revision
+    // row is absent, so SQLite rolls the complete transaction back.
     txn.push(Statement::with_params(
-        "UPDATE embedding_model
-         SET model_id = CASE WHEN active = 1 AND model_id = ?2 THEN model_id ELSE NULL END
-         WHERE revision = ?1",
+        "INSERT INTO embedding_model
+             (model_id, revision, dims, normalized, first_seen, active)
+         SELECT NULL, ?1, 0, 0, 0, 0
+         WHERE NOT EXISTS (
+             SELECT 1 FROM embedding_model
+             WHERE revision = ?1 AND model_id = ?2 AND active = 1
+         )",
         vec![
             Value::Integer(i64::from(model.revision)),
             Value::from(model.model_id.as_str()),
