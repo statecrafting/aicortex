@@ -13,10 +13,6 @@
         "source": "spec-edge"
       },
       {
-        "path": "apps/aicortex/manifest.toml",
-        "source": "spec-edge"
-      },
-      {
         "path": "apps/aicortex/src/cell.rs",
         "source": "spec-edge"
       },
@@ -130,6 +126,10 @@
       },
       {
         "path": "crates/aicortex-store/tests/repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/schema.rs",
         "source": "spec-edge"
       },
       {
@@ -318,19 +318,6 @@
         "unit": {
           "kind": "file",
           "path": "apps/aicortex/Cargo.toml"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "apps/aicortex/manifest.toml"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "apps/aicortex/manifest.toml"
         }
       },
       {
@@ -544,6 +531,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/tests/schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "Cargo.toml",
             "span": {
               "endLine": 109,
@@ -577,5 +577,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "5456207eb12bcb61ab4d32ebb83142b13135ddb403eb4ad6152c30f3c388b7fc"
+  "shardHash": "ac427ee5af066790bf54f84f1c4d115a0912f5bfec35bb2b975a84016f541e96"
 }

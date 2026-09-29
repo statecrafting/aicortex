@@ -51,11 +51,12 @@ use aicortex_types::{
 use rahi_ledger::{Decision, DecisionId, DecisionKind, Ledger, Outcome};
 #[cfg(test)]
 use rahi_store::ExecuteResult;
-use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
+use rahi_store::{EraseScope, ReceiptKey, Receipts, Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, Sub, UnixSeconds};
 use serde::Deserialize;
 
 use crate::decision_key::DecisionKeyRepo;
+use crate::memory_repo::EMBEDDING_NAMESPACE;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
 /// The decision kind one erased memory is appended under (B-7).
@@ -530,6 +531,7 @@ impl Eraser {
         }
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
+        stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
         let mark_at = txn.len();
         txn.push(Statement::with_params(
             MARK_DERIVED_SQL,
@@ -848,6 +850,7 @@ impl Eraser {
         DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
+        stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
         txn.push(Statement::with_params(
             ERASE_SCOPE_CLAIMS_SQL,
             vec![Value::from(&scope_id)],
@@ -1108,6 +1111,19 @@ impl Eraser {
             })
             .collect()
     }
+}
+
+fn stage_embedding_queue_erasure(
+    txn: &mut TxnBuilder,
+    scope_id: &ScopeId,
+    shells: &[Shell],
+    now: UnixSeconds,
+) -> Result<(), Error> {
+    for shell in shells {
+        let key = ReceiptKey::new(scope_id.as_str(), EMBEDDING_NAMESPACE, shell.id.to_string())?;
+        Receipts::stage_erasure(txn, &EraseScope::Identity(key), now);
+    }
+    Ok(())
 }
 
 /// Ranges refer to the original destructive transaction, before accounting

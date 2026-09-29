@@ -21,7 +21,9 @@
 
 use aicortex_gate::Admitted;
 use aicortex_types::{Memory, MemoryId, MemoryKind, Provenance, Scope, Status};
-use rahi_store::{Envelope, Outbox, ReceiptKey, Statement, StoreHandle, TxnBuilder, Value};
+use rahi_store::{
+    Envelope, Outbox, ProcessingKey, ReceiptKey, Statement, StoreHandle, TxnBuilder, Value, Work,
+};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
@@ -40,11 +42,52 @@ pub const EMBEDDING_NAMESPACE: &str = "aicortex.memory";
 /// Rahi processor name holding embedding jobs.
 pub const EMBEDDING_PROCESSOR: &str = "embed";
 
-/// Stage embedding work against whichever model revision is active at commit.
+/// The model identity needed to stage embedding work without depending on
+/// the embedding crate.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ActiveEmbedding {
+    /// Configured provider model identity.
+    pub model_id: String,
+    /// Monotonic model configuration revision.
+    pub revision: u32,
+}
+
+#[derive(Debug, Deserialize)]
+struct ActiveEmbeddingRow {
+    model_id: String,
+    revision: i64,
+}
+
+/// Rahi processor partition for one model revision.
+#[must_use]
+pub fn embedding_processor(revision: u32) -> String {
+    format!("{EMBEDDING_PROCESSOR}.r{revision}")
+}
+
+/// Read the active embedding model through the leader.
+pub async fn active_embedding(store: &StoreHandle) -> Result<ActiveEmbedding, Error> {
+    let rows: Vec<ActiveEmbeddingRow> = store
+        .query_consistent(
+            "SELECT model_id, revision FROM embedding_model WHERE active = 1",
+            vec![],
+        )
+        .await?;
+    let row = rows.into_iter().next().ok_or_else(|| {
+        Error::Config("no active embedding model; activate one before capture".to_owned())
+    })?;
+    Ok(ActiveEmbedding {
+        model_id: row.model_id,
+        revision: u32::try_from(row.revision)
+            .map_err(|_| Error::Integrity("active model revision is outside u32".to_owned()))?,
+    })
+}
+
+/// Stage embedding work for the model observed active by the caller.
 ///
 /// This primitive lives at the capture boundary so the lower storage crate
 /// never depends upward on an embedding worker. The non-null processing
-/// identity also makes a missing active model abort the complete capture.
+/// The guard statement makes an activation change before commit abort the
+/// complete capture instead of staging work under a stale model identity.
 ///
 /// # Errors
 ///
@@ -53,28 +96,27 @@ pub fn stage_active_embedding(
     txn: &mut TxnBuilder,
     scope_id: &str,
     memory_id: MemoryId,
+    model: &ActiveEmbedding,
     now: UnixSeconds,
 ) -> Result<(), Error> {
     let receipt = ReceiptKey::new(scope_id, EMBEDDING_NAMESPACE, memory_id.to_string())?;
+    let key = ProcessingKey::new(
+        receipt,
+        model.revision,
+        embedding_processor(model.revision),
+        &model.model_id,
+    )?;
+    // Abort the whole capture if activation changed after the leader read.
     txn.push(Statement::with_params(
-        "INSERT INTO rahi_processing
-         (key_digest, revision, processor, processor_revision, tenant, namespace, key,
-          state, attempt, created_at)
-         VALUES (?1,
-                 (SELECT revision FROM embedding_model WHERE active = 1),
-                 ?2,
-                 (SELECT model_id FROM embedding_model WHERE active = 1),
-                 ?3, ?4, ?5, 'pending', 0, ?6)
-         ON CONFLICT (key_digest, revision, processor, processor_revision) DO NOTHING",
+        "UPDATE embedding_model
+         SET model_id = CASE WHEN active = 1 AND model_id = ?2 THEN model_id ELSE NULL END
+         WHERE revision = ?1",
         vec![
-            Value::from(receipt.key_digest()),
-            Value::from(EMBEDDING_PROCESSOR),
-            Value::from(scope_id),
-            Value::from(EMBEDDING_NAMESPACE),
-            Value::from(memory_id.to_string()),
-            Value::Integer(seconds_to_sql(now)),
+            Value::Integer(i64::from(model.revision)),
+            Value::from(model.model_id.as_str()),
         ],
     ));
+    Work::stage_work(txn, &key, now);
     Ok(())
 }
 
@@ -345,7 +387,6 @@ impl MemoryRepo {
         ));
         ProvenanceRepo::stage(txn, &scope_id, memory.id, provenance)?;
         Counters::increment(txn, &scope_id, memory.kind, &memory.status);
-        stage_active_embedding(txn, scope_id.as_str(), memory.id, memory.updated)?;
         Outbox::stage(txn, work);
         Ok(())
     }

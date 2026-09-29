@@ -106,18 +106,36 @@ async fn read_embedding_preflight(env: &dyn EnvReader) -> Result<(), Error> {
 
 async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error> {
     let handle = store.handle();
-    let scopes: Vec<ScopeRow> = handle
-        .query("SELECT scope_id FROM scope ORDER BY scope_id", vec![])
-        .await?;
-    if scopes.is_empty() {
+    const PAGE: i64 = 100;
+    let mut after = String::new();
+    let mut reported = false;
+    loop {
+        let scopes: Vec<ScopeRow> = handle
+            .query(
+                "SELECT scope_id FROM scope WHERE scope_id > ?1 ORDER BY scope_id LIMIT ?2",
+                vec![after.clone().into(), PAGE.into()],
+            )
+            .await?;
+        if scopes.is_empty() {
+            break;
+        }
+        for scope in &scopes {
+            let report =
+                aicortex_embed::EmbeddingPreflight::read(&handle, &scope.scope_id, now).await?;
+            println!("embedding: scope={} {report}", scope.scope_id);
+            reported = true;
+        }
+        after = scopes
+            .last()
+            .map(|scope| scope.scope_id.clone())
+            .unwrap_or(after);
+        if scopes.len() < usize::try_from(PAGE).unwrap_or(usize::MAX) {
+            break;
+        }
+    }
+    if !reported {
         let report = aicortex_embed::EmbeddingPreflight::read(&handle, "", now).await?;
         println!("embedding: scope=none {report}");
-        return Ok(());
-    }
-    for scope in scopes {
-        let report =
-            aicortex_embed::EmbeddingPreflight::read(&handle, &scope.scope_id, now).await?;
-        println!("embedding: scope={} {report}", scope.scope_id);
     }
     Ok(())
 }

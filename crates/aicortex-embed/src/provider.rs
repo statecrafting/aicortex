@@ -139,6 +139,7 @@ pub trait EmbeddingProvider: Send + Sync {
 }
 
 /// Validate the common result invariants at the provider boundary.
+#[allow(clippy::float_arithmetic)]
 pub(crate) fn validate_batch(
     provider: &impl EmbeddingProvider,
     input_len: usize,
@@ -162,5 +163,68 @@ pub(crate) fn validate_batch(
             vector.dims()
         )));
     }
+    const NORM_TOLERANCE: f32 = 1.0e-3;
+    for vector in vectors {
+        let squared_norm = vector
+            .values()
+            .iter()
+            .map(|value| value * value)
+            .sum::<f32>();
+        if squared_norm == 0.0 {
+            return Err(Error::Integrity(format!(
+                "provider {} returned a zero vector",
+                provider.id()
+            )));
+        }
+        if provider.normalized() {
+            let norm = squared_norm.sqrt();
+            if (norm - 1.0).abs() > NORM_TOLERANCE {
+                return Err(Error::Integrity(format!(
+                    "provider {} declares normalized vectors but returned norm {norm}",
+                    provider.id()
+                )));
+            }
+        }
+    }
     Ok(())
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    struct DeclaredNormalized;
+
+    impl EmbeddingProvider for DeclaredNormalized {
+        fn id(&self) -> ModelId {
+            ModelId::new("normalized-test").expect("model id")
+        }
+
+        fn dims(&self) -> u16 {
+            2
+        }
+
+        fn normalized(&self) -> bool {
+            true
+        }
+
+        async fn embed(&self, _batch: &[&str]) -> Result<Vec<Vector>, Error> {
+            unreachable!()
+        }
+    }
+
+    #[test]
+    fn declared_normalized_vectors_are_verified() {
+        let provider = DeclaredNormalized;
+        let vector = Vector::new(vec![3.0, 4.0]).expect("finite vector");
+        assert!(validate_batch(&provider, 1, &[vector]).is_err());
+    }
+
+    #[test]
+    fn zero_vectors_are_rejected() {
+        let provider = DeclaredNormalized;
+        let vector = Vector::new(vec![0.0, 0.0]).expect("finite vector");
+        assert!(validate_batch(&provider, 1, &[vector]).is_err());
+    }
 }

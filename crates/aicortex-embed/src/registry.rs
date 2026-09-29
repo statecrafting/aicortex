@@ -1,6 +1,6 @@
 //! The model revision registry and coverage report.
 
-use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
+use rahi_store::{Statement, StoreHandle, TxnBuilder, Value, Work};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
@@ -90,8 +90,11 @@ impl ModelRegistry {
     /// and first-seen instant. A mismatch provokes a constraint failure
     /// instead of silently reinterpreting stored vectors.
     pub fn activate(txn: &mut TxnBuilder, model: &ModelRevision) {
-        txn.push(Statement::new(
-            "UPDATE embedding_model SET active = 0 WHERE active = 1",
+        txn.push(Statement::with_params(
+            "UPDATE embedding_model
+             SET active = CASE WHEN revision <= ?1 THEN 0 ELSE NULL END
+             WHERE active = 1",
+            vec![Value::Integer(i64::from(model.revision))],
         ));
         txn.push(Statement::with_params(
             "INSERT INTO embedding_model
@@ -153,22 +156,80 @@ impl ModelRegistry {
         rows.into_iter().map(coverage_from_row).collect()
     }
 
-    /// Stage removal of one inactive revision after the operator has checked
-    /// coverage and selected it explicitly.
-    pub fn drop_revision(txn: &mut TxnBuilder, scope_id: &str, revision: u32) {
+    /// Remove one inactive revision only after active coverage is complete
+    /// and its queue partition has drained.
+    pub async fn drop_revision(
+        store: &StoreHandle,
+        scope_id: &str,
+        revision: u32,
+    ) -> Result<(), Error> {
+        let active = Self::active(store)
+            .await?
+            .ok_or_else(|| Error::Config("no active embedding model".to_owned()))?;
+        if active.revision == revision {
+            return Err(Error::Conflict(format!(
+                "cannot drop active embedding revision {revision}"
+            )));
+        }
+        let coverage = Self::coverage(store, scope_id).await?;
+        let active_coverage = coverage
+            .iter()
+            .find(|item| item.revision == active.revision)
+            .ok_or_else(|| Error::Integrity("active revision has no coverage row".to_owned()))?;
+        if active_coverage.embedded != active_coverage.total {
+            return Err(Error::Conflict(format!(
+                "active revision {} covers {}/{} live memories",
+                active.revision, active_coverage.embedded, active_coverage.total
+            )));
+        }
+        let processor = crate::worker::embedding_processor(revision);
+        if Work::counts(store).await?.iter().any(|count| {
+            count.processor == processor
+                && count
+                    .pending
+                    .saturating_add(count.claimed)
+                    .saturating_add(count.failed)
+                    .saturating_add(count.dead)
+                    > 0
+        }) {
+            return Err(Error::Conflict(format!(
+                "embedding revision {revision} still has queued work"
+            )));
+        }
+        let mut txn = TxnBuilder::new();
         for sql in [
             "DELETE FROM embedding WHERE scope_id = ?1 AND model_revision = ?2
              AND EXISTS (SELECT 1 FROM embedding_model
-                         WHERE revision = ?2 AND active = 0)",
+                         WHERE revision = ?2 AND active = 0)
+             AND NOT EXISTS (
+               SELECT 1 FROM memory m
+               WHERE m.scope_id = ?1 AND m.status <> 'erased'
+                 AND NOT EXISTS (
+                   SELECT 1 FROM embedding e
+                   WHERE e.scope_id = ?1 AND e.memory_id = m.id
+                     AND e.model_revision = (SELECT revision FROM embedding_model WHERE active = 1)
+                 )
+             )",
             "DELETE FROM chunk WHERE scope_id = ?1 AND model_revision = ?2
              AND EXISTS (SELECT 1 FROM embedding_model
-                         WHERE revision = ?2 AND active = 0)",
+                         WHERE revision = ?2 AND active = 0)
+             AND NOT EXISTS (
+               SELECT 1 FROM memory m
+               WHERE m.scope_id = ?1 AND m.status <> 'erased'
+                 AND NOT EXISTS (
+                   SELECT 1 FROM embedding e
+                   WHERE e.scope_id = ?1 AND e.memory_id = m.id
+                     AND e.model_revision = (SELECT revision FROM embedding_model WHERE active = 1)
+                 )
+             )",
         ] {
             txn.push(Statement::with_params(
                 sql,
                 vec![Value::from(scope_id), Value::Integer(i64::from(revision))],
             ));
         }
+        store.txn(txn.into_statements()).await?;
+        Ok(())
     }
 }
 

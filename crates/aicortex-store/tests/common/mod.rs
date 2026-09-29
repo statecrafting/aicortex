@@ -117,9 +117,21 @@ async fn activate_test_model(store: &rahi_store::StoreHandle) {
 /// Open a single-voter node on free ports.
 pub async fn open() -> Fixture {
     let dir = tempfile::tempdir().expect("a temporary directory");
-    let cfg = config(&dir.path().join("hiqlite"));
-    let store = Store::open(&cfg).await.expect("a single-voter node opens");
-    Fixture { store, dir }
+    let data_dir = dir.path().join("hiqlite");
+    let mut last = None;
+    for _ in 0..5 {
+        match Store::open(&config(&data_dir)).await {
+            Ok(store) => return Fixture { store, dir },
+            Err(error) if error.message().contains("Address already in use") => {
+                last = Some(error);
+            }
+            Err(error) => panic!("a single-voter node opens: {error}"),
+        }
+    }
+    panic!(
+        "a single-voter node opens after bounded port retries: {}",
+        last.expect("a port collision was recorded")
+    )
 }
 
 fn free_addr() -> SocketAddr {

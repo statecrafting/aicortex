@@ -11,6 +11,8 @@ pub struct ChunkConfig {
     pub target_bytes: usize,
     /// Minimum byte overlap requested between adjacent chunks.
     pub overlap_bytes: usize,
+    /// Hard ceiling on chunks emitted for one memory.
+    pub max_chunks_per_memory: usize,
 }
 
 impl ChunkConfig {
@@ -21,14 +23,14 @@ impl ChunkConfig {
     /// [`Error::Config`] when a bound is zero or overlap is not smaller than
     /// the target.
     pub fn validate(self) -> Result<Self, Error> {
-        if self.threshold_bytes == 0 || self.target_bytes == 0 {
+        if self.threshold_bytes == 0 || self.target_bytes == 0 || self.max_chunks_per_memory == 0 {
             return Err(Error::Config(
-                "chunk threshold and target must be non-zero".to_owned(),
+                "chunk threshold, target, and chunk ceiling must be non-zero".to_owned(),
             ));
         }
-        if self.overlap_bytes >= self.target_bytes {
+        if self.overlap_bytes > self.target_bytes / 2 {
             return Err(Error::Config(format!(
-                "chunk overlap {} must be smaller than target {}",
+                "chunk overlap {} must not exceed half the target {}",
                 self.overlap_bytes, self.target_bytes
             )));
         }
@@ -71,13 +73,12 @@ impl Chunker {
     ///
     /// Sentence boundaries are preferred. A sentence longer than the target
     /// is split at the nearest UTF-8 boundary so progress stays bounded.
-    #[must_use]
-    pub fn split(&self, body: &str) -> Vec<Chunk> {
+    pub fn split(&self, body: &str) -> Result<Vec<Chunk>, Error> {
         if body.is_empty() {
-            return Vec::new();
+            return Ok(Vec::new());
         }
         if body.len() <= self.config.threshold_bytes {
-            return vec![chunk(body, 0, 0, body.len())];
+            return Ok(vec![chunk(body, 0, 0, body.len())]);
         }
 
         let boundaries = sentence_boundaries(body);
@@ -92,6 +93,9 @@ impl Chunker {
                 .copied()
                 .rfind(|boundary| *boundary > start && *boundary <= target)
                 .unwrap_or_else(|| utf8_floor(body, target));
+            if end < body.len() && end.saturating_sub(start) <= self.config.overlap_bytes {
+                end = utf8_floor(body, target);
+            }
             if end <= start {
                 end = body[start..]
                     .char_indices()
@@ -100,6 +104,12 @@ impl Chunker {
             }
             let ordinal = u32::try_from(chunks.len()).unwrap_or(u32::MAX);
             chunks.push(chunk(body, ordinal, start, end));
+            if chunks.len() > self.config.max_chunks_per_memory {
+                return Err(Error::Validation(format!(
+                    "memory requires more than {} chunks",
+                    self.config.max_chunks_per_memory
+                )));
+            }
             if end == body.len() {
                 break;
             }
@@ -110,9 +120,16 @@ impl Chunker {
                 .copied()
                 .rfind(|boundary| *boundary > start && *boundary <= desired);
             let next = sentence_start.unwrap_or_else(|| utf8_floor(body, desired));
-            start = if next > start { next } else { end };
+            if next > start {
+                start = next;
+            } else {
+                start = body[start..]
+                    .char_indices()
+                    .nth(1)
+                    .map_or(end, |(offset, _)| start.saturating_add(offset));
+            }
         }
-        chunks
+        Ok(chunks)
     }
 }
 

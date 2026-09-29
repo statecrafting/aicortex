@@ -32,17 +32,17 @@ extends:
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/lifecycle.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/mod.rs", nature: additive }
-  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/host_library.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/schema.rs", nature: additive }
+  - { spec: "053-host-library-mode", unit: "crates/aicortex-store/tests/host_library.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/repo.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/erasure.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/common/mod.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/Cargo.toml", nature: additive }
-  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/manifest.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/main.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
-  - { spec: "046-rahi-0-2-0-adoption", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
   - { spec: "053-host-library-mode", unit: { kind: crate, id: "aicortex-external-host-fixture" }, nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
 constrains:
@@ -180,20 +180,55 @@ configuration with a pinned digest rather than a spec-level commitment.
   registry row into its non-null processing identity. An absent active model
   therefore aborts the complete capture, including a merge, instead of leaving
   a memory without durable embedding work.
+- **D-4 (2026-09-28, implementation).** Each model revision has its own Rahi
+  processor identity. Activating a new revision therefore cannot make its
+  worker claim old-revision work, and an old worker can drain its partition to
+  a terminal no-op without dead-lettering memories after a model switch.
+- **D-5 (2026-09-28, implementation).** Re-embedding leases serialize normal
+  scheduler passes, while the durable processing identity supplies correctness
+  if an expired holder overlaps its successor. Rahi 0.4.0 does not expose a
+  fenced transaction that accepts the scheduler's insert statements, so both
+  holders may attempt the same staging operation and the unique processing key
+  reduces it to one durable job.
+- **D-6 (2026-09-28, implementation).** Chunk boundary preference recognizes
+  ASCII sentence terminators and newlines. UTF-8 byte ranges remain exact and
+  all scripts are covered without splitting a code point, while language-aware
+  segmentation and its CJK corpus remain owned by spec 040.
+- **D-7 (2026-09-28, implementation).** Model revisions increase
+  monotonically. A rollback is a new revision with the former artifact rather
+  than reactivating an older number, which preserves the meaning of durable
+  work and stored-vector identities.
+- **D-8 (2026-09-28, implementation).** Migration 9 remains byte-for-byte
+  immutable. The chunk identifier, model foreign key, and vector-length
+  constraints land in non-additive migration 10, which rebuilds the two
+  derivative tables and preserves any version 9 rows during upgrade.
 
-## Status (2026-09-26, in progress: chassis lifecycle hooks required)
+## Status (2026-09-28, in progress: runtime and chassis hooks required)
 
-The provider, chunking, registry, durable queue worker, capture integration,
-re-embedding scheduler, erasure integration, and preflight report are
-implemented and locally verified. Completion is blocked on a released Rahi
-chassis capability for two runtime integrations that Rahi 0.4.0 does not
-expose: a managed cell background-task lifecycle for the single worker per
-node (B-2), and product collector registration in the chassis `/metrics`
-registry for dead-letter count and oldest pending age (B-3). `Cell` currently
-exposes routes and migrations only, while `AppState` does not expose the
-chassis metrics registry. The library capability is therefore implemented but
-not activated by `aicortex serve`; B-2 and B-3 remain unsatisfied until that
-upstream release is available and pinned.
+The provider contracts, bounded chunking, monotonic model registry,
+revision-partitioned durable worker, capture and erasure integration,
+re-embedding scheduler, artifact verification, governed remote boundary, and
+preflight report are implemented and locally verified. The erasure transaction
+also removes pending, claimed, failed, and dead embedding work plus its attempt
+history, so an in-flight stale worker cannot recreate vectors after erasure.
+
+The spec is not complete. `aicortex serve` still lacks provider configuration,
+a concrete local inference engine, first-activation and model-change wiring,
+the managed background-worker lifecycle, and the re-embed and drop operator
+verbs (B-2, B-4, B-5, B-6, B-9). The application preflight reports the active
+revision, queue counts, and per-scope coverage only after the chassis preflight
+succeeds. Rahi 0.4.0 exposes queue counts globally but does not expose
+tenant-level counts or enqueue timestamps, so the report cannot yet provide a
+truthful per-scope oldest-pending age or register product collectors in the
+chassis `/metrics` registry (B-3). Dropping a revision refuses while its queue
+partition is non-empty because this chassis version has no public cancellation
+API.
+
+FR-001, FR-002, FR-003, and FR-007 have direct tests. FR-004, FR-005, and
+FR-006 remain open: there is no booted local-provider socket probe, denied-host
+application preflight fixture, or query predicate until the runtime wiring and
+spec 016 recall implementation exist. These are recorded as open requirements,
+not inferred from lower-level unit tests.
 
 ## Verification
 

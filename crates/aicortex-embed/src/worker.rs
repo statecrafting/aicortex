@@ -1,6 +1,6 @@
 //! Durable embedding work over Rahi's fenced processing queue.
 
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use aicortex_types::{Memory, MemoryId, Status};
 use rahi_store::{
@@ -10,7 +10,10 @@ use rahi_store::{
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
-pub use aicortex_store::{EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, stage_active_embedding};
+pub use aicortex_store::{
+    ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, embedding_processor,
+    stage_active_embedding,
+};
 
 use crate::chunk::Chunker;
 use crate::provider::{EmbeddingProvider, validate_batch};
@@ -75,12 +78,12 @@ pub struct QueueHealth {
     pub oldest_pending_age_seconds: Option<u64>,
 }
 
-/// Scope-specific embedding state used by preflight and operator metrics.
+/// Embedding state used by preflight and operator metrics.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct EmbeddingPreflight {
     /// Revision serving queries now, if one has been activated.
     pub active: Option<ModelRevision>,
-    /// Durable work state for this scope.
+    /// Durable work state across every embedding revision and scope.
     pub queue: QueueHealth,
     /// Live-memory coverage for each known revision in this scope.
     pub coverage: Vec<Coverage>,
@@ -162,18 +165,12 @@ pub struct EmbeddingWorker<P> {
     chunker: Chunker,
     config: WorkerConfig,
     holder: String,
+    processor: String,
 }
 
 #[derive(Debug, Deserialize)]
 struct MemoryRow {
     record: String,
-}
-
-#[derive(Debug, Deserialize)]
-struct HealthRow {
-    pending: i64,
-    dead: i64,
-    oldest_created: Option<i64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -210,12 +207,14 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 "embedding provider does not match the active model revision".to_owned(),
             ));
         }
+        let processor = embedding_processor(model.revision);
         Ok(Self {
             provider,
             model,
             chunker,
             config,
             holder,
+            processor,
         })
     }
 
@@ -236,22 +235,36 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         let claims = Work::next(
             store,
             EMBEDDING_NAMESPACE,
-            EMBEDDING_PROCESSOR,
+            &self.processor,
             &self.holder,
             self.config.hold_for,
             now,
             self.config.batch_size,
         )
         .await?;
+        let started = Instant::now();
         let mut report = WorkerReport {
             claimed: u64::try_from(claims.len()).unwrap_or(u64::MAX),
             ..WorkerReport::default()
         };
         for claim in claims {
-            match self.process(store, &claim, now).await {
+            let item_now = elapsed_now(now, started);
+            let claim = match Work::renew(store, &claim, self.config.hold_for, item_now).await {
+                Ok(claim) => claim,
+                Err(Error::Conflict(_)) => continue,
+                Err(error) => return Err(error),
+            };
+            match self.process(store, &claim, now, started).await {
                 Ok(()) => report.completed = report.completed.saturating_add(1),
                 Err(error) => {
-                    self.record_failure(store, &claim, &error, now).await?;
+                    match self
+                        .record_failure(store, &claim, &error, elapsed_now(now, started))
+                        .await
+                    {
+                        Ok(()) => {}
+                        Err(Error::Conflict(_)) => continue,
+                        Err(error) => return Err(error),
+                    }
                     if claim.attempt >= self.config.retry.max_attempts {
                         report.dead = report.dead.saturating_add(1);
                     } else {
@@ -267,8 +280,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         &self,
         store: &StoreHandle,
         claim: &Claim,
-        now: UnixSeconds,
+        origin: UnixSeconds,
+        started: Instant,
     ) -> Result<(), Error> {
+        let now = elapsed_now(origin, started);
         if claim.key.revision != self.model.revision
             || claim.key.processor_revision != self.model.model_id.as_str()
         {
@@ -280,6 +295,12 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 self.model.revision
             )));
         }
+        if ModelRegistry::active(store)
+            .await?
+            .is_none_or(|active| active.revision != self.model.revision)
+        {
+            return self.complete_empty(store, claim, now).await;
+        }
         let rows: Vec<MemoryRow> = store
             .query_consistent(
                 "SELECT record FROM memory WHERE scope_id = ?1 AND id = ?2",
@@ -289,12 +310,9 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 ],
             )
             .await?;
-        let row = rows.into_iter().next().ok_or_else(|| {
-            Error::NotFound(format!(
-                "embedding work names missing memory {}",
-                claim.key.receipt.key
-            ))
-        })?;
+        let Some(row) = rows.into_iter().next() else {
+            return self.complete_empty(store, claim, now).await;
+        };
         let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
             Error::Integrity(format!(
                 "memory {} cannot be decoded for embedding: {error}",
@@ -302,12 +320,9 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             ))
         })?;
         if memory.status == Status::Erased {
-            return Err(Error::Conflict(format!(
-                "memory {} was erased before embedding",
-                memory.id
-            )));
+            return self.complete_empty(store, claim, now).await;
         }
-        let chunks = self.chunker.split(&memory.body.text);
+        let chunks = self.chunker.split(&memory.body.text)?;
         if chunks.is_empty() {
             return Err(Error::Validation(format!(
                 "memory {} has no text to embed",
@@ -320,6 +335,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .collect::<Vec<_>>();
         let vectors = self.provider.embed(&text).await?;
         validate_batch(&self.provider, chunks.len(), &vectors)?;
+        let now = elapsed_now(origin, started);
+        let claim = Work::renew(store, claim, self.config.hold_for, now).await?;
 
         let mut txn = TxnBuilder::new();
         txn.push(Statement::with_params(
@@ -343,8 +360,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         for (chunk, vector) in chunks.iter().zip(vectors.iter()) {
             txn.push(Statement::with_params(
                 "INSERT INTO chunk
-                 (scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                 (chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
+                 SELECT ?7, ?1, ?2, ?3, ?4, ?5, ?6
+                 WHERE EXISTS (SELECT 1 FROM memory
+                               WHERE scope_id = ?1 AND id = ?2 AND status <> 'erased')",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(memory.id.to_string()),
@@ -352,13 +371,21 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     Value::Integer(i64::from(chunk.ordinal)),
                     Value::Integer(usize_to_sql(chunk.byte_start)?),
                     Value::Integer(usize_to_sql(chunk.byte_end)?),
+                    Value::from(chunk_id(
+                        claim.key.receipt.tenant.as_str(),
+                        memory.id,
+                        self.model.revision,
+                        chunk.ordinal,
+                    )),
                 ],
             ));
             txn.push(Statement::with_params(
                 "INSERT INTO embedding
                  (scope_id, memory_id, model_id, model_revision, chunk_ordinal, dims,
                   normalized, vector, updated)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+                 SELECT ?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9
+                 WHERE EXISTS (SELECT 1 FROM memory
+                               WHERE scope_id = ?1 AND id = ?2 AND status <> 'erased')",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(memory.id.to_string()),
@@ -372,6 +399,18 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 ],
             ));
         }
+        Work::complete(&mut txn, &claim, now);
+        store.txn(txn.into_statements()).await?;
+        Ok(())
+    }
+
+    async fn complete_empty(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        now: UnixSeconds,
+    ) -> Result<(), Error> {
+        let mut txn = TxnBuilder::new();
         Work::complete(&mut txn, claim, now);
         store.txn(txn.into_statements()).await?;
         Ok(())
@@ -390,7 +429,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             claim,
             &FailureDetail {
                 class: error_class(error).to_owned(),
-                detail: Some(truncate(error.message(), 2048)),
+                detail: None,
             },
             &self.config.retry,
             now,
@@ -413,7 +452,7 @@ pub fn embedding_work_key(
     ProcessingKey::new(
         ReceiptKey::new(scope_id, EMBEDDING_NAMESPACE, memory_id.to_string())?,
         model.revision,
-        EMBEDDING_PROCESSOR,
+        embedding_processor(model.revision),
         model.model_id.as_str(),
     )
 }
@@ -438,6 +477,15 @@ pub fn stage_embedding(
             "embedding work requires an active model revision".to_owned(),
         ));
     }
+    txn.push(Statement::with_params(
+        "UPDATE embedding_model
+         SET model_id = CASE WHEN active = 1 AND model_id = ?2 THEN model_id ELSE NULL END
+         WHERE revision = ?1",
+        vec![
+            Value::Integer(i64::from(model.revision)),
+            Value::from(model.model_id.as_str()),
+        ],
+    ));
     let key = embedding_work_key(scope_id, memory_id, model)?;
     Work::stage_work(txn, &key, now);
     Ok(())
@@ -479,9 +527,22 @@ pub async fn stage_reembedding_batch(
     }
     let lease_key = format!("aicortex.embed.reembed/{scope_id}/{}", model.revision);
     let lease = store.lease(&lease_key).await?;
+    let result = reembed_under_lease(store, scope_id, model, cursor, limit, now).await;
+    lease.release().await;
+    result
+}
+
+async fn reembed_under_lease(
+    store: &StoreHandle,
+    scope_id: &str,
+    model: &ModelRevision,
+    cursor: Option<MemoryId>,
+    limit: u32,
+    now: UnixSeconds,
+) -> Result<ReembeddingBatch, Error> {
     let after = cursor.map_or_else(String::new, |id| id.to_string());
     let fetch = i64::from(limit).saturating_add(1);
-    let rows: Result<Vec<MemoryIdRow>, Error> = store
+    let rows: Vec<MemoryIdRow> = store
         .query_consistent(
             "SELECT memory.id AS id FROM memory
              WHERE memory.scope_id = ?1 AND memory.status <> 'erased'
@@ -500,83 +561,63 @@ pub async fn stage_reembedding_batch(
                 Value::Integer(fetch),
             ],
         )
-        .await;
-    let result = match rows {
-        Ok(rows) => {
-            let more = rows.len() > usize::try_from(limit).unwrap_or(usize::MAX);
-            let mut txn = TxnBuilder::new();
-            let mut last = None;
-            let mut staged = 0_u32;
-            let take = usize::try_from(limit).unwrap_or(usize::MAX);
-            for row in rows.into_iter().take(take) {
-                let memory_id = row.id.parse::<MemoryId>().map_err(|error| {
-                    Error::Integrity(format!("stored memory id is invalid: {error}"))
-                })?;
-                stage_embedding(&mut txn, scope_id, memory_id, model, now)?;
-                last = Some(memory_id);
-                staged = staged.saturating_add(1);
-            }
-            if !txn.is_empty() {
-                store.txn(txn.into_statements()).await?;
-            }
-            Ok(ReembeddingBatch {
-                staged,
-                cursor: last.or(cursor),
-                more,
-            })
-        }
-        Err(error) => Err(error),
-    };
-    lease.release().await;
-    result
+        .await?;
+    let more = rows.len() > usize::try_from(limit).unwrap_or(usize::MAX);
+    let mut txn = TxnBuilder::new();
+    let mut last = None;
+    let mut staged = 0_u32;
+    let take = usize::try_from(limit).unwrap_or(usize::MAX);
+    for row in rows.into_iter().take(take) {
+        let memory_id = row
+            .id
+            .parse::<MemoryId>()
+            .map_err(|error| Error::Integrity(format!("stored memory id is invalid: {error}")))?;
+        stage_embedding(&mut txn, scope_id, memory_id, model, now)?;
+        last = Some(memory_id);
+        staged = staged.saturating_add(1);
+    }
+    if !txn.is_empty() {
+        store.txn(txn.into_statements()).await?;
+    }
+    Ok(ReembeddingBatch {
+        staged,
+        cursor: last.or(cursor),
+        more,
+    })
 }
 
-/// Read the queue values required by preflight and metrics.
+/// Read the global queue values required by preflight and metrics.
+///
+/// Rahi 0.4 exposes processor-level counts but not tenant-level counts or
+/// enqueue timestamps. The scope and clock remain in this API so callers do
+/// not need another compatibility break when the chassis adds those reads.
 ///
 /// # Errors
 ///
 /// Store errors or negative/corrupt aggregate values.
 pub async fn queue_health(
     store: &StoreHandle,
-    scope_id: &str,
-    now: UnixSeconds,
+    _scope_id: &str,
+    _now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {
-    let rows: Vec<HealthRow> = store
-        .query(
-            "SELECT
-               COALESCE(SUM(CASE WHEN state IN ('pending', 'claimed', 'failed')
-                            THEN 1 ELSE 0 END), 0) AS pending,
-               COALESCE(SUM(CASE WHEN state = 'dead' THEN 1 ELSE 0 END), 0) AS dead,
-               MIN(CASE WHEN state IN ('pending', 'claimed', 'failed') THEN created_at END)
-                   AS oldest_created
-             FROM rahi_processing
-             WHERE tenant = ?1 AND namespace = ?2 AND processor = ?3",
-            vec![
-                Value::from(scope_id),
-                Value::from(EMBEDDING_NAMESPACE),
-                Value::from(EMBEDDING_PROCESSOR),
-            ],
-        )
-        .await?;
-    let row = rows.into_iter().next().unwrap_or(HealthRow {
-        pending: 0,
-        dead: 0,
-        oldest_created: None,
-    });
-    let oldest = row
-        .oldest_created
-        .map(|value| {
-            u64::try_from(value)
-                .map(|created| now.get().saturating_sub(created))
-                .map_err(|_| Error::Integrity("oldest embedding work time is negative".to_owned()))
-        })
-        .transpose()?;
+    let counts = Work::counts(store).await?;
+    let mut pending = 0_u64;
+    let mut dead = 0_u64;
+    for count in counts.iter().filter(|count| {
+        count
+            .processor
+            .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
+    }) {
+        pending = pending
+            .saturating_add(count.pending)
+            .saturating_add(count.claimed)
+            .saturating_add(count.failed);
+        dead = dead.saturating_add(count.dead);
+    }
     Ok(QueueHealth {
-        pending: u64::try_from(row.pending)
-            .map_err(|_| Error::Integrity("pending embedding count is negative".to_owned()))?,
-        dead: u64::try_from(row.dead)
-            .map_err(|_| Error::Integrity("dead embedding count is negative".to_owned()))?,
-        oldest_pending_age_seconds: oldest,
+        pending,
+        dead,
+        oldest_pending_age_seconds: None,
     })
 }
 
@@ -584,15 +625,18 @@ fn error_class(error: &Error) -> &'static str {
     error.kind()
 }
 
-fn truncate(text: &str, limit: usize) -> String {
-    if text.len() <= limit {
-        return text.to_owned();
-    }
-    let mut end = limit;
-    while end > 0 && !text.is_char_boundary(end) {
-        end = end.saturating_sub(1);
-    }
-    text.get(..end).unwrap_or_default().to_owned()
+fn elapsed_now(origin: UnixSeconds, started: Instant) -> UnixSeconds {
+    UnixSeconds::new(origin.get().saturating_add(started.elapsed().as_secs()))
+}
+
+fn chunk_id(scope_id: &str, memory_id: MemoryId, revision: u32, ordinal: u32) -> String {
+    use ring::digest::{SHA256, digest};
+    let identity = format!("{scope_id}\u{1f}{memory_id}\u{1f}{revision}\u{1f}{ordinal}");
+    digest(&SHA256, identity.as_bytes())
+        .as_ref()
+        .iter()
+        .map(|byte| format!("{byte:02x}"))
+        .collect()
 }
 
 fn usize_to_sql(value: usize) -> Result<i64, Error> {

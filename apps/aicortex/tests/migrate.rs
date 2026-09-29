@@ -86,9 +86,21 @@ fn spec015_ac2_preflight_reports_embedding_state() -> Outcome {
 
     let output = aicortex("preflight", data_dir.path(), ports)?;
     let stdout = String::from_utf8(output.stdout).map_err(|error| error.to_string())?;
-    assert!(stdout.contains("embedding: scope=none active=test-local@1"));
-    assert!(stdout.contains("pending=0 dead=0"));
-    assert!(stdout.contains("coverage=[1:0/0]"));
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    if output.status.success() {
+        assert!(
+            stdout.contains("embedding: scope=none active=test-local@1"),
+            "stdout: {stdout}\nstderr: {stderr}"
+        );
+        assert!(stdout.contains("pending=0 dead=0"));
+        assert!(stdout.contains("coverage=[1:0/0]"));
+    } else {
+        assert!(!stdout.contains("embedding:"), "stdout: {stdout}");
+        assert!(
+            stderr.contains("embedding: skipped because chassis preflight failed"),
+            "stderr: {stderr}"
+        );
+    }
     Ok(())
 }
 
@@ -304,8 +316,8 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
 
     // FR-002: one row per migration, with the binary's checksum and the
     // additive flag it declared. Every shipped migration is additive (046
-    // B-2, D-2) except spec 014's fingerprint-version migration, which 046
-    // B-2 names as not additive and 014 D-14 leaves undeclared.
+    // B-2, D-2) except spec 014's fingerprint-version migration and spec
+    // 015's table-rebuilding integrity repair.
     let recorded = runtime.block_on(async {
         let store = open_store(data_dir.path(), ports).await?;
         let rows = store.handle().recorded_migrations().await;
@@ -324,7 +336,11 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
             "version {} recorded another checksum",
             migration.version
         );
-        let expected = migration.version != aicortex_store::migrations::ERASURE_RECEIPTS_VERSION;
+        let expected = ![
+            aicortex_store::migrations::ERASURE_RECEIPTS_VERSION,
+            aicortex_store::EMBEDDING_INTEGRITY_VERSION,
+        ]
+        .contains(&migration.version);
         assert_eq!(
             migration.additive, expected,
             "version {} declares the wrong additive flag",

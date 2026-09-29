@@ -11,11 +11,16 @@ use crate::provider::{EmbeddingProvider, ModelId, Vector, validate_batch};
 /// [`RemoteProvider`] until boot has admitted the configured host.
 #[allow(async_fn_in_trait)]
 pub trait EmbeddingTransport: Send + Sync {
-    /// Submit a batch using `permit` as evidence for the destination.
+    /// Submit a batch to `https://{permit.host()}[:port]{path}`.
+    ///
+    /// Implementations must construct the destination from these components,
+    /// disable redirects, and never accept a second authority from a response
+    /// or model payload.
     async fn embed(
         &self,
         permit: &Permit,
-        endpoint: &str,
+        port: Option<u16>,
+        path: &str,
         model: &ModelId,
         batch: &[&str],
     ) -> Result<Vec<Vector>, Error>;
@@ -27,7 +32,8 @@ pub struct RemoteProvider<T> {
     id: ModelId,
     dims: u16,
     normalized: bool,
-    endpoint: String,
+    port: Option<u16>,
+    path: String,
     permit: Permit,
     transport: T,
 }
@@ -57,13 +63,14 @@ impl<T> RemoteProvider<T> {
             ));
         }
         let endpoint = endpoint.into();
-        let host = https_host(&endpoint)?;
-        let permit = egress.permit(actor, host).await?;
+        let parsed = parse_https_endpoint(&endpoint)?;
+        let permit = egress.permit(actor, &parsed.host).await?;
         Ok(Self {
             id,
             dims,
             normalized,
-            endpoint,
+            port: parsed.port,
+            path: parsed.path,
             permit,
             transport,
         })
@@ -92,34 +99,97 @@ impl<T: EmbeddingTransport> EmbeddingProvider for RemoteProvider<T> {
     async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
         let vectors = self
             .transport
-            .embed(&self.permit, &self.endpoint, &self.id, batch)
+            .embed(&self.permit, self.port, &self.path, &self.id, batch)
             .await?;
         validate_batch(self, batch.len(), &vectors)?;
         Ok(vectors)
     }
 }
 
-fn https_host(endpoint: &str) -> Result<&str, Error> {
+struct ParsedEndpoint {
+    host: String,
+    port: Option<u16>,
+    path: String,
+}
+
+fn parse_https_endpoint(endpoint: &str) -> Result<ParsedEndpoint, Error> {
     let authority = endpoint.strip_prefix("https://").ok_or_else(|| {
         Error::Config(format!(
             "remote embedding endpoint {endpoint:?} must use https"
         ))
     })?;
-    let host_port = authority.split('/').next().unwrap_or_default();
+    let (host_port, path) = authority.find('/').map_or((authority, "/"), |index| {
+        (&authority[..index], &authority[index..])
+    });
     if host_port.is_empty() || host_port.contains('@') || host_port.starts_with('[') {
         return Err(Error::Config(format!(
             "remote embedding endpoint {endpoint:?} does not name a supported host"
         )));
     }
-    let host = host_port.split(':').next().unwrap_or_default();
+    let (host, port) = host_port.rsplit_once(':').map_or_else(
+        || Ok((host_port, None)),
+        |(host, port)| {
+            let port = port.parse::<u16>().map_err(|_| {
+                Error::Config(format!(
+                    "remote embedding endpoint {endpoint:?} has an invalid port"
+                ))
+            })?;
+            if port == 0 {
+                return Err(Error::Config(format!(
+                    "remote embedding endpoint {endpoint:?} has an invalid port"
+                )));
+            }
+            Ok((host, Some(port)))
+        },
+    )?;
     if host.is_empty()
         || !host.bytes().all(|byte| {
             byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'.' || byte == b'-'
         })
+        || host.starts_with('.')
+        || host.ends_with('.')
+        || host.split('.').any(|label| label.is_empty())
     {
         return Err(Error::Config(format!(
             "remote embedding endpoint {endpoint:?} has an invalid lowercase host"
         )));
     }
-    Ok(host)
+    if path.contains('#') || path.starts_with("//") {
+        return Err(Error::Config(format!(
+            "remote embedding endpoint {endpoint:?} has an invalid path"
+        )));
+    }
+    Ok(ParsedEndpoint {
+        host: host.to_owned(),
+        port,
+        path: path.to_owned(),
+    })
+}
+
+#[cfg(test)]
+#[allow(clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn endpoint_validation_rejects_ambiguous_authorities() {
+        for endpoint in [
+            "http://models.example/embed",
+            "https://models.example:abc/embed",
+            "https://a..b/embed",
+            "https://models.example./embed",
+            "https://models.example//other",
+        ] {
+            assert!(parse_https_endpoint(endpoint).is_err(), "{endpoint}");
+        }
+    }
+
+    #[test]
+    fn endpoint_is_split_into_admitted_components() {
+        let endpoint = parse_https_endpoint("https://models.example:8443/v1/embed?x=1")
+            .expect("valid endpoint");
+        assert_eq!(endpoint.host, "models.example");
+        assert_eq!(endpoint.port, Some(8443));
+        assert_eq!(endpoint.path, "/v1/embed?x=1");
+    }
 }

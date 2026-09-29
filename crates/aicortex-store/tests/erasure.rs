@@ -34,7 +34,7 @@ use aicortex_store::{
 };
 use aicortex_types::{AicortexTime, Memory, MemoryId, MemoryKind, Scope, Status};
 use rahi_ledger::SignedRecord;
-use rahi_store::{LEASE_TTL_SECONDS, Outbox, Statement, TxnBuilder, Value};
+use rahi_store::{LEASE_TTL_SECONDS, Outbox, Statement, TxnBuilder, Value, Work};
 use rahi_types::UnixSeconds;
 
 /// The remaining future derivative table, created here so that FR-003 can be
@@ -63,9 +63,13 @@ async fn seed_derivatives(node: &common::Node, scope: &Scope, memory: MemoryId) 
         .txn(vec![
             Statement::with_params(
                 "INSERT INTO chunk
-                 (scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
-                 VALUES ($1, $2, 1, 0, 0, 4)",
-                vec![Value::from(&scope_id), Value::from(memory.to_string())],
+                 (chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
+                 VALUES ($1, $2, $3, 1, 0, 0, 4)",
+                vec![
+                    Value::from(format!("chunk-{memory}-1-0")),
+                    Value::from(&scope_id),
+                    Value::from(memory.to_string()),
+                ],
             ),
             Statement::with_params(
                 "INSERT INTO embedding
@@ -345,6 +349,28 @@ async fn rows_for(node: &common::Node, table: &str, id: MemoryId) -> u64 {
     .await
 }
 
+/// How many durable embedding queue rows name a memory.
+async fn embedding_queue_rows(
+    node: &common::Node,
+    table: &str,
+    scope: &Scope,
+    id: MemoryId,
+) -> u64 {
+    common::count(
+        node,
+        &format!(
+            "SELECT COUNT(*) AS count FROM {table} \
+             WHERE tenant = $1 AND namespace = $2 AND key = $3"
+        ),
+        vec![
+            Value::from(ScopeId::of(scope).as_str()),
+            Value::from(aicortex_store::EMBEDDING_NAMESPACE),
+            Value::from(id.to_string()),
+        ],
+    )
+    .await
+}
+
 /// The authority every test erases on.
 fn authority() -> Authority {
     Authority::of(common::sub("alice")).because("subject_request")
@@ -361,6 +387,31 @@ async fn fr003_erasure_empties_the_chunk_and_embedding_tables_and_leaves_retriev
     let memory = common::memory(&alice, "the spare key is under the mat", 1_700_000_000);
     capture(&node, &memory).await;
     seed_derivatives(&node, &alice, memory.id).await;
+    let claims = Work::next(
+        &node.handle(),
+        aicortex_store::EMBEDDING_NAMESPACE,
+        &aicortex_embed::embedding_processor(1),
+        "erasure-race-fixture",
+        std::time::Duration::from_secs(30),
+        UnixSeconds::new(1_700_000_001),
+        1,
+    )
+    .await
+    .expect("the embedding work is claimed");
+    assert_eq!(claims.len(), 1);
+    assert_eq!(
+        embedding_queue_rows(&node, "rahi_processing", &alice, memory.id).await,
+        1
+    );
+    assert_eq!(
+        common::count(
+            &node,
+            "SELECT COUNT(*) AS count FROM rahi_processing_attempt",
+            vec![],
+        )
+        .await,
+        1
+    );
 
     // The positive control: before the erasure the targeted search finds it
     // and every derivative table holds its row. An "is gone" assertion over
@@ -396,6 +447,22 @@ async fn fr003_erasure_empties_the_chunk_and_embedding_tables_and_leaves_retriev
         )
         .await
         .expect("the erasure runs");
+
+    assert_eq!(
+        embedding_queue_rows(&node, "rahi_processing", &alice, memory.id).await,
+        0,
+        "erasure removes queued embedding work"
+    );
+    assert_eq!(
+        common::count(
+            &node,
+            "SELECT COUNT(*) AS count FROM rahi_processing_attempt",
+            vec![],
+        )
+        .await,
+        0,
+        "erasure removes embedding attempts so stale workers cannot resurrect vectors"
+    );
 
     // A direct read of the embedding and chunk tables for that id returns
     // zero rows, which is FR-003 word for word.

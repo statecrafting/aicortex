@@ -10,20 +10,22 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 use aicortex_embed::local::{LocalEngine, LocalProvider, WeightArtifact};
-use aicortex_embed::migrations::{EMBEDDING_MIGRATION_VERSION, migration};
+use aicortex_embed::migrations::{
+    EMBEDDING_INTEGRITY_VERSION, EMBEDDING_MIGRATION_VERSION, integrity_migration, migration,
+};
 use aicortex_embed::provider::{EmbeddingProvider, ModelId, Vector};
 use aicortex_embed::registry::{ModelRegistry, ModelRevision};
 use aicortex_embed::{
-    ChunkConfig, Chunker, EmbeddingPreflight, EmbeddingWorker, WorkerConfig, embedding_work_key,
-    queue_health, stage_active_embedding, stage_embedding,
+    ActiveEmbedding, ChunkConfig, Chunker, EmbeddingPreflight, EmbeddingWorker, WorkerConfig,
+    embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
 };
 use aicortex_types::{
     Actor, ActorId, Importance, Memory, MemoryBody, MemoryId, MemoryKind, MemoryParts, Provenance,
     Scope, SourceRef, SourceSystem, TrustClass,
 };
 use rahi_store::{
-    EncKey, EncKeys, RetryPolicy, Statement, Store, StoreConfig, StoreHandle, StoreSecrets,
-    TxnBuilder, Value, coordination_set, receipt_set,
+    EncKey, EncKeys, RetryPolicy, Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value,
+    coordination_set, receipt_set,
 };
 use rahi_types::{Error, Sub, UnixSeconds};
 use ring::digest::{SHA256, digest};
@@ -43,6 +45,40 @@ impl LocalEngine for FixedEngine {
 #[derive(Clone, Copy, Debug)]
 struct TestProvider {
     fail: bool,
+}
+
+#[derive(Clone, Debug)]
+struct ErasingProvider {
+    store: StoreHandle,
+    scope_id: String,
+    memory_id: MemoryId,
+}
+
+impl EmbeddingProvider for ErasingProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("test-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        2
+    }
+
+    fn normalized(&self) -> bool {
+        true
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        self.store
+            .execute(
+                "UPDATE memory SET status = 'erased' WHERE scope_id = ?1 AND id = ?2",
+                vec![
+                    Value::from(self.scope_id.as_str()),
+                    Value::from(self.memory_id.to_string()),
+                ],
+            )
+            .await?;
+        batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
+    }
 }
 
 impl EmbeddingProvider for TestProvider {
@@ -74,9 +110,20 @@ struct Fixture {
 impl Fixture {
     async fn migrated() -> Self {
         let directory = tempfile::tempdir().expect("temporary store directory");
-        let store = Store::open(&store_config(directory.path().join("hiqlite")))
-            .await
-            .expect("single-voter store opens");
+        let data_dir = directory.path().join("hiqlite");
+        let mut last = None;
+        let store = loop {
+            match Store::open(&store_config(data_dir.clone())).await {
+                Ok(store) => break store,
+                Err(error)
+                    if last.as_ref().map_or(0, |attempt: &u8| *attempt) < 4
+                        && error.message().contains("Address already in use") =>
+                {
+                    last = Some(last.map_or(1, |attempt| attempt + 1));
+                }
+                Err(error) => panic!("single-voter store opens: {error}"),
+            }
+        };
         let handle = store.handle();
         handle
             .migrate_sets(&[], &[coordination_set(), receipt_set()])
@@ -95,13 +142,14 @@ impl Fixture {
             )
             .await
             .expect("memory fixture table applies");
-        let embedding_migration = migration();
-        for statement in embedding_migration.sql.split(';').map(str::trim) {
-            if !statement.is_empty() {
-                handle
-                    .execute(statement.to_owned(), vec![])
-                    .await
-                    .expect("embedding migration statement applies");
+        for embedding_migration in [migration(), integrity_migration()] {
+            for statement in embedding_migration.sql.split(';').map(str::trim) {
+                if !statement.is_empty() {
+                    handle
+                        .execute(statement.to_owned(), vec![])
+                        .await
+                        .expect("embedding migration statement applies");
+                }
             }
         }
         Self {
@@ -206,13 +254,23 @@ fn worker(
     holder: &str,
     max_attempts: u32,
 ) -> EmbeddingWorker<TestProvider> {
+    worker_for_model(provider, test_model(true), holder, max_attempts)
+}
+
+fn worker_for_model(
+    provider: TestProvider,
+    model: ModelRevision,
+    holder: &str,
+    max_attempts: u32,
+) -> EmbeddingWorker<TestProvider> {
     EmbeddingWorker::new(
         provider,
-        test_model(true),
+        model,
         Chunker::new(ChunkConfig {
             threshold_bytes: 256,
             target_bytes: 128,
             overlap_bytes: 16,
+            max_chunks_per_memory: 512,
         })
         .expect("chunk config"),
         WorkerConfig {
@@ -259,6 +317,7 @@ fn vector_bytes_are_little_endian_and_dimension_checked() {
 fn migration_has_exact_tables_and_follows_existing_versions() {
     let migration = migration();
     assert_eq!(EMBEDDING_MIGRATION_VERSION, 9);
+    assert_eq!(EMBEDDING_INTEGRITY_VERSION, 10);
     assert_eq!(migration.version, 9);
     for table in ["embedding_model", "chunk", "embedding"] {
         assert!(
@@ -274,6 +333,11 @@ fn migration_has_exact_tables_and_follows_existing_versions() {
             .contains("PRIMARY KEY (scope_id, memory_id, model_revision")
     );
     assert!(migration.additive);
+    let integrity = integrity_migration();
+    assert_eq!(integrity.version, 10);
+    assert!(!integrity.additive);
+    assert!(integrity.sql.contains("chunk_id TEXT NOT NULL UNIQUE"));
+    assert!(integrity.sql.contains("CHECK (length(vector) = dims * 4)"));
 }
 
 #[test]
@@ -290,21 +354,22 @@ fn staging_requires_an_active_revision_and_capture_uses_registry_selection() {
         )
         .is_err()
     );
-    stage_active_embedding(&mut txn, "scope-a", id, UnixSeconds::new(1))
+    let active = ActiveEmbedding {
+        model_id: "test-model".to_owned(),
+        revision: 1,
+    };
+    stage_active_embedding(&mut txn, "scope-a", id, &active, UnixSeconds::new(1))
         .expect("capture work statement");
     let statements = format!("{:?}", txn.statements());
-    assert!(statements.contains("SELECT revision FROM embedding_model WHERE active = 1"));
+    assert!(statements.contains("UPDATE embedding_model"));
     assert!(statements.contains("ON CONFLICT"));
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn capture_work_without_an_active_model_aborts_its_transaction() {
+async fn capture_work_without_an_active_model_is_refused_before_staging() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();
-    let mut txn = TxnBuilder::new();
-    stage_active_embedding(&mut txn, "scope-a", MemoryId::now_v7(), UnixSeconds::new(1))
-        .expect("work statement stages");
-    assert!(store.txn(txn.into_statements()).await.is_err());
+    assert!(aicortex_store::active_embedding(&store).await.is_err());
     assert_eq!(
         count(
             &store,
@@ -330,7 +395,7 @@ fn staging_is_idempotent_per_memory_and_model_revision() {
     };
     let key = embedding_work_key("scope-digest", id, &model).expect("work key");
     assert_eq!(key.revision, 2);
-    assert_eq!(key.processor, "embed");
+    assert_eq!(key.processor, "embed.r2");
     assert_eq!(key.processor_revision, "configured-local-model");
 
     let mut txn = TxnBuilder::new();
@@ -338,7 +403,7 @@ fn staging_is_idempotent_per_memory_and_model_revision() {
         .expect("first stage");
     stage_embedding(&mut txn, "scope-digest", id, &model, UnixSeconds::new(11))
         .expect("repeat stage");
-    assert_eq!(txn.len(), 2);
+    assert_eq!(txn.len(), 4);
     let statements = format!("{:?}", txn.statements());
     assert!(statements.contains("rahi_processing"));
     assert!(statements.contains("ON CONFLICT"));
@@ -370,6 +435,24 @@ fn local_provider_boots_only_with_verified_weights() {
     assert_eq!(provider.id().as_str(), "configured-local-model");
     assert_eq!(provider.dims(), 2);
     assert!(provider.normalized());
+}
+
+#[test]
+fn weight_artifacts_reject_traversal_and_cleartext_urls() {
+    let models = PathBuf::from("/srv/aicortex/models");
+    let digest = "0".repeat(64);
+    let traversal = WeightArtifact {
+        path: models.join("../outside/model.bin"),
+        url: "https://models.example/model.bin".to_owned(),
+        sha256: digest.clone(),
+    };
+    assert!(traversal.validate(&models).is_err());
+    let cleartext = WeightArtifact {
+        path: models.join("model.bin"),
+        url: "http://models.example/model.bin".to_owned(),
+        sha256: digest,
+    };
+    assert!(cleartext.validate(&models).is_err());
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -414,11 +497,119 @@ async fn concurrent_workers_commit_one_scoped_embedding() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn erasure_during_inference_cannot_resurrect_derivatives() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "Erase while inference is running.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    let embedding_worker = EmbeddingWorker::new(
+        ErasingProvider {
+            store: store.clone(),
+            scope_id: "scope-a".to_owned(),
+            memory_id: memory.id,
+        },
+        model,
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 1,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 3,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "erasure-race",
+    )
+    .expect("worker config");
+    let report = embedding_worker
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("race drains");
+    assert_eq!(report.completed, 1);
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        0
+    );
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM chunk WHERE memory_id = ?1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        0
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn erased_or_missing_memory_completes_without_dead_letter() {
+    for missing in [false, true] {
+        let fixture = Fixture::migrated().await;
+        let store = fixture.handle();
+        let model = test_model(true);
+        activate(&store, &model).await;
+        let memory = test_memory("alice", "Pending work is cancelled cleanly.", 2);
+        insert_memory(&store, "scope-a", &memory).await;
+        let mut txn = TxnBuilder::new();
+        stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+            .expect("work stages");
+        store
+            .txn(txn.into_statements())
+            .await
+            .expect("work commits");
+        let sql = if missing {
+            "DELETE FROM memory WHERE scope_id = ?1 AND id = ?2"
+        } else {
+            "UPDATE memory SET status = 'erased' WHERE scope_id = ?1 AND id = ?2"
+        };
+        store
+            .execute(
+                sql,
+                vec![Value::from("scope-a"), Value::from(memory.id.to_string())],
+            )
+            .await
+            .expect("memory state changes");
+        let report = worker(TestProvider { fail: false }, "terminal-worker", 2)
+            .drain(&store, UnixSeconds::new(3))
+            .await
+            .expect("terminal work drains");
+        assert_eq!(report.completed, 1);
+        let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+            .await
+            .expect("health reads");
+        assert_eq!(health.dead, 0);
+        fixture.shutdown().await;
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn a_worker_never_relabels_work_from_another_model_revision() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();
     let model = ModelRevision {
-        model_id: ModelId::new("next-model").expect("model id"),
+        model_id: ModelId::new("test-model").expect("model id"),
         revision: 2,
         dims: 2,
         normalized: true,
@@ -441,7 +632,18 @@ async fn a_worker_never_relabels_work_from_another_model_revision() {
         .await
         .expect("mismatch is recorded through the queue");
     assert_eq!(report.completed, 0);
-    assert_eq!(report.failed, 1);
+    assert_eq!(report.failed, 0);
+    assert_eq!(report.claimed, 0);
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("queue health reads");
+    assert_eq!(health.pending, 1);
+    assert_eq!(health.dead, 0);
+    let matching = worker_for_model(TestProvider { fail: false }, model, "new-worker", 3)
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("matching worker drains");
+    assert_eq!(matching.completed, 1);
     assert_eq!(
         count(
             &store,
@@ -449,7 +651,7 @@ async fn a_worker_never_relabels_work_from_another_model_revision() {
             vec![Value::from(memory.id.to_string())],
         )
         .await,
-        0
+        1
     );
     fixture.shutdown().await;
 }
@@ -532,14 +734,38 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
     );
     assert_eq!((bob_coverage[0].embedded, bob_coverage[0].total), (1, 1));
 
-    let mut drop_txn = TxnBuilder::new();
-    drop_txn.push(Statement::with_params(
-        "UPDATE embedding_model SET active = 0 WHERE revision = ?1",
-        vec![Value::Integer(1)],
-    ));
-    ModelRegistry::drop_revision(&mut drop_txn, "scope-a", 1);
+    let model_two = ModelRevision {
+        revision: 2,
+        first_seen: UnixSeconds::new(4),
+        ..test_model(true)
+    };
+    activate(&store, &model_two).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(
+        &mut txn,
+        "scope-a",
+        alice.id,
+        &model_two,
+        UnixSeconds::new(4),
+    )
+    .expect("Alice revision two stages");
+    stage_embedding(&mut txn, "scope-b", bob.id, &model_two, UnixSeconds::new(4))
+        .expect("Bob revision two stages");
     store
-        .txn(drop_txn.into_statements())
+        .txn(txn.into_statements())
+        .await
+        .expect("revision two work commits");
+    let report = worker_for_model(
+        TestProvider { fail: false },
+        model_two,
+        "scope-worker-two",
+        3,
+    )
+    .drain(&store, UnixSeconds::new(5))
+    .await
+    .expect("revision two drains");
+    assert_eq!(report.completed, 2);
+    ModelRegistry::drop_revision(&store, "scope-a", 1)
         .await
         .expect("scoped drop commits");
     assert_eq!(
@@ -549,7 +775,7 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
             vec![Value::from("scope-a")],
         )
         .await,
-        0
+        1
     );
     assert_eq!(
         count(
@@ -558,7 +784,7 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
             vec![Value::from("scope-b")],
         )
         .await,
-        1
+        2
     );
     fixture.shutdown().await;
 }
