@@ -1331,6 +1331,80 @@ async fn deactivation_during_inference_defers_until_the_revision_is_reactivated(
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn deactivation_does_not_consume_the_provider_failure_budget() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory(
+        "alice",
+        "Administrative deferral is not a provider failure.",
+        2,
+    );
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    let deactivating = EmbeddingWorker::new(
+        DeactivatingProvider {
+            store: store.clone(),
+            deactivated: Arc::new(AtomicBool::new(false)),
+        },
+        model.clone(),
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 1,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 2,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "deactivation-budget",
+    )
+    .expect("worker config");
+
+    deactivating
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("deactivation defers the claim");
+    activate(&store, &model).await;
+    let failing = worker(TestProvider { fail: true }, "failure-budget", 2);
+    let first = failing
+        .drain(&store, UnixSeconds::new(9))
+        .await
+        .expect("first provider failure records");
+    assert_eq!((first.failed, first.dead), (1, 0));
+    let second = failing
+        .drain(&store, UnixSeconds::new(12))
+        .await
+        .expect("second provider failure records");
+    assert_eq!((second.failed, second.dead), (0, 1));
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM rahi_processing_attempt
+             WHERE error_class = 'upstream'",
+            vec![],
+        )
+        .await,
+        2
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn terminal_memory_work_stays_recoverable_without_embedding() {
     for state in ["erased", "quarantined", "missing"] {
         let fixture = Fixture::migrated().await;

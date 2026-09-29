@@ -232,7 +232,9 @@ configuration with a pinned digest rather than a spec-level commitment.
   already-held claim atomically records the deferred attempt and requeues the
   same processing identity through Rahi's public work API. The row does not
   wait for claim expiry or become an observable dead letter, so temporary
-  deactivation cannot consume the configured provider-failure budget.
+  deactivation cannot consume the configured provider-failure budget. The
+  worker offsets recorded deactivation and quarantine attempts when applying
+  that budget after either identity is requeued.
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,

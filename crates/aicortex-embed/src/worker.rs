@@ -239,6 +239,11 @@ struct QueueHealthRow {
     oldest_pending_created_at: Option<i64>,
 }
 
+#[derive(Debug, Deserialize)]
+struct AttemptCountRow {
+    count: i64,
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 enum ProcessOutcome {
     Completed,
@@ -361,15 +366,15 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                         report.quarantined = report.quarantined.saturating_add(1);
                     }
                     Err(ProcessError::Item { error, claim }) => {
-                        match self
+                        let dead = match self
                             .record_failure(store, &claim, &error, elapsed_now(now, started))
                             .await
                         {
-                            Ok(()) => {}
+                            Ok(dead) => dead,
                             Err(Error::Conflict(_)) => continue,
                             Err(error) => return Err(error),
-                        }
-                        if claim.attempt >= self.config.retry.max_attempts {
+                        };
+                        if dead {
                             report.dead = report.dead.saturating_add(1);
                         } else {
                             report.failed = report.failed.saturating_add(1);
@@ -689,7 +694,9 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         claim: &Claim,
         error: &Error,
         now: UnixSeconds,
-    ) -> Result<(), Error> {
+    ) -> Result<bool, Error> {
+        let retry = self.provider_retry_policy(store, claim).await?;
+        let dead = claim.attempt >= retry.max_attempts;
         let mut txn = TxnBuilder::new();
         Work::fail(
             &mut txn,
@@ -698,11 +705,46 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 class: error_class(error).to_owned(),
                 detail: None,
             },
-            &self.config.retry,
+            &retry,
             now,
         )?;
         store.txn(txn.into_statements()).await?;
-        Ok(())
+        Ok(dead)
+    }
+
+    async fn provider_retry_policy(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+    ) -> Result<RetryPolicy, Error> {
+        let rows: Vec<AttemptCountRow> = store
+            .query_consistent(
+                "SELECT COUNT(*) AS count FROM rahi_processing_attempt
+                 WHERE key_digest = ?1 AND revision = ?2 AND processor = ?3
+                   AND processor_revision = ?4
+                   AND error_class IN ('model_deactivated', 'quarantined')",
+                vec![
+                    Value::from(claim.key.receipt.key_digest()),
+                    Value::Integer(i64::from(claim.key.revision)),
+                    Value::from(claim.key.processor.as_str()),
+                    Value::from(claim.key.processor_revision.as_str()),
+                ],
+            )
+            .await?;
+        let administrative_attempts = rows.first().map_or(0, |row| row.count);
+        let administrative_attempts = u32::try_from(administrative_attempts).map_err(|_| {
+            Error::Integrity("embedding administrative attempt count is invalid".to_owned())
+        })?;
+        let max_attempts = self
+            .config
+            .retry
+            .max_attempts
+            .checked_add(administrative_attempts)
+            .ok_or_else(|| Error::Integrity("embedding retry ceiling overflowed".to_owned()))?;
+        Ok(RetryPolicy {
+            max_attempts,
+            ..self.config.retry
+        })
     }
 
     async fn record_quarantine(
