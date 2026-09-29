@@ -304,7 +304,11 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         match ModelRegistry::active(store).await? {
             Some(active) if active.revision == self.model.revision => {}
             Some(active) => return self.restage_active(store, claim, &active, now).await,
-            None => return self.complete_empty(store, claim, now).await,
+            None => {
+                return Err(Error::Config(
+                    "embedding work cannot complete without an active model revision".to_owned(),
+                ));
+            }
         }
         let rows: Vec<MemoryRow> = store
             .query_consistent(

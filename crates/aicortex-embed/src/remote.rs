@@ -154,7 +154,12 @@ fn parse_https_endpoint(endpoint: &str) -> Result<ParsedEndpoint, Error> {
             "remote embedding endpoint {endpoint:?} has an invalid lowercase host"
         )));
     }
-    if path.contains('#') || path.starts_with("//") {
+    if path.contains('#')
+        || path.starts_with("//")
+        || path
+            .bytes()
+            .any(|byte| byte.is_ascii_control() || byte.is_ascii_whitespace())
+    {
         return Err(Error::Config(format!(
             "remote embedding endpoint {endpoint:?} has an invalid path"
         )));
@@ -179,6 +184,8 @@ mod tests {
             "https://a..b/embed",
             "https://models.example./embed",
             "https://models.example//other",
+            "https://models.example/embed with-space",
+            "https://models.example/embed\r\nX-Injected: 1",
         ] {
             assert!(parse_https_endpoint(endpoint).is_err(), "{endpoint}");
         }

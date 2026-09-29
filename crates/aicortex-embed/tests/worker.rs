@@ -404,6 +404,40 @@ async fn active_model_selection_is_required_before_staging() {
     fixture.shutdown().await;
 }
 
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn claimed_work_stays_reportable_when_no_model_is_active() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "Inactive model work must remain visible.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    store
+        .execute("UPDATE embedding_model SET active = 0", vec![])
+        .await
+        .expect("model deactivates");
+
+    let report = worker(TestProvider { fail: false }, "inactive-worker", 2)
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("inactive work remains reportable");
+    assert_eq!(report.completed, 0);
+    assert_eq!(report.failed, 1);
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("queue health reads");
+    assert_eq!(health.pending, 1);
+    assert_eq!(health.dead, 0);
+    fixture.shutdown().await;
+}
+
 #[test]
 fn staging_is_idempotent_per_memory_and_model_revision() {
     let id = MemoryId::now_v7();
