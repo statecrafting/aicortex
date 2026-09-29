@@ -90,7 +90,10 @@ pub struct EmbeddingPreflight {
 }
 
 impl EmbeddingPreflight {
-    /// Read one internally consistent preflight shape for `scope_id`.
+    /// Read the current preflight observations for `scope_id`.
+    ///
+    /// The active model, queue, and coverage are separate store observations,
+    /// not an atomic snapshot.
     ///
     /// # Errors
     ///
@@ -188,6 +191,12 @@ struct MemoryIdRow {
 enum ProcessOutcome {
     Completed,
     Deferred,
+}
+
+#[derive(Debug)]
+enum ProcessError {
+    Item(Error),
+    Infrastructure(Error),
 }
 
 impl<P: EmbeddingProvider> EmbeddingWorker<P> {
@@ -311,7 +320,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     report.completed = report.completed.saturating_add(1);
                 }
                 Ok(ProcessOutcome::Deferred) => {}
-                Err(error) => {
+                Err(ProcessError::Item(error)) => {
                     match self
                         .record_failure(store, &claim, &error, elapsed_now(now, started))
                         .await
@@ -326,6 +335,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                         report.failed = report.failed.saturating_add(1);
                     }
                 }
+                Err(ProcessError::Infrastructure(Error::Conflict(_))) => continue,
+                Err(ProcessError::Infrastructure(error)) => return Err(error),
             }
         }
         Ok(report)
@@ -337,15 +348,18 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         claim: &Claim,
         origin: UnixSeconds,
         started: Instant,
-    ) -> Result<ProcessOutcome, Error> {
+    ) -> Result<ProcessOutcome, ProcessError> {
         let now = elapsed_now(origin, started);
         if claim.key.processor != embedding_processor(claim.key.revision) {
-            return Err(Error::Conflict(format!(
+            return Err(ProcessError::Item(Error::Conflict(format!(
                 "embedding work processor {} does not match revision {}",
                 claim.key.processor, claim.key.revision,
-            )));
+            ))));
         }
-        match ModelRegistry::active(store).await? {
+        match ModelRegistry::active(store)
+            .await
+            .map_err(ProcessError::Infrastructure)?
+        {
             Some(active)
                 if claim.key.revision == self.model.revision
                     && claim.key.processor_revision == self.model.model_id.as_str()
@@ -368,36 +382,46 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     Value::from(claim.key.receipt.key.as_str()),
                 ],
             )
-            .await?;
+            .await
+            .map_err(ProcessError::Infrastructure)?;
         let Some(row) = rows.into_iter().next() else {
             self.complete_empty(store, claim, now).await?;
             return Ok(ProcessOutcome::Completed);
         };
         let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
-            Error::Integrity(format!(
+            ProcessError::Item(Error::Integrity(format!(
                 "memory {} cannot be decoded for embedding: {error}",
                 claim.key.receipt.key
-            ))
+            )))
         })?;
         if memory.status == Status::Erased {
             self.complete_empty(store, claim, now).await?;
             return Ok(ProcessOutcome::Completed);
         }
-        let chunks = self.chunker.split(&memory.body.text)?;
+        let chunks = self
+            .chunker
+            .split(&memory.body.text)
+            .map_err(ProcessError::Item)?;
         if chunks.is_empty() {
-            return Err(Error::Validation(format!(
+            return Err(ProcessError::Item(Error::Validation(format!(
                 "memory {} has no text to embed",
                 memory.id
-            )));
+            ))));
         }
         let text = chunks
             .iter()
             .map(|chunk| chunk.text.as_str())
             .collect::<Vec<_>>();
-        let vectors = self.provider.embed(&text).await?;
-        validate_batch(&self.provider, chunks.len(), &vectors)?;
+        let vectors = self
+            .provider
+            .embed(&text)
+            .await
+            .map_err(ProcessError::Item)?;
+        validate_batch(&self.provider, chunks.len(), &vectors).map_err(ProcessError::Item)?;
         let now = elapsed_now(origin, started);
-        let claim = Work::renew(store, claim, self.config.hold_for, now).await?;
+        let claim = Work::renew(store, claim, self.config.hold_for, now)
+            .await
+            .map_err(ProcessError::Infrastructure)?;
 
         let mut txn = TxnBuilder::new();
         txn.push(Statement::with_params(
@@ -430,8 +454,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     Value::from(memory.id.to_string()),
                     Value::Integer(i64::from(self.model.revision)),
                     Value::Integer(i64::from(chunk.ordinal)),
-                    Value::Integer(usize_to_sql(chunk.byte_start)?),
-                    Value::Integer(usize_to_sql(chunk.byte_end)?),
+                    Value::Integer(usize_to_sql(chunk.byte_start).map_err(ProcessError::Item)?),
+                    Value::Integer(usize_to_sql(chunk.byte_end).map_err(ProcessError::Item)?),
                     Value::from(chunk_id(
                         claim.key.receipt.tenant.as_str(),
                         memory.id,
@@ -461,7 +485,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             ));
         }
         Work::complete(&mut txn, &claim, now);
-        store.txn(txn.into_statements()).await?;
+        store
+            .txn(txn.into_statements())
+            .await
+            .map_err(ProcessError::Infrastructure)?;
         Ok(ProcessOutcome::Completed)
     }
 
@@ -470,10 +497,13 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         store: &StoreHandle,
         claim: &Claim,
         now: UnixSeconds,
-    ) -> Result<(), Error> {
+    ) -> Result<(), ProcessError> {
         let mut txn = TxnBuilder::new();
         Work::complete(&mut txn, claim, now);
-        store.txn(txn.into_statements()).await?;
+        store
+            .txn(txn.into_statements())
+            .await
+            .map_err(ProcessError::Infrastructure)?;
         Ok(())
     }
 
@@ -483,12 +513,12 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         claim: &Claim,
         active: &ModelRevision,
         now: UnixSeconds,
-    ) -> Result<(), Error> {
+    ) -> Result<(), ProcessError> {
         let memory_id = claim.key.receipt.key.parse::<MemoryId>().map_err(|error| {
-            Error::Integrity(format!(
+            ProcessError::Item(Error::Integrity(format!(
                 "embedding work memory id {} is invalid: {error}",
                 claim.key.receipt.key
-            ))
+            )))
         })?;
         let mut txn = TxnBuilder::new();
         stage_embedding(
@@ -497,9 +527,13 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             memory_id,
             active,
             now,
-        )?;
+        )
+        .map_err(ProcessError::Item)?;
         Work::complete(&mut txn, claim, now);
-        store.txn(txn.into_statements()).await?;
+        store
+            .txn(txn.into_statements())
+            .await
+            .map_err(ProcessError::Infrastructure)?;
         Ok(())
     }
 
