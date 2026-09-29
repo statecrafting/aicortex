@@ -220,11 +220,11 @@ struct QueueHealthRow {
     quarantined: i64,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 enum ProcessOutcome {
     Completed,
     Deferred,
-    Quarantined,
+    Quarantined(Claim),
 }
 
 #[derive(Debug)]
@@ -334,9 +334,9 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                         report.completed = report.completed.saturating_add(1);
                     }
                     Ok(ProcessOutcome::Deferred) => {}
-                    Ok(ProcessOutcome::Quarantined) => {
+                    Ok(ProcessOutcome::Quarantined(quarantined_claim)) => {
                         match self
-                            .record_quarantine(store, &claim, elapsed_now(now, started))
+                            .record_quarantine(store, &quarantined_claim, elapsed_now(now, started))
                             .await
                         {
                             Ok(()) => {}
@@ -428,7 +428,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             return Ok(ProcessOutcome::Completed);
         }
         if row.status == Status::Quarantined.label() {
-            return Ok(ProcessOutcome::Quarantined);
+            return Ok(ProcessOutcome::Quarantined(claim.clone()));
         }
         let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
             ProcessError::item(
@@ -490,6 +490,12 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         let now = elapsed_now(origin, started);
 
         let mut txn = TxnBuilder::new();
+        stage_derivative_commit_guards(
+            &mut txn,
+            claim.key.receipt.tenant.as_str(),
+            memory.id,
+            &self.model,
+        );
         txn.push(Statement::with_params(
             "DELETE FROM embedding
              WHERE scope_id = ?1 AND memory_id = ?2 AND model_revision = ?3",
@@ -559,11 +565,57 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             ));
         }
         Work::complete(&mut txn, &claim, now);
-        store
-            .txn(txn.into_statements())
+        match store.txn(txn.into_statements()).await {
+            Ok(_) => Ok(ProcessOutcome::Completed),
+            Err(error) => {
+                self.reconcile_commit_failure(store, &claim, error, now)
+                    .await
+            }
+        }
+    }
+
+    async fn reconcile_commit_failure(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        error: Error,
+        now: UnixSeconds,
+    ) -> Result<ProcessOutcome, ProcessError> {
+        let rows: Vec<MemoryRow> = store
+            .query_consistent(
+                "SELECT record, status FROM memory WHERE scope_id = ?1 AND id = ?2",
+                vec![
+                    Value::from(claim.key.receipt.tenant.as_str()),
+                    Value::from(claim.key.receipt.key.as_str()),
+                ],
+            )
             .await
-            .map_err(|error| ProcessError::item(error, &claim))?;
-        Ok(ProcessOutcome::Completed)
+            .map_err(ProcessError::Infrastructure)?;
+        match rows.first().map(|row| row.status.as_str()) {
+            Some(status) if status == Status::Quarantined.label() => {
+                return Ok(ProcessOutcome::Quarantined(claim.clone()));
+            }
+            None => {
+                self.complete_empty(store, claim, now).await?;
+                return Ok(ProcessOutcome::Completed);
+            }
+            Some(status) if status == Status::Erased.label() => {
+                self.complete_empty(store, claim, now).await?;
+                return Ok(ProcessOutcome::Completed);
+            }
+            Some(_) => {}
+        }
+        let active = ModelRegistry::active(store)
+            .await
+            .map_err(ProcessError::Infrastructure)?;
+        if active
+            .as_ref()
+            .is_none_or(|model| !same_model_revision(model, &self.model))
+        {
+            self.complete_empty(store, claim, now).await?;
+            return Ok(ProcessOutcome::Completed);
+        }
+        Err(ProcessError::item(error, claim))
     }
 
     async fn complete_empty(
@@ -627,6 +679,39 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         store.txn(txn.into_statements()).await?;
         Ok(())
     }
+}
+
+fn stage_derivative_commit_guards(
+    txn: &mut TxnBuilder,
+    scope_id: &str,
+    memory_id: MemoryId,
+    model: &ModelRevision,
+) {
+    txn.push(Statement::with_params(
+        "INSERT INTO memory (id)
+         SELECT ?2
+         WHERE NOT EXISTS (
+             SELECT 1 FROM memory
+             WHERE scope_id = ?1 AND id = ?2
+               AND status NOT IN ('erased', 'quarantined')
+         )",
+        vec![Value::from(scope_id), Value::from(memory_id.to_string())],
+    ));
+    txn.push(Statement::with_params(
+        "INSERT INTO embedding_model (revision)
+         SELECT ?1
+         WHERE NOT EXISTS (
+             SELECT 1 FROM embedding_model
+             WHERE revision = ?1 AND model_id = ?2 AND dims = ?3
+               AND normalized = ?4 AND active = 1
+         )",
+        vec![
+            Value::Integer(i64::from(model.revision)),
+            Value::from(model.model_id.as_str()),
+            Value::Integer(i64::from(model.dims)),
+            Value::from(model.normalized),
+        ],
+    ));
 }
 
 /// Build the durable identity for one memory and model revision.

@@ -79,6 +79,14 @@
       },
       {
         "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/manifest.toml"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "012-store-schema-and-repositories",
         "unit": {
           "kind": "file",
@@ -215,9 +223,9 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "015-embeddings": "44e8b52adcbe6f18ec22a88724c575ff412a97880ad8a90f10381aa37b7445ba",
+      "015-embeddings": "2dbef6852039d85debeb9a73ca71612e0089741f41a95e184c79ddf6f3cf9832",
       "1-purpose": "989657e0577a8e2d9da98f01af2692c9052a15b3be44b37bd4856fe66c05b645",
-      "2-territory": "3e7fe06fdba73bc7932506488a145407e78e2814d5f2f4bca838a7b04213df87",
+      "2-territory": "1f87b980d6cb3e4841b5f8402b64554de408c3bda323993bf277f75f08746b6d",
       "3-behavior": "5b20884b05fe1cb41564e3f41324e67d04018c84122b6a755b5e0bb111ead96a",
       "4-functional-requirements": "85c189fb3d80eb4a846d97423be27c456a8f36893a908d113a60328a257149bf",
       "5-acceptance-criteria": "c1dad44487d828931a2bf2fab0ade9d09db19bca2bfa9cc079e33bbc7eaa940f",
@@ -243,6 +251,6 @@
     "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
-  "shardHash": "67f76a300a2e63f7b599fe6794add7dac0e8c648f6dac8005268a4ef1a0bd223",
+  "shardHash": "d9f078dfe53eeaca7ea054fcd6362e20c2116536f60feb7288828db280317470",
   "specVersion": "1.8.0"
 }

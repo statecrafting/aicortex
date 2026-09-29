@@ -26,6 +26,7 @@ establishes:
   - "crates/aicortex-embed/testdata/vectors/"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/manifest.toml", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
@@ -74,8 +75,8 @@ providers exist, are opt-in, and are visible in the manifest ceiling.
 ## 2. Territory
 
 The `aicortex-embed` crate and the `embedding`, `chunk`, and
-`embedding_model` tables. Extends 012's migration list. A remote provider
-requires a separately governed manifest egress grant before it can be enabled.
+`embedding_model` tables. Extends 012's migration list and 010's manifest,
+which gains its first egress entry only when a remote provider is enabled.
 
 ## 3. Behavior
 

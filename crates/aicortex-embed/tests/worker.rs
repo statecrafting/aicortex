@@ -70,6 +70,18 @@ struct ErasingProvider {
     erased: Arc<AtomicBool>,
 }
 
+#[derive(Clone, Debug)]
+struct QuarantiningProvider {
+    store: StoreHandle,
+    memory_id: MemoryId,
+}
+
+#[derive(Clone, Debug)]
+struct SwitchingProvider {
+    store: StoreHandle,
+    replacement: ModelRevision,
+}
+
 impl EmbeddingProvider for ErasingProvider {
     fn id(&self) -> ModelId {
         ModelId::new("test-model").expect("static model id")
@@ -103,6 +115,54 @@ impl EmbeddingProvider for ErasingProvider {
             }
             self.store.txn(txn.into_statements()).await?;
         }
+        batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
+    }
+}
+
+impl EmbeddingProvider for QuarantiningProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("test-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        2
+    }
+
+    fn normalized(&self) -> bool {
+        true
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        self.store
+            .execute(
+                "UPDATE memory SET status = 'quarantined' WHERE scope_id = ?1 AND id = ?2",
+                vec![
+                    Value::from("scope-a"),
+                    Value::from(self.memory_id.to_string()),
+                ],
+            )
+            .await?;
+        batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
+    }
+}
+
+impl EmbeddingProvider for SwitchingProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("test-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        2
+    }
+
+    fn normalized(&self) -> bool {
+        true
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        let mut txn = TxnBuilder::new();
+        ModelRegistry::activate(&mut txn, &self.replacement)?;
+        self.store.txn(txn.into_statements()).await?;
         batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
     }
 }
@@ -927,6 +987,138 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
         )
         .await,
         0
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn quarantine_during_inference_moves_work_to_the_requeueable_dead_letter() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "Quarantine wins the derivative commit race.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    let embedding_worker = EmbeddingWorker::new(
+        QuarantiningProvider {
+            store: store.clone(),
+            memory_id: memory.id,
+        },
+        model,
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 1,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 3,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "quarantine-race",
+    )
+    .expect("worker config");
+
+    let report = embedding_worker
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("quarantine race drains");
+    assert_eq!(
+        (report.claimed, report.completed, report.quarantined),
+        (1, 0, 1)
+    );
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        0
+    );
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("queue health reads");
+    assert_eq!((health.pending, health.dead, health.quarantined), (0, 0, 1));
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn activation_during_inference_cannot_restore_stale_revision_vectors() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "Activation wins the derivative commit race.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    let replacement = ModelRevision {
+        revision: 2,
+        first_seen: UnixSeconds::new(3),
+        ..model.clone()
+    };
+    let embedding_worker = EmbeddingWorker::new(
+        SwitchingProvider {
+            store: store.clone(),
+            replacement: replacement.clone(),
+        },
+        model,
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 1,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 3,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "activation-race",
+    )
+    .expect("worker config");
+
+    let report = embedding_worker
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("activation race drains");
+    assert_eq!((report.claimed, report.completed, report.failed), (1, 1, 0));
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1 AND model_revision = 1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        0
+    );
+    assert_eq!(
+        ModelRegistry::active(&store).await.expect("active model"),
+        Some(replacement)
     );
     fixture.shutdown().await;
 }

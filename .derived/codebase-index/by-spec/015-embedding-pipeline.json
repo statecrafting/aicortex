@@ -13,6 +13,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "apps/aicortex/manifest.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "apps/aicortex/src/cell.rs",
         "source": "spec-edge"
       },
@@ -311,6 +315,19 @@
       {
         "locations": [
           {
+            "file": "apps/aicortex/manifest.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/manifest.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "apps/aicortex/src/cell.rs"
           }
         ],
@@ -526,5 +543,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "e9e0881aab6758458b6df10b0f01d68769602edd4d29151a614ca2e5ec5c7f5c"
+  "shardHash": "55fe45c383478f41a9fb012d0c989f60cecf037b96d16ec05ece58560d243e3f"
 }
