@@ -18,7 +18,7 @@ use aicortex_embed::registry::{ModelRegistry, ModelRevision};
 use aicortex_embed::{
     ActiveEmbedding, ChunkConfig, Chunker, EmbeddingPreflight, EmbeddingWorker, WorkerConfig,
     embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
-    stage_reembedding_batch,
+    stage_live_embedding, stage_reembedding_batch,
 };
 use aicortex_types::{
     Actor, ActorId, Importance, Memory, MemoryBody, MemoryId, MemoryKind, MemoryParts, Provenance,
@@ -1138,6 +1138,51 @@ async fn inactive_revision_work_completes_before_active_reembedding() {
         )
         .await,
         1
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn stale_reembedding_selection_cannot_restore_erased_work() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "Erasure wins the staging race.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+
+    let mut stale_batch = TxnBuilder::new();
+    stage_live_embedding(
+        &mut stale_batch,
+        "scope-a",
+        memory.id,
+        &model,
+        UnixSeconds::new(3),
+    )
+    .expect("live selection builds its staging transaction");
+    store
+        .execute(
+            "UPDATE memory SET status = 'erased' WHERE scope_id = ?1 AND id = ?2",
+            vec![Value::from("scope-a"), Value::from(memory.id.to_string())],
+        )
+        .await
+        .expect("erasure commits before the stale staging transaction");
+
+    assert!(
+        store.txn(stale_batch.into_statements()).await.is_err(),
+        "the commit-time liveness guard must abort stale staging"
+    );
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM rahi_processing WHERE namespace = ?1 AND key = ?2",
+            vec![
+                Value::from(aicortex_store::EMBEDDING_NAMESPACE),
+                Value::from(memory.id.to_string()),
+            ],
+        )
+        .await,
+        0
     );
     fixture.shutdown().await;
 }

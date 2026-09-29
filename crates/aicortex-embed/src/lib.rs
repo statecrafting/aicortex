@@ -27,5 +27,5 @@ pub use worker::{
     ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingDeployment,
     EmbeddingPreflight, EmbeddingWorker, MAX_REEMBED_BATCH, QueueHealth, ReembeddingBatch,
     WorkerConfig, WorkerReport, embedding_processor, embedding_work_key, queue_health,
-    stage_active_embedding, stage_embedding, stage_reembedding_batch,
+    stage_active_embedding, stage_embedding, stage_live_embedding, stage_reembedding_batch,
 };

@@ -652,6 +652,38 @@ pub fn stage_embedding(
     )
 }
 
+/// Stage embedding work only while the selected memory remains live.
+///
+/// Re-embedding selects candidates before it opens the staging transaction.
+/// This guard rechecks the selection inside that transaction, so erasure or
+/// quarantine committed in between aborts the complete batch. The failed
+/// insert is deliberately impossible: an existing terminal row conflicts on
+/// its primary key, while an absent row violates the required columns.
+///
+/// # Errors
+///
+/// Rahi validation errors from [`stage_embedding`]. The submitted transaction
+/// also fails when the memory is absent, erased, or quarantined at commit.
+pub fn stage_live_embedding(
+    txn: &mut TxnBuilder,
+    scope_id: &str,
+    memory_id: MemoryId,
+    model: &ModelRevision,
+    now: UnixSeconds,
+) -> Result<(), Error> {
+    txn.push(Statement::with_params(
+        "INSERT INTO memory (id)
+         SELECT ?2
+         WHERE NOT EXISTS (
+             SELECT 1 FROM memory
+             WHERE scope_id = ?1 AND id = ?2
+               AND status NOT IN ('erased', 'quarantined')
+         )",
+        vec![Value::from(scope_id), Value::from(memory_id.to_string())],
+    ));
+    stage_embedding(txn, scope_id, memory_id, model, now)
+}
+
 /// Stage one bounded, idempotent re-embedding pass for a target revision.
 ///
 /// The scheduler holds a scope-and-revision lease while it selects live
@@ -734,7 +766,7 @@ async fn reembed_under_lease(
             .id
             .parse::<MemoryId>()
             .map_err(|error| Error::Integrity(format!("stored memory id is invalid: {error}")))?;
-        stage_embedding(&mut txn, scope_id, memory_id, model, now)?;
+        stage_live_embedding(&mut txn, scope_id, memory_id, model, now)?;
         last = Some(memory_id);
         selected = selected.saturating_add(1);
     }
@@ -742,7 +774,7 @@ async fn reembed_under_lease(
         0
     } else {
         let results = store.txn(txn.into_statements()).await?;
-        let expected = selected.saturating_mul(2);
+        let expected = selected.saturating_mul(3);
         if results.len() != expected {
             return Err(Error::Integrity(format!(
                 "embedding staging returned {} results for {selected} memories",
@@ -750,7 +782,7 @@ async fn reembed_under_lease(
             )));
         }
         let mut staged = 0_u32;
-        for result in results.iter().skip(1).step_by(2) {
+        for result in results.iter().skip(2).step_by(3) {
             match result.rows_affected {
                 0 => {}
                 1 => staged = staged.saturating_add(1),
