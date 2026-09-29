@@ -875,8 +875,14 @@ async fn terminal_memory_work_stays_recoverable_without_embedding() {
         let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
             .await
             .expect("health reads");
-        assert_eq!(health.dead, u64::from(state == "quarantined"));
+        assert_eq!(health.dead, 0);
+        assert_eq!(health.quarantined, u64::from(state == "quarantined"));
         if state == "quarantined" {
+            let preflight = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(3))
+                .await
+                .expect("quarantine preflight reads");
+            assert!(preflight.readiness_warning().is_none());
+            assert!(preflight.to_string().contains("quarantined=1"));
             let coverage = ModelRegistry::coverage(&store, "scope-a")
                 .await
                 .expect("coverage excludes quarantined memories");
@@ -1218,6 +1224,7 @@ async fn provider_failures_retry_then_reach_dead_letter_and_preflight_warns() {
         .await
         .expect("health reads");
     assert_eq!(health.dead, 1);
+    assert_eq!(health.quarantined, 0);
     let preflight = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(5))
         .await
         .expect("preflight reads");

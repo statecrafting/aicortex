@@ -215,7 +215,7 @@ configuration with a pinned digest rather than a spec-level commitment.
   those jobs to a terminal no-op, and preflight remains loud until that drain
   occurs.
 
-## Status (2026-09-28, in progress: runtime and chassis hooks required)
+## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,
 revision-partitioned durable worker, erasure integration and capture-staging
@@ -232,7 +232,8 @@ verbs (B-2, B-4, B-5, B-6, B-9). After the chassis preflight attempt releases
 its store, the application preflight reacquires the chassis cell gate before
 reporting the active revision, queue counts, and per-scope coverage. A held or
 refused gate reports embedding as skipped rather than opening the store around
-the chassis lock. Rahi 0.4.0 exposes queue counts globally but does not expose
+the chassis lock. Expected quarantine dead letters are reported separately
+from failed work and do not degrade readiness. Rahi 0.4.0 exposes queue counts globally but does not expose
 tenant-level queue counts or enqueue timestamps, so the report cannot yet provide a
 truthful per-scope oldest-pending age or register product collectors in the
 chassis `/metrics` registry (B-3). An inactive revision's queued work completes

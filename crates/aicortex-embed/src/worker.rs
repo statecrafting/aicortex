@@ -73,8 +73,10 @@ pub struct WorkerReport {
 pub struct QueueHealth {
     /// Pending, claimed, or retrying jobs.
     pub pending: u64,
-    /// Jobs that exhausted the configured attempt ceiling.
+    /// Failed jobs that exhausted the configured attempt ceiling.
     pub dead: u64,
+    /// Quarantined jobs retained for later governed admission.
+    pub quarantined: u64,
     /// Age in seconds of the oldest unfinished job.
     pub oldest_pending_age_seconds: Option<u64>,
 }
@@ -150,8 +152,8 @@ impl std::fmt::Display for EmbeddingDeployment<'_> {
         );
         write!(
             formatter,
-            "active={active} pending={} dead={} oldest_pending_seconds={oldest}",
-            self.0.queue.pending, self.0.queue.dead
+            "active={active} pending={} dead={} quarantined={} oldest_pending_seconds={oldest}",
+            self.0.queue.pending, self.0.queue.dead, self.0.queue.quarantined
         )?;
         if let Some(warning) = self.0.readiness_warning() {
             write!(formatter, " warning={warning}")?;
@@ -203,6 +205,11 @@ struct MemoryRow {
 #[derive(Debug, Deserialize)]
 struct MemoryIdRow {
     id: String,
+}
+
+#[derive(Debug, Deserialize)]
+struct QueueClassCount {
+    count: i64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -811,7 +818,9 @@ async fn reembed_under_lease(
 /// must not hide unfinished work in the prior revision's durable partition.
 /// The prior revision's worker drains that work to a terminal no-op; until it
 /// does, preflight continues to report the pending work as an operator-visible
-/// defect.
+/// defect. Quarantined work is retained in Rahi's dead-letter state for later
+/// governed admission, but is reported separately from failed work so a normal
+/// gate outcome does not degrade readiness.
 ///
 /// # Errors
 ///
@@ -835,9 +844,33 @@ pub async fn queue_health(
             .saturating_add(count.failed);
         dead = dead.saturating_add(count.dead);
     }
+    let rows: Vec<QueueClassCount> = store
+        .query_consistent(
+            "SELECT COUNT(*) AS count
+             FROM rahi_processing AS processing
+             JOIN rahi_processing_attempt AS attempt
+               ON attempt.key_digest = processing.key_digest
+              AND attempt.revision = processing.revision
+              AND attempt.processor = processing.processor
+              AND attempt.processor_revision = processing.processor_revision
+              AND attempt.attempt = processing.attempt
+             WHERE processing.state = 'dead'
+               AND processing.processor LIKE ?1
+               AND attempt.outcome = 'dead'
+               AND attempt.error_class = 'quarantined'",
+            vec![Value::from(format!("{EMBEDDING_PROCESSOR}.r%"))],
+        )
+        .await?;
+    let quarantined = rows.first().map_or(0, |row| row.count);
+    let quarantined = u64::try_from(quarantined)
+        .map_err(|_| Error::Integrity("quarantined embedding work count is negative".to_owned()))?;
+    dead = dead.checked_sub(quarantined).ok_or_else(|| {
+        Error::Integrity("quarantined embedding work exceeds the dead-letter count".to_owned())
+    })?;
     Ok(QueueHealth {
         pending,
         dead,
+        quarantined,
         oldest_pending_age_seconds: None,
     })
 }
