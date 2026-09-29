@@ -32,7 +32,6 @@ extends:
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/lifecycle.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/common/mod.rs", nature: additive }
-  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/schema.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/repo.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/erasure.rs", nature: additive }
@@ -232,11 +231,12 @@ The current application has no first-activation wiring, so capture does not
 yet stage embedding work. The storage and durable-work contracts are
 implemented and tested without regressing the existing capture path.
 
-FR-001, FR-002, FR-003, and FR-007 have direct tests. FR-004, FR-005, and
-FR-006 remain open: there is no booted local-provider socket probe, denied-host
-application preflight fixture, or query predicate until the runtime wiring and
-spec 016 recall implementation exist. These are recorded as open requirements,
-not inferred from lower-level unit tests.
+FR-002, FR-003, and FR-007 have direct tests. FR-001, FR-004, FR-005, and
+FR-006 remain open: capture does not stage the job yet, and there is no booted
+local-provider socket probe, denied-host application preflight fixture, or
+query predicate until the runtime wiring and spec 016 recall implementation
+exist. These are recorded as open requirements, not inferred from lower-level
+unit tests.
 
 ## Verification
 

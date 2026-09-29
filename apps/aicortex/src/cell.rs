@@ -125,6 +125,24 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
         println!("embedding: unavailable until migrate");
         return Ok(());
     }
+    let deployment = aicortex_embed::EmbeddingPreflight::read(&handle, "", now).await?;
+    let active = deployment.active.as_ref().map_or_else(
+        || "none".to_owned(),
+        |model| format!("{}@{}", model.model_id.as_str(), model.revision),
+    );
+    let oldest = deployment
+        .queue
+        .oldest_pending_age_seconds
+        .map_or_else(|| "none".to_owned(), |age| age.to_string());
+    print!(
+        "embedding: deployment active={active} pending={} dead={} oldest_pending_seconds={oldest}",
+        deployment.queue.pending, deployment.queue.dead
+    );
+    if let Some(warning) = deployment.readiness_warning() {
+        print!(" warning={warning}");
+    }
+    println!();
+
     const PAGE: i64 = 100;
     let mut after = String::new();
     let mut reported = false;
@@ -141,7 +159,11 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
         for scope in &scopes {
             let report =
                 aicortex_embed::EmbeddingPreflight::read(&handle, &scope.scope_id, now).await?;
-            println!("embedding: scope={} {report}", scope.scope_id);
+            println!(
+                "embedding: scope={} coverage=[{}]",
+                scope.scope_id,
+                format_coverage(&report.coverage)
+            );
             reported = true;
         }
         after = scopes
@@ -153,10 +175,20 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
         }
     }
     if !reported {
-        let report = aicortex_embed::EmbeddingPreflight::read(&handle, "", now).await?;
-        println!("embedding: scope=none {report}");
+        println!(
+            "embedding: scope=none coverage=[{}]",
+            format_coverage(&deployment.coverage)
+        );
     }
     Ok(())
+}
+
+fn format_coverage(coverage: &[aicortex_embed::Coverage]) -> String {
+    coverage
+        .iter()
+        .map(|item| format!("{}:{}/{}", item.revision, item.embedded, item.total))
+        .collect::<Vec<_>>()
+        .join(",")
 }
 
 fn unix_now() -> u64 {

@@ -125,10 +125,6 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-store/tests/schema.rs",
-        "source": "spec-edge"
-      },
-      {
         "path": "fixtures/external-host",
         "source": "spec-edge"
       }
@@ -514,19 +510,6 @@
       {
         "locations": [
           {
-            "file": "crates/aicortex-store/tests/schema.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-store/tests/schema.rs"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "Cargo.toml",
             "span": {
               "endLine": 109,
@@ -560,5 +543,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "6503a110a921233b5c88db7e3893e1959afa0f2d18812be41d0bb2254c06aeb5"
+  "shardHash": "b467da21c84c156e9218f7c9d7ed5ab3f57cae16d96eda28e916b2fe05a0477b"
 }

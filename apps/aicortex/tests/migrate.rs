@@ -88,11 +88,10 @@ fn spec015_ac2_preflight_reports_embedding_state() -> Outcome {
     let stdout = String::from_utf8(output.stdout).map_err(|error| error.to_string())?;
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
-        stdout.contains("embedding: scope=none active=test-local@1"),
+        stdout.contains("embedding: deployment active=test-local@1 pending=0 dead=0"),
         "embedding state was not reported\nstdout: {stdout}\nstderr: {stderr}"
     );
-    assert!(stdout.contains("pending=0 dead=0"));
-    assert!(stdout.contains("coverage=[1:0/0]"));
+    assert!(stdout.contains("embedding: scope=none coverage=[1:0/0]"));
     Ok(())
 }
 
@@ -113,6 +112,16 @@ fn spec015_preflight_reports_unmigrated_embedding_schema_without_querying_it() -
         stdout.contains("embedding: unavailable until migrate"),
         "embedding migration state was not reported\nstdout: {stdout}\nstderr: {}",
         String::from_utf8_lossy(&output.stderr)
+    );
+
+    let invalid = command("preflight", data_dir.path(), ports)
+        .arg("--help")
+        .output()
+        .map_err(|error| error.to_string())?;
+    assert_eq!(invalid.status.code(), Some(1));
+    assert!(
+        !String::from_utf8_lossy(&invalid.stdout).contains("embedding:"),
+        "an invalid preflight invocation must not open the embedding store"
     );
     Ok(())
 }

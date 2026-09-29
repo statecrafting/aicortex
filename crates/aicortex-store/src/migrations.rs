@@ -489,7 +489,9 @@ pub fn migrations() -> &'static [Migration] {
 
 static LIST: std::sync::LazyLock<[Migration; 9]> = std::sync::LazyLock::new(|| {
     [
-        // Migrations through version 9 are additive (spec 046 B-2, D-2).
+        // Creation-only migrations are additive (spec 046 B-2, D-2). Version
+        // 7 below is deliberately not additive. The declaration is not part
+        // of the SQL, so it does not change the recorded checksum (046 B-3).
         rahi_store::coordination_migration(COORDINATION_VERSION).additive(),
         Migration::new(
             MEMORY_TABLES_VERSION,
