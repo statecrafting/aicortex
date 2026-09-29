@@ -66,6 +66,8 @@ pub struct WorkerReport {
     pub failed: u64,
     /// Claims moved to the dead letter.
     pub dead: u64,
+    /// Claims retained as quarantined work for later governed admission.
+    pub quarantined: u64,
 }
 
 /// Queue state surfaced by preflight and metrics.
@@ -334,7 +336,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                             Err(Error::Conflict(_)) => continue,
                             Err(error) => return Err(error),
                         }
-                        report.dead = report.dead.saturating_add(1);
+                        report.quarantined = report.quarantined.saturating_add(1);
                     }
                     Err(ProcessError::Item { error, claim }) => {
                         match self
@@ -539,10 +541,13 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             ));
         }
         Work::complete(&mut txn, &claim, now);
-        store
-            .txn(txn.into_statements())
-            .await
-            .map_err(ProcessError::Infrastructure)?;
+        store.txn(txn.into_statements()).await.map_err(|error| {
+            if matches!(error, Error::Conflict(_)) {
+                ProcessError::Infrastructure(error)
+            } else {
+                ProcessError::item(error, &claim)
+            }
+        })?;
         Ok(ProcessOutcome::Completed)
     }
 

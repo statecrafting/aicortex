@@ -214,6 +214,15 @@ configuration with a pinned digest rather than a spec-level commitment.
   revision must not hide the prior partition: its revision-bound worker drains
   those jobs to a terminal no-op, and preflight remains loud until that drain
   occurs.
+- **D-11 (2026-09-29, implementation).** Migration 9 is non-additive because
+  an older binary cannot erase the chunk, vector, or embedding-queue rows it
+  does not know about. Rollback across this schema version must therefore be
+  refused.
+- **D-12 (2026-09-29, implementation).** A failed per-item derivative commit
+  consumes the durable work retry budget unless it is a claim conflict. This
+  keeps deterministic store-limit failures from blocking the rest of a batch.
+- **D-13 (2026-09-29, implementation).** Worker reports count quarantined work
+  separately from exhausted failures, matching queue health and readiness.
 
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 

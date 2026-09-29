@@ -457,7 +457,7 @@ const ERASURE_JOURNAL_TABLE: &str = "CREATE TABLE IF NOT EXISTS erasure_journal 
     PRIMARY KEY (scope_id, batch)
 )";
 
-/// Spec 015's additive embedding schema migration.
+/// Spec 015's embedding schema migration.
 ///
 /// It is constructed here to preserve the downward-only crate dependency
 /// graph while spec 015 extends this list.
@@ -468,7 +468,6 @@ pub fn embedding_migration() -> Migration {
         "embedding models, chunks, and vectors",
         EMBEDDING_TABLES,
     )
-    .additive()
 }
 
 /// The migrations, in version order (B-1).
@@ -588,6 +587,10 @@ static LIST: std::sync::LazyLock<[Migration; 9]> = std::sync::LazyLock::new(|| {
             CLAIM_HISTORY_TABLES,
         )
         .additive(),
+        // Not declared additive: an older binary does not know that erasure
+        // must remove chunk, embedding, and embedding-queue rows. Allowing a
+        // rollback across this version could retain derivatives of erased
+        // content.
         embedding_migration(),
     ]
 });

@@ -51,6 +51,9 @@ struct TestProvider {
 #[derive(Clone, Copy, Debug)]
 struct OtherProvider;
 
+#[derive(Clone, Copy, Debug)]
+struct OversizedProvider;
+
 #[derive(Clone, Debug)]
 struct ErasingProvider {
     store: StoreHandle,
@@ -132,6 +135,27 @@ impl EmbeddingProvider for OtherProvider {
 
     async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
         batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
+    }
+}
+
+impl EmbeddingProvider for OversizedProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("oversized-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        u16::MAX
+    }
+
+    fn normalized(&self) -> bool {
+        false
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        batch
+            .iter()
+            .map(|_| Vector::new(vec![0.0; usize::from(u16::MAX)]))
+            .collect()
     }
 }
 
@@ -370,7 +394,7 @@ fn migration_has_exact_tables_and_follows_existing_versions() {
             .sql
             .contains("PRIMARY KEY (scope_id, memory_id, model_revision")
     );
-    assert!(migration.additive);
+    assert!(!migration.additive);
 }
 
 #[test]
@@ -908,9 +932,15 @@ async fn terminal_memory_work_stays_recoverable_without_embedding() {
             .await
             .expect("terminal work drains");
         if state == "quarantined" {
-            assert_eq!((report.completed, report.dead), (0, 1));
+            assert_eq!(
+                (report.completed, report.dead, report.quarantined),
+                (0, 0, 1)
+            );
         } else {
-            assert_eq!((report.completed, report.dead), (1, 0));
+            assert_eq!(
+                (report.completed, report.dead, report.quarantined),
+                (1, 0, 0)
+            );
         }
         assert_eq!(
             count(
@@ -975,6 +1005,77 @@ async fn terminal_memory_work_stays_recoverable_without_embedding() {
         }
         fixture.shutdown().await;
     }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn oversized_commit_is_recorded_as_an_item_failure() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = ModelRevision {
+        model_id: ModelId::new("oversized-model").expect("model id"),
+        revision: 1,
+        dims: u16::MAX,
+        normalized: false,
+        first_seen: UnixSeconds::new(1),
+        active: true,
+    };
+    activate(&store, &model).await;
+    let memory = test_memory(
+        "alice",
+        "This body is deliberately split into enough chunks to exceed the store entry bound.",
+        2,
+    );
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    let embedding_worker = EmbeddingWorker::new(
+        OversizedProvider,
+        model,
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 16,
+            target_bytes: 8,
+            overlap_bytes: 0,
+            max_chunks_per_memory: 32,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 1,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 2,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "oversized-worker",
+    )
+    .expect("worker config");
+
+    let report = embedding_worker
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("oversized item failure is recorded without aborting the drain");
+    assert_eq!((report.claimed, report.completed), (1, 0));
+    assert_eq!((report.failed, report.dead, report.quarantined), (1, 0, 0));
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        0
+    );
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("failed item remains visible");
+    assert_eq!((health.pending, health.dead, health.quarantined), (1, 0, 0));
+    fixture.shutdown().await;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
