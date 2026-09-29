@@ -228,15 +228,6 @@ configuration with a pinned digest rather than a spec-level commitment.
   payloads above 1 MiB before opening the derivative transaction. This leaves
   headroom below the pinned engine's 2 MiB WAL ceiling, so the queue can record
   a retry instead of submitting an entry the store cannot accept.
-- **D-15 (2026-09-29, implementation).** The pinned chassis has no product
-  preflight extension hook. Until Rahi provides one, the binary recognizes only
-  the chassis-parsed `preflight` verb, lets `rahi_cli::run_with` own the chassis
-  attempt and exit code, then runs the product embedding report only after a
-  successful chassis result. This temporarily extends spec 010 B-3's one-call
-  binary and B-6's inherited exit-code path without adding a new exit-code
-  meaning. The application wrapper must be removed when the chassis exposes a
-  preflight extension hook; no other verb may use this stopgap.
-
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,
@@ -250,15 +241,14 @@ history, so an in-flight stale worker cannot recreate vectors after erasure.
 The spec is not complete. `aicortex serve` still lacks provider configuration,
 a concrete local inference engine, first-activation and model-change wiring,
 the managed background-worker lifecycle, and the re-embed and drop operator
-verbs (B-2, B-4, B-5, B-6, B-9). After the chassis preflight attempt releases
-its store, the application preflight reacquires the chassis cell gate before
-reporting the active revision, queue counts, and per-scope coverage. A held or
-refused gate reports embedding as skipped rather than opening the store around
-the chassis lock. Expected quarantine dead letters are reported separately
-from failed work and do not degrade readiness. Rahi 0.4.0 exposes queue counts globally but does not expose
-tenant-level queue counts or enqueue timestamps, so the report cannot yet provide a
-truthful per-scope oldest-pending age or register product collectors in the
-chassis `/metrics` registry (B-3). An inactive revision's queued work completes
+verbs (B-2, B-4, B-5, B-6, B-9). The product preflight report can read the
+active revision, deployment-wide queue counts and oldest-pending age, and
+per-scope coverage, but the pinned chassis has no product preflight extension
+hook through which to invoke it without violating spec 010 B-3 and B-6. Rahi
+0.4.0 also does not expose tenant-level queue counts or a product collector
+hook in the chassis `/metrics` registry (B-3). Expected quarantine dead letters
+are reported separately from failed work and do not degrade readiness. An
+inactive revision's queued work completes
 as a terminal no-op, so a scope-local drop does not consult the chassis's
 deployment-global queue counts.
 

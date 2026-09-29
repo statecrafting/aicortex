@@ -1506,11 +1506,7 @@ async fn a_worker_never_relabels_work_from_another_model_revision() {
     let preflight = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(3))
         .await
         .expect("preflight reads");
-    assert!(
-        preflight
-            .to_string()
-            .contains("oldest_pending_seconds=unknown")
-    );
+    assert!(preflight.to_string().contains("oldest_pending_seconds=1"));
     let matching = worker_for_model(TestProvider { fail: false }, model, "new-worker", 3)
         .drain(&store, UnixSeconds::new(3))
         .await
@@ -1703,6 +1699,26 @@ async fn queue_health_excludes_foreign_namespaces_and_non_revision_processors() 
         .await
         .expect("queue health reads");
     assert_eq!(health, Default::default());
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn preflight_warns_when_live_memory_has_no_active_model() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let memory = test_memory("alice", "Unembedded memory must stay visible.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+
+    let preflight = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("preflight reads without a model");
+    assert_eq!(preflight.live_memories, 1);
+    assert!(preflight.coverage.is_empty());
+    assert_eq!(
+        preflight.readiness_warning(),
+        Some("live memories have no active embedding model")
+    );
+    assert!(preflight.to_string().contains("live=1 coverage=[]"));
     fixture.shutdown().await;
 }
 

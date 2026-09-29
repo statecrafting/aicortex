@@ -83,6 +83,11 @@ struct CoverageRow {
     total: i64,
 }
 
+#[derive(Debug, Deserialize)]
+struct LiveTotalRow {
+    total: i64,
+}
+
 impl ModelRegistry {
     /// Stage activation atomically.
     ///
@@ -174,6 +179,27 @@ impl ModelRegistry {
             )
             .await?;
         rows.into_iter().map(coverage_from_row).collect()
+    }
+
+    /// Count live memories eligible for embedding, even before a model exists.
+    ///
+    /// # Errors
+    ///
+    /// Store errors or a negative count in a corrupted row.
+    pub async fn live_total(store: &StoreHandle, scope_id: &str) -> Result<u64, Error> {
+        let rows: Vec<LiveTotalRow> = store
+            .query(
+                "SELECT COUNT(*) AS total FROM memory
+                 WHERE scope_id = ?1
+                   AND status NOT IN ('erased', 'quarantined')",
+                vec![Value::from(scope_id)],
+            )
+            .await?;
+        let row = rows.first().ok_or_else(|| {
+            Error::Integrity("live memory count query returned no aggregate row".to_owned())
+        })?;
+        u64::try_from(row.total)
+            .map_err(|_| Error::Integrity("live memory count is negative".to_owned()))
     }
 
     /// Remove one inactive revision only after active coverage is complete.

@@ -223,15 +223,15 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "015-embeddings": "beec7c0bd0a83674c46ab21637d49c4a647de196e16614521ce3277ca3248c7c",
+      "015-embeddings": "31a812f303a7961eaff883b8ac2dd2ca58c9915795342ed52eb4d4342c8f5c8b",
       "1-purpose": "989657e0577a8e2d9da98f01af2692c9052a15b3be44b37bd4856fe66c05b645",
       "2-territory": "1f87b980d6cb3e4841b5f8402b64554de408c3bda323993bf277f75f08746b6d",
       "3-behavior": "5b20884b05fe1cb41564e3f41324e67d04018c84122b6a755b5e0bb111ead96a",
       "4-functional-requirements": "85c189fb3d80eb4a846d97423be27c456a8f36893a908d113a60328a257149bf",
       "5-acceptance-criteria": "c1dad44487d828931a2bf2fab0ade9d09db19bca2bfa9cc079e33bbc7eaa940f",
       "6-out-of-scope": "f984716657ec4f21f2549f82f68c8506bec498f2a29466a21d3fd2fc2bf59951",
-      "7-resolved-decisions": "2bf00430c637988fce7d0c8a1b1ed79f895b24e530c0a86ac546c882c6659fb3",
-      "status-2026-09-29-in-progress-runtime-and-chassis-hooks-required": "553caf1508176f6004e9eb78ad349cd62b0be969b235137141c5b849a9389b83",
+      "7-resolved-decisions": "4e64d490548ecbc92ca4e8ebb02c9f57a3ec2ac5fb0549a3d565eeb456234718",
+      "status-2026-09-29-in-progress-runtime-and-chassis-hooks-required": "df0835cb12002812087b0a20c00afde9950d2afeed278cf42dd88358f7b3dfc9",
       "verification": "2abba5665f1683eb8359a7677a18fa075b5c21059a8dce252165d430515097f2"
     },
     "sectionHeadings": [
@@ -251,6 +251,6 @@
     "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
-  "shardHash": "c687e01907eb250d5278ceefe934abcf2ced570061c8fec224546bc68b4bb729",
+  "shardHash": "962231f8925cec3daa7b1bba080b02fb3338c7e2e17468d6c2b5c561c52ea30e",
   "specVersion": "1.8.0"
 }

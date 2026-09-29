@@ -67,14 +67,13 @@ struct ScopeRow {
     scope_id: String,
 }
 
-/// Append embedding state to the chassis preflight report.
+/// Produce embedding state for a future chassis preflight extension hook.
 ///
-/// This runs after the chassis preflight attempt and reacquires the chassis
-/// cell gate before opening the store. If another process owns that gate, the
-/// embedding check reports the skip as a failed preflight instead of bypassing
-/// it. Otherwise it reports a bounded set of scopes separately and leaves the
-/// process-wide model identity visible even when the deployment contains no
-/// scopes yet.
+/// The pinned chassis does not yet expose such a hook, so the binary does not
+/// call this function. A future hook must run only after the chassis preflight
+/// succeeds. This function then takes the chassis cell gate before opening the
+/// store, reports a bounded set of scopes, and leaves the process-wide model
+/// identity visible even when the deployment contains no scopes yet.
 #[must_use]
 pub fn embedding_preflight(env: &dyn EnvReader) -> i32 {
     let runtime = match tokio::runtime::Builder::new_current_thread()
@@ -142,15 +141,18 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
         .await?;
     for scope in scopes.iter().take(MAX_REPORTED_SCOPES) {
         let coverage = aicortex_embed::ModelRegistry::coverage(&handle, &scope.scope_id).await?;
+        let total = aicortex_embed::ModelRegistry::live_total(&handle, &scope.scope_id).await?;
         println!(
-            "embedding: scope={} coverage=[{}]",
+            "embedding: scope={} total={} coverage=[{}]",
             scope.scope_id,
+            total,
             format_coverage(&coverage)
         );
     }
     if scopes.is_empty() {
         println!(
-            "embedding: scope=none coverage=[{}]",
+            "embedding: scope=none total={} coverage=[{}]",
+            deployment.live_memories,
             format_coverage(&deployment.coverage)
         );
     } else if scopes.len() > MAX_REPORTED_SCOPES {

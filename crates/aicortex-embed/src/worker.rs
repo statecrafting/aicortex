@@ -96,6 +96,8 @@ pub struct EmbeddingPreflight {
     pub queue: QueueHealth,
     /// Live-memory coverage for each known revision in this scope.
     pub coverage: Vec<Coverage>,
+    /// Live memories in this scope, including when no model is registered.
+    pub live_memories: u64,
 }
 
 /// Deployment-wide embedding state without scope-specific coverage.
@@ -120,14 +122,25 @@ impl EmbeddingPreflight {
             active: ModelRegistry::active(store).await?,
             queue: queue_health(store, scope_id, now).await?,
             coverage: ModelRegistry::coverage(store, scope_id).await?,
+            live_memories: ModelRegistry::live_total(store, scope_id).await?,
         })
     }
 
     /// Warning text when dead embedding work makes readiness degraded.
     #[must_use]
-    pub const fn readiness_warning(&self) -> Option<&'static str> {
+    pub fn readiness_warning(&self) -> Option<&'static str> {
         if self.queue.dead > 0 {
             Some("dead embedding work requires operator attention")
+        } else if self.live_memories > 0 && self.active.is_none() {
+            Some("live memories have no active embedding model")
+        } else if let Some(active) = &self.active
+            && self
+                .coverage
+                .iter()
+                .find(|coverage| coverage.revision == active.revision)
+                .is_none_or(|coverage| coverage.embedded < self.live_memories)
+        {
+            Some("active embedding coverage is incomplete")
         } else {
             None
         }
@@ -176,7 +189,12 @@ impl std::fmt::Display for EmbeddingPreflight {
             .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(",");
-        write!(formatter, "{} coverage=[{coverage}]", self.deployment())
+        write!(
+            formatter,
+            "{} live={} coverage=[{coverage}]",
+            self.deployment(),
+            self.live_memories
+        )
     }
 }
 
@@ -218,6 +236,7 @@ struct QueueHealthRow {
     pending: i64,
     dead: i64,
     quarantined: i64,
+    oldest_pending_created_at: Option<i64>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -917,9 +936,9 @@ async fn reembed_under_lease(
 
 /// Read the global queue values required by preflight and metrics.
 ///
-/// Rahi 0.4 exposes processor-level counts but not tenant-level counts or
-/// enqueue timestamps. The scope and clock remain in this API so callers do
-/// not need another compatibility break when the chassis adds those reads.
+/// Rahi 0.4 exposes deployment-level processing rows but not a tenant-level
+/// queue aggregate. The scope remains in this API so callers do not need
+/// another compatibility break when the chassis adds that read.
 /// Counts deliberately include every model revision: activating a replacement
 /// must not hide unfinished work in the prior revision's durable partition.
 /// The prior revision's worker drains that work to a terminal no-op; until it
@@ -934,7 +953,7 @@ async fn reembed_under_lease(
 pub async fn queue_health(
     store: &StoreHandle,
     _scope_id: &str,
-    _now: UnixSeconds,
+    now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {
     let rows: Vec<QueueHealthRow> = store
         .query_consistent(
@@ -956,7 +975,11 @@ pub async fn queue_health(
                   AND attempt.error_class = 'quarantined'
                   AND memory.status = 'quarantined' THEN 1
                  ELSE 0
-               END), 0) AS quarantined
+               END), 0) AS quarantined,
+               MIN(CASE
+                 WHEN processing.state IN ('pending', 'claimed', 'failed')
+                 THEN processing.created_at
+               END) AS oldest_pending_created_at
              FROM rahi_processing AS processing
              LEFT JOIN rahi_processing_attempt AS attempt
                ON attempt.key_digest = processing.key_digest
@@ -991,11 +1014,17 @@ pub async fn queue_health(
         .map_err(|_| Error::Integrity("dead embedding work count is negative".to_owned()))?;
     let quarantined = u64::try_from(row.quarantined)
         .map_err(|_| Error::Integrity("quarantined embedding work count is negative".to_owned()))?;
+    let oldest_pending_age_seconds = row
+        .oldest_pending_created_at
+        .map(u64::try_from)
+        .transpose()
+        .map_err(|_| Error::Integrity("embedding work creation time is negative".to_owned()))?
+        .map(|created_at| now.get().saturating_sub(created_at));
     Ok(QueueHealth {
         pending,
         dead,
         quarantined,
-        oldest_pending_age_seconds: None,
+        oldest_pending_age_seconds,
     })
 }
 
