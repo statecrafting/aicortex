@@ -961,8 +961,17 @@ pub async fn queue_health(
               AND attempt.attempt = processing.attempt
               AND attempt.outcome = 'dead'
              WHERE processing.state IN ('pending', 'claimed', 'failed', 'dead')
-               AND processing.processor LIKE ?1",
-            vec![Value::from(format!("{EMBEDDING_PROCESSOR}.r%"))],
+               AND processing.namespace = ?1
+               AND processing.processor GLOB ?2
+               AND substr(processing.processor, ?3) NOT GLOB '*[^0-9]*'",
+            vec![
+                Value::from(EMBEDDING_NAMESPACE),
+                Value::from(format!("{EMBEDDING_PROCESSOR}.r[0-9]*")),
+                Value::Integer(
+                    i64::try_from(EMBEDDING_PROCESSOR.len() + 3)
+                        .map_err(|_| Error::Integrity("processor prefix is too long".to_owned()))?,
+                ),
+            ],
         )
         .await?;
     let row = rows.first().ok_or_else(|| {

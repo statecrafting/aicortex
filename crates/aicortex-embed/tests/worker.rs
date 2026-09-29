@@ -25,8 +25,9 @@ use aicortex_types::{
     Scope, SourceRef, SourceSystem, TrustClass,
 };
 use rahi_store::{
-    EncKey, EncKeys, EraseScope, ReceiptKey, Receipts, RetryPolicy, Statement, Store, StoreConfig,
-    StoreHandle, StoreSecrets, TxnBuilder, Value, Work, coordination_set, receipt_set,
+    EncKey, EncKeys, EraseScope, ProcessingKey, ReceiptKey, Receipts, RetryPolicy, Statement,
+    Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value, Work, coordination_set,
+    receipt_set,
 };
 use rahi_types::{Error, Sub, UnixSeconds};
 use ring::digest::{SHA256, digest};
@@ -1560,6 +1561,40 @@ async fn a_worker_never_claims_a_stored_revision_with_another_vector_layout() {
         .await
         .expect("queue health reads");
     assert_eq!((health.pending, health.dead), (1, 0));
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn queue_health_excludes_foreign_namespaces_and_non_revision_processors() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let mut txn = TxnBuilder::new();
+    for (namespace, processor, key) in [
+        ("foreign.memory", "embed.r1", "foreign"),
+        (
+            aicortex_store::EMBEDDING_NAMESPACE,
+            "embed.retry",
+            "nonnumeric",
+        ),
+        (
+            aicortex_store::EMBEDDING_NAMESPACE,
+            "embed.r1.extra",
+            "numeric-prefix",
+        ),
+    ] {
+        let receipt = ReceiptKey::new("scope-a", namespace, key).expect("receipt key");
+        let work = ProcessingKey::new(receipt, 1, processor, "test").expect("processing key");
+        Work::stage_work(&mut txn, &work, UnixSeconds::new(2));
+    }
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("unrelated work commits");
+
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("queue health reads");
+    assert_eq!(health, Default::default());
     fixture.shutdown().await;
 }
 
