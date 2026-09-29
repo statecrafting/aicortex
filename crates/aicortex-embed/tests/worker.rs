@@ -526,7 +526,7 @@ async fn claimed_work_stays_reportable_when_no_model_is_active() {
         .drain(&store, UnixSeconds::new(3))
         .await
         .expect("inactive work remains reportable");
-    assert_eq!(report.claimed, 1);
+    assert_eq!(report.claimed, 0);
     assert_eq!(report.completed, 0);
     assert_eq!(report.failed, 0);
     assert_eq!(
@@ -536,13 +536,35 @@ async fn claimed_work_stays_reportable_when_no_model_is_active() {
             vec![],
         )
         .await,
-        1
+        0
+    );
+    let repeated = worker(TestProvider { fail: false }, "inactive-worker", 2)
+        .drain(&store, UnixSeconds::new(10))
+        .await
+        .expect("repeated inactive drain preserves the retry budget");
+    assert_eq!(repeated.claimed, 0);
+    assert_eq!(
+        count(
+            &store,
+            "SELECT attempt AS count FROM rahi_processing LIMIT 1",
+            vec![],
+        )
+        .await,
+        0
     );
     let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
         .await
         .expect("queue health reads");
     assert_eq!(health.pending, 1);
     assert_eq!(health.dead, 0);
+
+    activate(&store, &model).await;
+    let first_failure = worker(TestProvider { fail: true }, "active-worker", 2)
+        .drain(&store, UnixSeconds::new(11))
+        .await
+        .expect("the first provider failure still has retry budget");
+    assert_eq!(first_failure.failed, 1);
+    assert_eq!(first_failure.dead, 0);
     fixture.shutdown().await;
 }
 

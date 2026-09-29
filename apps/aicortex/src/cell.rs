@@ -1,5 +1,5 @@
-//! The aicortex cell (spec 010 B-3): the manifest, the migrations, and the
-//! two routers the chassis mounts. Nothing else lives at this seam.
+//! The aicortex cell (spec 010 B-3): the manifest, migrations, and routers
+//! the chassis mounts, plus product checks that extend chassis operations.
 //!
 //! Later specs extend this file additively: a crate that owns schema adds
 //! its migrations to [`Cell::migrations`], and a surface crate merges its

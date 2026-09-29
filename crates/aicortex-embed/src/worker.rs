@@ -283,9 +283,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .lease(&format!("aicortex.embed.worker/{}", self.model.revision))
             .await?;
         let result = async {
-            if ModelRegistry::active(store).await?.is_some_and(|active| {
-                active.revision == self.model.revision && active.model_id != self.model.model_id
-            }) {
+            let Some(active) = ModelRegistry::active(store).await? else {
+                return Ok(WorkerReport::default());
+            };
+            if active.revision == self.model.revision && active.model_id != self.model.model_id {
                 return Ok(WorkerReport::default());
             }
             let claims = Work::next(

@@ -13,7 +13,8 @@ publish = false
 spec = "010-chassis-adoption-and-workspace"
 
 # The cell is the library root so that tests/cell.rs can hold `Aicortex` to
-# its declarations; the binary is the one line of B-3 (D-4).
+# its declarations. Spec 015 extends the binary and cell seam to append the
+# product's embedding report after the chassis preflight attempt.
 [lib]
 path = "src/cell.rs"
 
