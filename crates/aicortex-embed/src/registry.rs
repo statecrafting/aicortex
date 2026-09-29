@@ -101,7 +101,12 @@ impl ModelRegistry {
         txn.push(Statement::with_params(
             "INSERT INTO embedding_model
              (model_id, revision, dims, normalized, first_seen, active)
-             VALUES (?1, ?2, ?3, ?4, ?5, 1)
+             VALUES (
+               ?1, ?2, ?3, ?4, ?5,
+               CASE WHEN EXISTS (
+                 SELECT 1 FROM embedding_model WHERE revision > ?2
+               ) THEN NULL ELSE 1 END
+             )
              ON CONFLICT(revision) DO UPDATE SET
                active = CASE
                  WHEN model_id = ?1 AND dims = ?3 AND normalized = ?4 THEN 1
@@ -241,6 +246,16 @@ impl ModelRegistry {
             )));
         }
         Ok(())
+    }
+}
+
+impl std::fmt::Display for Coverage {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            formatter,
+            "{}:{}/{}",
+            self.revision, self.embedded, self.total
+        )
     }
 }
 

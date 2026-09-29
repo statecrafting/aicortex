@@ -126,28 +126,7 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
         return Ok(());
     }
     let deployment = aicortex_embed::EmbeddingPreflight::read(&handle, "", now).await?;
-    let active = deployment.active.as_ref().map_or_else(
-        || "none".to_owned(),
-        |model| format!("{}@{}", model.model_id.as_str(), model.revision),
-    );
-    let oldest = deployment.queue.oldest_pending_age_seconds.map_or_else(
-        || {
-            if deployment.queue.pending == 0 {
-                "none".to_owned()
-            } else {
-                "unknown".to_owned()
-            }
-        },
-        |age| age.to_string(),
-    );
-    print!(
-        "embedding: deployment active={active} pending={} dead={} oldest_pending_seconds={oldest}",
-        deployment.queue.pending, deployment.queue.dead
-    );
-    if let Some(warning) = deployment.readiness_warning() {
-        print!(" warning={warning}");
-    }
-    println!();
+    println!("embedding: deployment {deployment}");
 
     const PAGE: i64 = 100;
     let mut after = String::new();
@@ -192,7 +171,7 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
 fn format_coverage(coverage: &[aicortex_embed::Coverage]) -> String {
     coverage
         .iter()
-        .map(|item| format!("{}:{}/{}", item.revision, item.embedded, item.total))
+        .map(ToString::to_string)
         .collect::<Vec<_>>()
         .join(",")
 }

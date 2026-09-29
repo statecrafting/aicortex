@@ -447,6 +447,39 @@ async fn activating_the_same_revision_preserves_its_first_seen_instant() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn an_inactive_newer_revision_prevents_reactivating_an_older_revision() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let original = test_model(true);
+    activate(&store, &original).await;
+    let replacement = ModelRevision {
+        revision: 2,
+        first_seen: UnixSeconds::new(2),
+        ..original.clone()
+    };
+    activate(&store, &replacement).await;
+    store
+        .execute("UPDATE embedding_model SET active = 0", vec![])
+        .await
+        .expect("newer model deactivates");
+
+    let mut txn = TxnBuilder::new();
+    ModelRegistry::activate(&mut txn, &original);
+    let error = store
+        .txn(txn.into_statements())
+        .await
+        .expect_err("an older revision cannot be reactivated");
+    assert!(error.message().contains("NOT NULL"));
+    assert!(
+        ModelRegistry::active(&store)
+            .await
+            .expect("active model reads")
+            .is_none()
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn claimed_work_stays_reportable_when_no_model_is_active() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();

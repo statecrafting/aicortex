@@ -140,7 +140,7 @@ impl std::fmt::Display for EmbeddingPreflight {
         let coverage = self
             .coverage
             .iter()
-            .map(|item| format!("{}:{}/{}", item.revision, item.embedded, item.total))
+            .map(ToString::to_string)
             .collect::<Vec<_>>()
             .join(",");
         write!(
