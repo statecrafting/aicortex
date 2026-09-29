@@ -223,9 +223,9 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "015-embeddings": "fcb70d2669f61f09a41f65411bfcde47e1facc289e7aa0b777aac6bc6326aade",
+      "015-embeddings": "a16668b3bdacef72847c22d5e5398fdefc26eceac46f1e4bf7b10b839451a244",
       "1-purpose": "989657e0577a8e2d9da98f01af2692c9052a15b3be44b37bd4856fe66c05b645",
-      "2-territory": "1f87b980d6cb3e4841b5f8402b64554de408c3bda323993bf277f75f08746b6d",
+      "2-territory": "3e7fe06fdba73bc7932506488a145407e78e2814d5f2f4bca838a7b04213df87",
       "3-behavior": "5b20884b05fe1cb41564e3f41324e67d04018c84122b6a755b5e0bb111ead96a",
       "4-functional-requirements": "85c189fb3d80eb4a846d97423be27c456a8f36893a908d113a60328a257149bf",
       "5-acceptance-criteria": "c1dad44487d828931a2bf2fab0ade9d09db19bca2bfa9cc079e33bbc7eaa940f",
@@ -251,6 +251,6 @@
     "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
-  "shardHash": "f17b677981ee3fd0db503dfb2a81804e5495cdc5b4698692ca315bbef93f4d74",
+  "shardHash": "1d1e0f2c03e5ca2212642bf50b8853eb4b35c4a9938335496ff4fcd874c0475c",
   "specVersion": "1.8.0"
 }

@@ -462,12 +462,12 @@ impl Eraser {
 
     /// The same, also sweeping `derivative`.
     ///
-    /// For a table this schema version does not carry yet: specs 015 and 016
-    /// move their [`PLANNED`] entries into [`DERIVATIVES`] when their
-    /// migrations land, and until then a caller that has created the table
-    /// itself registers it here. Registering a table that does not exist
-    /// fails the erasure rather than silently skipping it, which is the right
-    /// way round for an invariant that is frozen.
+    /// For a table this schema version does not carry yet: spec 016 moves its
+    /// [`PLANNED`] entry into [`DERIVATIVES`] when its migration lands, and
+    /// until then a caller that has created the table itself registers it
+    /// here. Registering a table that does not exist fails the erasure rather
+    /// than silently skipping it, which is the right way round for an
+    /// invariant that is frozen.
     #[must_use]
     pub fn also(mut self, derivative: Derivative) -> Self {
         if !self.derivatives.contains(&derivative) {

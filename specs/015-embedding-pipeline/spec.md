@@ -75,8 +75,8 @@ providers exist, are opt-in, and are visible in the manifest ceiling.
 ## 2. Territory
 
 The `aicortex-embed` crate and the `embedding`, `chunk`, and
-`embedding_model` tables. Extends 012's migration list and 010's manifest,
-which gains its first egress entry only when a remote provider is enabled.
+`embedding_model` tables. Extends 012's migration list. A remote provider
+requires a separately governed manifest egress grant before it can be enabled.
 
 ## 3. Behavior
 

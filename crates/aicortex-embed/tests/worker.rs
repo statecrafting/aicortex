@@ -680,6 +680,14 @@ async fn a_worker_never_relabels_work_from_another_model_revision() {
         .expect("queue health reads");
     assert_eq!(health.pending, 1);
     assert_eq!(health.dead, 0);
+    let preflight = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("preflight reads");
+    assert!(
+        preflight
+            .to_string()
+            .contains("oldest_pending_seconds=unknown")
+    );
     let matching = worker_for_model(TestProvider { fail: false }, model, "new-worker", 3)
         .drain(&store, UnixSeconds::new(3))
         .await
@@ -689,6 +697,61 @@ async fn a_worker_never_relabels_work_from_another_model_revision() {
         count(
             &store,
             "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        1
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn stale_revision_work_is_replaced_by_active_revision_work() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let old_model = test_model(true);
+    activate(&store, &old_model).await;
+    let memory = test_memory("alice", "A model switch must preserve work.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(
+        &mut txn,
+        "scope-a",
+        memory.id,
+        &old_model,
+        UnixSeconds::new(2),
+    )
+    .expect("old revision work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("old revision work commits");
+
+    let active_model = ModelRevision {
+        revision: 2,
+        first_seen: UnixSeconds::new(3),
+        ..test_model(true)
+    };
+    activate(&store, &active_model).await;
+    let old_report = worker(TestProvider { fail: false }, "old-worker", 3)
+        .drain(&store, UnixSeconds::new(4))
+        .await
+        .expect("old worker replaces stale work");
+    assert_eq!(old_report.completed, 1);
+    let active_report = worker_for_model(
+        TestProvider { fail: false },
+        active_model,
+        "active-worker",
+        3,
+    )
+    .drain(&store, UnixSeconds::new(5))
+    .await
+    .expect("active worker drains replacement");
+    assert_eq!(active_report.completed, 1);
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1 AND model_revision = 2",
             vec![Value::from(memory.id.to_string())],
         )
         .await,
@@ -848,6 +911,10 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
     ModelRegistry::drop_revision(&store, "scope-a", 1)
         .await
         .expect("scoped drop ignores another scope's queue");
+    let missing = ModelRegistry::drop_revision(&store, "scope-a", 99)
+        .await
+        .expect_err("an unknown revision cannot report a successful drop");
+    assert!(matches!(missing, Error::Conflict(_)));
     assert_eq!(
         count(
             &store,

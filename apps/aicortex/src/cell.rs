@@ -130,10 +130,16 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
         || "none".to_owned(),
         |model| format!("{}@{}", model.model_id.as_str(), model.revision),
     );
-    let oldest = deployment
-        .queue
-        .oldest_pending_age_seconds
-        .map_or_else(|| "none".to_owned(), |age| age.to_string());
+    let oldest = deployment.queue.oldest_pending_age_seconds.map_or_else(
+        || {
+            if deployment.queue.pending == 0 {
+                "none".to_owned()
+            } else {
+                "unknown".to_owned()
+            }
+        },
+        |age| age.to_string(),
+    );
     print!(
         "embedding: deployment active={active} pending={} dead={} oldest_pending_seconds={oldest}",
         deployment.queue.pending, deployment.queue.dead
@@ -157,12 +163,12 @@ async fn report_embeddings(store: &Store, now: UnixSeconds) -> Result<(), Error>
             break;
         }
         for scope in &scopes {
-            let report =
-                aicortex_embed::EmbeddingPreflight::read(&handle, &scope.scope_id, now).await?;
+            let coverage =
+                aicortex_embed::ModelRegistry::coverage(&handle, &scope.scope_id).await?;
             println!(
                 "embedding: scope={} coverage=[{}]",
                 scope.scope_id,
-                format_coverage(&report.coverage)
+                format_coverage(&coverage)
             );
             reported = true;
         }

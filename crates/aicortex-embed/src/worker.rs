@@ -124,10 +124,16 @@ impl std::fmt::Display for EmbeddingPreflight {
             || "none".to_owned(),
             |model| format!("{}@{}", model.model_id.as_str(), model.revision),
         );
-        let oldest = self
-            .queue
-            .oldest_pending_age_seconds
-            .map_or_else(|| "none".to_owned(), |age| age.to_string());
+        let oldest = self.queue.oldest_pending_age_seconds.map_or_else(
+            || {
+                if self.queue.pending == 0 {
+                    "none".to_owned()
+                } else {
+                    "unknown".to_owned()
+                }
+            },
+            |age| age.to_string(),
+        );
         let coverage = self
             .coverage
             .iter()
@@ -295,11 +301,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 self.model.revision
             )));
         }
-        if ModelRegistry::active(store)
-            .await?
-            .is_none_or(|active| active.revision != self.model.revision)
-        {
-            return self.complete_empty(store, claim, now).await;
+        match ModelRegistry::active(store).await? {
+            Some(active) if active.revision == self.model.revision => {}
+            Some(active) => return self.restage_active(store, claim, &active, now).await,
+            None => return self.complete_empty(store, claim, now).await,
         }
         let rows: Vec<MemoryRow> = store
             .query_consistent(
@@ -411,6 +416,32 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         now: UnixSeconds,
     ) -> Result<(), Error> {
         let mut txn = TxnBuilder::new();
+        Work::complete(&mut txn, claim, now);
+        store.txn(txn.into_statements()).await?;
+        Ok(())
+    }
+
+    async fn restage_active(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        active: &ModelRevision,
+        now: UnixSeconds,
+    ) -> Result<(), Error> {
+        let memory_id = claim.key.receipt.key.parse::<MemoryId>().map_err(|error| {
+            Error::Integrity(format!(
+                "embedding work memory id {} is invalid: {error}",
+                claim.key.receipt.key
+            ))
+        })?;
+        let mut txn = TxnBuilder::new();
+        stage_embedding(
+            &mut txn,
+            claim.key.receipt.tenant.as_str(),
+            memory_id,
+            active,
+            now,
+        )?;
         Work::complete(&mut txn, claim, now);
         store.txn(txn.into_statements()).await?;
         Ok(())

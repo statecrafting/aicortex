@@ -185,6 +185,20 @@ impl ModelRegistry {
             )));
         }
         let mut txn = TxnBuilder::new();
+        txn.push(Statement::with_params(
+            "UPDATE embedding_model SET revision = revision
+             WHERE revision = ?2 AND active = 0
+             AND NOT EXISTS (
+               SELECT 1 FROM memory m
+               WHERE m.scope_id = ?1 AND m.status <> 'erased'
+                 AND NOT EXISTS (
+                   SELECT 1 FROM embedding e
+                   WHERE e.scope_id = ?1 AND e.memory_id = m.id
+                     AND e.model_revision = (SELECT revision FROM embedding_model WHERE active = 1)
+                 )
+             )",
+            vec![Value::from(scope_id), Value::Integer(i64::from(revision))],
+        ));
         for sql in [
             "DELETE FROM embedding WHERE scope_id = ?1 AND model_revision = ?2
              AND EXISTS (SELECT 1 FROM embedding_model
@@ -216,7 +230,15 @@ impl ModelRegistry {
                 vec![Value::from(scope_id), Value::Integer(i64::from(revision))],
             ));
         }
-        store.txn(txn.into_statements()).await?;
+        let results = store.txn(txn.into_statements()).await?;
+        if results
+            .first()
+            .is_none_or(|result| result.rows_affected != 1)
+        {
+            return Err(Error::Conflict(format!(
+                "embedding revision {revision} is not inactive or active coverage changed"
+            )));
+        }
         Ok(())
     }
 }
