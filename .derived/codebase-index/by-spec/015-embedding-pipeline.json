@@ -105,6 +105,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/src/lifecycle.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/memory_repo.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
       },
@@ -122,6 +130,10 @@
       },
       {
         "path": "crates/aicortex-store/tests/repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/schema.rs",
         "source": "spec-edge"
       },
       {
@@ -445,6 +457,32 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/lifecycle.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/src/migrations.rs"
           }
         ],
@@ -510,6 +548,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/tests/schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "Cargo.toml",
             "span": {
               "endLine": 115,
@@ -543,5 +594,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "94343672273695f47790bafd1bd96446b8467e2913aef93a17cff79a9140ec03"
+  "shardHash": "f793dc0ea6b632f95e66f9b7e5cc1a831e015aa4092d728492cefe54d8eaf619"
 }
