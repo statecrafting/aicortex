@@ -73,10 +73,14 @@ pub const KIND_ERASE_SCOPE: &str = "memory.erase_scope";
 /// can commit without a long stall on every other writer of the scope.
 pub const MAX_ERASURE_BATCH: u32 = 500;
 
-// Accounting adds statements to each row's sweep. Keep the current sweep
-// below the pinned engine's 2 MiB WAL entry ceiling even when the caller's
-// row ceiling is 500. This is a row bound, not a lease timing assumption.
-const MAX_ACCOUNTED_BATCH: u32 = 200;
+/// Maximum rows committed by one fully accounted erasure transaction.
+///
+/// Accounting adds statements to each row's sweep. Keep the current sweep
+/// below the pinned engine's 2 MiB WAL entry ceiling even when the caller's
+/// row ceiling is 500. The 5,000-row integration test exercises full batches
+/// with receipt and derivative cleanup enabled. This is a row bound, not a
+/// lease timing assumption.
+pub const MAX_ACCOUNTED_ERASURE_BATCH: u32 = 200;
 
 /// The source system a tombstone's stripped provenance names.
 const ERASED: &str = "erased";
@@ -836,7 +840,7 @@ impl Eraser {
                 BATCH_SQL,
                 vec![
                     Value::from(&scope_id),
-                    Value::Integer(i64::from(batch.min(MAX_ACCOUNTED_BATCH))),
+                    Value::Integer(i64::from(batch.min(MAX_ACCOUNTED_ERASURE_BATCH))),
                 ],
             )
             .await?;

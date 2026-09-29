@@ -96,7 +96,8 @@ pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
 pub use erasure::{
     Authority, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE, KIND_ERASE_SCOPE,
-    MAX_ERASURE_BATCH, PLANNED, PreparedErasure, ScopeErased, erasure_lease_key,
+    MAX_ACCOUNTED_ERASURE_BATCH, MAX_ERASURE_BATCH, PLANNED, PreparedErasure, ScopeErased,
+    erasure_lease_key,
 };
 pub use host::{
     AICORTEX_MIGRATION_SET_NAME, AuthorizedPredicateRegistration, OperatorPredicateConfig,

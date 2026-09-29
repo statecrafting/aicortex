@@ -1,6 +1,8 @@
 //! Local inference and verified model artifacts.
 
+use std::any::type_name;
 use std::ffi::{OsStr, OsString};
+use std::fmt;
 use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
 use std::sync::Arc;
@@ -78,31 +80,37 @@ impl WeightArtifact {
     /// [`Error::Io`] when the file cannot be read; [`Error::Integrity`] when
     /// its digest differs from the pin.
     pub fn verify(&self) -> Result<(), Error> {
-        self.read_verified_path(&self.path).map(|_| ())
+        self.verify_path(&self.path)
+    }
+
+    fn verify_path(&self, path: &Path) -> Result<(), Error> {
+        let mut file = self.open_bounded(path)?;
+        let mut context = Context::new(&SHA256);
+        let mut total = 0_usize;
+        let mut buffer = [0_u8; 64 * 1024];
+        loop {
+            let read = read_artifact(&mut file, path, &mut buffer)?;
+            if read == 0 {
+                break;
+            }
+            let chunk = buffer.get(..read).ok_or_else(|| {
+                Error::Integrity("artifact read exceeded its fixed buffer".to_owned())
+            })?;
+            total = total.checked_add(read).ok_or_else(|| too_large(path))?;
+            if total > MAX_WEIGHT_BYTES {
+                return Err(too_large(path));
+            }
+            context.update(chunk);
+        }
+        self.check_digest(path, context)
     }
 
     fn read_verified_path(&self, path: &Path) -> Result<Vec<u8>, Error> {
-        let mut file = std::fs::File::open(path).map_err(|error| {
-            Error::Io(format!(
-                "cannot read model artifact {}: {error}",
-                path.display()
-            ))
-        })?;
+        let mut file = self.open_bounded(path)?;
         let size = file
             .metadata()
-            .map_err(|error| {
-                Error::Io(format!(
-                    "cannot inspect model artifact {}: {error}",
-                    path.display()
-                ))
-            })?
+            .map_err(|error| inspect_error(path, error))?
             .len();
-        if size > MAX_WEIGHT_BYTES as u64 {
-            return Err(Error::Integrity(format!(
-                "model artifact {} exceeds the {MAX_WEIGHT_BYTES}-byte limit",
-                path.display()
-            )));
-        }
         let mut context = Context::new(&SHA256);
         let mut bytes = Vec::with_capacity(usize::try_from(size).map_err(|_| {
             Error::Integrity(format!(
@@ -112,12 +120,7 @@ impl WeightArtifact {
         })?);
         let mut buffer = [0_u8; 64 * 1024];
         loop {
-            let read = file.read(&mut buffer).map_err(|error| {
-                Error::Io(format!(
-                    "cannot read model artifact {}: {error}",
-                    path.display()
-                ))
-            })?;
+            let read = read_artifact(&mut file, path, &mut buffer)?;
             if read == 0 {
                 break;
             }
@@ -127,12 +130,31 @@ impl WeightArtifact {
             context.update(chunk);
             bytes.extend_from_slice(chunk);
             if bytes.len() > MAX_WEIGHT_BYTES {
-                return Err(Error::Integrity(format!(
-                    "model artifact {} exceeds the {MAX_WEIGHT_BYTES}-byte limit",
-                    path.display()
-                )));
+                return Err(too_large(path));
             }
         }
+        self.check_digest(path, context)?;
+        Ok(bytes)
+    }
+
+    fn open_bounded(&self, path: &Path) -> Result<std::fs::File, Error> {
+        let file = std::fs::File::open(path).map_err(|error| {
+            Error::Io(format!(
+                "cannot read model artifact {}: {error}",
+                path.display()
+            ))
+        })?;
+        let size = file
+            .metadata()
+            .map_err(|error| inspect_error(path, error))?
+            .len();
+        if size > MAX_WEIGHT_BYTES as u64 {
+            return Err(too_large(path));
+        }
+        Ok(file)
+    }
+
+    fn check_digest(&self, path: &Path, context: Context) -> Result<(), Error> {
         let actual = hex(context.finish().as_ref());
         if actual != self.sha256 {
             return Err(Error::Integrity(format!(
@@ -141,8 +163,31 @@ impl WeightArtifact {
                 self.sha256
             )));
         }
-        Ok(bytes)
+        Ok(())
     }
+}
+
+fn read_artifact(file: &mut std::fs::File, path: &Path, buffer: &mut [u8]) -> Result<usize, Error> {
+    file.read(buffer).map_err(|error| {
+        Error::Io(format!(
+            "cannot read model artifact {}: {error}",
+            path.display()
+        ))
+    })
+}
+
+fn inspect_error(path: &Path, error: std::io::Error) -> Error {
+    Error::Io(format!(
+        "cannot inspect model artifact {}: {error}",
+        path.display()
+    ))
+}
+
+fn too_large(path: &Path) -> Error {
+    Error::Integrity(format!(
+        "model artifact {} exceeds the {MAX_WEIGHT_BYTES}-byte limit",
+        path.display()
+    ))
 }
 
 /// A preflight-owned transport for the one-time artifact fetch.
@@ -167,13 +212,26 @@ pub trait LocalEngine: Send + Sync {
 
 /// The local default. Calling [`EmbeddingProvider::embed`] performs no file
 /// download and no network operation.
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct LocalProvider<E> {
     id: ModelId,
     dims: u16,
     normalized: bool,
     weights: Arc<[u8]>,
     engine: E,
+}
+
+impl<E> fmt::Debug for LocalProvider<E> {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        formatter
+            .debug_struct("LocalProvider")
+            .field("id", &self.id)
+            .field("dims", &self.dims)
+            .field("normalized", &self.normalized)
+            .field("weights_bytes", &self.weights.len())
+            .field("engine", &type_name::<E>())
+            .finish()
+    }
 }
 
 impl<E> LocalProvider<E> {
@@ -223,7 +281,7 @@ impl<E> LocalProvider<E> {
     ) -> Result<(), Error> {
         artifact.validate(models_dir)?;
         let destination = confined_destination(&artifact.path, models_dir, true)?;
-        if artifact.read_verified_path(&destination).is_ok() {
+        if artifact.verify_path(&destination).is_ok() {
             return Ok(());
         }
         let bytes = fetcher.fetch(&artifact.url, MAX_WEIGHT_BYTES).await?;
@@ -271,7 +329,7 @@ impl<E> LocalProvider<E> {
                 destination.display()
             ))
         })?;
-        artifact.read_verified_path(&destination).map(|_| ())
+        artifact.verify_path(&destination)
     }
 }
 

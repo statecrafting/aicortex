@@ -29,8 +29,8 @@ use common::backup_bytes;
 use aicortex_gate::{Candidate, DigestRef, Gate, KIND_QUARANTINE, Origin, Verdict};
 use aicortex_store::{
     Authority, Counters, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE,
-    KIND_ERASE_SCOPE, Lifecycle, MAX_ERASURE_BATCH, MemoryFilter, MemoryRepo, PLANNED, ScopeId,
-    StatusFilter, erasure_lease_key, fingerprint,
+    KIND_ERASE_SCOPE, Lifecycle, MAX_ACCOUNTED_ERASURE_BATCH, MAX_ERASURE_BATCH, MemoryFilter,
+    MemoryRepo, PLANNED, ScopeId, StatusFilter, erasure_lease_key, fingerprint,
 };
 use aicortex_types::{AicortexTime, Memory, MemoryId, MemoryKind, Scope, Status};
 use rahi_ledger::SignedRecord;
@@ -1481,8 +1481,8 @@ async fn fr005_a_scope_erasure_of_five_thousand_memories_is_bounded_and_resumabl
     )
     .await;
     assert!(
-        batches >= (total as u64) / u64::from(MAX_ERASURE_BATCH),
-        "the work was done in bounded batches, not one transaction: {batches}"
+        batches >= (total as u64) / u64::from(MAX_ACCOUNTED_ERASURE_BATCH),
+        "the full accounted sweep stayed within its tested commit bound: {batches}"
     );
 
     // One Decision at completion, not one per batch.

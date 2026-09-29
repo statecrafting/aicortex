@@ -51,8 +51,16 @@ struct TestProvider {
 #[derive(Clone, Copy, Debug)]
 struct OtherProvider;
 
+#[derive(Clone, Debug)]
+struct OversizedProvider {
+    called: Arc<AtomicBool>,
+}
+
 #[derive(Clone, Copy, Debug)]
-struct OversizedProvider;
+struct LayoutProvider {
+    dims: u16,
+    normalized: bool,
+}
 
 #[derive(Clone, Debug)]
 struct ErasingProvider {
@@ -152,6 +160,7 @@ impl EmbeddingProvider for OversizedProvider {
     }
 
     async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        self.called.store(true, Ordering::SeqCst);
         batch
             .iter()
             .map(|_| {
@@ -159,6 +168,27 @@ impl EmbeddingProvider for OversizedProvider {
                 values[0] = 1.0;
                 Vector::new(values)
             })
+            .collect()
+    }
+}
+
+impl EmbeddingProvider for LayoutProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("test-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        self.dims
+    }
+
+    fn normalized(&self) -> bool {
+        self.normalized
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        batch
+            .iter()
+            .map(|_| Vector::new(vec![0.0; usize::from(self.dims)]))
             .collect()
     }
 }
@@ -650,6 +680,9 @@ fn local_provider_boots_only_with_verified_weights() {
     assert_eq!(provider.id().as_str(), "configured-local-model");
     assert_eq!(provider.dims(), 2);
     assert!(provider.normalized());
+    let debug = format!("{provider:?}");
+    assert!(debug.contains("weights_bytes: 18"), "{debug}");
+    assert!(!debug.contains("fixed test weights"), "{debug}");
 }
 
 #[derive(Clone, Debug)]
@@ -1082,8 +1115,11 @@ async fn oversized_derivative_payload_is_recorded_as_an_item_failure() {
         .txn(txn.into_statements())
         .await
         .expect("work commits");
+    let provider_called = Arc::new(AtomicBool::new(false));
     let embedding_worker = EmbeddingWorker::new(
-        OversizedProvider,
+        OversizedProvider {
+            called: Arc::clone(&provider_called),
+        },
         model,
         Chunker::new(ChunkConfig {
             threshold_bytes: 16,
@@ -1111,6 +1147,10 @@ async fn oversized_derivative_payload_is_recorded_as_an_item_failure() {
         .expect("oversized payload is recorded without aborting the drain");
     assert_eq!((report.claimed, report.completed), (1, 0));
     assert_eq!((report.failed, report.dead, report.quarantined), (1, 0, 0));
+    assert!(
+        !provider_called.load(Ordering::SeqCst),
+        "oversized derivative work must be rejected before provider egress"
+    );
     assert_eq!(
         count(
             &store,
@@ -1265,6 +1305,69 @@ async fn a_worker_never_completes_same_revision_work_for_another_model() {
         .expect("queue health reads");
     assert_eq!(health.pending, 1);
     assert_eq!(health.dead, 0);
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_worker_never_claims_a_stored_revision_with_another_vector_layout() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let active_model = test_model(true);
+    activate(&store, &active_model).await;
+    let memory = test_memory("alice", "Vector layout is part of model identity.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(
+        &mut txn,
+        "scope-a",
+        memory.id,
+        &active_model,
+        UnixSeconds::new(2),
+    )
+    .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+
+    for (dims, normalized) in [(3, true), (2, false)] {
+        let supplied_model = ModelRevision {
+            dims,
+            normalized,
+            ..active_model.clone()
+        };
+        let mismatched = EmbeddingWorker::new(
+            LayoutProvider { dims, normalized },
+            supplied_model,
+            Chunker::new(ChunkConfig {
+                threshold_bytes: 256,
+                target_bytes: 128,
+                overlap_bytes: 16,
+                max_chunks_per_memory: 512,
+            })
+            .expect("chunk config"),
+            WorkerConfig {
+                batch_size: 16,
+                hold_for: Duration::from_secs(5),
+                retry: RetryPolicy {
+                    max_attempts: 3,
+                    base: Duration::from_secs(1),
+                    cap: Duration::from_secs(2),
+                },
+            },
+            "layout-worker",
+        )
+        .expect("worker config");
+        let report = mismatched
+            .drain(&store, UnixSeconds::new(3))
+            .await
+            .expect("layout mismatch leaves queue untouched");
+        assert_eq!((report.claimed, report.completed, report.failed), (0, 0, 0));
+    }
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("queue health reads");
+    assert_eq!((health.pending, health.dead), (1, 0));
     fixture.shutdown().await;
 }
 

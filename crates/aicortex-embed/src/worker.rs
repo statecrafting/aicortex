@@ -303,7 +303,8 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             let Some(active) = ModelRegistry::active(store).await? else {
                 return Ok(WorkerReport::default());
             };
-            if active.revision == self.model.revision && active.model_id != self.model.model_id {
+            if active.revision == self.model.revision && !same_model_revision(&active, &self.model)
+            {
                 return Ok(WorkerReport::default());
             }
             let claims = Work::next(
@@ -394,8 +395,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             Some(active)
                 if claim.key.revision == self.model.revision
                     && claim.key.processor_revision == self.model.model_id.as_str()
-                    && active.revision == self.model.revision
-                    && active.model_id == self.model.model_id => {}
+                    && same_model_revision(&active, &self.model) => {}
             Some(_) => {
                 self.complete_empty(store, claim, now).await?;
                 return Ok(ProcessOutcome::Completed);
@@ -449,6 +449,18 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 claim,
             ));
         }
+        let vector_bytes = chunks
+            .len()
+            .checked_mul(usize::from(self.model.dims))
+            .and_then(|values| values.checked_mul(size_of::<f32>()));
+        if vector_bytes.is_none_or(|bytes| bytes > MAX_DERIVATIVE_VECTOR_BYTES) {
+            return Err(ProcessError::item(
+                Error::Validation(format!(
+                    "embedding derivative payload exceeds the {MAX_DERIVATIVE_VECTOR_BYTES}-byte worker limit"
+                )),
+                claim,
+            ));
+        }
         let text = chunks
             .iter()
             .map(|chunk| chunk.text.as_str())
@@ -475,17 +487,6 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .map_err(|error| ProcessError::item(error, &claim))?;
         validate_batch(&self.provider, chunks.len(), &vectors)
             .map_err(|error| ProcessError::item(error, &claim))?;
-        let vector_bytes = vectors.iter().try_fold(0_usize, |total, vector| {
-            total.checked_add(usize::from(vector.dims()).saturating_mul(size_of::<f32>()))
-        });
-        if vector_bytes.is_none_or(|bytes| bytes > MAX_DERIVATIVE_VECTOR_BYTES) {
-            return Err(ProcessError::item(
-                Error::Validation(format!(
-                    "embedding derivative payload exceeds the {MAX_DERIVATIVE_VECTOR_BYTES}-byte worker limit"
-                )),
-                &claim,
-            ));
-        }
         let now = elapsed_now(origin, started);
 
         let mut txn = TxnBuilder::new();
@@ -902,6 +903,13 @@ fn error_class(error: &Error) -> &'static str {
 
 fn elapsed_now(origin: UnixSeconds, started: Instant) -> UnixSeconds {
     UnixSeconds::new(origin.get().saturating_add(started.elapsed().as_secs()))
+}
+
+fn same_model_revision(left: &ModelRevision, right: &ModelRevision) -> bool {
+    left.model_id == right.model_id
+        && left.revision == right.revision
+        && left.dims == right.dims
+        && left.normalized == right.normalized
 }
 
 fn chunk_id(scope_id: &str, memory_id: MemoryId, revision: u32, ordinal: u32) -> String {
