@@ -18,13 +18,14 @@
 use std::net::{SocketAddr, TcpListener};
 use std::path::{Path, PathBuf};
 
+use aicortex_embed::{ModelId, ModelRegistry, ModelRevision};
 use aicortex_gate::{Candidate, Gate, Origin, RuleSet};
 use aicortex_types::{
     Actor, ActorId, Importance, MediaDigest, MediaRef, MemoryBody, MemoryId, MemoryKind,
     MemoryParts, Provenance, Scope, SourceRef, SourceSystem, TrustClass,
 };
 use rahi_ledger::{Hash, Ledger, LedgerSigner};
-use rahi_store::{EncKey, EncKeys, Store, StoreConfig, StoreSecrets};
+use rahi_store::{EncKey, EncKeys, Store, StoreConfig, StoreSecrets, TxnBuilder};
 use rahi_types::{Sub, UnixSeconds};
 use serde::Deserialize;
 
@@ -251,6 +252,31 @@ pub async fn node() -> Node {
         .migrate(aicortex_store::migrations())
         .await
         .expect("the schema applies to an empty store");
+    store
+        .handle()
+        .migrate_sets(
+            &[],
+            &[rahi_store::coordination_set(), rahi_store::receipt_set()],
+        )
+        .await
+        .expect("the work schema applies to an empty store");
+    let mut txn = TxnBuilder::new();
+    ModelRegistry::activate(
+        &mut txn,
+        &ModelRevision {
+            model_id: ModelId::new("test-local").expect("a valid test model id"),
+            revision: 1,
+            dims: 3,
+            normalized: true,
+            first_seen: UnixSeconds::new(1_700_000_000),
+            active: true,
+        },
+    );
+    store
+        .handle()
+        .txn(txn.into_statements())
+        .await
+        .expect("the test model activates");
     let ledger = Ledger::open(
         store.handle(),
         LedgerSigner::from_seed([7u8; 32]),

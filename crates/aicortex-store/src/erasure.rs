@@ -51,11 +51,12 @@ use aicortex_types::{
 use rahi_ledger::{Decision, DecisionId, DecisionKind, Ledger, Outcome};
 #[cfg(test)]
 use rahi_store::ExecuteResult;
-use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
+use rahi_store::{EraseScope, ReceiptKey, Receipts, Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, Sub, UnixSeconds};
 use serde::Deserialize;
 
 use crate::decision_key::DecisionKeyRepo;
+use crate::memory_repo::EMBEDDING_NAMESPACE;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
 /// The decision kind one erased memory is appended under (B-7).
@@ -168,6 +169,9 @@ impl Derivative {
 /// Naming it as an ordinary derivative would hide a frozen invariant inside a
 /// loop.
 pub const DERIVATIVES: &[Derivative] = &[
+    // Embeddings reference chunks, so erase them first.
+    Derivative::new("embedding", "memory_id", "scope_id"),
+    Derivative::new("chunk", "memory_id", "scope_id"),
     Derivative::new("provenance", "memory_id", "scope_id"),
     Derivative::new("memory_derivation", "memory_id", "scope_id"),
     Derivative::new("memory_source", "memory_id", "scope_id"),
@@ -175,23 +179,18 @@ pub const DERIVATIVES: &[Derivative] = &[
 
 /// The derivative tables later specs add, named here before they exist.
 ///
-/// B-7 requires erasure to reach every chunk, every embedding, and every
-/// index entry. Those tables belong to specs 015 and 016 and this schema
-/// version does not carry them, so sweeping them now would fail every
+/// B-7 requires erasure to reach every index entry. That table belongs to
+/// spec 016 and this schema version does not carry it, so sweeping it now would fail every
 /// erasure: SQLite refuses a `DELETE` against a table that does not exist and
 /// the whole transaction rolls back.
 ///
-/// Naming them anyway is the difference between a requirement deferred and a
-/// requirement forgotten. Spec 015 moves its two entries and spec 016 moves
-/// its one into [`DERIVATIVES`] in the same change as the migration that
+/// Naming it anyway is the difference between a requirement deferred and a
+/// requirement forgotten. Spec 016 moves its entry into [`DERIVATIVES`] in the same change as the migration that
 /// creates the table, under an `extends` edge on this file, and the sweep
 /// itself needs no edit. Until then [`Eraser::also`] registers them against a
 /// table the caller has created, which is how this spec's own tests assert
 /// FR-003 over real chunk and embedding rows rather than over their absence.
 pub const PLANNED: &[Derivative] = &[
-    // Spec 015 section 2: the chunks of a body and the vectors over them.
-    Derivative::new("chunk", "memory_id", "scope_id"),
-    Derivative::new("embedding", "memory_id", "scope_id"),
     // Spec 016 section 2: the application-owned text index.
     Derivative::new("chunk_token", "memory_id", "scope_id"),
 ];
@@ -532,6 +531,7 @@ impl Eraser {
         }
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
+        stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
         let mark_at = txn.len();
         txn.push(Statement::with_params(
             MARK_DERIVED_SQL,
@@ -850,6 +850,7 @@ impl Eraser {
         DecisionKeyRepo::stage_destroy_for_scope(&mut txn, scope);
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
+        stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
         txn.push(Statement::with_params(
             ERASE_SCOPE_CLAIMS_SQL,
             vec![Value::from(&scope_id)],
@@ -1110,6 +1111,19 @@ impl Eraser {
             })
             .collect()
     }
+}
+
+fn stage_embedding_queue_erasure(
+    txn: &mut TxnBuilder,
+    scope_id: &ScopeId,
+    shells: &[Shell],
+    now: UnixSeconds,
+) -> Result<(), Error> {
+    for shell in shells {
+        let key = ReceiptKey::new(scope_id.as_str(), EMBEDDING_NAMESPACE, shell.id.to_string())?;
+        Receipts::stage_erasure(txn, &EraseScope::Identity(key), now);
+    }
+    Ok(())
 }
 
 /// Ranges refer to the original destructive transaction, before accounting

@@ -34,25 +34,14 @@ use aicortex_store::{
 };
 use aicortex_types::{AicortexTime, Memory, MemoryId, MemoryKind, Scope, Status};
 use rahi_ledger::SignedRecord;
-use rahi_store::{LEASE_TTL_SECONDS, Outbox, Statement, TxnBuilder, Value};
+use rahi_store::{LEASE_TTL_SECONDS, Outbox, Statement, TxnBuilder, Value, Work};
 use rahi_types::UnixSeconds;
 
-/// The two tables spec 015 will own, created here so that FR-003 can be
-/// asserted over real rows rather than over the absence of a table.
-///
-/// The column names are [`PLANNED`]'s, so the day 015 lands and moves its
-/// entries into [`DERIVATIVES`] the sweep is already the one being exercised.
-const FUTURE_TABLES: &[&str] = &[
-    "CREATE TABLE IF NOT EXISTS chunk (
-        chunk_id TEXT PRIMARY KEY, memory_id TEXT NOT NULL, scope_id TEXT NOT NULL,
-        ordinal INTEGER NOT NULL)",
-    "CREATE TABLE IF NOT EXISTS embedding (
-        embedding_id TEXT PRIMARY KEY, memory_id TEXT NOT NULL, scope_id TEXT NOT NULL,
-        model TEXT NOT NULL, vector BLOB NOT NULL)",
-    "CREATE TABLE IF NOT EXISTS chunk_token (
+/// The remaining future derivative table, created here so that FR-003 can be
+/// asserted over a real row rather than over the absence of a table.
+const FUTURE_TABLES: &[&str] = &["CREATE TABLE IF NOT EXISTS chunk_token (
         chunk_id TEXT NOT NULL, memory_id TEXT NOT NULL, scope_id TEXT NOT NULL,
-        token TEXT NOT NULL, tf INTEGER NOT NULL, PRIMARY KEY (chunk_id, token))",
-];
+        token TEXT NOT NULL, tf INTEGER NOT NULL, PRIMARY KEY (chunk_id, token))"];
 
 /// An eraser that also sweeps the tables specs 015 and 016 will bring.
 fn eraser_with_future_tables() -> Eraser {
@@ -73,22 +62,24 @@ async fn seed_derivatives(node: &common::Node, scope: &Scope, memory: MemoryId) 
     node.handle()
         .txn(vec![
             Statement::with_params(
-                "INSERT INTO chunk (chunk_id, memory_id, scope_id, ordinal)
-                 VALUES ($1, $2, $3, 0)",
+                "INSERT INTO chunk
+                 (chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
+                 VALUES ($1, $2, $3, 1, 0, 0, 4)",
                 vec![
-                    Value::from(format!("chunk-{memory}")),
-                    Value::from(memory.to_string()),
+                    Value::from(format!("chunk-{memory}-1-0")),
                     Value::from(&scope_id),
+                    Value::from(memory.to_string()),
                 ],
             ),
             Statement::with_params(
-                "INSERT INTO embedding (embedding_id, memory_id, scope_id, model, vector)
-                 VALUES ($1, $2, $3, 'test-model', $4)",
+                "INSERT INTO embedding
+                 (scope_id, memory_id, model_id, model_revision, chunk_ordinal,
+                  dims, normalized, vector, updated)
+                 VALUES ($1, $2, 'test-local', 1, 0, 3, 1, $3, 1700000000)",
                 vec![
-                    Value::from(format!("embedding-{memory}")),
-                    Value::from(memory.to_string()),
                     Value::from(&scope_id),
-                    Value::Blob(vec![1, 2, 3, 4]),
+                    Value::from(memory.to_string()),
+                    Value::Blob(vec![0; 12]),
                 ],
             ),
             Statement::with_params(
@@ -358,6 +349,28 @@ async fn rows_for(node: &common::Node, table: &str, id: MemoryId) -> u64 {
     .await
 }
 
+/// How many durable embedding queue rows name a memory.
+async fn embedding_queue_rows(
+    node: &common::Node,
+    table: &str,
+    scope: &Scope,
+    id: MemoryId,
+) -> u64 {
+    common::count(
+        node,
+        &format!(
+            "SELECT COUNT(*) AS count FROM {table} \
+             WHERE tenant = $1 AND namespace = $2 AND key = $3"
+        ),
+        vec![
+            Value::from(ScopeId::of(scope).as_str()),
+            Value::from(aicortex_store::EMBEDDING_NAMESPACE),
+            Value::from(id.to_string()),
+        ],
+    )
+    .await
+}
+
 /// The authority every test erases on.
 fn authority() -> Authority {
     Authority::of(common::sub("alice")).because("subject_request")
@@ -374,6 +387,31 @@ async fn fr003_erasure_empties_the_chunk_and_embedding_tables_and_leaves_retriev
     let memory = common::memory(&alice, "the spare key is under the mat", 1_700_000_000);
     capture(&node, &memory).await;
     seed_derivatives(&node, &alice, memory.id).await;
+    let claims = Work::next(
+        &node.handle(),
+        aicortex_store::EMBEDDING_NAMESPACE,
+        &aicortex_embed::embedding_processor(1),
+        "erasure-race-fixture",
+        std::time::Duration::from_secs(30),
+        UnixSeconds::new(1_700_000_001),
+        1,
+    )
+    .await
+    .expect("the embedding work is claimed");
+    assert_eq!(claims.len(), 1);
+    assert_eq!(
+        embedding_queue_rows(&node, "rahi_processing", &alice, memory.id).await,
+        1
+    );
+    assert_eq!(
+        common::count(
+            &node,
+            "SELECT COUNT(*) AS count FROM rahi_processing_attempt",
+            vec![],
+        )
+        .await,
+        1
+    );
 
     // The positive control: before the erasure the targeted search finds it
     // and every derivative table holds its row. An "is gone" assertion over
@@ -409,6 +447,22 @@ async fn fr003_erasure_empties_the_chunk_and_embedding_tables_and_leaves_retriev
         )
         .await
         .expect("the erasure runs");
+
+    assert_eq!(
+        embedding_queue_rows(&node, "rahi_processing", &alice, memory.id).await,
+        0,
+        "erasure removes queued embedding work"
+    );
+    assert_eq!(
+        common::count(
+            &node,
+            "SELECT COUNT(*) AS count FROM rahi_processing_attempt",
+            vec![],
+        )
+        .await,
+        0,
+        "erasure removes embedding attempts so stale workers cannot resurrect vectors"
+    );
 
     // A direct read of the embedding and chunk tables for that id returns
     // zero rows, which is FR-003 word for word.
@@ -1512,12 +1566,15 @@ async fn ac2_the_chain_still_verifies_after_an_erasure() {
 
 #[test]
 fn the_sweep_names_every_table_a_later_spec_will_add() {
-    // A guard against the quiet failure mode of `PLANNED`: an entry that gets
-    // dropped rather than moved, so a table specs 015 and 016 create is never
-    // swept and B-7's frozen invariant fails silently a spec later.
+    // Spec 015 moves its now-real tables into the live sweep. Spec 016 stays
+    // planned until its migration lands.
+    let live: Vec<&str> = DERIVATIVES
+        .iter()
+        .map(|derivative| derivative.table)
+        .collect();
+    assert!(live.contains(&"chunk"), "015's chunks (B-7)");
+    assert!(live.contains(&"embedding"), "015's vectors (B-7)");
     let tables: Vec<&str> = PLANNED.iter().map(|planned| planned.table).collect();
-    assert!(tables.contains(&"chunk"), "015's chunks (B-7)");
-    assert!(tables.contains(&"embedding"), "015's vectors (B-7)");
     assert!(tables.contains(&"chunk_token"), "016's index entries (B-7)");
     for planned in PLANNED {
         assert!(
@@ -1527,11 +1584,11 @@ fn the_sweep_names_every_table_a_later_spec_will_add() {
         );
     }
     // And registering one is what makes it swept.
-    let eraser = Eraser::new().also(Derivative::new("chunk", "memory_id", "scope_id"));
+    let eraser = Eraser::new().also(Derivative::new("chunk_token", "memory_id", "scope_id"));
     assert_eq!(eraser.derivatives().len(), DERIVATIVES.len() + 1);
     // Twice is once: a registry that grew on every call would emit a DELETE
     // per registration and count the same removal more than once.
-    let eraser = eraser.also(Derivative::new("chunk", "memory_id", "scope_id"));
+    let eraser = eraser.also(Derivative::new("chunk_token", "memory_id", "scope_id"));
     assert_eq!(eraser.derivatives().len(), DERIVATIVES.len() + 1);
 }
 

@@ -60,6 +60,7 @@ aicortex-types = { path = "crates/aicortex-types", version = "=0.1.0" }
 aicortex-store = { path = "crates/aicortex-store", version = "=0.1.0" }
 aicortex-gate = { path = "crates/aicortex-gate", version = "=0.1.0" }
 aicortex-claims = { path = "crates/aicortex-claims", version = "=0.1.0" }
+aicortex-embed = { path = "crates/aicortex-embed", version = "=0.1.0" }
 
 # The family's secret detector registry (spec 047): aicortex-gate consumes
 # its tables and scan instead of keeping its own. Exact pin, as the chassis

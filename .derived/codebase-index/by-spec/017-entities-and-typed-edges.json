@@ -61,11 +61,6 @@
         "code": "W-001",
         "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-graph/testdata/extraction/' does not exist",
         "path": "crates/aicortex-graph/testdata/extraction/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '017-entities-and-typed-edges' file unit 'crates/aicortex-embed/src/worker.rs' does not exist",
-        "path": "crates/aicortex-embed/src/worker.rs"
       }
     ]
   },
@@ -74,6 +69,10 @@
       "016-vector-index-and-scan"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-embed/src/worker.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
@@ -189,7 +188,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/worker.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

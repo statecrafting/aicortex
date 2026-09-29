@@ -33,6 +33,12 @@ struct IndexInfo {
     sql: Option<String>,
 }
 
+#[derive(Debug, Deserialize)]
+struct EmbeddingUpgradeRow {
+    chunk_id: String,
+    vector_bytes: i64,
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr001_the_migrations_apply_in_order_and_a_rerun_applies_nothing() {
     let fixture = common::open().await;
@@ -67,6 +73,67 @@ async fn fr001_the_migrations_apply_in_order_and_a_rerun_applies_nothing() {
         "the second run applied {:?}",
         second.applied
     );
+
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn embedding_integrity_upgrade_preserves_version_nine_rows() {
+    let fixture = common::open().await;
+    let store = fixture.handle();
+    store
+        .migrate(&aicortex_store::migrations()[..9])
+        .await
+        .expect("the immutable prefix applies");
+    for statement in [
+        "INSERT INTO embedding_model
+                (model_id, revision, dims, normalized, first_seen, active)
+             VALUES ('model', 1, 2, 1, 1, 1)",
+        "INSERT INTO chunk
+                (scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
+             VALUES ('scope', 'memory', 1, 0, 0, 4)",
+        "INSERT INTO embedding
+                (scope_id, memory_id, model_id, model_revision, chunk_ordinal,
+                 dims, normalized, vector, updated)
+             VALUES ('scope', 'memory', 'model', 1, 0, 2, 1,
+                 X'0000803F00000000', 1)",
+    ] {
+        store
+            .execute(statement.to_owned(), vec![])
+            .await
+            .expect("version nine rows are present");
+    }
+
+    let report = store
+        .migrate(aicortex_store::migrations())
+        .await
+        .expect("the integrity repair applies to existing rows");
+    assert_eq!(report.applied, vec![10]);
+
+    let rows: Vec<EmbeddingUpgradeRow> = store
+        .query_consistent(
+            "SELECT chunk.chunk_id, length(embedding.vector) AS vector_bytes
+             FROM chunk
+             JOIN embedding USING (scope_id, memory_id, model_revision)
+             WHERE chunk.ordinal = embedding.chunk_ordinal"
+                .to_owned(),
+            vec![],
+        )
+        .await
+        .expect("upgraded rows remain readable");
+    assert_eq!(rows.len(), 1);
+    assert!(!rows[0].chunk_id.is_empty());
+    assert_eq!(rows[0].vector_bytes, 8);
+
+    let invalid = store
+        .execute(
+            "UPDATE embedding SET vector = X'00'
+             WHERE scope_id = 'scope' AND memory_id = 'memory'"
+                .to_owned(),
+            vec![],
+        )
+        .await;
+    assert!(invalid.is_err(), "the vector length constraint is enforced");
 
     fixture.shutdown().await;
 }

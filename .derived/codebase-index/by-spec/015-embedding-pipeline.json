@@ -1,74 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/Cargo.toml' does not exist",
-        "path": "crates/aicortex-embed/Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/lib.rs' does not exist",
-        "path": "crates/aicortex-embed/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/provider.rs' does not exist",
-        "path": "crates/aicortex-embed/src/provider.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/local.rs' does not exist",
-        "path": "crates/aicortex-embed/src/local.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/remote.rs' does not exist",
-        "path": "crates/aicortex-embed/src/remote.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/chunk.rs' does not exist",
-        "path": "crates/aicortex-embed/src/chunk.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/worker.rs' does not exist",
-        "path": "crates/aicortex-embed/src/worker.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/registry.rs' does not exist",
-        "path": "crates/aicortex-embed/src/registry.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/migrations.rs' does not exist",
-        "path": "crates/aicortex-embed/src/migrations.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/tests/worker.rs' does not exist",
-        "path": "crates/aicortex-embed/tests/worker.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/tests/chunk.rs' does not exist",
-        "path": "crates/aicortex-embed/tests/chunk.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/testdata/vectors/' does not exist",
-        "path": "crates/aicortex-embed/testdata/vectors/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '015-embedding-pipeline' file unit 'crates/aicortex-embed/src/worker.rs' does not exist",
-        "path": "crates/aicortex-embed/src/worker.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "014-memory-lifecycle-and-erasure"
@@ -79,17 +9,141 @@
         "source": "spec-edge"
       },
       {
-        "path": "apps/aicortex/manifest.toml",
+        "path": "apps/aicortex/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/migrate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/aicortex-embed/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/chunk.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/local.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/provider.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/registry.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/remote.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/worker.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/testdata/vectors/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/tests/chunk.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/tests/worker.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/common/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/erasure.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/lifecycle.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/memory_repo.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/common/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/erasure.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/host_library.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/lifecycle.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/schema.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "fixtures/external-host",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -98,7 +152,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/chunk.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -107,7 +165,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -116,7 +178,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/local.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -125,7 +191,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/migrations.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -134,7 +204,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/provider.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -143,7 +217,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/registry.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -152,7 +230,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/remote.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -161,7 +243,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/worker.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -170,7 +256,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/testdata/vectors/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -179,7 +269,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/tests/chunk.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -188,7 +282,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/tests/worker.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -199,14 +297,157 @@
       {
         "locations": [
           {
-            "file": "apps/aicortex/manifest.toml"
+            "file": "fixtures/external-host"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "id": "aicortex-external-host-fixture",
+          "kind": "crate"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/Cargo.toml"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "apps/aicortex/manifest.toml"
+          "path": "apps/aicortex/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/src/cell.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/src/main.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/main.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/migrate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/common/mod.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/common/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/erasure.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lifecycle.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
         }
       },
       {
@@ -225,9 +466,87 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/tests/common/mod.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/common/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/erasure.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/erasure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/host_library.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/host_library.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/lifecycle.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/schema.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/schema.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 108,
+              "endLine": 109,
               "startLine": 20
             }
           }
@@ -241,7 +560,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/worker.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -254,5 +577,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.1.0",
-  "shardHash": "d814be76778e8abc1eb6182839fce7f11b1b32f11019488eea358ec3835b5215"
+  "shardHash": "ac427ee5af066790bf54f84f1c4d115a0912f5bfec35bb2b975a84016f541e96"
 }

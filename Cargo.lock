@@ -126,6 +126,7 @@ dependencies = [
 name = "aicortex"
 version = "0.1.0"
 dependencies = [
+ "aicortex-embed",
  "aicortex-store",
  "axum",
  "rahi-cli",
@@ -134,6 +135,7 @@ dependencies = [
  "rahi-ops",
  "rahi-store",
  "rahi-types",
+ "serde",
  "serde_json",
  "tempfile",
  "tokio",
@@ -156,10 +158,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "aicortex-embed"
+version = "0.1.0"
+dependencies = [
+ "aicortex-store",
+ "aicortex-types",
+ "rahi-kernel",
+ "rahi-store",
+ "rahi-types",
+ "ring",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "aicortex-external-host-fixture"
 version = "0.0.0"
 dependencies = [
  "aicortex-claims",
+ "aicortex-embed",
  "aicortex-gate",
  "aicortex-store",
  "aicortex-types",
@@ -181,6 +200,7 @@ version = "0.1.0"
 dependencies = [
  "action-gate-core",
  "aicortex-claims",
+ "aicortex-embed",
  "aicortex-store",
  "aicortex-types",
  "rahi-ledger",
@@ -200,6 +220,7 @@ name = "aicortex-store"
 version = "0.1.0"
 dependencies = [
  "aicortex-claims",
+ "aicortex-embed",
  "aicortex-gate",
  "aicortex-types",
  "base64 0.22.1",

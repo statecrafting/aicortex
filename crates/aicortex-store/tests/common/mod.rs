@@ -22,13 +22,14 @@
 use std::net::{SocketAddr, TcpListener};
 use std::path::Path;
 
+use aicortex_embed::{ModelId, ModelRegistry, ModelRevision};
 use aicortex_gate::{Admitted, Candidate, Gate, Origin, Verdict};
 use aicortex_types::{
     Actor, ActorId, Importance, Memory, MemoryBody, MemoryId, MemoryKind, MemoryParts, Provenance,
     Scope, SourceRef, SourceSystem, TrustClass,
 };
 use rahi_ledger::{Hash, Ledger, LedgerSigner};
-use rahi_store::{EncKey, EncKeys, Envelope, Store, StoreConfig, StoreSecrets};
+use rahi_store::{EncKey, EncKeys, Envelope, Store, StoreConfig, StoreSecrets, TxnBuilder};
 use rahi_types::{Revision, Sub, UnixSeconds};
 
 /// A node in a temporary directory, stopped when the fixture drops.
@@ -52,6 +53,15 @@ impl Fixture {
             .await
             .expect("the schema applies to an empty store");
         fixture
+            .handle()
+            .migrate_sets(
+                &[],
+                &[rahi_store::coordination_set(), rahi_store::receipt_set()],
+            )
+            .await
+            .expect("the work schema applies to an empty store");
+        activate_test_model(&fixture.handle()).await;
+        fixture
     }
 
     /// A migrated node at the application path the released cell CLI opens.
@@ -68,6 +78,15 @@ impl Fixture {
             .await
             .expect("the schema applies to an empty cell store");
         fixture
+            .handle()
+            .migrate_sets(
+                &[],
+                &[rahi_store::coordination_set(), rahi_store::receipt_set()],
+            )
+            .await
+            .expect("the work schema applies to an empty cell store");
+        activate_test_model(&fixture.handle()).await;
+        fixture
     }
 
     /// Stop the node.
@@ -76,12 +95,43 @@ impl Fixture {
     }
 }
 
+async fn activate_test_model(store: &rahi_store::StoreHandle) {
+    let mut txn = TxnBuilder::new();
+    ModelRegistry::activate(
+        &mut txn,
+        &ModelRevision {
+            model_id: ModelId::new("test-local").expect("a valid test model id"),
+            revision: 1,
+            dims: 3,
+            normalized: true,
+            first_seen: UnixSeconds::new(1_700_000_000),
+            active: true,
+        },
+    );
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("the test model activates");
+}
+
 /// Open a single-voter node on free ports.
 pub async fn open() -> Fixture {
     let dir = tempfile::tempdir().expect("a temporary directory");
-    let cfg = config(&dir.path().join("hiqlite"));
-    let store = Store::open(&cfg).await.expect("a single-voter node opens");
-    Fixture { store, dir }
+    let data_dir = dir.path().join("hiqlite");
+    let mut last = None;
+    for _ in 0..5 {
+        match Store::open(&config(&data_dir)).await {
+            Ok(store) => return Fixture { store, dir },
+            Err(error) if error.message().contains("Address already in use") => {
+                last = Some(error);
+            }
+            Err(error) => panic!("a single-voter node opens: {error}"),
+        }
+    }
+    panic!(
+        "a single-voter node opens after bounded port retries: {}",
+        last.expect("a port collision was recorded")
+    )
 }
 
 fn free_addr() -> SocketAddr {
