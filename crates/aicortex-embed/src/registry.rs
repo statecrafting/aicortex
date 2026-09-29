@@ -86,9 +86,11 @@ struct CoverageRow {
 impl ModelRegistry {
     /// Stage activation atomically.
     ///
-    /// An existing identity must retain the same dimensions, normalization,
-    /// and first-seen instant. A mismatch provokes a constraint failure
-    /// instead of silently reinterpreting stored vectors.
+    /// An existing identity must retain the same model, dimensions, and
+    /// normalization. Its recorded first-seen instant is preserved when the
+    /// same revision is activated again after a restart. An identity mismatch
+    /// provokes a constraint failure instead of silently reinterpreting stored
+    /// vectors.
     pub fn activate(txn: &mut TxnBuilder, model: &ModelRevision) {
         txn.push(Statement::with_params(
             "UPDATE embedding_model
@@ -102,8 +104,7 @@ impl ModelRegistry {
              VALUES (?1, ?2, ?3, ?4, ?5, 1)
              ON CONFLICT(revision) DO UPDATE SET
                active = CASE
-                 WHEN model_id = ?1 AND dims = ?3 AND normalized = ?4
-                      AND first_seen = ?5 THEN 1
+                 WHEN model_id = ?1 AND dims = ?3 AND normalized = ?4 THEN 1
                  ELSE NULL END",
             vec![
                 Value::from(model.model_id.as_str()),

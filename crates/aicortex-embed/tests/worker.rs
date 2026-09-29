@@ -426,6 +426,27 @@ async fn active_model_selection_is_required_before_staging() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn activating_the_same_revision_preserves_its_first_seen_instant() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let original = test_model(true);
+    activate(&store, &original).await;
+
+    let restarted = ModelRevision {
+        first_seen: UnixSeconds::new(99),
+        ..original.clone()
+    };
+    activate(&store, &restarted).await;
+
+    let active = ModelRegistry::active(&store)
+        .await
+        .expect("active model reads")
+        .expect("model remains active");
+    assert_eq!(active, original);
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn claimed_work_stays_reportable_when_no_model_is_active() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();

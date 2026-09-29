@@ -187,12 +187,6 @@ struct MemoryIdRow {
     id: String,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-enum ProcessOutcome {
-    Completed,
-    Deferred,
-}
-
 #[derive(Debug)]
 enum ProcessError {
     Item(Error),
@@ -316,10 +310,9 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 Err(error) => return Err(error),
             };
             match self.process(store, &claim, now, started).await {
-                Ok(ProcessOutcome::Completed) => {
+                Ok(()) => {
                     report.completed = report.completed.saturating_add(1);
                 }
-                Ok(ProcessOutcome::Deferred) => {}
                 Err(ProcessError::Item(error)) => {
                     match self
                         .record_failure(store, &claim, &error, elapsed_now(now, started))
@@ -348,7 +341,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         claim: &Claim,
         origin: UnixSeconds,
         started: Instant,
-    ) -> Result<ProcessOutcome, ProcessError> {
+    ) -> Result<(), ProcessError> {
         let now = elapsed_now(origin, started);
         if claim.key.processor != embedding_processor(claim.key.revision) {
             return Err(ProcessError::Item(Error::Conflict(format!(
@@ -365,14 +358,18 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     && claim.key.processor_revision == self.model.model_id.as_str()
                     && active.revision == self.model.revision
                     && active.model_id == self.model.model_id => {}
-            Some(active) if active.revision == claim.key.revision => {
-                return Ok(ProcessOutcome::Deferred);
-            }
             Some(active) => {
                 self.restage_active(store, claim, &active, now).await?;
-                return Ok(ProcessOutcome::Completed);
+                return Ok(());
             }
-            None => return Ok(ProcessOutcome::Deferred),
+            None => {
+                // The pre-claim check handles the steady state. If deactivation
+                // races a held claim, close that obsolete revision so it cannot
+                // age into a retry or dead letter. A later activation stages its
+                // own revision through the re-embedding scheduler.
+                self.complete_empty(store, claim, now).await?;
+                return Ok(());
+            }
         }
         let rows: Vec<MemoryRow> = store
             .query_consistent(
@@ -386,7 +383,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .map_err(ProcessError::Infrastructure)?;
         let Some(row) = rows.into_iter().next() else {
             self.complete_empty(store, claim, now).await?;
-            return Ok(ProcessOutcome::Completed);
+            return Ok(());
         };
         let memory: Memory = serde_json::from_str(&row.record).map_err(|error| {
             ProcessError::Item(Error::Integrity(format!(
@@ -396,7 +393,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         })?;
         if memory.status == Status::Erased {
             self.complete_empty(store, claim, now).await?;
-            return Ok(ProcessOutcome::Completed);
+            return Ok(());
         }
         let chunks = self
             .chunker
@@ -489,7 +486,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .txn(txn.into_statements())
             .await
             .map_err(ProcessError::Infrastructure)?;
-        Ok(ProcessOutcome::Completed)
+        Ok(())
     }
 
     async fn complete_empty(
