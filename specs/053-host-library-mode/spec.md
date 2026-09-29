@@ -42,7 +42,7 @@ amends:
 amends_sections:
   - "8-open-questions"
 constrains:
-  - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/host.rs", note: "the library migration set is named aicortex, carries migrations 1 through 8 byte for byte, and requires rahi.receipts and rahi.coordination at version 1 or later" }
+  - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/host.rs", note: "the library migration set is named aicortex, preserves migrations 1 through 8 byte for byte as its immutable prefix, appends later approved migrations monotonically, and requires rahi.receipts and rahi.coordination at version 1 or later" }
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/predicate_registry_repo.rs", note: "only explicit operator configuration authorizes predicate registration; domain input, model output, and caller-selected subjects do not" }
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/claim_repo.rs", note: "the host owns the TxnBuilder and the only commit; aicortex repositories stage and never commit host work" }
 references:
@@ -112,12 +112,14 @@ does not satisfy this contract.
   is `"aicortex"`. `aicortex_store::migration_set() -> Result<MigrationSet,
   Error>` returns exactly one set with that name. A host cannot supply or
   override the name.
-- **B-2 (byte-identical history).** The set carries the eight entries
-  returned by the existing `aicortex_store::migrations()` in the same order,
-  with versions 1 through 8, names, SQL bytes, checksums, and additive flags
-  unchanged. The library does not copy, rewrite, offset, or renumber SQL.
-  Migration identity in a host is therefore `(aicortex, version)` while the
-  standalone application's existing identity remains `(app, version)`.
+- **B-2 (byte-identical history).** The set carries every entry returned by
+  `aicortex_store::migrations()` in the same order. Versions 1 through 8 are
+  its immutable prefix: their names, SQL bytes, checksums, and additive flags
+  remain unchanged. A later approved schema specification may append the next
+  contiguous version, but the library does not copy, rewrite, offset, omit, or
+  renumber any entry. Migration identity in a host is therefore `(aicortex,
+  version)` while the standalone application's existing identity remains
+  `(app, version)`.
 - **B-3 (requirements).** The set declares `rahi.receipts >= 1` and
   `rahi.coordination >= 1` with Rahi's released `MigrationSet::requires`
   API. No weaker requirement and no host-selected substitute is accepted.
@@ -232,9 +234,11 @@ does not satisfy this contract.
 
 ## 4. Functional requirements
 
-- **FR-001.** The `aicortex` set has exactly versions 1 through 8. A fixture
-  records the exact SHA-256 checksum, name, and additive flag of every entry
-  and proves each equals the corresponding entry of `migrations()`.
+- **FR-001.** The `aicortex` set equals `migrations()` and has contiguous
+  versions beginning at 1. A fixture records the exact SHA-256 checksum,
+  name, and additive flag of the immutable versions 1 through 8 and proves
+  each equals the corresponding entry of `migrations()`. Any appended entry
+  remains covered by the owning schema specification's migration evidence.
 - **FR-002.** The set has exactly the two requirements
   `rahi.receipts >= 1` and `rahi.coordination >= 1`; removing either makes the
   contract test fail.
@@ -290,7 +294,7 @@ public host API, the resolved dependency tree, and the external-host evidence.
 
 - **D-1 (2026-09-26, Rahi 046 and Aicortex 050 D-9, D-10).** Library
   migrations use the immutable set name `aicortex`, keep versions 1 through
-  8 byte for byte, and require `rahi.receipts >= 1` and
+  8 byte for byte as the initial prefix, and require `rahi.receipts >= 1` and
   `rahi.coordination >= 1`. The standalone app keeps its `app` history.
   Rejected: a host offset, host-selected name, copied SQL, or renumbering.
 - **D-2 (2026-09-26, Aicortex 050 Q-2 and travel-memory decision packet).**
@@ -329,6 +333,14 @@ public host API, the resolved dependency tree, and the external-host evidence.
   than three bare file units. This gives its manifest and every source file
   content-hashed ownership in one bounded unit; it does not change the
   approved fixture behavior or widen the implementation territory.
+- **D-9 (2026-09-27, owner-authorized contract repair).** Versions 1 through
+  8 are the immutable prefix of the `aicortex` migration set, not a permanent
+  terminal count. Later approved schema specifications append contiguous
+  versions to both `migrations()` and the named host set without changing the
+  prefix. This repairs the contradiction between host-library parity and
+  pending schema-owning specifications. Rejected: freezing the library at
+  version 8, creating a second mandatory Aicortex set, or weakening any
+  existing checksum assertion.
 
 ## Verification
 

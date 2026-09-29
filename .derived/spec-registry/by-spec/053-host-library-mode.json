@@ -12,7 +12,7 @@
     "constrains": [
       {
         "flavor": "invariant-freeze",
-        "note": "the library migration set is named aicortex, carries migrations 1 through 8 byte for byte, and requires rahi.receipts and rahi.coordination at version 1 or later",
+        "note": "the library migration set is named aicortex, preserves migrations 1 through 8 byte for byte as its immutable prefix, appends later approved migrations monotonically, and requires rahi.receipts and rahi.coordination at version 1 or later",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-store/src/host.rs"
@@ -267,19 +267,19 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "053-host-library-mode": "2600044cfe2e197b57cfddeb0963cf14356fb65860c5ed1b9b47c99ec395a846",
+      "053-host-library-mode": "3b2eb094b26e28bf492ac77bb63f620d508a5aa2dc1b88cc992ab2e8eb82b5c5",
       "1-purpose": "d1b5ce9ba46287a3dd8fa613e4626f1ebf58b42a0ffa2f955db9825f3cfb47f8",
       "2-territory": "f11e77461cfed1a55d52af218ffe9ff1fc9d49e94911532ed055e7dc45decac6",
-      "3-1-one-named-migration-set": "d92e410806c1637513ba270074e7ed592a4664ef4c99fad94cc585406119ce8d",
+      "3-1-one-named-migration-set": "1316517051acdfcc4249f902826953129ce08767739e1fe3c6c0501c724ddd06",
       "3-2-operator-authorized-predicate-registration": "962cfbc006ce4c6f60069a66d430dea98430681b35203f05cdf7802f7fd356ef",
       "3-3-one-caller-owned-transaction": "c07e36bb5026762d00440f7ecfea3ee6a9359332a55955e49ee43a319aa50ff4",
       "3-4-bounded-reads-and-pure-projection": "83ed45ae1a1a869f11b1793d3c8a7baae60e97847b07b0e5f1118dae655eb6a5",
       "3-5-external-host-proof": "99169e6e498c5769f3496a79286465e394bc03d7b92231aa7a80942dd9203f08",
-      "3-behavior": "2e3dc8da346a4c94b99d503c7766e698567f5ec34922fd1e752a61c83ad20652",
-      "4-functional-requirements": "94dedefa9216a576646f189c3da71119224794933e2c99f014d7fc415ce91acb",
+      "3-behavior": "e611da387dac08cff04657b2e3f27c68076b6003d479d05342e1e25739c74b12",
+      "4-functional-requirements": "1d73bb2a5d123040689c9e002f33ef831d2f8145fbc3686671274ef46edaa4c2",
       "5-acceptance-criteria": "a2b2bd1d6a7dd1e26d771c87310530d220a74e78e2f68567cb2f5167f2fbcc76",
       "6-out-of-scope": "92bfe953366da83404da02c94a18f3d796735190b806223be2d17fe6b6bc7ff4",
-      "7-resolved-decisions": "21211de7b40f9893b74594c912ad9e73a8bcf17288326d83e0c0c1a7b18ab621",
+      "7-resolved-decisions": "6a33b7d44d75f3e6226268f5f00d197516efce8cd191275353edbef31e14c26c",
       "verification": "83f4d2e861c303ef9071b4d781e603aad8ee4e854846286ee3d292754b95de8d"
     },
     "sectionHeadings": [
@@ -303,6 +303,6 @@
     "summary": "Expose Aicortex as a linked library inside another Rahi cell without giving up migration identity, operator authority, or transaction ownership. The library exports the immutable named migration set `aicortex`, makes predicate registration an explicit operator-configured act, and stages observations, admission records, claim history, erasure records, and outbox work into the caller's `rahi_store::TxnBuilder`. A separate host fixture proves that Rahi ingress state, Aicortex history, a host-owned projection revision, and outbox work share one commit and one rollback.\n",
     "title": "Host-library mode: named migrations, operator-authorized vocabulary, and one caller-owned transaction"
   },
-  "shardHash": "db29193160e3898dd4dd0b4ef5378bd4455f81459ad83692385365299718808c",
+  "shardHash": "688c6a6866200f43628adadbe1f950b29db191ba6128e49d84145b3f087004af",
   "specVersion": "1.8.0"
 }

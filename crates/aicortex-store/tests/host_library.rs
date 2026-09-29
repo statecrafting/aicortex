@@ -41,16 +41,16 @@ fn config(set: &PredicateSet, digest: impl Into<String>) -> OperatorPredicateCon
 }
 
 #[test]
-fn fr001_fr002_the_named_set_is_exact_and_immutable() {
+fn fr001_fr002_the_named_set_has_an_immutable_prefix_and_append_only_tail() {
     let set = migration_set().expect("the fixed contract is valid");
     assert_eq!(set.name.as_str(), AICORTEX_MIGRATION_SET_NAME);
     assert_eq!(set.migrations, migrations());
-    assert_eq!(
+    assert!(set.migrations.len() >= 8);
+    assert!(
         set.migrations
             .iter()
-            .map(|migration| migration.version)
-            .collect::<Vec<_>>(),
-        (1..=aicortex_store::EXPECTED_SCHEMA_VERSION).collect::<Vec<_>>()
+            .enumerate()
+            .all(|(index, migration)| migration.version as usize == index + 1)
     );
     assert_eq!(set.requires.len(), 2);
     assert_eq!(set.requires[0].set.as_str(), "rahi.receipts");
@@ -107,14 +107,10 @@ fn fr001_fr002_the_named_set_is_exact_and_immutable() {
             "sha256:16a63aee97b45b82f024bd21e7fb1dbf4ed6519112d633df679ec01244b179ac",
             true,
         ),
-        (
-            9,
-            "embedding models, chunks, and vectors",
-            "sha256:ebed33b47d4529518a2d4d918b9259a309d1c5b76883146274d85a1ad7bebdb9",
-            true,
-        ),
     ];
-    for (migration, (version, name, checksum, additive)) in set.migrations.iter().zip(expected) {
+    for (migration, (version, name, checksum, additive)) in
+        set.migrations.iter().take(expected.len()).zip(expected)
+    {
         assert_eq!(migration.version, version);
         assert_eq!(migration.name, name);
         assert_eq!(migration.checksum(), checksum);
