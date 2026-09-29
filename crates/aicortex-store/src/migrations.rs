@@ -61,7 +61,7 @@ pub const ERASURE_RECEIPTS_VERSION: u32 = 7;
 /// Append-only bitemporal claim history and its per-scope transaction counter.
 pub const CLAIM_HISTORY_VERSION: u32 = 8;
 
-/// The additive embedding schema version introduced by spec 015.
+/// The non-additive embedding schema version introduced by spec 015.
 pub const EMBEDDING_MIGRATION_VERSION: u32 = 9;
 
 /// The version an up-to-date store records, which is the highest below.
@@ -488,9 +488,10 @@ pub fn migrations() -> &'static [Migration] {
 
 static LIST: std::sync::LazyLock<[Migration; 9]> = std::sync::LazyLock::new(|| {
     [
-        // Creation-only migrations are additive (spec 046 B-2, D-2). Version
-        // 7 below is deliberately not additive. The declaration is not part
-        // of the SQL, so it does not change the recorded checksum (046 B-3).
+        // Creation-only migrations are additive (spec 046 B-2, D-2). Versions
+        // 7 and 9 below are deliberately not additive. The declaration is not
+        // part of the SQL, so it does not change the recorded checksum (046
+        // B-3).
         rahi_store::coordination_migration(COORDINATION_VERSION).additive(),
         Migration::new(
             MEMORY_TABLES_VERSION,

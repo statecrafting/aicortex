@@ -154,7 +154,11 @@ impl EmbeddingProvider for OversizedProvider {
     async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
         batch
             .iter()
-            .map(|_| Vector::new(vec![0.0; usize::from(u16::MAX)]))
+            .map(|_| {
+                let mut values = vec![0.0; usize::from(u16::MAX)];
+                values[0] = 1.0;
+                Vector::new(values)
+            })
             .collect()
     }
 }
@@ -1008,7 +1012,52 @@ async fn terminal_memory_work_stays_recoverable_without_embedding() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn oversized_commit_is_recorded_as_an_item_failure() {
+async fn derivative_commit_failure_is_recorded_as_an_item_failure() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "The derivative transaction will be rejected.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    store
+        .txn(vec![Statement::new(
+            "CREATE TRIGGER reject_embedding BEFORE INSERT ON embedding
+             BEGIN SELECT RAISE(FAIL, 'injected embedding commit failure'); END",
+        )])
+        .await
+        .expect("failure trigger installs");
+
+    let report = worker(TestProvider { fail: false }, "commit-failure-worker", 2)
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("commit failure is recorded without aborting the drain");
+    assert_eq!((report.claimed, report.completed), (1, 0));
+    assert_eq!((report.failed, report.dead, report.quarantined), (1, 0, 0));
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        0
+    );
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("failed item remains visible");
+    assert_eq!((health.pending, health.dead, health.quarantined), (1, 0, 0));
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn oversized_derivative_payload_is_recorded_as_an_item_failure() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();
     let model = ModelRevision {
@@ -1059,7 +1108,7 @@ async fn oversized_commit_is_recorded_as_an_item_failure() {
     let report = embedding_worker
         .drain(&store, UnixSeconds::new(3))
         .await
-        .expect("oversized item failure is recorded without aborting the drain");
+        .expect("oversized payload is recorded without aborting the drain");
     assert_eq!((report.claimed, report.completed), (1, 0));
     assert_eq!((report.failed, report.dead, report.quarantined), (1, 0, 0));
     assert_eq!(

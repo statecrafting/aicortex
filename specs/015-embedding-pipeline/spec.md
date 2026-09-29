@@ -223,6 +223,10 @@ configuration with a pinned digest rather than a spec-level commitment.
   keeps deterministic store-limit failures from blocking the rest of a batch.
 - **D-13 (2026-09-29, implementation).** Worker reports count quarantined work
   separately from exhausted failures, matching queue health and readiness.
+- **D-14 (2026-09-29, implementation).** One worker item refuses raw vector
+  payloads above 1 MiB before opening the derivative transaction. This leaves
+  headroom below the pinned engine's 2 MiB WAL ceiling, so the queue can record
+  a retry instead of submitting an entry the store cannot accept.
 
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 

@@ -1,5 +1,6 @@
 //! Durable embedding work over Rahi's fenced processing queue.
 
+use std::mem::size_of;
 use std::time::{Duration, Instant};
 
 use aicortex_types::{Memory, MemoryId, Status};
@@ -21,6 +22,9 @@ use crate::registry::{Coverage, ModelRegistry, ModelRevision, seconds_to_sql};
 
 /// Maximum number of memories one re-embedding scheduler pass may stage.
 pub const MAX_REEMBED_BATCH: u32 = 500;
+
+/// Maximum raw vector bytes submitted by one derivative transaction.
+const MAX_DERIVATIVE_VECTOR_BYTES: usize = 1024 * 1024;
 
 /// Bounds for one worker drain.
 #[derive(Clone, Copy, Debug)]
@@ -210,8 +214,10 @@ struct MemoryIdRow {
 }
 
 #[derive(Debug, Deserialize)]
-struct QueueClassCount {
-    count: i64,
+struct QueueHealthRow {
+    pending: i64,
+    dead: i64,
+    quarantined: i64,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -469,6 +475,17 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .map_err(|error| ProcessError::item(error, &claim))?;
         validate_batch(&self.provider, chunks.len(), &vectors)
             .map_err(|error| ProcessError::item(error, &claim))?;
+        let vector_bytes = vectors.iter().try_fold(0_usize, |total, vector| {
+            total.checked_add(usize::from(vector.dims()).saturating_mul(size_of::<f32>()))
+        });
+        if vector_bytes.is_none_or(|bytes| bytes > MAX_DERIVATIVE_VECTOR_BYTES) {
+            return Err(ProcessError::item(
+                Error::Validation(format!(
+                    "embedding derivative payload exceeds the {MAX_DERIVATIVE_VECTOR_BYTES}-byte worker limit"
+                )),
+                &claim,
+            ));
+        }
         let now = elapsed_now(origin, started);
 
         let mut txn = TxnBuilder::new();
@@ -541,13 +558,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             ));
         }
         Work::complete(&mut txn, &claim, now);
-        store.txn(txn.into_statements()).await.map_err(|error| {
-            if matches!(error, Error::Conflict(_)) {
-                ProcessError::Infrastructure(error)
-            } else {
-                ProcessError::item(error, &claim)
-            }
-        })?;
+        store
+            .txn(txn.into_statements())
+            .await
+            .map_err(|error| ProcessError::item(error, &claim))?;
         Ok(ProcessOutcome::Completed)
     }
 
@@ -835,43 +849,45 @@ pub async fn queue_health(
     _scope_id: &str,
     _now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {
-    let counts = Work::counts(store).await?;
-    let mut pending = 0_u64;
-    let mut dead = 0_u64;
-    for count in counts.iter().filter(|count| {
-        count
-            .processor
-            .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
-    }) {
-        pending = pending
-            .saturating_add(count.pending)
-            .saturating_add(count.claimed)
-            .saturating_add(count.failed);
-        dead = dead.saturating_add(count.dead);
-    }
-    let rows: Vec<QueueClassCount> = store
+    let rows: Vec<QueueHealthRow> = store
         .query_consistent(
-            "SELECT COUNT(*) AS count
+            "SELECT
+               COALESCE(SUM(CASE
+                 WHEN processing.state IN ('pending', 'claimed', 'failed') THEN 1
+                 ELSE 0
+               END), 0) AS pending,
+               COALESCE(SUM(CASE
+                 WHEN processing.state = 'dead'
+                  AND COALESCE(attempt.error_class, '') != 'quarantined' THEN 1
+                 ELSE 0
+               END), 0) AS dead,
+               COALESCE(SUM(CASE
+                 WHEN processing.state = 'dead'
+                  AND attempt.error_class = 'quarantined' THEN 1
+                 ELSE 0
+               END), 0) AS quarantined
              FROM rahi_processing AS processing
-             JOIN rahi_processing_attempt AS attempt
+             LEFT JOIN rahi_processing_attempt AS attempt
                ON attempt.key_digest = processing.key_digest
               AND attempt.revision = processing.revision
               AND attempt.processor = processing.processor
               AND attempt.processor_revision = processing.processor_revision
               AND attempt.attempt = processing.attempt
-             WHERE processing.state = 'dead'
-               AND processing.processor LIKE ?1
-               AND attempt.outcome = 'dead'
-               AND attempt.error_class = 'quarantined'",
+              AND attempt.outcome = 'dead'
+             WHERE processing.state IN ('pending', 'claimed', 'failed', 'dead')
+               AND processing.processor LIKE ?1",
             vec![Value::from(format!("{EMBEDDING_PROCESSOR}.r%"))],
         )
         .await?;
-    let quarantined = rows.first().map_or(0, |row| row.count);
-    let quarantined = u64::try_from(quarantined)
-        .map_err(|_| Error::Integrity("quarantined embedding work count is negative".to_owned()))?;
-    dead = dead.checked_sub(quarantined).ok_or_else(|| {
-        Error::Integrity("quarantined embedding work exceeds the dead-letter count".to_owned())
+    let row = rows.first().ok_or_else(|| {
+        Error::Integrity("embedding queue health query returned no aggregate row".to_owned())
     })?;
+    let pending = u64::try_from(row.pending)
+        .map_err(|_| Error::Integrity("pending embedding work count is negative".to_owned()))?;
+    let dead = u64::try_from(row.dead)
+        .map_err(|_| Error::Integrity("dead embedding work count is negative".to_owned()))?;
+    let quarantined = u64::try_from(row.quarantined)
+        .map_err(|_| Error::Integrity("quarantined embedding work count is negative".to_owned()))?;
     Ok(QueueHealth {
         pending,
         dead,
