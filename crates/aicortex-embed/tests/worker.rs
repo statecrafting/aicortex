@@ -26,7 +26,7 @@ use aicortex_types::{
 };
 use rahi_store::{
     EncKey, EncKeys, EraseScope, ReceiptKey, Receipts, RetryPolicy, Statement, Store, StoreConfig,
-    StoreHandle, StoreSecrets, TxnBuilder, Value, coordination_set, receipt_set,
+    StoreHandle, StoreSecrets, TxnBuilder, Value, Work, coordination_set, receipt_set,
 };
 use rahi_types::{Error, Sub, UnixSeconds};
 use ring::digest::{SHA256, digest};
@@ -824,7 +824,7 @@ async fn erasure_during_inference_cannot_resurrect_derivatives() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn erased_quarantined_or_missing_memory_completes_without_dead_letter() {
+async fn terminal_memory_work_stays_recoverable_without_embedding() {
     for state in ["erased", "quarantined", "missing"] {
         let fixture = Fixture::migrated().await;
         let store = fixture.handle();
@@ -858,7 +858,11 @@ async fn erased_quarantined_or_missing_memory_completes_without_dead_letter() {
             .drain(&store, UnixSeconds::new(3))
             .await
             .expect("terminal work drains");
-        assert_eq!(report.completed, 1);
+        if state == "quarantined" {
+            assert_eq!((report.completed, report.dead), (0, 1));
+        } else {
+            assert_eq!((report.completed, report.dead), (1, 0));
+        }
         assert_eq!(
             count(
                 &store,
@@ -871,12 +875,44 @@ async fn erased_quarantined_or_missing_memory_completes_without_dead_letter() {
         let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
             .await
             .expect("health reads");
-        assert_eq!(health.dead, 0);
+        assert_eq!(health.dead, u64::from(state == "quarantined"));
         if state == "quarantined" {
             let coverage = ModelRegistry::coverage(&store, "scope-a")
                 .await
                 .expect("coverage excludes quarantined memories");
             assert_eq!((coverage[0].embedded, coverage[0].total), (0, 0));
+
+            store
+                .execute(
+                    "UPDATE memory SET status = 'active' WHERE scope_id = ?1 AND id = ?2",
+                    vec![Value::from("scope-a"), Value::from(memory.id.to_string())],
+                )
+                .await
+                .expect("review admits the memory");
+            let mut requeue = TxnBuilder::new();
+            Work::requeue(
+                &mut requeue,
+                &embedding_work_key("scope-a", memory.id, &model).expect("work key"),
+                UnixSeconds::new(4),
+            );
+            store
+                .txn(requeue.into_statements())
+                .await
+                .expect("admission requeues the terminal work");
+            let admitted = worker(TestProvider { fail: false }, "admitted-worker", 3)
+                .drain(&store, UnixSeconds::new(5))
+                .await
+                .expect("admitted memory embeds");
+            assert_eq!((admitted.completed, admitted.dead), (1, 0));
+            assert_eq!(
+                count(
+                    &store,
+                    "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+                    vec![Value::from(memory.id.to_string())],
+                )
+                .await,
+                1
+            );
         }
         fixture.shutdown().await;
     }

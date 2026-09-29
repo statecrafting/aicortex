@@ -71,9 +71,10 @@ struct ScopeRow {
 ///
 /// This runs after the chassis preflight attempt and reacquires the chassis
 /// cell gate before opening the store. If another process owns that gate, the
-/// embedding check reports a skip instead of bypassing it. Otherwise it
-/// reports a bounded set of scopes separately and leaves the process-wide
-/// model identity visible even when the deployment contains no scopes yet.
+/// embedding check reports the skip as a failed preflight instead of bypassing
+/// it. Otherwise it reports a bounded set of scopes separately and leaves the
+/// process-wide model identity visible even when the deployment contains no
+/// scopes yet.
 #[must_use]
 pub fn embedding_preflight(env: &dyn EnvReader) -> i32 {
     let runtime = match tokio::runtime::Builder::new_current_thread()
@@ -104,7 +105,7 @@ async fn read_embedding_preflight(env: &dyn EnvReader) -> Result<(), Error> {
         Ok(gate) => gate,
         Err(error) => {
             println!("embedding: skipped because the chassis cell gate refused: {error}");
-            return Ok(());
+            return Err(error);
         }
     };
     let secrets = rahi_ops::KeySet::of(&config).store_secrets()?;

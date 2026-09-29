@@ -197,6 +197,7 @@ pub struct EmbeddingWorker<P> {
 #[derive(Debug, Deserialize)]
 struct MemoryRow {
     record: String,
+    status: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -208,6 +209,7 @@ struct MemoryIdRow {
 enum ProcessOutcome {
     Completed,
     Deferred,
+    Quarantined,
 }
 
 #[derive(Debug)]
@@ -316,6 +318,17 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                         report.completed = report.completed.saturating_add(1);
                     }
                     Ok(ProcessOutcome::Deferred) => {}
+                    Ok(ProcessOutcome::Quarantined) => {
+                        match self
+                            .record_quarantine(store, &claim, elapsed_now(now, started))
+                            .await
+                        {
+                            Ok(()) => {}
+                            Err(Error::Conflict(_)) => continue,
+                            Err(error) => return Err(error),
+                        }
+                        report.dead = report.dead.saturating_add(1);
+                    }
                     Err(ProcessError::Item { error, claim }) => {
                         match self
                             .record_failure(store, &claim, &error, elapsed_now(now, started))
@@ -383,7 +396,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         }
         let rows: Vec<MemoryRow> = store
             .query_consistent(
-                "SELECT record FROM memory WHERE scope_id = ?1 AND id = ?2",
+                "SELECT record, status FROM memory WHERE scope_id = ?1 AND id = ?2",
                 vec![
                     Value::from(claim.key.receipt.tenant.as_str()),
                     Value::from(claim.key.receipt.key.as_str()),
@@ -404,9 +417,12 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 claim,
             )
         })?;
-        if matches!(memory.status, Status::Erased | Status::Quarantined) {
+        if row.status == Status::Erased.label() {
             self.complete_empty(store, claim, now).await?;
             return Ok(ProcessOutcome::Completed);
+        }
+        if row.status == Status::Quarantined.label() {
+            return Ok(ProcessOutcome::Quarantined);
         }
         let chunks = self
             .chunker
@@ -554,6 +570,31 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 detail: None,
             },
             &self.config.retry,
+            now,
+        )?;
+        store.txn(txn.into_statements()).await?;
+        Ok(())
+    }
+
+    async fn record_quarantine(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        now: UnixSeconds,
+    ) -> Result<(), Error> {
+        let mut txn = TxnBuilder::new();
+        let terminal = RetryPolicy {
+            max_attempts: claim.attempt,
+            ..self.config.retry
+        };
+        Work::fail(
+            &mut txn,
+            claim,
+            &FailureDetail {
+                class: "quarantined".to_owned(),
+                detail: None,
+            },
+            &terminal,
             now,
         )?;
         store.txn(txn.into_statements()).await?;
