@@ -228,6 +228,11 @@ configuration with a pinned digest rather than a spec-level commitment.
   payloads above 1 MiB before opening the derivative transaction. This leaves
   headroom below the pinned engine's 2 MiB WAL ceiling, so the queue can record
   a retry instead of submitting an entry the store cannot accept.
+- **D-15 (2026-09-29, implementation).** A model deactivation that races an
+  already-held claim atomically records the deferred attempt and requeues the
+  same processing identity through Rahi's public work API. The row does not
+  wait for claim expiry or become an observable dead letter, so temporary
+  deactivation cannot consume the configured provider-failure budget.
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,

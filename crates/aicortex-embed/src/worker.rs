@@ -418,10 +418,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             }
             None => {
                 // The pre-claim check handles the steady state. If deactivation
-                // races a held claim, leave it claimed so the same durable key
-                // becomes eligible again after its lease expires. Completing it
-                // would prevent a later activation of this revision from ever
-                // embedding the memory.
+                // races a held claim, immediately return the same durable key to
+                // pending. Completing it would prevent a later activation of
+                // this revision from ever embedding the memory.
+                self.defer_inactive_model(store, claim, now).await?;
                 return Ok(ProcessOutcome::Deferred);
             }
         }
@@ -625,7 +625,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             .await
             .map_err(ProcessError::Infrastructure)?;
         match active.as_ref() {
-            None => return Ok(ProcessOutcome::Deferred),
+            None => {
+                self.defer_inactive_model(store, claim, now).await?;
+                return Ok(ProcessOutcome::Deferred);
+            }
             Some(model) if !same_model_revision(model, &self.model) => {
                 self.complete_empty(store, claim, now).await?;
                 return Ok(ProcessOutcome::Completed);
@@ -633,6 +636,36 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             Some(_) => {}
         }
         Err(ProcessError::item(error, claim))
+    }
+
+    async fn defer_inactive_model(
+        &self,
+        store: &StoreHandle,
+        claim: &Claim,
+        now: UnixSeconds,
+    ) -> Result<(), ProcessError> {
+        let mut txn = TxnBuilder::new();
+        let terminal = RetryPolicy {
+            max_attempts: claim.attempt,
+            ..self.config.retry
+        };
+        Work::fail(
+            &mut txn,
+            claim,
+            &FailureDetail {
+                class: "model_deactivated".to_owned(),
+                detail: None,
+            },
+            &terminal,
+            now,
+        )
+        .map_err(ProcessError::Infrastructure)?;
+        Work::requeue(&mut txn, &claim.key, now);
+        store
+            .txn(txn.into_statements())
+            .await
+            .map_err(ProcessError::Infrastructure)?;
+        Ok(())
     }
 
     async fn complete_empty(

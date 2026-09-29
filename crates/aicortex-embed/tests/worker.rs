@@ -1274,7 +1274,7 @@ async fn deactivation_during_inference_defers_until_the_revision_is_reactivated(
             batch_size: 1,
             hold_for: Duration::from_secs(5),
             retry: RetryPolicy {
-                max_attempts: 3,
+                max_attempts: 1,
                 base: Duration::from_secs(1),
                 cap: Duration::from_secs(2),
             },
@@ -1290,6 +1290,15 @@ async fn deactivation_during_inference_defers_until_the_revision_is_reactivated(
     assert_eq!(
         (deferred.claimed, deferred.completed, deferred.failed),
         (1, 0, 0)
+    );
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM rahi_processing WHERE state = 'pending'",
+            vec![],
+        )
+        .await,
+        1
     );
     activate(&store, &model).await;
     let completed = embedding_worker
@@ -1308,6 +1317,15 @@ async fn deactivation_during_inference_defers_until_the_revision_is_reactivated(
         )
         .await,
         1
+    );
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM rahi_processing WHERE state = 'dead'",
+            vec![],
+        )
+        .await,
+        0
     );
     fixture.shutdown().await;
 }
