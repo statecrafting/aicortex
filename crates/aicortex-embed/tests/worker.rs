@@ -45,6 +45,9 @@ struct TestProvider {
     fail: bool,
 }
 
+#[derive(Clone, Copy, Debug)]
+struct OtherProvider;
+
 #[derive(Clone, Debug)]
 struct ErasingProvider {
     store: StoreHandle,
@@ -96,6 +99,24 @@ impl EmbeddingProvider for TestProvider {
         if self.fail {
             return Err(Error::Upstream("injected provider failure".to_owned()));
         }
+        batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
+    }
+}
+
+impl EmbeddingProvider for OtherProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("other-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        2
+    }
+
+    fn normalized(&self) -> bool {
+        true
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
         batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
     }
 }
@@ -741,6 +762,78 @@ async fn a_worker_never_relabels_work_from_another_model_revision() {
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_worker_never_completes_same_revision_work_for_another_model() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let active_model = test_model(true);
+    activate(&store, &active_model).await;
+    let memory = test_memory("alice", "Model identity must survive the queue.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(
+        &mut txn,
+        "scope-a",
+        memory.id,
+        &active_model,
+        UnixSeconds::new(2),
+    )
+    .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+
+    let other_model = ModelRevision {
+        model_id: ModelId::new("other-model").expect("model id"),
+        ..active_model
+    };
+    let mismatched = EmbeddingWorker::new(
+        OtherProvider,
+        other_model,
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 16,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 3,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "other-worker",
+    )
+    .expect("worker config");
+    let report = mismatched
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("mismatch is recorded through the queue");
+    assert_eq!(report.claimed, 1);
+    assert_eq!(report.completed, 0);
+    assert_eq!(report.failed, 1);
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        0
+    );
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(3))
+        .await
+        .expect("queue health reads");
+    assert_eq!(health.pending, 1);
+    assert_eq!(health.dead, 0);
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn stale_revision_work_is_replaced_by_active_revision_work() {
     let fixture = Fixture::migrated().await;
     let store = fixture.handle();
@@ -843,6 +936,22 @@ async fn provider_failures_retry_then_reach_dead_letter_and_preflight_warns() {
     assert!(preflight.readiness_warning().is_some());
     assert!(preflight.to_string().contains("dead=1"));
     assert!(preflight.to_string().contains("warning="));
+
+    let replacement = ModelRevision {
+        revision: 2,
+        first_seen: UnixSeconds::new(6),
+        ..test_model(true)
+    };
+    activate(&store, &replacement).await;
+    let replacement_health = queue_health(&store, "scope-a", UnixSeconds::new(6))
+        .await
+        .expect("health reads after model activation");
+    assert_eq!(replacement_health.dead, 1);
+    let replacement_preflight = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(6))
+        .await
+        .expect("preflight reads after model activation");
+    assert!(replacement_preflight.readiness_warning().is_some());
+    assert!(replacement_preflight.to_string().contains("dead=1"));
     fixture.shutdown().await;
 }
 

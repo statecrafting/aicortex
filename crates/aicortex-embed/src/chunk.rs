@@ -97,9 +97,9 @@ impl Chunker {
                 end = utf8_floor(body, target);
             }
             if end <= start {
-                end = body[start..]
-                    .char_indices()
-                    .nth(1)
+                end = body
+                    .get(start..)
+                    .and_then(|tail| tail.char_indices().nth(1))
                     .map_or(body.len(), |(offset, _)| start.saturating_add(offset));
             }
             let ordinal = u32::try_from(chunks.len()).unwrap_or(u32::MAX);
@@ -123,9 +123,9 @@ impl Chunker {
             if next > start {
                 start = next;
             } else {
-                start = body[start..]
-                    .char_indices()
-                    .nth(1)
+                start = body
+                    .get(start..)
+                    .and_then(|tail| tail.char_indices().nth(1))
                     .map_or(end, |(offset, _)| start.saturating_add(offset));
             }
         }

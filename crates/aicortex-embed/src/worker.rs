@@ -342,6 +342,12 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                     && claim.key.processor_revision == self.model.model_id.as_str()
                     && active.revision == self.model.revision
                     && active.model_id == self.model.model_id => {}
+            Some(active) if active.revision == claim.key.revision => {
+                return Err(Error::Config(format!(
+                    "embedding worker {} cannot process active work for {} at revision {}",
+                    self.model.model_id, claim.key.processor_revision, claim.key.revision
+                )));
+            }
             Some(active) => return self.restage_active(store, claim, &active, now).await,
             None => {
                 return Err(Error::Config(
@@ -658,12 +664,11 @@ async fn reembed_under_lease(
     })
 }
 
-/// Read the selected model revision's queue values for preflight and metrics.
+/// Read the global queue values required by preflight and metrics.
 ///
 /// Rahi 0.4 exposes processor-level counts but not tenant-level counts or
 /// enqueue timestamps. The scope and clock remain in this API so callers do
 /// not need another compatibility break when the chassis adds those reads.
-/// Before initial model activation, all embedding processors remain visible.
 ///
 /// # Errors
 ///
@@ -674,20 +679,12 @@ pub async fn queue_health(
     _now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {
     let counts = Work::counts(store).await?;
-    let active_processor = ModelRegistry::active(store)
-        .await?
-        .map(|model| embedding_processor(model.revision));
     let mut pending = 0_u64;
     let mut dead = 0_u64;
     for count in counts.iter().filter(|count| {
-        active_processor.as_ref().map_or_else(
-            || {
-                count
-                    .processor
-                    .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
-            },
-            |processor| count.processor == *processor,
-        )
+        count
+            .processor
+            .starts_with(&format!("{EMBEDDING_PROCESSOR}.r"))
     }) {
         pending = pending
             .saturating_add(count.pending)

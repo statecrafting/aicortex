@@ -118,9 +118,9 @@ fn parse_https_endpoint(endpoint: &str) -> Result<ParsedEndpoint, Error> {
             "remote embedding endpoint {endpoint:?} must use https"
         ))
     })?;
-    let (host_port, path) = authority.find('/').map_or((authority, "/"), |index| {
-        (&authority[..index], &authority[index..])
-    });
+    let (host_port, path) = authority
+        .find('/')
+        .map_or((authority, "/"), |index| authority.split_at(index));
     if host_port.is_empty() || host_port.contains('@') || host_port.starts_with('[') {
         return Err(Error::Config(format!(
             "remote embedding endpoint {endpoint:?} does not name a supported host"
