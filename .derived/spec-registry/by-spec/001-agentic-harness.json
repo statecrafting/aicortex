@@ -135,15 +135,15 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "001-agentic-engineering-harness": "9a8696c37bafcc2a20d478401c565a5fb88e5519c7e8643590b9d874f270aff1",
+      "001-agentic-engineering-harness": "ff7c3c579e674970200e3ef7b26b950b61f34698161d7a2041d818f856fcd3b6",
       "1-purpose": "e8e79fa321ec9a5ff407990e586c2b60720314bd570c6e0461a1d327b25979e9",
       "2-territory": "5c9eee77cc5bdf8cf4cdff7e64e510aca134a5a3274b05196ab264940de1c226",
       "3-behavior": "c1162cc7737998e2d48ecb94b1c2c4ed67ee7c16e02604e4037ea4ac8dd27a66",
-      "4-functional-requirements": "de53634db35ac7cd23b6230db1b7d4fce0cf220e347f0139293393133b49661c",
-      "5-acceptance-criteria": "12b3080e6b816d9533dd4825c6a533f93e47dfc2a96a0c12031dd32594f6f846",
+      "4-functional-requirements": "64023d74bab0edf9cfc48731c18009e757143943905e030f24dd5d53e4e94156",
+      "5-acceptance-criteria": "6047fb8db4ec7a44e5594210eca74bb861dac97ed74767f4e63b0d98d425ed92",
       "6-out-of-scope": "758afe22a2084f65e8c5136b8df32a85a8aa9016de657b1907b71a5a6cb0d102",
-      "7-resolved-decisions": "ef04c4945ade43f2ed6b1514f70ada8b2662d461ba5a700c7ae0f9ec0f7cc3dc",
-      "verification": "af1c70f7db2f516ed620fe92453690887f213c95d971cfc9e5d9cab8e40fce3c"
+      "7-resolved-decisions": "cae767edfc966e9f297941f17b4894ee550d0041d00ced7de6a1d019699a5fe9",
+      "verification": "e686258a13992925d76baf9b369662237d769aeaad9d63d052028443e39318dc"
     },
     "sectionHeadings": [
       "001: Agentic engineering harness",
@@ -161,6 +161,6 @@
     "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, six behavioral rules of which three are path-scoped, four subagents, ten skills, settings hooks that report and refuse, one Makefile that is the single definition of the gate and splits its reading half from its writing half, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
     "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
   },
-  "shardHash": "669f8aa0940ba1f4beae4b042e7933bc8fbf6b5ae3aa661bd962eb0c573d7eb3",
+  "shardHash": "530365bf1c65174d09fb897cfa11ebef7f0d65febf7b2d56937eccd42c5d3bb7",
   "specVersion": "1.8.0"
 }

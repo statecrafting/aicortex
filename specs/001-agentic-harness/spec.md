@@ -126,6 +126,10 @@ constitution is 000's; this spec owns the operational summary of it.
 - **FR-007.** The CLI refuses to run below the pin: `spec-spine.toml [meta]
   required_version` states the same floor `AGENTS.md`, `README.md`, and
   `govern.yml` state.
+- **FR-008.** Authored-content enforcement refuses agent attribution and any
+  commit whose author or committer address is a known agent identity. The
+  identity comparison is case-insensitive and applies to every commit in the
+  proposed range, while display names remain unconstrained.
 
 ## 5. Acceptance criteria
 
@@ -135,6 +139,10 @@ constitution is 000's; this spec owns the operational summary of it.
   dependency lower-numbered.
 - **AC-3.** `make gate` exits 0 on a clean checkout and leaves the working
   tree unchanged.
+- **AC-4.** The authored-content self-test proves that agent author and
+  committer addresses are each refused, a human address passes even with an
+  agent-like display name, and `BASE_SHA` activates the identity scan used by
+  CI.
 
 ## 6. Out of scope
 
@@ -486,10 +494,29 @@ consumes this repository as a registered target.
   leaving an unwitnessed governance edit. Ignored `.statecraft/state/`
   remains ungoverned runtime state and is deliberately excluded.
 
+- **D-14 (2026-09-30, owner decision, agent identity enforcement).** A signed
+  commit proves possession of a signing key, not human authorship. Earlier
+  pull requests demonstrated that commits carrying Claude author and
+  committer addresses could satisfy the signature gate and enter history.
+  The affected mainline was subsequently rewritten to tree-identical commits
+  under the owner's identity, but prevention still required a separate rule.
+
+  `.claude/settings.json` now disables generated commit attribution, pull
+  request attribution, and session URLs at the client source. The repository
+  checker remains the hard boundary: when `BASE_SHA` names a commit, its
+  ordinary tree mode also checks every author and committer address in
+  `BASE_SHA..HEAD`; `--identity` exposes the same check directly. The refused
+  address set is matched case-insensitively, while display names are ignored.
+  Offline self-tests cover author refusal, committer refusal, the automatic
+  CI path, the all-zero push sentinel, invalid bases, and a human whose
+  display name is Claude. The Statecraft profile already passes `BASE_SHA`,
+  so no generated workflow needs a hand edit for this enforcement to run.
+
 ## Verification
 
 ```verify:cli
 make gate
 make spine
 scripts/spec-dag.sh
+scripts/check-authored-content.sh --self-test
 ```
