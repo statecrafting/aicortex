@@ -100,5 +100,5 @@
     "title": "One spec per pull request; a session may land several specs in build order"
   },
   "shardHash": "0c2dad1b0ee4038b00793deaaa2f457d641d7d4cfdeb6d10d9b2a3d60d675bb0",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

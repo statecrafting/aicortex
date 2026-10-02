@@ -182,6 +182,6 @@
     "specId": "040-retrieval-evaluation",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "dc4587bece835f2b906aecc47ada2820cd30cdfccaf7f7de7d402ffee3ce4f62"
+  "schemaVersion": "1.2.0",
+  "shardHash": "a93780402b250a49947ea7fd46f6b4206f0000332864c1692f0c5f8f76fc9018"
 }

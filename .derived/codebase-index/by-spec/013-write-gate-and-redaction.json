@@ -470,6 +470,6 @@
     "specId": "013-write-gate-and-redaction",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "28c21da4ec6e36b73b5522d445cf8a13077bb9d46bc5215ed4bebdd2fe7ef032"
+  "schemaVersion": "1.2.0",
+  "shardHash": "2735ca588361c37e8b42a722d37e4024a64ed56aa1f0268fae8f89fe91213ebe"
 }

@@ -142,5 +142,5 @@
     "title": "Move every chassis pin to rahi 0.2.0 together, and declare which migrations are additive"
   },
   "shardHash": "99e94fb97ab3436ccf1da186ae4c556659568f6e3055628f6edbb0069614071f",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

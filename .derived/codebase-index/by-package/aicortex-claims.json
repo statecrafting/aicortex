@@ -6,6 +6,6 @@
     "specRef": "050-typed-claims-and-predicate-registry",
     "version": "0.1.0"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "764d973331765b3d05947984b9792676bf9b567c527885e5d2bff2d87fd1c5b1"
+  "schemaVersion": "1.2.0",
+  "shardHash": "6108b974fe12bbf356960df3f1f1f0eba09ffff96bd0a3c0228d8ac35881391c"
 }

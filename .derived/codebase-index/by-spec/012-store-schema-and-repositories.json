@@ -304,6 +304,6 @@
     "specId": "012-store-schema-and-repositories",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "293e31301eaf7d7ef6544667dbfe112da1b03a3d91f4bec4c1858c52eff5e1ec"
+  "schemaVersion": "1.2.0",
+  "shardHash": "d394be40e9594ebc3165d2fe713e83d9fe1c32e945c567e8e5d5641cbeb8e1db"
 }

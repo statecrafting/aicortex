@@ -6,6 +6,6 @@
     "specRef": "053-host-library-mode",
     "version": "0.0.0"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "13cf90c3f020da586e6c35e35efd4bc7977882cc6af263e7cc8a280057a5676a"
+  "schemaVersion": "1.2.0",
+  "shardHash": "bf23e994b35c40e255a1790c47c889466ae7a284441035e37df0bcf2717e9778"
 }

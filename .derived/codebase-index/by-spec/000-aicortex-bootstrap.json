@@ -4,6 +4,6 @@
     "specId": "000-aicortex-bootstrap",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "dba38e6fbf99c12a23eec3e15592100c307997538fbb75ac12c813df566e7dbf"
+  "schemaVersion": "1.2.0",
+  "shardHash": "a459d62750205355478eb2f7dc99372f4f5ea8a354a35a0499f061d58b543f08"
 }

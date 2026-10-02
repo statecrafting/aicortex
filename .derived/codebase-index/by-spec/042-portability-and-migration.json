@@ -126,6 +126,6 @@
     "specId": "042-portability-and-migration",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "c2ef4bb478c13b3804cb8ded4056d85abbadb69d9ecc54163da2080c9917fbe8"
+  "schemaVersion": "1.2.0",
+  "shardHash": "3c74968e38d3b442bbd25d1ab35dcc580bffcac48cbd8f3caee6c337a682ed47"
 }

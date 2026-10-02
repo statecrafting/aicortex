@@ -6,6 +6,6 @@
     "specRef": "015-embedding-pipeline",
     "version": "0.1.0"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "fb3d38fd123bac4ecbc23e6fb8e216bbe44c691c94d93a49bc50dabf76ac8b64"
+  "schemaVersion": "1.2.0",
+  "shardHash": "b8aa40f7a59eeb307f28de51133ecbc836715ff6a325a952b2259c7606425a7f"
 }

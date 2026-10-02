@@ -593,6 +593,6 @@
     "specId": "015-embedding-pipeline",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "20299577b85d7817de0aef65fea941284f00b7c2c7fa4415341f0891539ed8be"
+  "schemaVersion": "1.2.0",
+  "shardHash": "cd0dfb1b660f20bb36541695a22f425cafdbfe337e6a9949793bfaf3d8944b5f"
 }

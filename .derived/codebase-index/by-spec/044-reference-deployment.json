@@ -182,6 +182,6 @@
     "specId": "044-reference-deployment",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f9819564eca5d842f83e4421b6cee3c2abd4b599f60a3bfa64161d563e3e60fa"
+  "schemaVersion": "1.2.0",
+  "shardHash": "4b5904c1ba313e41dc4ff6400df06c733212150cb8952b8d00e87dbda0cf8cf3"
 }

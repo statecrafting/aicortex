@@ -1,7 +1,7 @@
 {
   "inputs": {
     ".claude/agents/architect.md": {
-      "contentHash": "7aae6880c266b5267d25793d83c1a27a61634269a54f3a020624c8a21c65e835"
+      "contentHash": "4f3ab74fa2d3fab3a28c816e8a0641c4601adba22b542602c3b20ab34376ac60"
     },
     ".claude/agents/explorer.md": {
       "contentHash": "b8e06ec7caec71fa5b34a9a139562a955f7fdb4aa784d65bf17bfdb9abc42c34"
@@ -64,7 +64,7 @@
       "contentHash": "7bfa43dd22323b9c16ff46916f61b70b33c0e853f11a35996f2c6ec1854a0b33"
     },
     ".gitattributes": {
-      "contentHash": "c18ce650f6ae95f4d2a105b9ffde213cee86b16dd1038e8b6caf49913d89a6a0"
+      "contentHash": "46979a33e79fb7e756ecb87e0905bacc9c7bf0f177630dbea1bb693b0f556d85"
     },
     ".githooks/enable-merge-driver.sh": {
       "contentHash": "c40d9d67fe30a4308c7d293a21a133ccbb602b1a84dc844113caa92cf82d1f97"
@@ -82,13 +82,13 @@
       "contentHash": "a5e7788554ce7eb1cc3fc0e5f30725a0aa6f8de570022ba0e2575084570fc271"
     },
     ".github/workflows/corpus-attestation.yml": {
-      "contentHash": "d1d3f288a5d93c39548476a3518e73c24257c7afa60696a0385008a7c92601a5"
+      "contentHash": "f1a2ec636eb03fd7737f81ce16a614ed31ce97ee3a0b9b7dcbcecc85dc57302f"
     },
     ".github/workflows/govern.yml": {
-      "contentHash": "764d3b356a014e46be7f7eb7971a25f09f263dba39a5df87d2d0495a6508bf49"
+      "contentHash": "63607769a87b1a556828a43dc0e103d57f6de93f4cf87fcac25dace2452b3154"
     },
     ".github/workflows/spec-dag.yml": {
-      "contentHash": "bafbbbfffdf1bfc64e7285f3488c30892a5f0bd0b28629ab207d464ab15da5ff"
+      "contentHash": "3a3b67e7b6eae71a8f04b0eecd106265298079fb964dfdb74e423c6c829f4a45"
     },
     ".github/workflows/statecraft-ai-review.yml": {
       "contentHash": "9f00644582115ee46103cd954bbe1575feb83323ff058fcbf12f4a2fc9dca40c"
@@ -112,16 +112,16 @@
       "contentHash": "36da034a5ffe2212fe69f6c217364d2ec31e04896d5957d72acbbf2a97cd8e1b"
     },
     "AGENTS.md": {
-      "contentHash": "baafd7059dc799185b1ae543b954b3bca6d56416f97ef700bec11e1f92564add"
+      "contentHash": "873899c388b41b71af0f9ce123cd1f8ca669682e34454d3a205d920de4f40d7a"
     },
     "CLAUDE.md": {
       "contentHash": "134cf78051ee5d0248c7ec9bd3024c7ea274199af114ae469ce8d1f3acd1c6fa"
     },
     "Makefile": {
-      "contentHash": "1ff9a9ce914c49565b4a73b3f6a2375c08f3112a52a7bf49483d06122b480ba3"
+      "contentHash": "ac68f19e9632b269198b44f2d70be1e625f9e4e28c43f1f067f97f0d5e5d2c1e"
     },
     "README.md": {
-      "contentHash": "79f3877c9608fc0edd597daa8b2a843cfbd89c2306caa9c2e9fae98d460746fb"
+      "contentHash": "731bde864e06523a36fed2d7dd5b34558aad57b240cb75382d900e34ef0ca8fe"
     },
     "deny.toml": {
       "contentHash": "cc95317a10026d46f99dd6825e11f3a3d43dd5e95059db147505e0a6819fce6d"
@@ -157,7 +157,7 @@
       "contentHash": "1d3aadcfeb13f0fbb31e4e4863450720d14e11f076af7bbf0a4d435fbe91a599"
     },
     "spec-spine.toml": {
-      "contentHash": "e89367f9ea53576954db3487cf1ec600accd41ba0fbbe4e1ee955bdcedf7818b"
+      "contentHash": "50d30366162d1aa13433939e6a6fde93e0aede54846b92b32022e2b556b68d66"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88dcf39d33f7941ae4ac8953d7a3df36cf11e4f735bd1309229f8c63d2270a56"

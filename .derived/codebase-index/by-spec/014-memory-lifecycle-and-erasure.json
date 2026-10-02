@@ -309,6 +309,6 @@
     "specId": "014-memory-lifecycle-and-erasure",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "5183c3ca22fda530b2431f0a2f7ca1368b959a75754f7a82e96f73bd8246e5f3"
+  "schemaVersion": "1.2.0",
+  "shardHash": "e3f4a770c114b09c90aa50a40582ae0da12b7b72656dbf5b5638f23fecc414ac"
 }

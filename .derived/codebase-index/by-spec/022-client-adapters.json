@@ -140,6 +140,6 @@
     "specId": "022-client-adapters",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "b4a90e8907b28b9b574bb322f10ba584a847830f2ea1d92dcc388b3c89ec24fa"
+  "schemaVersion": "1.2.0",
+  "shardHash": "c449d7a965408c8feeba051613fd2a61d28f568f3102f79e9e99057eb486704c"
 }

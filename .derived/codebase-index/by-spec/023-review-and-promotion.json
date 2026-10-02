@@ -143,6 +143,6 @@
     "specId": "023-review-and-promotion",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "4c328942401099b02590fda183432c9ca2cfdd9d515a03cdf966fc3e0b24e8d8"
+  "schemaVersion": "1.2.0",
+  "shardHash": "6d0a94bd780ba6d8a4677fa4de9aac2a3f257929dc40e14c2468bb07b2df83ff"
 }

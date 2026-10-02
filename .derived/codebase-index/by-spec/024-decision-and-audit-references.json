@@ -105,6 +105,6 @@
     "specId": "024-decision-and-audit-references",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "c1b365097d1d7210bac534bf1ebfe025a07bd7d5f451fa0801ecd4299337d4d1"
+  "schemaVersion": "1.2.0",
+  "shardHash": "7ed0709f6de574ea404829b7578948076efdac319c81608873d6bec25fa3fd0a"
 }
