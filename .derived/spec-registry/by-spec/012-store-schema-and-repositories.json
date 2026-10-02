@@ -138,5 +138,5 @@
     "title": "Schema and repositories: versioned migrations, scope in the predicate, counters instead of scans"
   },
   "shardHash": "5445ffd7912d726bf4947ce03959ec1c939da36ad7dc1ae013d6c2d47b92e16d",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

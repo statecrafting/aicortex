@@ -186,6 +186,6 @@
     "specId": "016-vector-index-and-scan",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f17062f3282e1c0857c9048a66113121aa44ddabceaa2197e0f7345e6d38cdef"
+  "schemaVersion": "1.2.0",
+  "shardHash": "6b2c974290318f41c3326f8cf3d17be75950f8802be055c63131b5cf81a1608d"
 }

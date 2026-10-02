@@ -46,6 +46,6 @@
     "specId": "019-untrusted-content-boundary",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "e99b5df4c9ed81d316a6da6199209901625b8d99a6c5bc5769db5e7ed1ca3266"
+  "schemaVersion": "1.2.0",
+  "shardHash": "acaa35f7c561e3c89cf66ae8a608593ebfa1e5558568c6628254917612147462"
 }

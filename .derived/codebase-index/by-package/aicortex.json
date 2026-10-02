@@ -6,6 +6,6 @@
     "specRef": "010-chassis-adoption-and-workspace",
     "version": "0.1.0"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "361da8f23488ecf1179989a4ec6a1db8c6d7315ee4836acfa8eac1d9cabc836b"
+  "schemaVersion": "1.2.0",
+  "shardHash": "c65ee794e041f27056662cbee0dafd38e19a31ecd72d337a3287fd9b51783c2d"
 }

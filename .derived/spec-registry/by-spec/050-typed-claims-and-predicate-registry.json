@@ -282,5 +282,5 @@
     "title": "Typed claims: a subject, a registered predicate, a typed value, an epistemic status, and the source span it came from"
   },
   "shardHash": "44acb3c6f3d1ab0cf79d4f147108a9087e73341d31a261d858be9c3a894ffc49",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

@@ -139,6 +139,6 @@
     "specId": "032-capture-sources-and-webhooks",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "4c6ffaab66d784f57369d78299a3e8e1ce7d9a5fcec819a3b6ce4b972f387c09"
+  "schemaVersion": "1.2.0",
+  "shardHash": "560b471e2d4af20a0641742bc8efdcb5b0fa32bf889b72a470846bc49469d74f"
 }

@@ -186,6 +186,6 @@
     "specId": "030-source-adapter-framework",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "131a807d1989b65543f58b115bc1a043fee7a9730d471be3374afe6aa9b86f15"
+  "schemaVersion": "1.2.0",
+  "shardHash": "3d561e687b49945960747119ac9a73bad0774b65404fbc06adcaef948d34b8ac"
 }

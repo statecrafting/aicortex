@@ -6,6 +6,6 @@
     "specRef": "011-memory-model",
     "version": "0.1.0"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "e09ce411bcfc405f3b7b61aa6d39bf36d33326b917721ef5d61ac830ea761bf4"
+  "schemaVersion": "1.2.0",
+  "shardHash": "d543314a93b630d2a18cd47b8b17228c3d7c83de828d1e84f585389c04ba26d7"
 }

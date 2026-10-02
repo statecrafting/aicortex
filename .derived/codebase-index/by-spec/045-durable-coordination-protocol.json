@@ -491,6 +491,6 @@
     "specId": "045-durable-coordination-protocol",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f9e67dc8da41ea958788a36ce62daefb94953b98e324734dedb2179703821183"
+  "schemaVersion": "1.2.0",
+  "shardHash": "f9b5220dd52ce391c7cf33f8e410af555f83ff0642dc4279382a6d1e6a611d6f"
 }

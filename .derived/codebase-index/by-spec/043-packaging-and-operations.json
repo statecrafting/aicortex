@@ -116,6 +116,6 @@
     "specId": "043-packaging-and-operations",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "b0005ec82148b8d21358c0c5eac75132d297ff09c83b27cdeb43ef01de12f8fd"
+  "schemaVersion": "1.2.0",
+  "shardHash": "af46b2815aba8188c67882cd638d9095257cffc0c81a94cc392d9b2b3f467156"
 }

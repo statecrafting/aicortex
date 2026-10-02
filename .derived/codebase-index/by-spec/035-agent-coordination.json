@@ -102,6 +102,6 @@
     "specId": "035-agent-coordination",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "9e83882a93beffd06a0cabebb17f37f4e480fb6369baa8032b06033b88446cf3"
+  "schemaVersion": "1.2.0",
+  "shardHash": "fa00375c26a8a995ad002c39b45dbb2bc76d75c2af6519ae2281bb3d29a6e114"
 }

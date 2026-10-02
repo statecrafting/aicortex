@@ -22,6 +22,6 @@
     "specId": "002-memory-thesis",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "37a3323c80d288bda378e32d6af36b760e6f3e61e37ed4b32436528691b54010"
+  "schemaVersion": "1.2.0",
+  "shardHash": "0a81411ca1f675f03579b43b532d9c1511d50ee2f8d2a0df84c3a8cdc9091d52"
 }

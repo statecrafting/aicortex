@@ -304,5 +304,5 @@
     "title": "Host-library mode: named migrations, operator-authorized vocabulary, and one caller-owned transaction"
   },
   "shardHash": "688c6a6866200f43628adadbe1f950b29db191ba6128e49d84145b3f087004af",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

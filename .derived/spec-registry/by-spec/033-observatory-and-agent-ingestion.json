@@ -80,5 +80,5 @@
     "title": "Machine intake: session decisions from the orchestrator and memories written by agents"
   },
   "shardHash": "74ac53fd5c821ad0168822604cc2c914951270ae4ba377855126de5464bd6f3f",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

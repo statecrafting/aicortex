@@ -258,5 +258,5 @@
     "title": "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
   },
   "shardHash": "def637e03ad63f10e354ab7d5c6a0dd67a7d0572b14cfa4d6985cca7e2854fae",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }

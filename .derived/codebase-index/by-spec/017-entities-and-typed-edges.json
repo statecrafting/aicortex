@@ -217,6 +217,6 @@
     "specId": "017-entities-and-typed-edges",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "db8eb891bc29bc216599a7b2f5d617ab6077d11c3c3e9c272c156f0d09779d0d"
+  "schemaVersion": "1.2.0",
+  "shardHash": "f29a52f749ad061af2b25433dfd9afbdf4ad8b6e75a70f5cef9166c762bd7d00"
 }

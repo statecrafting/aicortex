@@ -6,6 +6,6 @@
     "specRef": "012-store-schema-and-repositories",
     "version": "0.1.0"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "d23a3973dbe65399299c6ec8e6e018093a3e54b4d3aef791fcf89fbeaf4e5179"
+  "schemaVersion": "1.2.0",
+  "shardHash": "ad8a0187ac7b42a653b243838e91a58100fbd1fa7653abceb961684948efaafd"
 }

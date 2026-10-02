@@ -167,6 +167,6 @@
     "specId": "010-chassis-adoption-and-workspace",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.1.0",
-  "shardHash": "f386b639cbeaf29677873bc3cb28f312a0680bf9d19d4465364223ec7ee1f517"
+  "schemaVersion": "1.2.0",
+  "shardHash": "8ca8d793c3bb8d74d5a5908d854789f247902b7e37dcd650b838012af9a66fde"
 }

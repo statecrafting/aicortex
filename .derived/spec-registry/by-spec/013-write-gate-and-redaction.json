@@ -211,5 +211,5 @@
     "title": "The write gate: refuse secrets, cap size, establish origin, quarantine the rest"
   },
   "shardHash": "c959b02fffd3ed478c37dd43f61d178826a5e3d75bf45867ae161bdb6d37b6a3",
-  "specVersion": "1.8.0"
+  "specVersion": "1.9.0"
 }
