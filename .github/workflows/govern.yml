@@ -10,10 +10,6 @@ on:
 permissions:
   contents: read
 
-env:
-  # Pinned to the version AGENTS.md names; bump both together.
-  SPEC_SPINE_VERSION: v0.26.0
-
 jobs:
   spine:
     name: spec-spine gate
@@ -47,9 +43,8 @@ jobs:
       - name: Install spec-spine
         run: |
           set -euo pipefail
-          curl -fsSL https://raw.githubusercontent.com/statecrafting/spec-spine/main/install.sh \
-            | SPEC_SPINE_VERSION="$SPEC_SPINE_VERSION" SPEC_SPINE_BIN_DIR="$HOME/.local/bin" sh
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          sh scripts/statecraft/install-spec-spine.sh
+          echo "$PWD/.bin" >> "$GITHUB_PATH"
       - run: spec-spine --version
       # One verb, both committed trees (spec-spine spec 075). It compiles and
       # indexes in memory and compares against the committed shards without
@@ -120,9 +115,8 @@ jobs:
       - name: Install spec-spine
         run: |
           set -euo pipefail
-          curl -fsSL https://raw.githubusercontent.com/statecrafting/spec-spine/main/install.sh \
-            | SPEC_SPINE_VERSION="$SPEC_SPINE_VERSION" SPEC_SPINE_BIN_DIR="$HOME/.local/bin" sh
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          sh scripts/statecraft/install-spec-spine.sh
+          echo "$PWD/.bin" >> "$GITHUB_PATH"
       # The reproducible attestation over the corpus and its coupling verdict
       # (spec-spine spec 023): the repo's own ledger seal, published as a
       # build artifact so a later steward can `verify-attestation --recompute`.

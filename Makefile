@@ -12,7 +12,8 @@
 SHELL := /bin/bash
 .DEFAULT_GOAL := ci
 
-SPEC_SPINE ?= spec-spine
+SPEC_SPINE_LOCAL := .bin/spec-spine
+SPEC_SPINE ?= $(if $(wildcard $(SPEC_SPINE_LOCAL)),$(SPEC_SPINE_LOCAL),spec-spine)
 # The coupling base follows the branch this repository actually has
 # (spec-spine spec 072): $SPEC_SPINE_DEFAULT_BRANCH (make imports the
 # environment, so `?=` leaves an exported value alone), then the remote's own
