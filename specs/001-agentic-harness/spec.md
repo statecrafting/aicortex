@@ -535,3 +535,12 @@ After the revision 13 bridge, the repository exact pin moves to spec-spine
 0.28.0. The registry and index are regenerated with the pinned engine,
 including the committed codebase-index input manifest. The CI profile and
 required reusable jobs remain revision 13.
+
+## Revision 14 implementation record (2026-10-02)
+
+The scoped migration approved in spec 054 regenerates this spec's managed
+authority files with the qualified revision 14 producer. The exact engine
+pin remains 0.28.0; ordinary Rust code, corpus attestation, supply chain and
+spec DAG checks retain their existing acceptance. Spec 054 records the
+concrete producer, renderer and reviewed plan identities. The bridge and
+engine upgrade records above remain the history of revision 13 adoption.
