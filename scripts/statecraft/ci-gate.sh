@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rendered by Statecraft from profile github-actions-rust revision 13.
+# Rendered by Statecraft from profile github-actions-rust revision 14.
 # The aggregate gate. It passes only when every job the TRUSTED policy names
 # as required ended the way its event requires:
 #
@@ -124,7 +124,7 @@ review_result="$(printf '%s' "$NEEDS_JSON" | jq -r '.["ai-review"].outputs.resul
 authority=no
 if [ "$trusted" = yes ]; then
   {
-    jq -r '.files[].path, (.parameters.authored_content // empty)' "$work/policy.json"
+    jq -r '.files[].path, (.parameters.authored_content // empty), (.parameters.code.script // empty)' "$work/policy.json"
     echo "$POLICY"
   } | sort -u > "$work/authority-set"
   git diff --name-only "${BASE_SHA}...${HEAD_SHA}" | sort -u > "$work/changed"

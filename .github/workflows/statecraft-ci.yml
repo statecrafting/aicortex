@@ -1,5 +1,5 @@
-# Rendered by Statecraft from profile github-actions-rust revision 13
-# (identity 6167a12e110b30ec27d37909344c7de0178ba477d5ad1ab91a0053430a89e17b). A managed file and a member of this
+# Rendered by Statecraft from profile github-actions-rust revision 14
+# (identity 9eb589951883f6a94ad174678b50a683982915ac463e0782cfc0efbab8c960c9). A managed file and a member of this
 # repository's authority set: an edit here changes the gate that judges every
 # pull request, and `statecraft doctor` names it. The policy the aggregate gate
 # enforces is .statecraft/setup/github-actions-rust.json, read at the base.
@@ -82,7 +82,7 @@ jobs:
           elif ! jq -e '.authority_rule' "${work}/policy.json" > /dev/null; then
             echo "the base's policy predates revision 5: ci-gate reports an authority change and does not block it"
           else
-            { jq -r '.files[].path, (.parameters.authored_content // empty)' "${work}/policy.json"; echo "$policy"; } | sort -u > "${work}/set"
+            { jq -r '.files[].path, (.parameters.authored_content // empty), (.parameters.code.script // empty)' "${work}/policy.json"; echo "$policy"; } | sort -u > "${work}/set"
             git diff --name-only "${BASE_SHA}...${HEAD_SHA}" | sort -u > "${work}/changed"
             { comm -12 "${work}/set" "${work}/changed"; grep '^scripts/statecraft/' "${work}/changed" || true; grep '^\.github/workflows/' "${work}/changed" || true; } | sort -u > "${work}/touched"
             if [ -s "${work}/touched" ]; then
