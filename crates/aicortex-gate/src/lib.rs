@@ -52,17 +52,25 @@
 //!
 //! ```no_run
 //! # use aicortex_gate::{Candidate, Gate, Origin, Verdict};
+//! # use aicortex_store::EmbeddingTarget;
 //! # use rahi_store::{Envelope, TxnBuilder};
 //! # fn stage(
 //! #     gate: &Gate,
 //! #     candidate: &Candidate,
+//! #     embedding: &EmbeddingTarget,
 //! #     work: &Envelope,
 //! # ) -> Result<(), rahi_types::Error> {
 //! match gate.evaluate(candidate) {
 //!     Verdict::Admit(admitted) | Verdict::Quarantine(admitted, _) => {
 //!         let mut txn = TxnBuilder::new();
 //!         let provenance = admitted.memory().provenance.clone();
-//!         aicortex_store::MemoryRepo::new().insert(&mut txn, &admitted, &provenance, work)?;
+//!         aicortex_store::MemoryRepo::new().insert(
+//!             &mut txn,
+//!             &admitted,
+//!             &provenance,
+//!             embedding,
+//!             work,
+//!         )?;
 //!     }
 //!     Verdict::Refuse(reason) => {
 //!         // Nothing is staged. The caller appends the Decision of B-9.

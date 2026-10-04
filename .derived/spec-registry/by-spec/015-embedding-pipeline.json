@@ -70,6 +70,10 @@
       {
         "kind": "file",
         "path": "crates/aicortex-store/src/embedding_memory.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/embedding_staging.rs"
       }
     ],
     "extends": [
@@ -187,6 +191,30 @@
       },
       {
         "nature": "additive",
+        "spec": "013-write-gate-and-redaction",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "013-write-gate-and-redaction",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/capture.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "013-write-gate-and-redaction",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/compile_fail/"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "010-chassis-adoption-and-workspace",
         "unit": {
           "kind": "file",
@@ -243,15 +271,15 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "015-embeddings": "f57d9d062af400483741e6598744fc008ca10067c27e6ba454eb7e6e84df841a",
+      "015-embeddings": "3ae9394b25d4b893aecbc4e555da83c77f29f13749e8b035c2594be39903ef86",
       "1-purpose": "989657e0577a8e2d9da98f01af2692c9052a15b3be44b37bd4856fe66c05b645",
       "2-territory": "1f87b980d6cb3e4841b5f8402b64554de408c3bda323993bf277f75f08746b6d",
       "3-behavior": "5b20884b05fe1cb41564e3f41324e67d04018c84122b6a755b5e0bb111ead96a",
       "4-functional-requirements": "85c189fb3d80eb4a846d97423be27c456a8f36893a908d113a60328a257149bf",
       "5-acceptance-criteria": "c1dad44487d828931a2bf2fab0ade9d09db19bca2bfa9cc079e33bbc7eaa940f",
       "6-out-of-scope": "f984716657ec4f21f2549f82f68c8506bec498f2a29466a21d3fd2fc2bf59951",
-      "7-resolved-decisions": "99d059e9dfb8daedf2bdc931480812196f18fe67c0f4a05ae453bab6284eb6b1",
-      "status-2026-09-29-in-progress-runtime-and-chassis-hooks-required": "8d616f4b0f34ef41bc83b2cf3d89847566400736f74c788d4354b6f1f2714c5d",
+      "7-resolved-decisions": "47400b69f4a01c9e0d81c611462daf164302e143cb184686eac48f9773567647",
+      "status-2026-10-04-in-progress-runtime-and-chassis-hooks-required": "48ac0e833873053a9326b16eae4f7575be429c4c8936eb61cc303ff738827d12",
       "verification": "2abba5665f1683eb8359a7677a18fa075b5c21059a8dce252165d430515097f2"
     },
     "sectionHeadings": [
@@ -263,7 +291,7 @@
       "5. Acceptance criteria",
       "6. Out of scope",
       "7. Resolved decisions",
-      "Status (2026-09-29, in progress: runtime and chassis hooks required)",
+      "Status (2026-10-04, in progress: runtime and chassis hooks required)",
       "Verification"
     ],
     "specPath": "specs/015-embedding-pipeline/spec.md",
@@ -271,6 +299,6 @@
     "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
-  "shardHash": "6c2e129f299a8ca8eafdd7a0be299dfe7c1e05648cc30979a2372f296eb415eb",
+  "shardHash": "d8bcf6e7fc5f1352f70112d7cba71b64ab614f40b87d607988da3720c5c2dfc2",
   "specVersion": "1.9.0"
 }

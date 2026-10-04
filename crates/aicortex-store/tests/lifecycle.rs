@@ -20,8 +20,8 @@ mod common;
 use std::time::Duration;
 
 use aicortex_store::{
-    Captured, Counters, Lifecycle, MAX_EXPIRY_BATCH, MemoryFilter, MemoryRepo, ScopeId,
-    StatusFilter, fingerprint, lifecycle_lease_key,
+    Captured, Counters, EmbeddingTarget, Lifecycle, MAX_EXPIRY_BATCH, MemoryFilter, MemoryRepo,
+    ScopeId, StatusFilter, fingerprint, lifecycle_lease_key,
 };
 use aicortex_types::{
     AicortexTime, DecisionRef, MediaDigest, MediaRef, MemoryBody, MemoryId, MemoryKind, Promotion,
@@ -1106,10 +1106,18 @@ async fn migration_seven_preserves_v6_rows_and_backfills_them_after_reopen() {
             &mut txn,
             &common::admit(&memory),
             &memory.provenance,
+            &EmbeddingTarget::none(),
             &common::work(&memory),
         )
         .unwrap();
-    fixture.handle().txn(txn.into_statements()).await.unwrap();
+    // A v6 store has no embedding registry, so the row is written as a v6
+    // binary wrote it: without the spec 015 staging guard.
+    let statements = txn
+        .into_statements()
+        .into_iter()
+        .filter(|statement| !statement.sql.contains("embedding_model"))
+        .collect();
+    fixture.handle().txn(statements).await.unwrap();
     let report = fixture
         .handle()
         .migrate(&aicortex_store::migrations()[..7])

@@ -50,6 +50,7 @@ use rahi_types::Error;
 use serde::Deserialize;
 
 use crate::counters::Counters;
+use crate::embedding_memory::EmbeddingTarget;
 use crate::fingerprint;
 use crate::memory_repo::MemoryRepo;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
@@ -237,6 +238,7 @@ impl Lifecycle {
     ) -> Result<Captured, Error> {
         let memory = admitted.memory();
         let scope_id = ScopeId::of(&memory.scope);
+        let embedding = EmbeddingTarget::observe(store).await?;
         let digest = fingerprint::of_memory(memory);
         let holder = self
             .repo
@@ -245,7 +247,8 @@ impl Lifecycle {
 
         let Some(existing_id) = holder else {
             let provenance = memory.provenance.clone();
-            self.repo.insert(txn, admitted, &provenance, work)?;
+            self.repo
+                .insert(txn, admitted, &provenance, &embedding, work)?;
             stage_source(txn, &scope_id, memory.id, &memory.provenance)?;
             return Ok(Captured::Inserted(memory.id));
         };
@@ -278,6 +281,7 @@ impl Lifecycle {
             ],
         ));
         stage_source(txn, &scope_id, existing_id, &memory.provenance)?;
+        embedding.stage(txn, scope_id.as_str(), existing_id, existing.updated)?;
         // The work is staged either way: a merge changed the row, so whatever
         // the capture implies downstream (re-embedding, re-indexing) is owed
         // for the merged row as much as for a new one. Losing it here would
