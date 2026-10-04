@@ -1,8 +1,9 @@
 # Version-pin bumps self-waive the coupling gate (spec-spine's
 # auto_waive_dependency_only), so these PRs need no spec edit. A workspace
 # cargo bump still stales the committed codebase index until spec-spine
-# projects the root manifest (spec 001 D-15): such a PR needs one
-# `spec-spine index` commit before it can merge.
+# projects the root manifest (spec 001 D-15, D-16): the governance gate
+# judges every commit's own tree, so such a PR is rebuilt as one commit that
+# carries the bump and the regenerated index, then force-pushed.
 version: 2
 updates:
   - package-ecosystem: github-actions
@@ -23,7 +24,7 @@ updates:
         patterns:
           - "rahi-*"
       # Every other crate in one weekly pull request, as spec-spine groups
-      # its own, so the re-index above is paid once a week (D-15).
+      # its own, so the rebuild above is paid once a week (D-15).
       cargo:
         patterns:
           - "*"

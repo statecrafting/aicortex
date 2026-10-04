@@ -135,14 +135,14 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "001-agentic-engineering-harness": "c2adb56dd0b492a83be22ddaa0a6084b03f045745290ee02d608ef7746ddec66",
+      "001-agentic-engineering-harness": "cad84791ad93389dafb9752defa911c24fc91cf216b519e7f6d241ff2ff6b860",
       "1-purpose": "e8e79fa321ec9a5ff407990e586c2b60720314bd570c6e0461a1d327b25979e9",
       "2-territory": "5c9eee77cc5bdf8cf4cdff7e64e510aca134a5a3274b05196ab264940de1c226",
       "3-behavior": "c1162cc7737998e2d48ecb94b1c2c4ed67ee7c16e02604e4037ea4ac8dd27a66",
       "4-functional-requirements": "64023d74bab0edf9cfc48731c18009e757143943905e030f24dd5d53e4e94156",
       "5-acceptance-criteria": "d9d8b20352236d5ce27bea05d838ad01059a068126bc3dd022ae07a3dff71057",
       "6-out-of-scope": "758afe22a2084f65e8c5136b8df32a85a8aa9016de657b1907b71a5a6cb0d102",
-      "7-resolved-decisions": "79c47e666613682cd29b50bdbaa6a67f4085ae0c5809a62ed39745c1b4ae6dc9",
+      "7-resolved-decisions": "e35e9382e489b41bed9512ca44e81eb972972172fd4b65ad6aadfcd65bdfa070",
       "engine-upgrade-record-2026-10-02": "3bd336d442dbe47ed7de32ee12c3efc8ea7df6443d022b258dd9280f0269ff37",
       "profile-upgrade-record-2026-10-02": "d26d084ec1ac53f0450dc009347a561cd698b3b52ed68517f57d2dbcf429c187",
       "revision-14-implementation-record-2026-10-02": "602517cca1e59c971b2b3a2e18e022cc7e509d7ffd3c76712ef139d6be404aa6",
@@ -167,6 +167,6 @@
     "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, six behavioral rules of which three are path-scoped, four subagents, ten skills, settings hooks that report and refuse, one Makefile that is the single definition of the gate and splits its reading half from its writing half, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
     "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
   },
-  "shardHash": "666f475b05ad525dfb9ec2e29f78854ed002d008f0471cecac1cdddf3ab7245f",
+  "shardHash": "babf51c6e31e6e2a5d5dd7b93140b1146b7745c5a89e95a08e153947a4dab7a1",
   "specVersion": "1.9.0"
 }
