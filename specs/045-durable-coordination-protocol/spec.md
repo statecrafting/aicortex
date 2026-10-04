@@ -1,7 +1,7 @@
 ---
 id: "045-durable-coordination-protocol"
 title: "Coordinate repository work through durable requests, replies, and reconciled evidence"
-status: draft
+status: approved
 kind: "feature"
 domain: "protocol"
 created: "2026-09-11"
@@ -677,6 +677,15 @@ approves this spec, which stays `draft`.
   compiles) are reported to spec-spine's ongoing work as findings, not
   blockers, and no resolution of that work is asserted. `registry plan`
   listing a spec as ready is never its approval.
+- **D-18 (2026-10-04, owner decision, ratification).** The maintainer
+  approves this spec. Its draft `extends` edges on
+  `crates/aicortex-store/src/lib.rs` and
+  `crates/aicortex-store/src/erasure.rs` made it a draft owner of both
+  files, and the ratification gate refuses any change to a path a draft
+  spec owns, which blocked the 015 embedding-staging fix (#51). Approval
+  authorizes the territory of section 2 and nothing more: implementation
+  stays `pending`, the spec keeps its wave 4 place in the build order, and
+  P-2 and P-3 remain proposals.
 
 ## Verification
 
