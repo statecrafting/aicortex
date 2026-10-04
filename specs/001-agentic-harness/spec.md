@@ -526,6 +526,16 @@ consumes this repository as a registered target.
   per week rather than once per crate. The `rahi` group stays separate,
   because a chassis bump carries spec work (046).
 
+- **D-16 (2026-10-04, implementation, correcting D-15).** D-15 says a
+  grouped cargo pull request needs one added `spec-spine index` commit. It
+  cannot pass that way: the governance gate runs `spec-spine check` at each
+  commit's own tree in the change, and the bot's bump commit is stale on its
+  own. The pull request is instead rebuilt on current main as one signed
+  commit carrying the manifest change, the lockfile change cargo derives
+  from main's lockfile, and the regenerated index, then force-pushed (#25 was
+  merged this way). Copying the bot's lockfile wholesale is wrong when main's
+  has moved since, because it can roll back unrelated crates.
+
 ## Verification
 
 ```verify:cli
