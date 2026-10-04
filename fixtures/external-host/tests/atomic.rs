@@ -352,6 +352,29 @@ fn free_addr() -> SocketAddr {
     listener.local_addr().expect("the allocated address")
 }
 
+/// Open a single-voter host store on free ports.
+///
+/// The free-port probe drops its listener before the store binds, so another
+/// process can take the port in between. A collision is retried on fresh
+/// ports a bounded number of times; any other failure is the test's.
+async fn open_store(data_dir: &Path) -> (Store, StoreConfig) {
+    let mut last = None;
+    for _ in 0..5 {
+        let config = store_config(data_dir);
+        match Store::open(&config).await {
+            Ok(store) => return (store, config),
+            Err(error) if error.message().contains("Address already in use") => {
+                last = Some(error);
+            }
+            Err(error) => panic!("the host store opens: {error}"),
+        }
+    }
+    panic!(
+        "the host store opens after bounded port retries: {}",
+        last.expect("a port collision was recorded")
+    )
+}
+
 fn store_config(data_dir: &Path) -> StoreConfig {
     StoreConfig {
         node_id: 1,
@@ -489,8 +512,7 @@ async fn register_once(store: &StoreHandle) {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr006_fr008_commit_restart_noop_and_checksum_refusal() {
     let dir = tempfile::tempdir().expect("a temporary directory");
-    let config = store_config(&dir.path().join("store"));
-    let store = Store::open(&config).await.expect("the host store opens");
+    let (store, config) = open_store(&dir.path().join("store")).await;
     let handle = store.handle();
     migrate(&handle).await;
     register_once(&handle).await;
@@ -558,8 +580,7 @@ async fn fr006_fr008_commit_restart_noop_and_checksum_refusal() {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr007_last_statement_failure_rolls_every_system_back() {
     let dir = tempfile::tempdir().expect("a temporary directory");
-    let config = store_config(&dir.path().join("rollback-store"));
-    let store = Store::open(&config).await.expect("the host store opens");
+    let (store, _config) = open_store(&dir.path().join("rollback-store")).await;
     let handle = store.handle();
     migrate(&handle).await;
 
@@ -579,8 +600,7 @@ async fn fr007_last_statement_failure_rolls_every_system_back() {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn host_capture_stages_embedding_work_the_worker_drains() {
     let dir = tempfile::tempdir().expect("a temporary directory");
-    let config = store_config(&dir.path().join("embedding-store"));
-    let store = Store::open(&config).await.expect("the host store opens");
+    let (store, _config) = open_store(&dir.path().join("embedding-store")).await;
     let handle = store.handle();
     migrate(&handle).await;
 
