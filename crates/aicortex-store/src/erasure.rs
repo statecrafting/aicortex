@@ -1407,7 +1407,7 @@ mod test_support;
 #[allow(clippy::unwrap_used, clippy::expect_used, clippy::indexing_slicing)]
 mod tests {
     use super::*;
-    use crate::{Counters, Lifecycle, MemoryRepo, StatusFilter};
+    use crate::{Counters, EmbeddingTarget, Lifecycle, MemoryRepo, StatusFilter};
     use test_support as common;
 
     // Force the read/read/commit/commit interleaving of overlapping erasers.
@@ -1428,6 +1428,7 @@ mod tests {
                     &mut txn,
                     &common::admit(&memory),
                     &memory.provenance,
+                    &EmbeddingTarget::observe(&node.handle()).await.unwrap(),
                     &common::work(&memory),
                 )
                 .unwrap();
@@ -1496,6 +1497,7 @@ mod tests {
                 &mut txn,
                 &common::admit(&memory),
                 &memory.provenance,
+                &EmbeddingTarget::observe(&node.handle()).await.unwrap(),
                 &common::work(&memory),
             )
             .unwrap();
@@ -1536,6 +1538,7 @@ mod tests {
                 &mut txn,
                 &common::admit(&memory),
                 &memory.provenance,
+                &EmbeddingTarget::observe(&node.handle()).await.unwrap(),
                 &common::work(&memory),
             )
             .unwrap();
@@ -1624,7 +1627,7 @@ mod tests {
                 .await
                 .unwrap();
             assert_eq!(receipt.delivered, 0);
-            assert_decision(&node, &DecisionId::new(&receipt.decision_id), 1, 2).await;
+            assert_decision(&node, &DecisionId::new(&receipt.decision_id), 1, 3).await;
             node.ledger
                 .append(Decision::new(
                     DecisionId::new("archive-fixture-tail"),
@@ -1685,7 +1688,7 @@ mod tests {
                 .unwrap();
             assert_eq!(recovered.decision.as_str(), receipt.decision_id);
             assert_eq!(recovered.keys_destroyed, 1);
-            assert_eq!(recovered.removed_derivatives, 2);
+            assert_eq!(recovered.removed_derivatives, 3);
             assert_eq!(original.id, recovered.decision);
             assert!(
                 !node
@@ -1990,8 +1993,8 @@ mod tests {
                 .await
                 .unwrap();
             assert_eq!(recovered.keys_destroyed, 1);
-            assert_eq!(recovered.removed_derivatives, 2);
-            assert_decision(&node, &recovered.decision, 1, 2).await;
+            assert_eq!(recovered.removed_derivatives, 3);
+            assert_decision(&node, &recovered.decision, 1, 3).await;
             node = node.reopen().await;
             let repeated = Eraser::new()
                 .erase(
@@ -2018,7 +2021,7 @@ mod tests {
             let stats = Counters::stats(&node.handle(), &scope).await.unwrap();
             assert_eq!(stats.total, 1);
             assert_eq!(stats.by_status.get("erased"), Some(&1));
-            assert_decision(&node, &recovered.decision, 1, 2).await;
+            assert_decision(&node, &recovered.decision, 1, 3).await;
             node.shutdown().await;
         }
     }
@@ -2094,7 +2097,7 @@ mod tests {
                         assert_eq!(totals.batches, 1);
                         assert_eq!(totals.memories, count.min(2) as i64);
                         assert_eq!(totals.keys_destroyed, count as i64 + 1);
-                        assert_eq!(totals.derivatives, (count + count.min(2) + 1) as i64);
+                        assert_eq!(totals.derivatives, (count + 2 * count.min(2) + 1) as i64);
                     }
                     _ => assert_eq!(totals.memories, count as i64),
                 }
@@ -2112,7 +2115,7 @@ mod tests {
                     .unwrap();
                 assert_eq!(result.memories, count as u64);
                 assert_eq!(result.keys_destroyed, count as u64 + 1);
-                assert_eq!(result.removed_derivatives, count as u64 * 2 + 1);
+                assert_eq!(result.removed_derivatives, count as u64 * 3 + 1);
                 assert_eq!(result.batches, if count == 0 { 1 } else { 3 });
                 assert_decision(
                     &node,
@@ -2187,9 +2190,9 @@ mod tests {
                     result.keys_destroyed,
                     result.removed_derivatives
                 ),
-                (1, 1, 1, 2)
+                (1, 1, 1, 3)
             );
-            assert_decision(&node, &result.decision, 1, 2).await;
+            assert_decision(&node, &result.decision, 1, 3).await;
         }
         node.shutdown().await;
     }

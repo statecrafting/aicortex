@@ -28,9 +28,9 @@ use common::backup_bytes;
 
 use aicortex_gate::{Candidate, DigestRef, Gate, KIND_QUARANTINE, Origin, Verdict};
 use aicortex_store::{
-    Authority, Counters, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE,
-    KIND_ERASE_SCOPE, Lifecycle, MAX_ACCOUNTED_ERASURE_BATCH, MAX_ERASURE_BATCH, MemoryFilter,
-    MemoryRepo, PLANNED, ScopeId, StatusFilter, erasure_lease_key, fingerprint,
+    Authority, Counters, DERIVATIVES, Derivative, EmbeddingTarget, Erased, Eraser, Erasure,
+    KIND_ERASE, KIND_ERASE_SCOPE, Lifecycle, MAX_ACCOUNTED_ERASURE_BATCH, MAX_ERASURE_BATCH,
+    MemoryFilter, MemoryRepo, PLANNED, ScopeId, StatusFilter, erasure_lease_key, fingerprint,
 };
 use aicortex_types::{AicortexTime, Memory, MemoryId, MemoryKind, Scope, Status};
 use rahi_ledger::SignedRecord;
@@ -149,7 +149,13 @@ async fn quarantine(node: &common::Node, memory: &Memory) -> Quarantined {
     let mut txn = TxnBuilder::new();
     let provenance = admitted.memory().provenance.clone();
     MemoryRepo::new()
-        .insert(&mut txn, &admitted, &provenance, &common::work(memory))
+        .insert(
+            &mut txn,
+            &admitted,
+            &provenance,
+            &EmbeddingTarget::observe(&node.handle()).await.unwrap(),
+            &common::work(memory),
+        )
         .expect("the quarantined row stages");
     aicortex_store::DecisionKeyRepo::stage(
         &mut txn,
@@ -262,6 +268,7 @@ async fn host_prepares_and_stages_erasure_without_owning_the_commit() {
             &mut seed,
             &common::admit(&memory),
             &memory.provenance,
+            &EmbeddingTarget::observe(&node.handle()).await.unwrap(),
             &common::work(&memory),
         )
         .unwrap();
@@ -1349,6 +1356,7 @@ async fn fr005_a_scope_erasure_of_five_thousand_memories_is_bounded_and_resumabl
     // Seed the scope. The captures go through the gate and the repository, so
     // these are real rows with real provenance and real source log entries.
     let mut ids = Vec::with_capacity(total);
+    let embedding = EmbeddingTarget::observe(&node.handle()).await.unwrap();
     for chunk in 0..(total / 100) {
         let mut txn = TxnBuilder::new();
         for index in 0..100 {
@@ -1360,7 +1368,13 @@ async fn fr005_a_scope_erasure_of_five_thousand_memories_is_bounded_and_resumabl
             let admitted = common::admit(&memory);
             let provenance = memory.provenance.clone();
             MemoryRepo::new()
-                .insert(&mut txn, &admitted, &provenance, &common::work(&memory))
+                .insert(
+                    &mut txn,
+                    &admitted,
+                    &provenance,
+                    &embedding,
+                    &common::work(&memory),
+                )
                 .expect("the row stages");
             ids.push(memory.id);
         }
@@ -1427,7 +1441,7 @@ async fn fr005_a_scope_erasure_of_five_thousand_memories_is_bounded_and_resumabl
         .expect("the resumed erasure completes");
     assert!(erased.batches >= 1, "{erased:?}");
     assert_eq!(erased.memories, total as u64);
-    assert_eq!(erased.removed_derivatives, total as u64 + 6);
+    assert_eq!(erased.removed_derivatives, 2 * total as u64 + 6);
     assert_eq!(erased.keys_destroyed, 0);
 
     // Nothing is left un-erased.
@@ -1689,6 +1703,7 @@ async fn ac2_literal_cli_verifies_a_real_erased_fixture() {
             &mut txn,
             &common::admit(&memory),
             &memory.provenance,
+            &EmbeddingTarget::observe(&store.handle()).await.unwrap(),
             &common::work(&memory),
         )
         .unwrap();

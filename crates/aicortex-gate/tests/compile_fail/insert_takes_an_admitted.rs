@@ -5,7 +5,7 @@
 //! value, not a permission. What is not buildable is the permission, and the
 //! store's insert asks for that instead.
 
-use aicortex_store::MemoryRepo;
+use aicortex_store::{EmbeddingTarget, MemoryRepo};
 use aicortex_types::{
     Actor, ActorId, Importance, Memory, MemoryBody, MemoryId, MemoryKind, MemoryParts, Provenance,
     Scope, SourceRef, SourceSystem, TrustClass,
@@ -33,6 +33,12 @@ fn main() {
     let work = Envelope::new("memory", None, memory.id.to_string(), Revision::new(1));
     let mut txn = TxnBuilder::new();
     MemoryRepo::new()
-        .insert(&mut txn, &memory, &memory.provenance, &work)
+        .insert(
+            &mut txn,
+            &memory,
+            &memory.provenance,
+            &EmbeddingTarget::none(),
+            &work,
+        )
         .unwrap();
 }

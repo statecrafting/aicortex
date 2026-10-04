@@ -25,8 +25,8 @@ mod common;
 use std::collections::HashSet;
 
 use aicortex_store::{
-    Counters, Cursor, CursorKey, MemoryFilter, MemoryRepo, ProvenanceRepo, ScopeId, ScopeRepo,
-    StatusFilter,
+    Counters, Cursor, CursorKey, EmbeddingTarget, MemoryFilter, MemoryRepo, ProvenanceRepo,
+    ScopeId, ScopeRepo, StatusFilter,
 };
 use aicortex_types::{ExtractorVersion, MemoryId, MemoryKind};
 use rahi_store::{Statement, TxnBuilder, Value};
@@ -74,6 +74,7 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
             &mut txn,
             &common::admit(&parent),
             &parent.provenance,
+            &EmbeddingTarget::observe(&store).await.unwrap(),
             &common::work(&parent),
         )
         .unwrap();
@@ -92,6 +93,7 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
         rows(&store, "provenance").await,
         rows(&store, "memory_derivation").await,
         rows(&store, "outbox").await,
+        rows(&store, "rahi_processing").await,
     );
 
     // The whole capture, then one statement that cannot succeed. rahi's `txn`
@@ -102,13 +104,14 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
         &mut txn,
         &common::admit(&derived),
         &derived.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
         &common::work(&derived),
     )
     .unwrap();
     let staged = txn.len();
     assert_eq!(
-        staged, 7,
-        "a storage insert with two parents stages scope, memory, provenance, two derivations, counter, outbox"
+        staged, 9,
+        "a storage insert with two parents stages scope, memory, provenance, two derivations, counter, the embedding model guard and job (015 B-1), outbox"
     );
     txn.push(Statement::with_params(
         "INSERT INTO memory (id) VALUES ($1)",
@@ -123,6 +126,7 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
             rows(&store, "provenance").await,
             rows(&store, "memory_derivation").await,
             rows(&store, "outbox").await,
+            rows(&store, "rahi_processing").await,
         ),
         before,
         "the rolled-back capture left a trace"
@@ -141,6 +145,7 @@ async fn b4_fr002_a_capture_commits_whole_or_leaves_nothing() {
         &mut txn,
         &common::admit(&derived),
         &derived.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
         &common::work(&derived),
     )
     .unwrap();
@@ -187,6 +192,7 @@ async fn b3_b9_fr003_a_read_for_one_scope_never_returns_another() {
             &mut txn,
             &common::admit(&memory),
             &memory.provenance,
+            &EmbeddingTarget::observe(&store).await.unwrap(),
             &common::work(&memory),
         )
         .unwrap();
@@ -287,6 +293,7 @@ async fn b3_b9_fr003_a_read_for_one_scope_never_returns_another() {
         &mut txn,
         &common::admit(&cross),
         &cross.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
         &common::work(&cross),
     )
     .unwrap();
@@ -315,6 +322,7 @@ async fn b7_fr004_five_thousand_rows_page_exactly_once_each() {
     // Ten rows share each `created`, so the `(created desc, id desc)` order
     // is exercised on its tiebreaker rather than only on its leading column.
     let mut expected = HashSet::with_capacity(ROWS);
+    let embedding = EmbeddingTarget::observe(&store).await.unwrap();
     let mut txn = TxnBuilder::new();
     for index in 0..ROWS {
         let memory = common::memory(
@@ -326,6 +334,7 @@ async fn b7_fr004_five_thousand_rows_page_exactly_once_each() {
             &mut txn,
             &common::admit(&memory),
             &memory.provenance,
+            &embedding,
             &common::work(&memory),
         )
         .unwrap();
@@ -361,6 +370,7 @@ async fn b7_fr004_five_thousand_rows_page_exactly_once_each() {
                 &mut txn,
                 &common::admit(&late),
                 &late.provenance,
+                &EmbeddingTarget::observe(&store).await.unwrap(),
                 &common::work(&late),
             )
             .unwrap();
@@ -425,6 +435,7 @@ async fn b7_fr005_a_cursor_is_bound_to_its_scope_and_its_filter() {
                 &mut txn,
                 &common::admit(&memory),
                 &memory.provenance,
+                &EmbeddingTarget::observe(&store).await.unwrap(),
                 &common::work(&memory),
             )
             .unwrap();
@@ -539,6 +550,7 @@ async fn b6_fr006_stats_is_one_bounded_statement_over_the_counters() {
             &mut txn,
             &common::admit(&memory),
             &memory.provenance,
+            &EmbeddingTarget::observe(&store).await.unwrap(),
             &common::work(&memory),
         )
         .unwrap();
@@ -622,6 +634,7 @@ async fn b8_a_body_over_the_ceiling_is_refused_at_the_storage_boundary() {
         &mut txn,
         &common::admit(&at_ceiling),
         &at_ceiling.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
         &common::work(&at_ceiling),
     )
     .unwrap();
@@ -634,6 +647,7 @@ async fn b8_a_body_over_the_ceiling_is_refused_at_the_storage_boundary() {
         &mut txn,
         &common::admit(&at_ceiling),
         &at_ceiling.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
         &common::work(&at_ceiling),
     );
     assert!(matches!(refused, Err(Error::Validation(_))));
@@ -650,6 +664,7 @@ async fn b8_a_body_over_the_ceiling_is_refused_at_the_storage_boundary() {
         &mut txn,
         &common::admit(&at_ceiling),
         &other.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
         &common::work(&at_ceiling),
     );
     assert!(
@@ -673,6 +688,7 @@ async fn b2_the_fingerprint_index_refuses_a_duplicate_within_a_scope() {
         &mut txn,
         &common::admit(&first),
         &first.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
         &common::work(&first),
     )
     .unwrap();
@@ -696,6 +712,7 @@ async fn b2_the_fingerprint_index_refuses_a_duplicate_within_a_scope() {
         &mut txn,
         &common::admit(&second),
         &second.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
         &common::work(&second),
     )
     .unwrap();
