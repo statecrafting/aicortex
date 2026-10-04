@@ -512,6 +512,20 @@ consumes this repository as a registered target.
   display name is Claude. The Statecraft profile already passes `BASE_SHA`,
   so no generated workflow needs a hand edit for this enforcement to run.
 
+- **D-15 (2026-10-04, owner decision, grouped cargo updates).** Every
+  Dependabot cargo pull request has failed `spec-spine check`: ten specs
+  extend sections of the root `Cargo.toml`, and spec-spine folds the raw
+  bytes of a section's backing file into each such shard, so a workspace
+  version bump stales those shards and the bot cannot re-index. Claiming the
+  file whole and hashing it through `extra_hashed_inputs` does not help at
+  the pinned 0.28.0, which projects only workflow files there and records
+  the manifest's raw digest in `inputs.json`. Until spec-spine projects the
+  manifest on that path as it does for workflows (its 060 3.1), the cargo
+  entry groups every crate outside `rahi-*` into one weekly pull request, as
+  spec-spine's own configuration does, so the manual re-index is paid once
+  per week rather than once per crate. The `rahi` group stays separate,
+  because a chassis bump carries spec work (046).
+
 ## Verification
 
 ```verify:cli
