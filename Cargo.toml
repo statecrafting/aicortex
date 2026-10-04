@@ -79,7 +79,7 @@ serde_json = "1"
 # so neither adds a tree and `deny.toml`'s single-version rule for `ring`
 # still holds.
 ring = "0.17"
-base64 = "0.22"
+base64 = "0.23"
 
 # The local model preflight installs verified artifacts through directory
 # handles so a pathname swap cannot redirect the final rename (015 B-5).
