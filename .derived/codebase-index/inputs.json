@@ -76,7 +76,7 @@
       "contentHash": "50c797ff1e8ca10a06805f869aa8896937e1b39ab92d81fbff7cb6b68caa3c35"
     },
     ".github/dependabot.yml": {
-      "contentHash": "7973bd1e75891c3eba90de9f0f867549416c87347cd2ce2d50dda0deada9373d"
+      "contentHash": "dc85edfc6550cedd1b40574119eb13e523e32821725166110175641d9d429f32"
     },
     ".github/workflows/cargo-deny.yml": {
       "contentHash": "a5e7788554ce7eb1cc3fc0e5f30725a0aa6f8de570022ba0e2575084570fc271"
