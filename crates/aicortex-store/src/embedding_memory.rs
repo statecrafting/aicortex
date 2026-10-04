@@ -184,13 +184,15 @@ impl EmbeddingTarget {
             Some(model) => stage_active_embedding(txn, scope_id, memory_id, model, now),
             None => {
                 // Abort the whole write if a model became active after the
-                // observation: the SELECT emits a row only then, and that
-                // row's NULL model id cannot be inserted.
+                // observation. The SELECT copies the active row, so it emits
+                // a row only then, and that row's revision is already the
+                // table's primary key: the insert cannot succeed whatever
+                // the other columns allow.
                 txn.push(Statement::new(
                     "INSERT INTO embedding_model
                          (model_id, revision, dims, normalized, first_seen, active)
-                     SELECT NULL, 0, 0, 0, 0, 0
-                     WHERE EXISTS (SELECT 1 FROM embedding_model WHERE active = 1)",
+                     SELECT model_id, revision, dims, normalized, first_seen, active
+                     FROM embedding_model WHERE active = 1",
                 ));
                 Ok(())
             }

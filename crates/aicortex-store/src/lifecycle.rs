@@ -281,6 +281,10 @@ impl Lifecycle {
             ],
         ));
         stage_source(txn, &scope_id, existing_id, &memory.provenance)?;
+        // The job identity is the memory and the model revision; the time is
+        // only its creation stamp. A merge leaves the body as it was, so a
+        // job already drained for this revision has nothing new to embed,
+        // and staging the identity again is a no-op.
         embedding.stage(txn, scope_id.as_str(), existing_id, existing.updated)?;
         // The work is staged either way: a merge changed the row, so whatever
         // the capture implies downstream (re-embedding, re-indexing) is owed
