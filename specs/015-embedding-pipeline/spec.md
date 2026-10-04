@@ -280,6 +280,7 @@ configuration with a pinned digest rather than a spec-level commitment.
   standalone capture primitive under D-3 until the application wiring lands.
   Whether 053 B-10's host staging surface should name the new seam instead of
   `MemoryRepo::insert` is left to the owner.
+
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,
