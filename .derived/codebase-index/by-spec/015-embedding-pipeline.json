@@ -85,7 +85,19 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-gate/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/capture.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-gate/tests/common/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/compile_fail/",
         "source": "spec-edge"
       },
       {
@@ -118,6 +130,10 @@
       },
       {
         "path": "crates/aicortex-store/tests/common/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/embedding_staging.rs",
         "source": "spec-edge"
       },
       {
@@ -314,6 +330,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/tests/embedding_staging.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/embedding_staging.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "fixtures/external-host"
           }
         ],
@@ -405,6 +434,32 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-gate/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/capture.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/capture.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-gate/tests/common/mod.rs"
           }
         ],
@@ -413,6 +468,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-gate/tests/common/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/compile_fail/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/compile_fail/"
         }
       },
       {
@@ -594,5 +662,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "cd0dfb1b660f20bb36541695a22f425cafdbfe337e6a9949793bfaf3d8944b5f"
+  "shardHash": "8fcf2400717c8b1552599577d46559be189de09108b3d8331679947d95e956ce"
 }

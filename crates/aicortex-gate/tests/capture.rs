@@ -25,7 +25,9 @@ use aicortex_gate::{
     Candidate, DigestRef, Gate, KIND_OVERRIDE, KIND_QUARANTINE, KIND_REFUSE, LedgerEntry, Override,
     Reason, Verdict, ledger_entry,
 };
-use aicortex_store::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo, MemoryRepo};
+use aicortex_store::{
+    DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo, EmbeddingTarget, MemoryRepo,
+};
 use aicortex_types::{DecisionRef, MemoryId, Status};
 use rahi_ledger::{Decision, DecisionId, DecisionKind, Outcome, SignedRecord};
 use rahi_store::{Envelope, TxnBuilder};
@@ -76,7 +78,13 @@ mod capture {
                 memory.id.to_string(),
                 Revision::new(1),
             );
-            MemoryRepo::new().insert(&mut txn, admitted, &provenance, &work)?;
+            MemoryRepo::new().insert(
+                &mut txn,
+                admitted,
+                &provenance,
+                &EmbeddingTarget::observe(&node.handle()).await.unwrap(),
+                &work,
+            )?;
         }
 
         // B-9: a refusal and a quarantine are ledgered; an admission is not.

@@ -21,8 +21,9 @@ use aicortex_gate::{
     AdmissionPolicy, Candidate, ClaimContext, ClaimVerdict, Gate, Origin, SourceState, Verdict,
 };
 use aicortex_store::{
-    ClaimAppend, ClaimProposalRepo, ClaimRepo, MemoryRepo, OperatorPredicateConfig,
-    PredicateRegistrationGrant, PredicateRegistryRepo, Registration, document_digest,
+    ClaimAppend, ClaimProposalRepo, ClaimRepo, EmbeddingTarget, MemoryRepo,
+    OperatorPredicateConfig, PredicateRegistrationGrant, PredicateRegistryRepo, Registration,
+    document_digest,
 };
 use aicortex_types::{
     Actor, ActorId, AuthorityLevel, CivilDate, Claim, ClaimId, ClaimParts, ClaimProposal,
@@ -34,7 +35,7 @@ use aicortex_types::{
 use rahi_cli::Cell;
 use rahi_store::{
     ContentDigest, EncKey, EncKeys, Envelope, Outbox, ReceiptKey, ReceiptMeta, Receipts, Statement,
-    Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value,
+    Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value, Work,
 };
 use rahi_types::{Revision, Sub, UnixSeconds};
 use serde::Deserialize;
@@ -191,7 +192,7 @@ fn projection_document(admitted: &aicortex_gate::AdmittedClaim) -> serde_json::V
     serde_json::to_value(view).expect("the projection serializes")
 }
 
-fn stage_atomic(txn: &mut TxnBuilder, fail_last: bool) {
+fn stage_atomic(txn: &mut TxnBuilder, embedding: &EmbeddingTarget, fail_last: bool) {
     let receipt = ReceiptKey::new("host", "mail:fixture", "message-1").expect("a receipt key");
     Receipts::stage_first(
         txn,
@@ -211,7 +212,13 @@ fn stage_atomic(txn: &mut TxnBuilder, fail_last: bool) {
         Revision::new(1),
     );
     MemoryRepo::new()
-        .insert(txn, &admitted_memory, &memory.provenance, &memory_work)
+        .insert(
+            txn,
+            &admitted_memory,
+            &memory.provenance,
+            embedding,
+            &memory_work,
+        )
         .expect("the source observation stages");
 
     let proposal = proposal(memory.id);
@@ -333,6 +340,19 @@ async fn assert_atomic_counts(store: &StoreHandle, expected: i64) {
     ] {
         assert_eq!(count(store, sql).await, expected, "{label} count");
     }
+    // Spec 015 B-1: the host's memory insert staged its embedding job for the
+    // active revision in the same transaction, or nothing at all.
+    let embed = Work::counts(store)
+        .await
+        .expect("the work queue reads")
+        .into_iter()
+        .find(|queue| queue.processor == "embed.r1")
+        .map_or(0, |queue| queue.pending);
+    assert_eq!(
+        embed,
+        u64::try_from(expected).unwrap(),
+        "embedding job count"
+    );
 }
 
 async fn migrate(store: &StoreHandle) {
@@ -417,7 +437,10 @@ async fn fr006_fr008_commit_restart_noop_and_checksum_refusal() {
     register_once(&handle).await;
 
     let mut txn = TxnBuilder::new();
-    stage_atomic(&mut txn, false);
+    let embedding = EmbeddingTarget::observe(&handle)
+        .await
+        .expect("the embedding registry reads");
+    stage_atomic(&mut txn, &embedding, false);
     handle
         .txn(txn.into_statements())
         .await
@@ -482,7 +505,10 @@ async fn fr007_last_statement_failure_rolls_every_system_back() {
     migrate(&handle).await;
 
     let mut txn = TxnBuilder::new();
-    stage_atomic(&mut txn, true);
+    let embedding = EmbeddingTarget::observe(&handle)
+        .await
+        .expect("the embedding registry reads");
+    stage_atomic(&mut txn, &embedding, true);
     assert!(
         handle.txn(txn.into_statements()).await.is_err(),
         "the injected last statement must fail"
