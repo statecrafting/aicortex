@@ -95,20 +95,109 @@ pub fn embedding_processor(revision: u32) -> String {
 ///
 /// Store errors, a missing active model, or an invalid stored revision.
 pub async fn active_embedding(store: &StoreHandle) -> Result<ActiveEmbedding, Error> {
-    let rows: Vec<ActiveEmbeddingRow> = store
-        .query_consistent(
-            "SELECT model_id, revision FROM embedding_model WHERE active = 1",
-            vec![],
-        )
-        .await?;
-    let row = rows.into_iter().next().ok_or_else(|| {
-        Error::Config("no active embedding model; activate one before capture".to_owned())
-    })?;
-    Ok(ActiveEmbedding {
-        model_id: row.model_id,
-        revision: u32::try_from(row.revision)
-            .map_err(|_| Error::Integrity("active model revision is outside u32".to_owned()))?,
-    })
+    EmbeddingTarget::observe(store)
+        .await?
+        .active
+        .ok_or_else(|| {
+            Error::Config("no active embedding model; activate one before capture".to_owned())
+        })
+}
+
+/// The embedding model a memory write stages its work for (B-1).
+///
+/// Every insert into `memory` takes one of these, so no call site can write
+/// a memory without deciding what its embedding work is. The value is the
+/// caller's observation of the registry, and the statements it stages turn
+/// that observation into a commit-time condition: with a model active, the
+/// write stages that revision's job and aborts if activation moved; with no
+/// model active, the write stages no job and aborts if one became active.
+/// A memory therefore never commits next to an active model without its
+/// job. Memories written while no model is active are covered by the
+/// re-embedding pass that follows activation (B-9).
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct EmbeddingTarget {
+    active: Option<ActiveEmbedding>,
+}
+
+impl EmbeddingTarget {
+    /// Read the registry through the leader.
+    ///
+    /// # Errors
+    ///
+    /// Store errors, or an invalid stored revision.
+    pub async fn observe(store: &StoreHandle) -> Result<Self, Error> {
+        let rows: Vec<ActiveEmbeddingRow> = store
+            .query_consistent(
+                "SELECT model_id, revision FROM embedding_model WHERE active = 1",
+                vec![],
+            )
+            .await?;
+        let active = rows
+            .into_iter()
+            .next()
+            .map(|row| {
+                Ok::<_, Error>(ActiveEmbedding {
+                    model_id: row.model_id,
+                    revision: u32::try_from(row.revision).map_err(|_| {
+                        Error::Integrity("active model revision is outside u32".to_owned())
+                    })?,
+                })
+            })
+            .transpose()?;
+        Ok(Self { active })
+    }
+
+    /// A target that expects no model to be active at commit.
+    #[must_use]
+    pub const fn none() -> Self {
+        Self { active: None }
+    }
+
+    /// A target that expects `model` to be active at commit.
+    #[must_use]
+    pub const fn active(model: ActiveEmbedding) -> Self {
+        Self {
+            active: Some(model),
+        }
+    }
+
+    /// The model this target stages work for, if any.
+    #[must_use]
+    pub const fn model(&self) -> Option<&ActiveEmbedding> {
+        self.active.as_ref()
+    }
+
+    /// Stage the memory's embedding work, or the guard that no model is
+    /// active, into the caller's transaction.
+    ///
+    /// # Errors
+    ///
+    /// Rahi validation errors for an invalid scope or memory identity.
+    pub fn stage(
+        &self,
+        txn: &mut TxnBuilder,
+        scope_id: &str,
+        memory_id: MemoryId,
+        now: UnixSeconds,
+    ) -> Result<(), Error> {
+        match &self.active {
+            Some(model) => stage_active_embedding(txn, scope_id, memory_id, model, now),
+            None => {
+                // Abort the whole write if a model became active after the
+                // observation. The SELECT copies the active row, so it emits
+                // a row only then, and that row's revision is already the
+                // table's primary key: the insert cannot succeed whatever
+                // the other columns allow.
+                txn.push(Statement::new(
+                    "INSERT INTO embedding_model
+                         (model_id, revision, dims, normalized, first_seen, active)
+                     SELECT model_id, revision, dims, normalized, first_seen, active
+                     FROM embedding_model WHERE active = 1",
+                ));
+                Ok(())
+            }
+        }
+    }
 }
 
 /// Stage embedding work for the model observed active by the caller.

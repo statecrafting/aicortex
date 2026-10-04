@@ -25,6 +25,7 @@ establishes:
   - "crates/aicortex-embed/tests/chunk.rs"
   - "crates/aicortex-embed/testdata/vectors/"
   - "crates/aicortex-store/src/embedding_memory.rs"
+  - "crates/aicortex-store/tests/embedding_staging.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lifecycle.rs", nature: additive }
@@ -40,6 +41,9 @@ extends:
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/erasure.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/common/mod.rs", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/Cargo.toml", nature: additive }
+  - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/src/lib.rs", nature: additive }
+  - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/capture.rs", nature: additive }
+  - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/compile_fail/", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/main.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
@@ -280,8 +284,19 @@ configuration with a pinned digest rather than a spec-level commitment.
   standalone capture primitive under D-3 until the application wiring lands.
   Whether 053 B-10's host staging surface should name the new seam instead of
   `MemoryRepo::insert` is left to the owner.
+- **D-21 (2026-10-04, implementation).** Every memory write stages its
+  embedding work, superseding D-3's deferral of capture staging and D-20's
+  separate host seam: `MemoryRepo::insert_with_embedding` is removed.
+  `MemoryRepo::insert`, the host-library path of spec 053, and
+  `Lifecycle::capture` take an `EmbeddingTarget`: the caller's leader read of
+  the active model. With a model active, the write stages that revision's job
+  under D-3's activation guard. With none active, it stages no job and a guard
+  aborts the write if a model became active before commit. A memory therefore
+  never commits beside an active model without its job, capture stays
+  available before first activation, and the re-embedding pass that follows
+  activation (B-9) covers memories written while no model was active.
 
-## Status (2026-09-29, in progress: runtime and chassis hooks required)
+## Status (2026-10-04, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,
 revision-partitioned durable worker, erasure integration and capture-staging
@@ -304,14 +319,16 @@ are reported separately from failed work and do not degrade readiness. An
 inactive revision's queued work completes as a terminal no-op, so a
 scope-local drop does not consult another scope's queue counts.
 
-The current application has no first-activation wiring, so capture does not
-yet stage embedding work. The storage and durable-work contracts are
-implemented and tested without regressing the existing capture path.
+Every memory write, standalone capture and host insert alike, stages
+embedding work whenever a model is active (D-21). The current application has
+no first-activation wiring, so a fresh deployment captures without jobs until
+an operator activates a model and the re-embedding pass covers those
+memories.
 
 FR-002 and FR-007 have direct tests. FR-003 has direct dead-letter transition
 and library report coverage, but its application preflight reporting path
 remains open with the chassis hook. FR-001, FR-004, FR-005, and FR-006 also
-remain open: capture does not stage the job yet, and there is no booted
+remain open: there is no induced worker-crash test, and there is no booted
 local-provider socket probe, denied-host application preflight fixture, or
 query predicate until the runtime wiring and spec 016 recall implementation
 exist. These are recorded as open requirements, not inferred from lower-level

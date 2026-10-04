@@ -25,7 +25,7 @@ use aicortex_gate::{
     AdmissionPolicy, Candidate, ClaimContext, ClaimVerdict, Gate, Origin, SourceState, Verdict,
 };
 use aicortex_store::{
-    ActiveEmbedding, ClaimAppend, ClaimProposalRepo, ClaimRepo, MemoryRepo,
+    ClaimAppend, ClaimProposalRepo, ClaimRepo, EmbeddingTarget, MemoryRepo,
     OperatorPredicateConfig, PredicateRegistrationGrant, PredicateRegistryRepo, Registration,
     ScopeId, document_digest,
 };
@@ -39,7 +39,7 @@ use aicortex_types::{
 use rahi_cli::Cell;
 use rahi_store::{
     ContentDigest, EncKey, EncKeys, Envelope, Outbox, ReceiptKey, ReceiptMeta, Receipts,
-    RetryPolicy, Statement, Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value,
+    RetryPolicy, Statement, Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value, Work,
 };
 use rahi_types::{Error, Revision, Sub, UnixSeconds};
 use serde::Deserialize;
@@ -196,7 +196,7 @@ fn projection_document(admitted: &aicortex_gate::AdmittedClaim) -> serde_json::V
     serde_json::to_value(view).expect("the projection serializes")
 }
 
-fn stage_atomic(txn: &mut TxnBuilder, model: &ActiveEmbedding, fail_last: bool) {
+fn stage_atomic(txn: &mut TxnBuilder, embedding: &EmbeddingTarget, fail_last: bool) {
     let receipt = ReceiptKey::new("host", "mail:fixture", "message-1").expect("a receipt key");
     Receipts::stage_first(
         txn,
@@ -216,14 +216,14 @@ fn stage_atomic(txn: &mut TxnBuilder, model: &ActiveEmbedding, fail_last: bool) 
         Revision::new(1),
     );
     MemoryRepo::new()
-        .insert_with_embedding(
+        .insert(
             txn,
             &admitted_memory,
             &memory.provenance,
+            embedding,
             &memory_work,
-            model,
         )
-        .expect("the source observation and its embedding work stage");
+        .expect("the source observation stages");
 
     let proposal = proposal(memory.id);
     ClaimProposalRepo::stage_append(txn, &proposal).expect("the proposal stages");
@@ -352,6 +352,31 @@ fn free_addr() -> SocketAddr {
     listener.local_addr().expect("the allocated address")
 }
 
+/// Open a single-voter host store on free ports.
+///
+/// The free-port probe drops its listener before the store binds, so another
+/// process can take the port in between. A collision is retried on fresh
+/// ports a bounded number of times; any other failure is the test's.
+async fn open_store(data_dir: &Path) -> (Store, StoreConfig) {
+    let mut last = None;
+    for attempt in 0..5 {
+        // Each attempt opens a fresh directory, so a half-opened node leaves
+        // no Raft or SQLite state behind for the node that replaces it.
+        let config = store_config(&data_dir.join(format!("attempt-{attempt}")));
+        match Store::open(&config).await {
+            Ok(store) => return (store, config),
+            Err(error) if error.message().contains("Address already in use") => {
+                last = Some(error);
+            }
+            Err(error) => panic!("the host store opens: {error}"),
+        }
+    }
+    panic!(
+        "the host store opens after bounded port retries: {}",
+        last.expect("a port collision was recorded")
+    )
+}
+
 fn store_config(data_dir: &Path) -> StoreConfig {
     StoreConfig {
         node_id: 1,
@@ -410,6 +435,19 @@ async fn assert_atomic_counts(store: &StoreHandle, expected: i64) {
     ] {
         assert_eq!(count(store, sql).await, expected, "{label} count");
     }
+    // Spec 015 B-1: the host's memory insert staged its embedding job for the
+    // active revision in the same transaction, or nothing at all.
+    let embed = Work::counts(store)
+        .await
+        .expect("the work queue reads")
+        .into_iter()
+        .find(|queue| queue.processor == "embed.r1")
+        .map_or(0, |queue| queue.pending);
+    assert_eq!(
+        embed,
+        u64::try_from(expected).unwrap(),
+        "embedding job count"
+    );
 }
 
 async fn migrate(store: &StoreHandle) {
@@ -476,17 +514,16 @@ async fn register_once(store: &StoreHandle) {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr006_fr008_commit_restart_noop_and_checksum_refusal() {
     let dir = tempfile::tempdir().expect("a temporary directory");
-    let config = store_config(&dir.path().join("store"));
-    let store = Store::open(&config).await.expect("the host store opens");
+    let (store, config) = open_store(&dir.path().join("store")).await;
     let handle = store.handle();
     migrate(&handle).await;
     register_once(&handle).await;
 
-    let active = aicortex_store::active_embedding(&handle)
-        .await
-        .expect("the active model reads");
     let mut txn = TxnBuilder::new();
-    stage_atomic(&mut txn, &active, false);
+    let embedding = EmbeddingTarget::observe(&handle)
+        .await
+        .expect("the embedding registry reads");
+    stage_atomic(&mut txn, &embedding, false);
     handle
         .txn(txn.into_statements())
         .await
@@ -545,16 +582,15 @@ async fn fr006_fr008_commit_restart_noop_and_checksum_refusal() {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr007_last_statement_failure_rolls_every_system_back() {
     let dir = tempfile::tempdir().expect("a temporary directory");
-    let config = store_config(&dir.path().join("rollback-store"));
-    let store = Store::open(&config).await.expect("the host store opens");
+    let (store, _config) = open_store(&dir.path().join("rollback-store")).await;
     let handle = store.handle();
     migrate(&handle).await;
 
-    let active = aicortex_store::active_embedding(&handle)
-        .await
-        .expect("the active model reads");
     let mut txn = TxnBuilder::new();
-    stage_atomic(&mut txn, &active, true);
+    let embedding = EmbeddingTarget::observe(&handle)
+        .await
+        .expect("the embedding registry reads");
+    stage_atomic(&mut txn, &embedding, true);
     assert!(
         handle.txn(txn.into_statements()).await.is_err(),
         "the injected last statement must fail"
@@ -566,8 +602,7 @@ async fn fr007_last_statement_failure_rolls_every_system_back() {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn host_capture_stages_embedding_work_the_worker_drains() {
     let dir = tempfile::tempdir().expect("a temporary directory");
-    let config = store_config(&dir.path().join("embedding-store"));
-    let store = Store::open(&config).await.expect("the host store opens");
+    let (store, _config) = open_store(&dir.path().join("embedding-store")).await;
     let handle = store.handle();
     migrate(&handle).await;
 
@@ -579,12 +614,12 @@ async fn host_capture_stages_embedding_work_the_worker_drains() {
         memory.id.to_string(),
         Revision::new(1),
     );
-    let active = aicortex_store::active_embedding(&handle)
+    let embedding = EmbeddingTarget::observe(&handle)
         .await
-        .expect("the host reads its active model through the leader");
+        .expect("the host observes its active model through the leader");
     let mut txn = TxnBuilder::new();
     MemoryRepo::new()
-        .insert_with_embedding(&mut txn, &admitted, &memory.provenance, &work, &active)
+        .insert(&mut txn, &admitted, &memory.provenance, &embedding, &work)
         .expect("the host capture stages");
     handle
         .txn(txn.into_statements())

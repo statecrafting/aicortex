@@ -15,7 +15,8 @@
 //!
 //! **A capture is one transaction.** [`MemoryRepo::insert`] appends every
 //! statement to the caller's [`TxnBuilder`]: the scope row, the memory, its
-//! provenance, its derivation rows, its counter, and the outbox work. It
+//! provenance, its derivation rows, its counter, its embedding work (spec
+//! 015 B-1), and the outbox work. It
 //! opens no transaction of its own and executes nothing, so a caller cannot
 //! land the row and lose the work (constitution XI).
 
@@ -27,7 +28,7 @@ use serde::Deserialize;
 
 use crate::counters::Counters;
 use crate::cursor::{Cursor, CursorKey};
-use crate::embedding_memory::{ActiveEmbedding, stage_active_embedding};
+use crate::embedding_memory::EmbeddingTarget;
 use crate::hex_digest;
 use crate::provenance_repo::ProvenanceRepo;
 use crate::scope_repo::{ScopeId, ScopeRepo, seconds_to_sql};
@@ -248,6 +249,12 @@ impl MemoryRepo {
     /// took a second one without checking would be a way to store a memory
     /// whose row and record disagree about where it came from (D-2).
     ///
+    /// `embedding` is the caller's observation of the active embedding model,
+    /// usually [`EmbeddingTarget::observe`]. It is a required input so that no
+    /// write path, standalone or host, can store a memory without staging its
+    /// embedding work (spec 015 B-1); its staged guard aborts the commit if
+    /// the observation went stale.
+    ///
     /// # Errors
     ///
     /// [`Error::Validation`] when `provenance` is not `memory.provenance`,
@@ -258,6 +265,7 @@ impl MemoryRepo {
         txn: &mut TxnBuilder,
         admitted: &Admitted,
         provenance: &Provenance,
+        embedding: &EmbeddingTarget,
         work: &Envelope,
     ) -> Result<(), Error> {
         let memory = admitted.memory();
@@ -302,53 +310,8 @@ impl MemoryRepo {
         ));
         ProvenanceRepo::stage(txn, &scope_id, memory.id, provenance)?;
         Counters::increment(txn, &scope_id, memory.kind, &memory.status);
+        embedding.stage(txn, scope_id.as_str(), memory.id, memory.updated)?;
         Outbox::stage(txn, work);
-        Ok(())
-    }
-
-    /// Stage a capture together with its embedding work, in the caller's
-    /// transaction (015 B-1 and D-20, 053 B-9).
-    ///
-    /// This is the capture seam for a caller that owns embedding provider
-    /// configuration and model activation, which a host cell in library mode
-    /// does. Everything [`Self::insert`] stages is staged, followed by the
-    /// durable embedding job for `(memory, model revision)` under the same
-    /// Rahi processing identity the re-embedding and worker paths use. The
-    /// caller reads `model` through the leader with
-    /// [`crate::active_embedding`]; the guard that
-    /// [`crate::stage_active_embedding`] adds aborts the complete capture if
-    /// activation changed before commit, so a memory never lands without its
-    /// job or with a job under a stale model identity.
-    ///
-    /// The embedding identity is validated before anything is appended, so
-    /// a refusal of it leaves `txn` untouched.
-    ///
-    /// # Errors
-    ///
-    /// Every error of [`Self::insert`], and Rahi validation errors for an
-    /// invalid processing identity.
-    pub fn insert_with_embedding(
-        &self,
-        txn: &mut TxnBuilder,
-        admitted: &Admitted,
-        provenance: &Provenance,
-        work: &Envelope,
-        model: &ActiveEmbedding,
-    ) -> Result<(), Error> {
-        let memory = admitted.memory();
-        let scope_id = ScopeId::of(&memory.scope);
-        let mut embedding = TxnBuilder::new();
-        stage_active_embedding(
-            &mut embedding,
-            scope_id.as_str(),
-            memory.id,
-            model,
-            memory.updated,
-        )?;
-        self.insert(txn, admitted, provenance, work)?;
-        for statement in embedding.into_statements() {
-            txn.push(statement);
-        }
         Ok(())
     }
 

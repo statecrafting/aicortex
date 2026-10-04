@@ -32,7 +32,7 @@
 //! nothing:
 //!
 //! ```no_run
-//! # use aicortex_store::MemoryRepo;
+//! # use aicortex_store::{EmbeddingTarget, MemoryRepo};
 //! # use rahi_store::{Envelope, StoreHandle, TxnBuilder};
 //! # async fn capture(
 //! #     store: &StoreHandle,
@@ -41,7 +41,8 @@
 //! # ) -> Result<(), rahi_types::Error> {
 //! let mut txn = TxnBuilder::new();
 //! let provenance = admitted.memory().provenance.clone();
-//! MemoryRepo::new().insert(&mut txn, admitted, &provenance, work)?;
+//! let embedding = EmbeddingTarget::observe(store).await?;
+//! MemoryRepo::new().insert(&mut txn, admitted, &provenance, &embedding, work)?;
 //! store.txn(txn.into_statements()).await?;
 //! # Ok(())
 //! # }
@@ -97,7 +98,7 @@ pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
 pub use embedding_memory::{
     ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingMemory,
-    EmbeddingQueueCounts, active_embedding, embedding_coverage, embedding_memory,
+    EmbeddingQueueCounts, EmbeddingTarget, active_embedding, embedding_coverage, embedding_memory,
     embedding_processor, embedding_queue_counts, live_memory_total, memories_missing_embedding,
     stage_active_embedding, stage_complete_embedding_coverage_guard, stage_live_memory_guard,
 };

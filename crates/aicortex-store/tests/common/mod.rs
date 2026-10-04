@@ -44,8 +44,17 @@ impl Fixture {
         self.store.handle()
     }
 
-    /// The node with the crate's schema applied.
+    /// The node with the crate's schema applied and a test embedding model
+    /// active.
     pub async fn migrated() -> Self {
+        let fixture = Self::migrated_without_model().await;
+        activate_test_model(&fixture.handle()).await;
+        fixture
+    }
+
+    /// The node with the crate's schema applied and no embedding model
+    /// active, as a fresh deployment is before its first activation.
+    pub async fn migrated_without_model() -> Self {
         let fixture = open().await;
         fixture
             .handle()
@@ -60,7 +69,6 @@ impl Fixture {
             )
             .await
             .expect("the work schema applies to an empty store");
-        activate_test_model(&fixture.handle()).await;
         fixture
     }
 
@@ -95,6 +103,27 @@ impl Fixture {
     }
 }
 
+/// Activate the test embedding model at `revision`.
+pub async fn activate_model(store: &rahi_store::StoreHandle, model_id: &str, revision: u32) {
+    let mut txn = TxnBuilder::new();
+    ModelRegistry::activate(
+        &mut txn,
+        &ModelRevision {
+            model_id: ModelId::new(model_id).expect("a valid test model id"),
+            revision,
+            dims: 3,
+            normalized: true,
+            first_seen: UnixSeconds::new(1_700_000_000),
+            active: true,
+        },
+    )
+    .expect("active model accepted");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("the test model activates");
+}
+
 async fn activate_test_model(store: &rahi_store::StoreHandle) {
     let mut txn = TxnBuilder::new();
     ModelRegistry::activate(
@@ -116,12 +145,15 @@ async fn activate_test_model(store: &rahi_store::StoreHandle) {
 }
 
 /// Open a single-voter node on free ports.
+///
+/// A port taken between `free_addr` and the bind is retried, each attempt in
+/// a fresh directory: a half-opened node must not leave Raft or SQLite state
+/// behind for the node that replaces it.
 pub async fn open() -> Fixture {
-    let dir = tempfile::tempdir().expect("a temporary directory");
-    let data_dir = dir.path().join("hiqlite");
     let mut last = None;
     for _ in 0..5 {
-        match Store::open(&config(&data_dir)).await {
+        let dir = tempfile::tempdir().expect("a temporary directory");
+        match Store::open(&config(&dir.path().join("hiqlite"))).await {
             Ok(store) => return Fixture { store, dir },
             Err(error) if error.message().contains("Address already in use") => {
                 last = Some(error);
