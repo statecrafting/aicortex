@@ -145,12 +145,15 @@ async fn activate_test_model(store: &rahi_store::StoreHandle) {
 }
 
 /// Open a single-voter node on free ports.
+///
+/// A port taken between `free_addr` and the bind is retried, each attempt in
+/// a fresh directory: a half-opened node must not leave Raft or SQLite state
+/// behind for the node that replaces it.
 pub async fn open() -> Fixture {
-    let dir = tempfile::tempdir().expect("a temporary directory");
-    let data_dir = dir.path().join("hiqlite");
     let mut last = None;
     for _ in 0..5 {
-        match Store::open(&config(&data_dir)).await {
+        let dir = tempfile::tempdir().expect("a temporary directory");
+        match Store::open(&config(&dir.path().join("hiqlite"))).await {
             Ok(store) => return Fixture { store, dir },
             Err(error) if error.message().contains("Address already in use") => {
                 last = Some(error);

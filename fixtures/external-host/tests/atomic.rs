@@ -359,8 +359,10 @@ fn free_addr() -> SocketAddr {
 /// ports a bounded number of times; any other failure is the test's.
 async fn open_store(data_dir: &Path) -> (Store, StoreConfig) {
     let mut last = None;
-    for _ in 0..5 {
-        let config = store_config(data_dir);
+    for attempt in 0..5 {
+        // Each attempt opens a fresh directory, so a half-opened node leaves
+        // no Raft or SQLite state behind for the node that replaces it.
+        let config = store_config(&data_dir.join(format!("attempt-{attempt}")));
         match Store::open(&config).await {
             Ok(store) => return (store, config),
             Err(error) if error.message().contains("Address already in use") => {
