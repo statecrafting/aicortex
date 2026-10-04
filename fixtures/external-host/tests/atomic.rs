@@ -10,19 +10,24 @@
 use std::collections::BTreeMap;
 use std::net::{SocketAddr, TcpListener};
 use std::path::Path;
+use std::time::Duration;
 
 use aicortex_claims::{
     AdmissionRef, AsOf, ClaimHistory, ClaimRecord, ProjectionPolicy, RegistrySnapshot, TxBound,
     TxStamp, ValidBound, ValidTime, project,
 };
-use aicortex_embed::{ModelId, ModelRegistry, ModelRevision};
+use aicortex_embed::{
+    ChunkConfig, Chunker, EmbeddingProvider, EmbeddingWorker, ModelId, ModelRegistry,
+    ModelRevision, Vector, WorkerConfig, embedding_work_key,
+};
 use aicortex_external_host_fixture::ExternalHost;
 use aicortex_gate::{
     AdmissionPolicy, Candidate, ClaimContext, ClaimVerdict, Gate, Origin, SourceState, Verdict,
 };
 use aicortex_store::{
-    ClaimAppend, ClaimProposalRepo, ClaimRepo, MemoryRepo, OperatorPredicateConfig,
-    PredicateRegistrationGrant, PredicateRegistryRepo, Registration, document_digest,
+    ActiveEmbedding, ClaimAppend, ClaimProposalRepo, ClaimRepo, MemoryRepo,
+    OperatorPredicateConfig, PredicateRegistrationGrant, PredicateRegistryRepo, Registration,
+    ScopeId, document_digest,
 };
 use aicortex_types::{
     Actor, ActorId, AuthorityLevel, CivilDate, Claim, ClaimId, ClaimParts, ClaimProposal,
@@ -33,10 +38,10 @@ use aicortex_types::{
 };
 use rahi_cli::Cell;
 use rahi_store::{
-    ContentDigest, EncKey, EncKeys, Envelope, Outbox, ReceiptKey, ReceiptMeta, Receipts, Statement,
-    Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value,
+    ContentDigest, EncKey, EncKeys, Envelope, Outbox, ReceiptKey, ReceiptMeta, Receipts,
+    RetryPolicy, Statement, Store, StoreConfig, StoreHandle, StoreSecrets, TxnBuilder, Value,
 };
-use rahi_types::{Revision, Sub, UnixSeconds};
+use rahi_types::{Error, Revision, Sub, UnixSeconds};
 use serde::Deserialize;
 
 fn at(offset: u64) -> UnixSeconds {
@@ -191,7 +196,7 @@ fn projection_document(admitted: &aicortex_gate::AdmittedClaim) -> serde_json::V
     serde_json::to_value(view).expect("the projection serializes")
 }
 
-fn stage_atomic(txn: &mut TxnBuilder, fail_last: bool) {
+fn stage_atomic(txn: &mut TxnBuilder, model: &ActiveEmbedding, fail_last: bool) {
     let receipt = ReceiptKey::new("host", "mail:fixture", "message-1").expect("a receipt key");
     Receipts::stage_first(
         txn,
@@ -211,8 +216,14 @@ fn stage_atomic(txn: &mut TxnBuilder, fail_last: bool) {
         Revision::new(1),
     );
     MemoryRepo::new()
-        .insert(txn, &admitted_memory, &memory.provenance, &memory_work)
-        .expect("the source observation stages");
+        .insert_with_embedding(
+            txn,
+            &admitted_memory,
+            &memory.provenance,
+            &memory_work,
+            model,
+        )
+        .expect("the source observation and its embedding work stage");
 
     let proposal = proposal(memory.id);
     ClaimProposalRepo::stage_append(txn, &proposal).expect("the proposal stages");
@@ -274,6 +285,68 @@ fn stage_atomic(txn: &mut TxnBuilder, fail_last: bool) {
     }
 }
 
+/// The embedding model the host configures and activates.
+fn host_model() -> ModelRevision {
+    ModelRevision {
+        model_id: ModelId::new("external-host-test").expect("a model id"),
+        revision: 1,
+        dims: 3,
+        normalized: true,
+        first_seen: at(0),
+        active: true,
+    }
+}
+
+/// A deterministic provider standing in for the host's configured model.
+#[derive(Clone, Copy, Debug)]
+struct HostProvider;
+
+impl EmbeddingProvider for HostProvider {
+    fn id(&self) -> ModelId {
+        host_model().model_id
+    }
+
+    fn dims(&self) -> u16 {
+        host_model().dims
+    }
+
+    fn normalized(&self) -> bool {
+        host_model().normalized
+    }
+
+    async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        batch
+            .iter()
+            .map(|_| Vector::new(vec![1.0, 0.0, 0.0]))
+            .collect()
+    }
+}
+
+fn host_worker() -> EmbeddingWorker<HostProvider> {
+    EmbeddingWorker::new(
+        HostProvider,
+        host_model(),
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 16,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 3,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "external-host-worker",
+    )
+    .expect("the worker matches the active model")
+}
+
 fn free_addr() -> SocketAddr {
     let listener = TcpListener::bind("127.0.0.1:0").expect("a free port");
     listener.local_addr().expect("the allocated address")
@@ -319,6 +392,10 @@ async fn assert_atomic_counts(store: &StoreHandle, expected: i64) {
     for (label, sql) in [
         ("receipt", "SELECT count(*) AS count FROM rahi_receipt"),
         ("memory", "SELECT count(*) AS count FROM memory"),
+        (
+            "embedding work",
+            "SELECT count(*) AS count FROM rahi_processing WHERE namespace = 'aicortex.memory'",
+        ),
         ("proposal", "SELECT count(*) AS count FROM claim_proposal"),
         ("claim", "SELECT count(*) AS count FROM claim_history"),
         ("admission", "SELECT count(*) AS count FROM claim_admission"),
@@ -346,18 +423,7 @@ async fn migrate(store: &StoreHandle) {
     assert_eq!(report.applied.len(), expected);
 
     let mut txn = TxnBuilder::new();
-    ModelRegistry::activate(
-        &mut txn,
-        &ModelRevision {
-            model_id: ModelId::new("external-host-test").expect("a model id"),
-            revision: 1,
-            dims: 3,
-            normalized: true,
-            first_seen: at(0),
-            active: true,
-        },
-    )
-    .expect("active model accepted");
+    ModelRegistry::activate(&mut txn, &host_model()).expect("active model accepted");
     store
         .txn(txn.into_statements())
         .await
@@ -416,8 +482,11 @@ async fn fr006_fr008_commit_restart_noop_and_checksum_refusal() {
     migrate(&handle).await;
     register_once(&handle).await;
 
+    let active = aicortex_store::active_embedding(&handle)
+        .await
+        .expect("the active model reads");
     let mut txn = TxnBuilder::new();
-    stage_atomic(&mut txn, false);
+    stage_atomic(&mut txn, &active, false);
     handle
         .txn(txn.into_statements())
         .await
@@ -481,12 +550,88 @@ async fn fr007_last_statement_failure_rolls_every_system_back() {
     let handle = store.handle();
     migrate(&handle).await;
 
+    let active = aicortex_store::active_embedding(&handle)
+        .await
+        .expect("the active model reads");
     let mut txn = TxnBuilder::new();
-    stage_atomic(&mut txn, true);
+    stage_atomic(&mut txn, &active, true);
     assert!(
         handle.txn(txn.into_statements()).await.is_err(),
         "the injected last statement must fail"
     );
     assert_atomic_counts(&handle, 0).await;
+    store.shutdown().await.expect("the host store stops");
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn host_capture_stages_embedding_work_the_worker_drains() {
+    let dir = tempfile::tempdir().expect("a temporary directory");
+    let config = store_config(&dir.path().join("embedding-store"));
+    let store = Store::open(&config).await.expect("the host store opens");
+    let handle = store.handle();
+    migrate(&handle).await;
+
+    let memory = observation();
+    let admitted = admitted_observation(&memory);
+    let work = Envelope::new(
+        "memory",
+        Some(scope().owner.as_str().to_owned()),
+        memory.id.to_string(),
+        Revision::new(1),
+    );
+    let active = aicortex_store::active_embedding(&handle)
+        .await
+        .expect("the host reads its active model through the leader");
+    let mut txn = TxnBuilder::new();
+    MemoryRepo::new()
+        .insert_with_embedding(&mut txn, &admitted, &memory.provenance, &work, &active)
+        .expect("the host capture stages");
+    handle
+        .txn(txn.into_statements())
+        .await
+        .expect("the host-owned capture commits");
+
+    // The durable identity the worker path stages through `stage_embedding`.
+    let scope_id = ScopeId::of(&memory.scope);
+    let key =
+        embedding_work_key(scope_id.as_str(), memory.id, &host_model()).expect("a processing key");
+    let staged: Vec<Count> = handle
+        .query_consistent(
+            "SELECT count(*) AS count FROM rahi_processing
+             WHERE key_digest = ?1 AND revision = ?2 AND processor = ?3
+               AND processor_revision = ?4 AND state = 'pending'"
+                .to_owned(),
+            vec![
+                Value::from(key.receipt.key_digest()),
+                Value::Integer(i64::from(key.revision)),
+                Value::from(key.processor.as_str()),
+                Value::from(key.processor_revision.as_str()),
+            ],
+        )
+        .await
+        .expect("the queue reads");
+    assert_eq!(
+        staged[0].count, 1,
+        "a host capture must stage its embedding work in the same transaction"
+    );
+
+    let report = host_worker()
+        .drain(&handle, at(10))
+        .await
+        .expect("the worker drains");
+    assert_eq!(report.completed, 1);
+    let embedded: Vec<Count> = handle
+        .query_consistent(
+            "SELECT count(*) AS count FROM embedding
+             WHERE scope_id = ?1 AND memory_id = ?2 AND model_revision = 1"
+                .to_owned(),
+            vec![
+                Value::from(scope_id.as_str()),
+                Value::from(memory.id.to_string()),
+            ],
+        )
+        .await
+        .expect("the embeddings read");
+    assert_eq!(embedded[0].count, 1, "the host capture is embedded");
     store.shutdown().await.expect("the host store stops");
 }

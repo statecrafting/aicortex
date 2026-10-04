@@ -267,6 +267,20 @@ configuration with a pinned digest rather than a spec-level commitment.
   exhausted claim before calling the provider. This covers failures that
   killed or hung a prior worker without letting an administrative deferral
   consume the provider-failure budget.
+- **D-20 (2026-10-03, implementation).** D-3 defers capture staging until the
+  application owns provider configuration, initial activation, and the worker
+  lifecycle; it is silent on host-library mode (053), where the host owns all
+  three. Removing the capture call from `MemoryRepo::insert` (02d282a, merged
+  in #41) therefore left host captures without embedding work even when the
+  host had activated a model. A host now captures through
+  `MemoryRepo::insert_with_embedding`, which takes the `ActiveEmbedding` the
+  host read through the leader and stages the memory and its durable job,
+  under the same processing identity as `stage_embedding`, in the host-owned
+  transaction (053 B-9). `MemoryRepo::insert` is unchanged and remains the
+  standalone capture primitive under D-3 until the application wiring lands.
+  Whether 053 B-10's host staging surface should name the new seam instead of
+  `MemoryRepo::insert` is left to the owner.
+
 ## Status (2026-09-29, in progress: runtime and chassis hooks required)
 
 The provider contracts, bounded chunking, monotonic model registry,

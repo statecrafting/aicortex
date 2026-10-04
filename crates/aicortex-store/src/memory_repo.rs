@@ -27,6 +27,7 @@ use serde::Deserialize;
 
 use crate::counters::Counters;
 use crate::cursor::{Cursor, CursorKey};
+use crate::embedding_memory::{ActiveEmbedding, stage_active_embedding};
 use crate::hex_digest;
 use crate::provenance_repo::ProvenanceRepo;
 use crate::scope_repo::{ScopeId, ScopeRepo, seconds_to_sql};
@@ -302,6 +303,52 @@ impl MemoryRepo {
         ProvenanceRepo::stage(txn, &scope_id, memory.id, provenance)?;
         Counters::increment(txn, &scope_id, memory.kind, &memory.status);
         Outbox::stage(txn, work);
+        Ok(())
+    }
+
+    /// Stage a capture together with its embedding work, in the caller's
+    /// transaction (015 B-1 and D-20, 053 B-9).
+    ///
+    /// This is the capture seam for a caller that owns embedding provider
+    /// configuration and model activation, which a host cell in library mode
+    /// does. Everything [`Self::insert`] stages is staged, followed by the
+    /// durable embedding job for `(memory, model revision)` under the same
+    /// Rahi processing identity the re-embedding and worker paths use. The
+    /// caller reads `model` through the leader with
+    /// [`crate::active_embedding`]; the guard that
+    /// [`crate::stage_active_embedding`] adds aborts the complete capture if
+    /// activation changed before commit, so a memory never lands without its
+    /// job or with a job under a stale model identity.
+    ///
+    /// The embedding identity is validated before anything is appended, so
+    /// a refusal of it leaves `txn` untouched.
+    ///
+    /// # Errors
+    ///
+    /// Every error of [`Self::insert`], and Rahi validation errors for an
+    /// invalid processing identity.
+    pub fn insert_with_embedding(
+        &self,
+        txn: &mut TxnBuilder,
+        admitted: &Admitted,
+        provenance: &Provenance,
+        work: &Envelope,
+        model: &ActiveEmbedding,
+    ) -> Result<(), Error> {
+        let memory = admitted.memory();
+        let scope_id = ScopeId::of(&memory.scope);
+        let mut embedding = TxnBuilder::new();
+        stage_active_embedding(
+            &mut embedding,
+            scope_id.as_str(),
+            memory.id,
+            model,
+            memory.updated,
+        )?;
+        self.insert(txn, admitted, provenance, work)?;
+        for statement in embedding.into_statements() {
+            txn.push(statement);
+        }
         Ok(())
     }
 
