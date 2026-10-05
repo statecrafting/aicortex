@@ -30,6 +30,8 @@ struct Component {
     kind: String,
     lowercase: Option<bool>,
     strip_accents: Option<bool>,
+    clean_text: Option<bool>,
+    handle_chinese_chars: Option<bool>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -51,6 +53,8 @@ pub struct WordPiece {
     max_word_chars: usize,
     lowercase: bool,
     strip_accents: bool,
+    clean_text: bool,
+    split_cjk: bool,
     split_punctuation: bool,
 }
 
@@ -70,11 +74,16 @@ impl WordPiece {
                 document.model.kind
             )));
         }
-        let (lowercase, strip_accents) = match &document.normalizer {
-            None => (false, false),
+        let (lowercase, strip_accents, clean_text, split_cjk) = match &document.normalizer {
+            None => (false, false, false, false),
             Some(component) if component.kind == "BertNormalizer" => {
                 let lowercase = component.lowercase.unwrap_or(true);
-                (lowercase, component.strip_accents.unwrap_or(lowercase))
+                (
+                    lowercase,
+                    component.strip_accents.unwrap_or(lowercase),
+                    component.clean_text.unwrap_or(true),
+                    component.handle_chinese_chars.unwrap_or(true),
+                )
             }
             Some(component) => {
                 return Err(Error::Config(format!(
@@ -113,6 +122,8 @@ impl WordPiece {
                 .unwrap_or(DEFAULT_MAX_WORD_CHARS),
             lowercase,
             strip_accents,
+            clean_text,
+            split_cjk,
             split_punctuation,
         })
     }
@@ -154,10 +165,16 @@ impl WordPiece {
             Box::new(text.chars())
         };
         for c in chars {
-            if is_removable_control(c) {
+            if self.clean_text && is_removable_control(c) {
                 continue;
             }
-            if self.lowercase {
+            if self.split_cjk && is_cjk(c) {
+                // The normalizer isolates each ideograph, as BertNormalizer's
+                // `handle_chinese_chars` does, before any pre-tokenizer runs.
+                normalized.push(' ');
+                normalized.push(c);
+                normalized.push(' ');
+            } else if self.lowercase {
                 normalized.extend(c.to_lowercase());
             } else {
                 normalized.push(c);
@@ -173,7 +190,7 @@ impl WordPiece {
         for c in normalized.chars() {
             if c.is_whitespace() {
                 flush(&mut current, &mut words);
-            } else if self.split_punctuation && (is_punctuation(c) || is_cjk(c)) {
+            } else if self.split_punctuation && is_punctuation(c) {
                 flush(&mut current, &mut words);
                 words.push(c.to_string());
             } else {
@@ -255,7 +272,8 @@ fn is_punctuation(c: char) -> bool {
         )
 }
 
-/// Control and format characters, which BERT's cleaning drops. Whitespace
+/// Control (Cc) and format (Cf) characters, which BERT's cleaning drops;
+/// private-use and unassigned code points are kept. Whitespace
 /// controls (tab, newline, carriage return) are kept as separators.
 fn is_removable_control(c: char) -> bool {
     c == '\0'
@@ -263,11 +281,7 @@ fn is_removable_control(c: char) -> bool {
         || (!c.is_whitespace()
             && matches!(
                 get_general_category(c),
-                GeneralCategory::Control
-                    | GeneralCategory::Format
-                    | GeneralCategory::PrivateUse
-                    | GeneralCategory::Surrogate
-                    | GeneralCategory::Unassigned
+                GeneralCategory::Control | GeneralCategory::Format
             ))
 }
 
@@ -327,8 +341,30 @@ mod tests {
         assert_eq!(tokenizer.encode("hello\u{20ac}", 16), vec![0]);
         // Ideographic punctuation is category P and splits.
         assert_eq!(tokenizer.encode("hello\u{3002}world", 16), vec![1, 0, 2]);
-        // Format characters are dropped.
+        // Format characters are dropped; private-use code points are not.
         assert_eq!(tokenizer.encode("hel\u{200b}lo", 16), vec![1]);
+        assert_eq!(tokenizer.encode("hello\u{e001}", 16), vec![0]);
+    }
+
+    #[test]
+    fn normalizer_switches_change_the_tokens() {
+        let build = |normalizer: &str, pre: &str| {
+            let json = format!(
+                r#"{{"normalizer":{normalizer},"pre_tokenizer":{pre},
+                    "model":{{"type":"WordPiece","vocab":{{"[UNK]":0,"hello":1,"\u4e16":2}}}}}}"#
+            );
+            WordPiece::from_json(json.as_bytes()).expect("tokenizer")
+        };
+        let bert = r#"{"type":"BertNormalizer","lowercase":true}"#;
+        let no_cjk = r#"{"type":"BertNormalizer","lowercase":true,"handle_chinese_chars":false}"#;
+        let no_clean = r#"{"type":"BertNormalizer","lowercase":true,"clean_text":false}"#;
+        let pre = r#"{"type":"BertPreTokenizer"}"#;
+        // CJK isolation belongs to the normalizer, not the pre-tokenizer.
+        assert_eq!(build(bert, "null").encode("hello\u{4e16}", 8), vec![1, 2]);
+        assert_eq!(build(no_cjk, pre).encode("hello\u{4e16}", 8), vec![0]);
+        // `clean_text: false` keeps the U+FFFD that cleaning would drop.
+        assert_eq!(build(bert, pre).encode("hel\u{fffd}lo", 8), vec![1]);
+        assert_eq!(build(no_clean, pre).encode("hel\u{fffd}lo", 8), vec![0]);
     }
 
     #[test]

@@ -299,14 +299,14 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "015-embeddings": "74c89a402febe5a86184bf53ee5db2dd4458d571d16cf91a7acdd3414943ff35",
+      "015-embeddings": "fc0d04a12e942142814edade81d0c7ba24ce26b2b6d4e5b0f857252ac5a3ff57",
       "1-purpose": "989657e0577a8e2d9da98f01af2692c9052a15b3be44b37bd4856fe66c05b645",
       "2-territory": "1f87b980d6cb3e4841b5f8402b64554de408c3bda323993bf277f75f08746b6d",
       "3-behavior": "5b20884b05fe1cb41564e3f41324e67d04018c84122b6a755b5e0bb111ead96a",
       "4-functional-requirements": "85c189fb3d80eb4a846d97423be27c456a8f36893a908d113a60328a257149bf",
       "5-acceptance-criteria": "c1dad44487d828931a2bf2fab0ade9d09db19bca2bfa9cc079e33bbc7eaa940f",
       "6-out-of-scope": "f984716657ec4f21f2549f82f68c8506bec498f2a29466a21d3fd2fc2bf59951",
-      "7-resolved-decisions": "abd6551ebe4e827d3d35bd276bb00a0ae690b5388ea1bc8876e9ab4e579b607c",
+      "7-resolved-decisions": "9b52b0c303337026641c08ac4e87235d6d5a8eecc95cf4a03127e96dd3173107",
       "status-2026-10-04-in-progress-runtime-and-chassis-hooks-required": "ac4984854eafc4400a61b92535fca1f01a4024a60235718209515d9f656707a7",
       "verification": "2abba5665f1683eb8359a7677a18fa075b5c21059a8dce252165d430515097f2"
     },
@@ -327,6 +327,6 @@
     "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
-  "shardHash": "6df60579401f6945aee7e3236c57a337dd4a698324fcc3a169e3ed3f1dd02263",
+  "shardHash": "979c2285521560e069e00d8fd3986f68f2ba9a240d5f0f7d9a62e3908872a1db",
   "specVersion": "1.9.0"
 }
