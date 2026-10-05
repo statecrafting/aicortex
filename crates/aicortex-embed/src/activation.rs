@@ -34,7 +34,9 @@ pub struct Activation {
 /// primary key, the registry's conflict clause deactivates nothing and
 /// violates `active NOT NULL` for a different identity, and the one-active
 /// index refuses a second active row. On `Conflict` the caller reads again and
-/// retries; any other error is a store failure.
+/// retries. Any other error is a store failure, including the case where the
+/// follow-up read that tells a lost race from a fault itself fails: the store
+/// is then unreliable and the commit error is returned unchanged.
 pub async fn activate_provider(
     store: &StoreHandle,
     provider: &impl EmbeddingProvider,

@@ -219,6 +219,10 @@ fn a_remote_endpoint_that_is_not_https_is_a_configuration_error() {
         .check_ceiling(&granted_manifest("models.example"))
         .expect_err("a malformed endpoint is refused");
     assert_eq!(failure.check, "embedding.remote.endpoint");
+    assert_eq!(failure.host, "http://models.example/embed");
+    let text = failure.to_string();
+    assert!(text.contains("not a supported https endpoint"), "{text}");
+    assert!(!text.contains("add the host"), "{text}");
 }
 
 #[test]

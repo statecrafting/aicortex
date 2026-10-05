@@ -115,12 +115,21 @@ pub struct CapabilityFailure {
     pub check: &'static str,
     /// The manifest service whose grant is missing.
     pub service: String,
-    /// The host that was not admitted.
+    /// The host that was not admitted, or the endpoint text itself when it
+    /// names no valid host (the `.endpoint` checks).
     pub host: String,
 }
 
 impl fmt::Display for CapabilityFailure {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.check.ends_with(".endpoint") {
+            return write!(
+                formatter,
+                "{}: {:?} is not a supported https endpoint (an https URL on the standard port \
+                 with a lowercase host), so no egress grant can admit it",
+                self.check, self.host
+            );
+        }
         write!(
             formatter,
             "{}: the manifest ceiling grants service {} no http.egress to {}; add the host to \
