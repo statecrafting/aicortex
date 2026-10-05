@@ -22,10 +22,14 @@ establishes:
   - "crates/aicortex-embed/src/registry.rs"
   - "crates/aicortex-embed/src/migrations.rs"
   - "crates/aicortex-embed/src/static_model.rs"
+  - "crates/aicortex-embed/src/config.rs"
+  - "crates/aicortex-embed/src/activation.rs"
+  - "crates/aicortex-embed/src/service.rs"
   - "crates/aicortex-embed/src/wordpiece.rs"
   - "crates/aicortex-embed/tests/worker.rs"
   - "crates/aicortex-embed/tests/chunk.rs"
   - "crates/aicortex-embed/tests/static_model.rs"
+  - "crates/aicortex-embed/tests/config.rs"
   - "crates/aicortex-embed/testdata/vectors/"
   - "crates/aicortex-store/src/embedding_memory.rs"
   - "crates/aicortex-store/tests/embedding_staging.rs"
@@ -318,6 +322,42 @@ configuration with a pinned digest rather than a spec-level commitment.
   token is a validation error that follows the normal retry and dead-letter
   path. Real-model verification is an ignored test keyed to
   `AICORTEX_TEST_MODEL_DIR`; no test touches the network.
+- **D-23 (2026-10-05, implementation).** Provider configuration is read from
+  `AICORTEX_EMBED_*` variables through rahi's `EnvReader` and resolved once by
+  `EmbeddingConfig::boot`. With no provider selected and no model named the
+  configuration is `Disabled`, not an error: the deployment captures with no
+  embedding work until a model is configured (D-21), and B-5's "local is the
+  default" governs which provider a named model uses, not whether a model
+  must exist. The service name that holds embedding egress grants is
+  `embedding`. `EmbeddingConfig::check` answers the B-5 and B-6 ceiling
+  question from the manifest alone (`Manifest::covers`), opens no socket, and
+  returns a `CapabilityFailure` naming the check (`embedding.remote.egress`
+  or `embedding.weights.egress`), the service, and the host; it converts to
+  `Error::Denied`. It is a plain function so a chassis preflight extension
+  can mount it unchanged; until one exists the application cannot make
+  `preflight` call it.
+- **D-24 (2026-10-05, implementation).** Activation is `activate_provider`:
+  the first provider becomes revision 1; an identical identity keeps the
+  active revision so a restart is a no-op; any other identity becomes the
+  latest recorded revision plus one (D-7). Activation does not enqueue the
+  re-embedding pass, because that pass is bound to one scope (D-17, D-18) and
+  the pipeline holds no scope inventory outside the storage crate's scoped
+  adapter; the per-scope pass stays the explicit `stage_reembedding_batch`
+  step an operator or a scope owner's surface drives.
+- **D-25 (2026-10-05, implementation).** The worker lifecycle is
+  `run_worker(worker, store, settings, shutdown)`: a future that drains, idles,
+  retries store errors after a backoff, and returns a `ServiceReport` when the
+  caller's `shutdown` future resolves. It spawns nothing and holds no handle,
+  so a managed-service host mounts and joins it and no untracked task can
+  outlive its owner. A drain in progress at shutdown may finish for a bounded
+  grace; past it the drain is dropped, which is the induced-crash case the
+  durable queue and its fenced claims already make safe (FR-001).
+- **D-26 (2026-10-05, implementation).** The B-8 revision predicate is
+  `ModelRegistry::vectors`: the caller passes the `ModelRevision` its query
+  embedding was produced under, and the statement matches revision, model
+  identity, width, and normalization together. A vector of another revision
+  is not returned, so it cannot be compared; spec 016's recall must read
+  vectors only through it.
 
 ## Status (2026-10-04, in progress: runtime and chassis hooks required)
 
