@@ -112,7 +112,7 @@ fn unsupported_or_inconsistent_weights_are_refused() {
     let layered = safetensors::serialize(tensors, None).expect("serialize");
     assert!(engine.embed_batch(&layered, &["red"]).is_err());
 
-    // The tokenizer names id 3, so a two-row table is a mismatch.
+    // The tokenizer names id 3, so a one-row table is a mismatch.
     let short = TensorView::new(Dtype::F32, vec![1, 2], &data).expect("view");
     let short = safetensors::serialize([(EMBEDDINGS_TENSOR, short)], None).expect("serialize");
     assert!(engine.embed_batch(&short, &["red"]).is_err());
