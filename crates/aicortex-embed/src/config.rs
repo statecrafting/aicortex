@@ -434,6 +434,11 @@ fn required(env: &dyn EnvReader, key: &str) -> Result<String, Error> {
     text(env, key).ok_or_else(|| Error::Config(format!("{key} is required and not set")))
 }
 
+/// Whether the artifact is definitely missing. Any other failure to inspect
+/// it (a permission problem on a parent directory, say) counts as present
+/// here, so the ceiling never blames a missing egress grant for it;
+/// [`EmbeddingConfig::check`] then verifies the artifact and reports the real
+/// I/O error.
 fn is_absent(artifact: &WeightArtifact) -> bool {
     matches!(
         std::fs::symlink_metadata(&artifact.path),

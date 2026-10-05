@@ -29,11 +29,12 @@ pub struct Activation {
 ///
 /// # Errors
 ///
-/// Store errors. Another node may activate between the reads and the commit;
-/// the commit is then refused, never merged: `embedding_model.revision` is the
+/// Store errors, and [`Error::Conflict`] when another node activated between
+/// the reads and the commit. The commit is then refused, never merged: `embedding_model.revision` is the
 /// primary key, the registry's conflict clause deactivates nothing and
 /// violates `active NOT NULL` for a different identity, and the one-active
-/// index refuses a second active row. The caller reads again and retries.
+/// index refuses a second active row. On `Conflict` the caller reads again and
+/// retries; any other error is a store failure.
 pub async fn activate_provider(
     store: &StoreHandle,
     provider: &impl EmbeddingProvider,
@@ -57,7 +58,16 @@ pub async fn activate_provider(
     let model = ModelRevision::from_provider(provider, revision, now, true)?;
     let mut txn = TxnBuilder::new();
     ModelRegistry::activate(&mut txn, &model)?;
-    store.txn(txn.into_statements()).await?;
+    if let Err(error) = store.txn(txn.into_statements()).await {
+        // Tell a lost race, which the caller should answer by reading again,
+        // from a store failure, which it should not retry blindly.
+        return Err(match ModelRegistry::latest_revision(store).await {
+            Ok(Some(latest)) if latest >= revision => Error::Conflict(format!(
+                "another activation committed revision {latest} first; read the registry again"
+            )),
+            _ => error,
+        });
+    }
     Ok(Activation {
         model,
         changed: true,

@@ -309,3 +309,28 @@ async fn the_local_provider_opens_no_socket_and_the_manifest_declares_no_egress(
     assert_eq!(vectors.len(), 1);
     assert_eq!(socket_count(), before, "no socket was opened");
 }
+
+/// An artifact that cannot be inspected is reported as an I/O problem, not
+/// as a missing egress grant.
+#[test]
+fn an_unreadable_models_directory_is_an_io_error_not_an_egress_failure() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let root = tempfile::tempdir().expect("temporary root");
+    let models = root.path().join("models");
+    std::fs::create_dir_all(&models).expect("models directory");
+    let env = local_env(&models, &sha(&weights()), &sha(TOKENIZER.as_bytes()));
+    let config = EmbeddingConfig::from_env(&env).expect("parses");
+    std::fs::set_permissions(&models, std::fs::Permissions::from_mode(0o000))
+        .expect("restrict models directory");
+    let restricted = std::fs::read_dir(&models).is_err();
+    let ceiling = config.check_ceiling(&app_manifest());
+    let verdict = config.check(&app_manifest());
+    std::fs::set_permissions(&models, std::fs::Permissions::from_mode(0o755))
+        .expect("restore models directory");
+    if !restricted {
+        return; // running with privileges that ignore directory modes
+    }
+    assert!(ceiling.is_ok(), "no egress grant is blamed: {ceiling:?}");
+    assert!(matches!(verdict, Err(Error::Io(_))), "{verdict:?}");
+}
