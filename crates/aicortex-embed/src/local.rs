@@ -85,6 +85,19 @@ impl WeightArtifact {
         self.verify_path(&self.path)
     }
 
+    /// Read a confined artifact and return its bytes only when they match
+    /// the pin. Used for the companion files a local engine needs (a
+    /// tokenizer) so they are held to the same digest rule as the weights.
+    ///
+    /// # Errors
+    ///
+    /// Configuration, I/O, or integrity errors; no network call is made.
+    pub fn read_verified(&self, models_dir: &Path) -> Result<Vec<u8>, Error> {
+        self.validate(models_dir)?;
+        let path = confined_destination(&self.path, models_dir, false)?;
+        self.read_verified_path(&path)
+    }
+
     fn verify_path(&self, path: &Path) -> Result<(), Error> {
         let mut file = self.open_bounded(path)?;
         let mut context = Context::new(&SHA256);
