@@ -89,6 +89,19 @@ fn unknown_tokens_do_not_pollute_the_mean_and_empty_text_is_refused() {
 }
 
 #[test]
+fn a_table_row_with_infinity_is_refused_not_returned_as_nan() {
+    let engine = engine(true);
+    let data: Vec<u8> = [9.0_f32, 9.0, f32::INFINITY, 0.0, 0.0, 1.0, 1.0, 1.0]
+        .iter()
+        .flat_map(|value| value.to_le_bytes())
+        .collect();
+    let view = TensorView::new(Dtype::F32, vec![4, 2], &data).expect("view");
+    let bytes = safetensors::serialize([(EMBEDDINGS_TENSOR, view)], None).expect("serialize");
+    let error = engine.embed_batch(&bytes, &["red"]).expect_err("refused");
+    assert!(error.to_string().contains("magnitude"), "{error}");
+}
+
+#[test]
 fn unsupported_or_inconsistent_weights_are_refused() {
     let engine = engine(false);
     let data = vec![0_u8; 8];

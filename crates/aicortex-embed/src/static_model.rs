@@ -134,8 +134,8 @@ impl StaticEmbeddingEngine {
             .into_iter()
             .filter(|id| *id != unknown)
             .collect();
-        let count = u16::try_from(ids.len())
-            .map_err(|_| Error::Integrity("token count exceeds the budget".to_owned()))?;
+        // `new` caps the budget at `u16::MAX`, so the count always fits.
+        let count = u16::try_from(ids.len()).unwrap_or(u16::MAX);
         if count == 0 {
             return Err(Error::Validation(
                 "the text has no token this model can embed".to_owned(),
@@ -148,7 +148,7 @@ impl StaticEmbeddingEngine {
         let mut pooled = sum / f32::from(count);
         if self.normalize {
             let norm = pooled.dot(&pooled).sqrt();
-            if norm.is_nan() || norm <= f32::MIN_POSITIVE {
+            if !norm.is_finite() || norm <= f32::MIN_POSITIVE {
                 return Err(Error::Validation(
                     "the pooled vector has no magnitude to normalize".to_owned(),
                 ));
