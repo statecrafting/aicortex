@@ -14,6 +14,7 @@ pub mod chunk;
 pub mod config;
 pub mod local;
 pub mod migrations;
+pub mod operator;
 pub mod provider;
 pub mod registry;
 pub mod remote;

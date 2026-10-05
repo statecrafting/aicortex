@@ -2640,3 +2640,274 @@ async fn the_worker_service_drains_until_shutdown_and_returns_its_report() {
     assert_eq!(report.store_errors, 0);
     fixture.shutdown().await;
 }
+
+mod operator_flow {
+    use std::collections::BTreeMap;
+
+    use aicortex_embed::operator::{activate_configured, drop_revision, reembed_scope};
+    use aicortex_embed::static_model::EMBEDDINGS_TENSOR;
+    use aicortex_embed::{
+        EmbeddingConfig, EmbeddingPreflight, EmbeddingWorker, ModelRegistry, ModelRevision,
+        NoTransport, default_chunker, default_worker_config,
+    };
+    use rahi_kernel::Manifest;
+    use rahi_types::{Error, Sub, UnixSeconds};
+    use ring::digest::{SHA256, digest};
+    use safetensors::Dtype;
+    use safetensors::tensor::TensorView;
+
+    use super::{Fixture, count, insert_memory, test_memory};
+
+    const TOKENIZER: &str = r#"{
+      "normalizer": {"type": "BertNormalizer", "lowercase": true},
+      "pre_tokenizer": {"type": "BertPreTokenizer"},
+      "model": {"type": "WordPiece", "unk_token": "[UNK]",
+                "vocab": {"[UNK]": 0, "red": 1, "green": 2, "blue": 3}}
+    }"#;
+
+    fn sha(bytes: &[u8]) -> String {
+        digest(&SHA256, bytes)
+            .as_ref()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect()
+    }
+
+    fn weights() -> Vec<u8> {
+        let data: Vec<u8> = [9.0_f32, 9.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+            .iter()
+            .flat_map(|value| value.to_le_bytes())
+            .collect();
+        let view = TensorView::new(Dtype::F32, vec![4, 2], &data).expect("view");
+        safetensors::serialize([(EMBEDDINGS_TENSOR, view)], None).expect("serialize")
+    }
+
+    fn local_config(models: &std::path::Path, model: &str) -> EmbeddingConfig {
+        let weights = weights();
+        let env: BTreeMap<String, String> = [
+            ("AICORTEX_EMBED_MODEL", model.to_owned()),
+            ("AICORTEX_EMBED_DIMS", "2".to_owned()),
+            (
+                "AICORTEX_EMBED_MODELS_DIR",
+                models.to_str().expect("utf-8").to_owned(),
+            ),
+            (
+                "AICORTEX_EMBED_WEIGHTS_FILE",
+                "model.safetensors".to_owned(),
+            ),
+            (
+                "AICORTEX_EMBED_WEIGHTS_URL",
+                "https://models.example/m".to_owned(),
+            ),
+            ("AICORTEX_EMBED_WEIGHTS_SHA256", sha(&weights)),
+            ("AICORTEX_EMBED_TOKENIZER_FILE", "tokenizer.json".to_owned()),
+            (
+                "AICORTEX_EMBED_TOKENIZER_URL",
+                "https://models.example/t".to_owned(),
+            ),
+            ("AICORTEX_EMBED_TOKENIZER_SHA256", sha(TOKENIZER.as_bytes())),
+        ]
+        .into_iter()
+        .map(|(key, value)| (key.to_owned(), value))
+        .collect();
+        EmbeddingConfig::from_env(&env).expect("configuration parses")
+    }
+
+    fn closed_manifest() -> Manifest {
+        Manifest::parse(include_str!("../../../apps/aicortex/manifest.toml")).expect("manifest")
+    }
+
+    async fn embed_all(
+        config: &EmbeddingConfig,
+        store: &rahi_store::StoreHandle,
+        revision: u32,
+        at: u64,
+    ) {
+        let provider = config
+            .boot(None, &Sub::new("operator"), NoTransport)
+            .await
+            .expect("boots")
+            .expect("configured");
+        let model = ModelRevision::from_provider(&provider, revision, UnixSeconds::new(at), true)
+            .expect("revision");
+        let worker = EmbeddingWorker::new(
+            provider,
+            model,
+            default_chunker().expect("chunker"),
+            default_worker_config(),
+            "operator-flow",
+        )
+        .expect("worker");
+        loop {
+            let report = worker
+                .drain(store, UnixSeconds::new(at))
+                .await
+                .expect("drains");
+            if report.claimed == 0 {
+                break;
+            }
+            assert_eq!(report.completed, report.claimed);
+        }
+    }
+
+    /// B-9 end to end with the real engine: memories captured before any
+    /// model exists are covered by the first re-embedding pass; a model
+    /// change keeps the old revision queryable until coverage is complete
+    /// and an operator drops it.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn activation_reembedding_and_drop_form_one_migration() {
+        let root = tempfile::tempdir().expect("temporary root");
+        let models = root.path().join("models");
+        std::fs::create_dir_all(&models).expect("models directory");
+        std::fs::write(models.join("model.safetensors"), weights()).expect("weights");
+        std::fs::write(models.join("tokenizer.json"), TOKENIZER).expect("tokenizer");
+        let fixture = Fixture::migrated().await;
+        let store = fixture.handle();
+
+        for (index, text) in ["red green", "blue", "green blue"].iter().enumerate() {
+            let memory = test_memory("alice", text, 2 + index as u64);
+            insert_memory(&store, "scope-a", &memory).await;
+        }
+        let first = local_config(&models, "static-one");
+        // The manifest declares no egress; present artifacts need none.
+        let activated = activate_configured(
+            &first,
+            &closed_manifest(),
+            None,
+            &Sub::new("operator"),
+            NoTransport,
+            &store,
+            UnixSeconds::new(10),
+        )
+        .await
+        .expect("first activation");
+        assert!(activated.changed);
+        assert_eq!(activated.model.revision, 1);
+
+        let pass = reembed_scope(&store, "scope-a", None, 2, UnixSeconds::new(11))
+            .await
+            .expect("first pass");
+        assert_eq!((pass.staged, pass.more), (2, true));
+        let pass = reembed_scope(
+            &store,
+            "scope-a",
+            pass.cursor.map(|id| id.to_string()).as_deref(),
+            2,
+            UnixSeconds::new(12),
+        )
+        .await
+        .expect("second pass");
+        assert_eq!((pass.staged, pass.more), (1, false));
+        embed_all(&first, &store, 1, 13).await;
+        let report = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(14))
+            .await
+            .expect("report");
+        assert_eq!(report.coverage.len(), 1);
+        assert_eq!(report.coverage[0].embedded, 3);
+        assert!(report.readiness_warning().is_none());
+
+        // A model change: same artifacts under a new identity.
+        let second = local_config(&models, "static-two");
+        let changed = activate_configured(
+            &second,
+            &closed_manifest(),
+            None,
+            &Sub::new("operator"),
+            NoTransport,
+            &store,
+            UnixSeconds::new(20),
+        )
+        .await
+        .expect("model change");
+        assert_eq!(changed.model.revision, 2);
+        let early = drop_revision(&store, "scope-a", 1)
+            .await
+            .expect_err("coverage of the new revision is incomplete");
+        assert!(matches!(early, Error::Conflict(_)), "{early}");
+        assert_eq!(
+            ModelRegistry::vectors(&store, "scope-a", &activated.model, None, 10)
+                .await
+                .expect("old revision stays queryable")
+                .len(),
+            3
+        );
+
+        let mut cursor = None;
+        loop {
+            let pass = reembed_scope(
+                &store,
+                "scope-a",
+                cursor.as_deref(),
+                2,
+                UnixSeconds::new(21),
+            )
+            .await
+            .expect("re-embedding pass");
+            cursor = pass.cursor.map(|id| id.to_string());
+            if !pass.more {
+                break;
+            }
+        }
+        embed_all(&second, &store, 2, 22).await;
+        drop_revision(&store, "scope-a", 1)
+            .await
+            .expect("complete coverage permits the drop");
+        assert!(
+            ModelRegistry::vectors(&store, "scope-a", &activated.model, None, 10)
+                .await
+                .expect("dropped revision reads")
+                .is_empty()
+        );
+        assert_eq!(
+            count(
+                &store,
+                "SELECT COUNT(*) AS count FROM embedding WHERE model_revision = 2",
+                vec![],
+            )
+            .await,
+            3
+        );
+        let health = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(23))
+            .await
+            .expect("report");
+        assert_eq!(health.queue.dead, 0);
+        fixture.shutdown().await;
+    }
+
+    /// B-6: a remote provider absent from the ceiling is refused before any
+    /// row is written.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn activation_refuses_a_remote_host_the_ceiling_does_not_admit() {
+        let fixture = Fixture::migrated().await;
+        let store = fixture.handle();
+        let env: BTreeMap<String, String> = [
+            ("AICORTEX_EMBED_PROVIDER", "remote"),
+            ("AICORTEX_EMBED_MODEL", "remote-model"),
+            ("AICORTEX_EMBED_DIMS", "8"),
+            ("AICORTEX_EMBED_ENDPOINT", "https://models.example/embed"),
+        ]
+        .into_iter()
+        .map(|(key, value)| (key.to_owned(), value.to_owned()))
+        .collect();
+        let config = EmbeddingConfig::from_env(&env).expect("parses");
+        let error = activate_configured(
+            &config,
+            &closed_manifest(),
+            None,
+            &Sub::new("operator"),
+            NoTransport,
+            &store,
+            UnixSeconds::new(1),
+        )
+        .await
+        .expect_err("the host is not in the ceiling");
+        assert!(matches!(error, Error::Denied(_)), "{error}");
+        assert!(error.to_string().contains("embedding.remote.egress"));
+        assert_eq!(
+            ModelRegistry::latest_revision(&store).await.expect("reads"),
+            None,
+            "nothing was registered"
+        );
+        fixture.shutdown().await;
+    }
+}
