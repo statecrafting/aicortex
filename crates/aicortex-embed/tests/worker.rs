@@ -2586,6 +2586,28 @@ async fn activation_numbers_revisions_monotonically_and_registers_every_one() {
         .await
         .expect("rollback");
     assert_eq!(rollback.model.revision, 3);
+    // A concurrent activator that computed the same next revision for a
+    // different identity is refused by the registry, not merged.
+    let loser = ModelRevision {
+        model_id: ModelId::new("third-model").expect("model id"),
+        revision: 3,
+        ..test_model(true)
+    };
+    let mut txn = TxnBuilder::new();
+    ModelRegistry::activate(&mut txn, &loser).expect("statements stage");
+    assert!(
+        store.txn(txn.into_statements()).await.is_err(),
+        "revision 3 already names another identity"
+    );
+    assert_eq!(
+        ModelRegistry::active(&store)
+            .await
+            .expect("active reads")
+            .expect("a model is active")
+            .model_id
+            .as_str(),
+        "test-model"
+    );
     let known = count(
         &store,
         "SELECT COUNT(*) AS count FROM embedding_model",

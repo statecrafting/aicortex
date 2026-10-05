@@ -235,6 +235,14 @@ fn local_artifacts_need_no_egress_while_present_and_name_the_fetch_when_absent()
         .expect_err("a fetch needs egress");
     assert_eq!(failure.check, "embedding.weights.egress");
 
+    // With the weights present, the tokenizer's own fetch is named.
+    std::fs::write(models.join("model.safetensors"), weights()).expect("weights");
+    let failure = config
+        .check_ceiling(&app_manifest())
+        .expect_err("the tokenizer fetch needs egress");
+    assert_eq!(failure.check, "embedding.tokenizer.egress");
+    std::fs::remove_file(models.join("model.safetensors")).expect("remove weights");
+
     std::fs::write(models.join("model.safetensors"), b"corrupt").expect("corrupt weights");
     std::fs::write(models.join("tokenizer.json"), TOKENIZER).expect("tokenizer");
     // A present but corrupt artifact is an integrity error, not a missing

@@ -29,9 +29,11 @@ pub struct Activation {
 ///
 /// # Errors
 ///
-/// Store errors, or [`Error::Conflict`]-class failures when another node
-/// activated a different revision between the read and the commit; the
-/// caller may retry.
+/// Store errors. Another node may activate between the reads and the commit;
+/// the commit is then refused, never merged: `embedding_model.revision` is the
+/// primary key, the registry's conflict clause deactivates nothing and
+/// violates `active NOT NULL` for a different identity, and the one-active
+/// index refuses a second active row. The caller reads again and retries.
 pub async fn activate_provider(
     store: &StoreHandle,
     provider: &impl EmbeddingProvider,

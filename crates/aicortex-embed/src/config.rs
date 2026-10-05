@@ -244,14 +244,20 @@ impl EmbeddingConfig {
                 &remote.endpoint,
             ),
             Self::Local(local) => {
-                for artifact in [&local.weights, &local.tokenizer] {
+                for (artifact, egress_check, endpoint_check) in [
+                    (
+                        &local.weights,
+                        "embedding.weights.egress",
+                        "embedding.weights.endpoint",
+                    ),
+                    (
+                        &local.tokenizer,
+                        "embedding.tokenizer.egress",
+                        "embedding.tokenizer.endpoint",
+                    ),
+                ] {
                     if is_absent(artifact) {
-                        admit_endpoint(
-                            manifest,
-                            "embedding.weights.egress",
-                            "embedding.weights.endpoint",
-                            &artifact.url,
-                        )?;
+                        admit_endpoint(manifest, egress_check, endpoint_check, &artifact.url)?;
                     }
                 }
                 Ok(())
