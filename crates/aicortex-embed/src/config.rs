@@ -222,33 +222,37 @@ impl EmbeddingConfig {
     /// Whether the manifest ceiling admits this configuration (B-5, B-6).
     ///
     /// A remote provider needs `http.egress` to its endpoint's host. A local
-    /// provider needs none while its artifacts are present and verified; an
-    /// absent artifact needs its fetch host. The question is answered from
-    /// the manifest, so no socket is opened and no boot is attempted.
+    /// provider needs none while its artifacts are present; an absent
+    /// artifact needs its fetch host. The question is answered from the
+    /// manifest and the artifact's existence, so no socket is opened and no
+    /// boot is attempted. Whether a present artifact matches its pin is
+    /// [`Self::check`]'s question, not the ceiling's.
     ///
     /// # Errors
     ///
-    /// [`CapabilityFailure`] naming the check, the service, and the host.
-    /// An endpoint that is not a supported `https` host is a configuration
-    /// error and is reported by [`Self::check`].
+    /// [`CapabilityFailure`] naming the check, the service, and the host. An
+    /// endpoint that is not a supported `https` host is refused under the
+    /// `.endpoint` check name and is never looked up in the manifest, so a
+    /// malformed endpoint cannot be admitted by a malformed ceiling entry.
     pub fn check_ceiling(&self, manifest: &Manifest) -> Result<(), CapabilityFailure> {
         match self {
             Self::Disabled => Ok(()),
-            Self::Remote(remote) => {
-                let host = parse_https_endpoint(&remote.endpoint)
-                    .map(|parsed| parsed.host)
-                    .unwrap_or_else(|_| remote.endpoint.clone());
-                admit(manifest, "embedding.remote.egress", &host)
-            }
+            Self::Remote(remote) => admit_endpoint(
+                manifest,
+                "embedding.remote.egress",
+                "embedding.remote.endpoint",
+                &remote.endpoint,
+            ),
             Self::Local(local) => {
                 for artifact in [&local.weights, &local.tokenizer] {
-                    if artifact.verify().is_ok() {
-                        continue;
+                    if is_absent(artifact) {
+                        admit_endpoint(
+                            manifest,
+                            "embedding.weights.egress",
+                            "embedding.weights.endpoint",
+                            &artifact.url,
+                        )?;
                     }
-                    let host = parse_https_endpoint(&artifact.url)
-                        .map(|parsed| parsed.host)
-                        .unwrap_or_else(|_| artifact.url.clone());
-                    admit(manifest, "embedding.weights.egress", &host)?;
                 }
                 Ok(())
             }
@@ -262,14 +266,25 @@ impl EmbeddingConfig {
     ///
     /// # Errors
     ///
-    /// [`Error::Denied`] carrying a [`CapabilityFailure`] when the ceiling
-    /// does not admit the provider; [`Error::Config`] for an endpoint that
-    /// is not a supported `https` host.
+    /// [`Error::Config`] for an endpoint that is not a supported `https`
+    /// host; [`Error::Denied`] carrying a [`CapabilityFailure`] when the
+    /// ceiling does not admit the provider; [`Error::Integrity`] or
+    /// [`Error::Io`] naming a present local artifact that does not match its
+    /// pin or cannot be read, which is reported as what it is rather than as
+    /// a missing egress grant.
     pub fn check(&self, manifest: &Manifest) -> Result<(), Error> {
         if let Self::Remote(remote) = self {
             parse_https_endpoint(&remote.endpoint)?;
         }
-        self.check_ceiling(manifest).map_err(Error::from)
+        self.check_ceiling(manifest).map_err(Error::from)?;
+        if let Self::Local(local) = self {
+            for artifact in [&local.weights, &local.tokenizer] {
+                if !is_absent(artifact) {
+                    artifact.verify()?;
+                }
+            }
+        }
+        Ok(())
     }
 
     /// The vectors this configuration promises, when a provider is set.
@@ -411,6 +426,29 @@ fn text(env: &dyn EnvReader, key: &str) -> Option<String> {
 
 fn required(env: &dyn EnvReader, key: &str) -> Result<String, Error> {
     text(env, key).ok_or_else(|| Error::Config(format!("{key} is required and not set")))
+}
+
+fn is_absent(artifact: &WeightArtifact) -> bool {
+    matches!(
+        std::fs::symlink_metadata(&artifact.path),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound
+    )
+}
+
+fn admit_endpoint(
+    manifest: &Manifest,
+    egress_check: &'static str,
+    endpoint_check: &'static str,
+    endpoint: &str,
+) -> Result<(), CapabilityFailure> {
+    match parse_https_endpoint(endpoint) {
+        Ok(parsed) => admit(manifest, egress_check, &parsed.host),
+        Err(_) => Err(CapabilityFailure {
+            check: endpoint_check,
+            service: EMBEDDING_SERVICE.to_owned(),
+            host: endpoint.to_owned(),
+        }),
+    }
 }
 
 fn admit(manifest: &Manifest, check: &'static str, host: &str) -> Result<(), CapabilityFailure> {

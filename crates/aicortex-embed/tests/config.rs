@@ -213,6 +213,12 @@ fn a_remote_endpoint_that_is_not_https_is_a_configuration_error() {
         config.check(&granted_manifest("models.example")),
         Err(Error::Config(_))
     ));
+    // The structured check never looks a malformed endpoint up, so a
+    // ceiling entry spelled like the URL cannot admit it.
+    let failure = config
+        .check_ceiling(&granted_manifest("models.example"))
+        .expect_err("a malformed endpoint is refused");
+    assert_eq!(failure.check, "embedding.remote.endpoint");
 }
 
 #[test]
@@ -229,8 +235,17 @@ fn local_artifacts_need_no_egress_while_present_and_name_the_fetch_when_absent()
         .expect_err("a fetch needs egress");
     assert_eq!(failure.check, "embedding.weights.egress");
 
-    std::fs::write(models.join("model.safetensors"), weights()).expect("weights");
+    std::fs::write(models.join("model.safetensors"), b"corrupt").expect("corrupt weights");
     std::fs::write(models.join("tokenizer.json"), TOKENIZER).expect("tokenizer");
+    // A present but corrupt artifact is an integrity error, not a missing
+    // egress grant, and no fetch is implied.
+    assert!(config.check_ceiling(&app_manifest()).is_ok());
+    let corrupt = config
+        .check(&app_manifest())
+        .expect_err("a corrupt artifact is refused");
+    assert!(matches!(corrupt, Error::Integrity(_)), "{corrupt}");
+
+    std::fs::write(models.join("model.safetensors"), weights()).expect("weights");
     config
         .check(&app_manifest())
         .expect("present, verified artifacts need no egress");
