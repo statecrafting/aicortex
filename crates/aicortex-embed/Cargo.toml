@@ -20,6 +20,7 @@ rahi-store = { workspace = true }
 rahi-types = { workspace = true }
 ring = { workspace = true }
 rustix = { workspace = true }
+unicode-general-category = { workspace = true }
 unicode-normalization = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

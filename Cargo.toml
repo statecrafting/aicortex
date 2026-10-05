@@ -115,6 +115,9 @@ tokio = { version = "1", default-features = false, features = ["macros", "rt-mul
 
 ndarray = { version = "0.17", default-features = false, features = ["std"] }
 safetensors = "0.7"
+# Unicode general categories for the WordPiece normalizer (015 D-22): BERT strips
+# category Mn after NFD and splits on category P, so the exact tables matter.
+unicode-general-category = "1"
 half = { version = "2", default-features = false, features = ["std"] }
 
 [workspace.lints.rust]

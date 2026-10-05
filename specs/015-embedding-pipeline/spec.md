@@ -308,7 +308,10 @@ configuration with a pinned digest rather than a spec-level commitment.
   unmaintained), which `deny.toml` rejects and which this spec may not
   waive, and `tokenizers` pulls it too, so the WordPiece subset the family
   needs (`BertNormalizer`, `BertPreTokenizer`, `WordPiece`) is implemented
-  here and anything else in a `tokenizer.json` is a configuration error. All
+  here and anything else in a `tokenizer.json` is a configuration error. The
+  normalizer follows BERT exactly: after NFD it drops Unicode category Mn,
+  splits on ASCII symbols and category P (not category S), and drops control
+  and format characters, using the `unicode-general-category` tables. All
   float arithmetic is `ndarray`'s: the module contains no float operator, so
   the workspace `float_arithmetic` ratchet takes no exception. Tokens outside
   the vocabulary are dropped from the mean, and a text with no embeddable

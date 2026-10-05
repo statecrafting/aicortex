@@ -11,6 +11,7 @@ use std::collections::BTreeMap;
 
 use rahi_types::Error;
 use serde::Deserialize;
+use unicode_general_category::{GeneralCategory, get_general_category};
 use unicode_normalization::UnicodeNormalization;
 
 const DEFAULT_PREFIX: &str = "##";
@@ -153,7 +154,7 @@ impl WordPiece {
             Box::new(text.chars())
         };
         for c in chars {
-            if c == '\0' || c == '\u{fffd}' || (c.is_control() && !c.is_whitespace()) {
+            if is_removable_control(c) {
                 continue;
             }
             if self.lowercase {
@@ -233,15 +234,41 @@ fn flush(current: &mut String, words: &mut Vec<String>) {
     }
 }
 
-/// Combining marks left behind by NFD decomposition.
+/// Non-spacing marks (category Mn), which BERT strips after NFD.
 fn is_combining_mark(c: char) -> bool {
-    matches!(c as u32, 0x0300..=0x036f | 0x1ab0..=0x1aff | 0x1dc0..=0x1dff | 0x20d0..=0x20ff | 0xfe20..=0xfe2f)
+    get_general_category(c) == GeneralCategory::NonspacingMark
 }
 
-/// BERT treats every ASCII symbol as punctuation, and so every Unicode
-/// character that is neither alphanumeric nor whitespace nor a control.
+/// BERT splits on every ASCII symbol and on Unicode category P. Symbols
+/// outside ASCII (category S: currency, math, emoji) stay with their word.
 fn is_punctuation(c: char) -> bool {
-    c.is_ascii_punctuation() || (!c.is_ascii() && !c.is_alphanumeric() && !c.is_whitespace())
+    c.is_ascii_punctuation()
+        || matches!(
+            get_general_category(c),
+            GeneralCategory::ConnectorPunctuation
+                | GeneralCategory::DashPunctuation
+                | GeneralCategory::OpenPunctuation
+                | GeneralCategory::ClosePunctuation
+                | GeneralCategory::InitialPunctuation
+                | GeneralCategory::FinalPunctuation
+                | GeneralCategory::OtherPunctuation
+        )
+}
+
+/// Control and format characters, which BERT's cleaning drops. Whitespace
+/// controls (tab, newline, carriage return) are kept as separators.
+fn is_removable_control(c: char) -> bool {
+    c == '\0'
+        || c == '\u{fffd}'
+        || (!c.is_whitespace()
+            && matches!(
+                get_general_category(c),
+                GeneralCategory::Control
+                    | GeneralCategory::Format
+                    | GeneralCategory::PrivateUse
+                    | GeneralCategory::Surrogate
+                    | GeneralCategory::Unassigned
+            ))
 }
 
 fn is_cjk(c: char) -> bool {
@@ -286,6 +313,22 @@ mod tests {
         assert_eq!(tokenizer.encode("Caf\u{e9}", 16), vec![8]);
         assert_eq!(tokenizer.encode("zzz", 16), vec![0]);
         assert_eq!(tokenizer.encode("unaffz", 16), vec![0]);
+    }
+
+    #[test]
+    fn strips_marks_of_every_script_and_splits_only_on_punctuation() {
+        let tokenizer = tokenizer();
+        // Hebrew points and Arabic harakat are Mn, so they vanish; the
+        // base letters are unknown and so are not "hello".
+        assert_eq!(tokenizer.encode("hello\u{5b0}", 16), vec![1]);
+        assert_eq!(tokenizer.encode("hello\u{64e}", 16), vec![1]);
+        // A currency sign is a symbol, not punctuation: it stays attached,
+        // so the word is no longer "hello" and falls to unknown.
+        assert_eq!(tokenizer.encode("hello\u{20ac}", 16), vec![0]);
+        // Ideographic punctuation is category P and splits.
+        assert_eq!(tokenizer.encode("hello\u{3002}world", 16), vec![1, 0, 2]);
+        // Format characters are dropped.
+        assert_eq!(tokenizer.encode("hel\u{200b}lo", 16), vec![1]);
     }
 
     #[test]
