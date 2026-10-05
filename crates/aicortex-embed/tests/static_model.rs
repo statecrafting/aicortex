@@ -33,6 +33,7 @@ fn weights(dtype: Dtype) -> Vec<u8> {
     for value in TABLE.iter().flatten() {
         match dtype {
             Dtype::F16 => data.extend_from_slice(&half::f16::from_f32(*value).to_le_bytes()),
+            Dtype::BF16 => data.extend_from_slice(&half::bf16::from_f32(*value).to_le_bytes()),
             _ => data.extend_from_slice(&value.to_le_bytes()),
         }
     }
@@ -69,9 +70,9 @@ fn the_sentence_vector_is_the_mean_of_its_token_rows() {
 }
 
 #[test]
-fn normalization_is_unit_length_and_f16_tables_decode() {
+fn normalization_is_unit_length_and_half_precision_tables_decode() {
     let engine = engine(true);
-    for dtype in [Dtype::F32, Dtype::F16] {
+    for dtype in [Dtype::F32, Dtype::F16, Dtype::BF16] {
         let bytes = weights(dtype);
         let half = std::f32::consts::FRAC_1_SQRT_2;
         assert!(close(&values(&engine, &bytes, "blue"), &[half, half]));

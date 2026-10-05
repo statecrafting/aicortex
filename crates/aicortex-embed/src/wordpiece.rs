@@ -255,7 +255,8 @@ fn is_punctuation(c: char) -> bool {
         )
 }
 
-/// Control and format characters, which BERT's cleaning drops. Whitespace
+/// Control (Cc) and format (Cf) characters, which BERT's cleaning drops;
+/// private-use and unassigned code points are kept. Whitespace
 /// controls (tab, newline, carriage return) are kept as separators.
 fn is_removable_control(c: char) -> bool {
     c == '\0'
@@ -263,11 +264,7 @@ fn is_removable_control(c: char) -> bool {
         || (!c.is_whitespace()
             && matches!(
                 get_general_category(c),
-                GeneralCategory::Control
-                    | GeneralCategory::Format
-                    | GeneralCategory::PrivateUse
-                    | GeneralCategory::Surrogate
-                    | GeneralCategory::Unassigned
+                GeneralCategory::Control | GeneralCategory::Format
             ))
 }
 
@@ -327,8 +324,9 @@ mod tests {
         assert_eq!(tokenizer.encode("hello\u{20ac}", 16), vec![0]);
         // Ideographic punctuation is category P and splits.
         assert_eq!(tokenizer.encode("hello\u{3002}world", 16), vec![1, 0, 2]);
-        // Format characters are dropped.
+        // Format characters are dropped; private-use code points are not.
         assert_eq!(tokenizer.encode("hel\u{200b}lo", 16), vec![1]);
+        assert_eq!(tokenizer.encode("hello\u{e001}", 16), vec![0]);
     }
 
     #[test]
