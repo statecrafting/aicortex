@@ -113,6 +113,10 @@ chrono-tz = { version = "0.10", default-features = false, features = ["std"] }
 trybuild = "1"
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 
+ndarray = { version = "0.17", default-features = false, features = ["std"] }
+safetensors = "0.7"
+half = { version = "2", default-features = false, features = ["std"] }
+
 [workspace.lints.rust]
 unsafe_code = "forbid"
 

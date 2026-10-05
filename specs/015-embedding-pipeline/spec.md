@@ -21,8 +21,11 @@ establishes:
   - "crates/aicortex-embed/src/worker.rs"
   - "crates/aicortex-embed/src/registry.rs"
   - "crates/aicortex-embed/src/migrations.rs"
+  - "crates/aicortex-embed/src/static_model.rs"
+  - "crates/aicortex-embed/src/wordpiece.rs"
   - "crates/aicortex-embed/tests/worker.rs"
   - "crates/aicortex-embed/tests/chunk.rs"
+  - "crates/aicortex-embed/tests/static_model.rs"
   - "crates/aicortex-embed/testdata/vectors/"
   - "crates/aicortex-store/src/embedding_memory.rs"
   - "crates/aicortex-store/tests/embedding_staging.rs"
@@ -295,6 +298,23 @@ configuration with a pinned digest rather than a spec-level commitment.
   never commits beside an active model without its job, capture stays
   available before first activation, and the re-embedding pass that follows
   activation (B-9) covers memories written while no model was active.
+- **D-22 (2026-10-05, implementation).** The concrete `LocalEngine` runs a
+  static sentence-embedding model (the Model2Vec family): a WordPiece
+  tokenizer plus a token embedding table whose mean is the sentence vector,
+  optionally L2-normalized. The weights are one pinned safetensors file with a
+  single `embeddings` tensor, and the tokenizer is a second pinned artifact,
+  both verified through `WeightArtifact`. A transformer runtime was weighed
+  and refused: the candle stack pulls `paste` (RUSTSEC-2024-0436,
+  unmaintained), which `deny.toml` rejects and which this spec may not
+  waive, and `tokenizers` pulls it too, so the WordPiece subset the family
+  needs (`BertNormalizer`, `BertPreTokenizer`, `WordPiece`) is implemented
+  here and anything else in a `tokenizer.json` is a configuration error. All
+  float arithmetic is `ndarray`'s: the module contains no float operator, so
+  the workspace `float_arithmetic` ratchet takes no exception. Tokens outside
+  the vocabulary are dropped from the mean, and a text with no embeddable
+  token is a validation error that follows the normal retry and dead-letter
+  path. Real-model verification is an ignored test keyed to
+  `AICORTEX_TEST_MODEL_DIR`; no test touches the network.
 
 ## Status (2026-10-04, in progress: runtime and chassis hooks required)
 

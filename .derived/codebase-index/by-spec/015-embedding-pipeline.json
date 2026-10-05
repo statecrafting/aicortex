@@ -65,6 +65,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-embed/src/static_model.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/wordpiece.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-embed/src/worker.rs",
         "source": "spec-edge"
       },
@@ -74,6 +82,10 @@
       },
       {
         "path": "crates/aicortex-embed/tests/chunk.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/tests/static_model.rs",
         "source": "spec-edge"
       },
       {
@@ -265,6 +277,32 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-embed/src/static_model.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/static_model.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/wordpiece.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/wordpiece.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-embed/src/worker.rs"
           }
         ],
@@ -299,6 +337,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-embed/tests/chunk.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/tests/static_model.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/tests/static_model.rs"
         }
       },
       {
@@ -631,7 +682,7 @@
           {
             "file": "Cargo.toml",
             "span": {
-              "endLine": 115,
+              "endLine": 119,
               "startLine": 20
             }
           }
@@ -662,5 +713,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "b343ed2a65b6f8caf2a6e2e620c66fdf0e4ed5cb39ee74ec20020fed94f8f5d3"
+  "shardHash": "5fae7b2e4e70ca3c1ac3f0cd5e79e2f34759555a30d51a60b8c2d5c55b9b202b"
 }

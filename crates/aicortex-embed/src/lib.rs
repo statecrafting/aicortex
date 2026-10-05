@@ -15,6 +15,8 @@ pub mod migrations;
 pub mod provider;
 pub mod registry;
 pub mod remote;
+pub mod static_model;
+pub mod wordpiece;
 pub mod worker;
 
 pub use chunk::{Chunk, ChunkConfig, Chunker};
@@ -23,6 +25,8 @@ pub use migrations::{EMBEDDING_MIGRATION_VERSION, migration};
 pub use provider::{EmbeddingProvider, ModelId, Vector};
 pub use registry::{Coverage, ModelRegistry, ModelRevision};
 pub use remote::{EmbeddingTransport, RemoteProvider};
+pub use static_model::StaticEmbeddingEngine;
+pub use wordpiece::WordPiece;
 pub use worker::{
     ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingPreflight, EmbeddingScope,
     EmbeddingWorker, MAX_REEMBED_BATCH, QueueHealth, ReembeddingBatch, WorkerConfig, WorkerReport,
