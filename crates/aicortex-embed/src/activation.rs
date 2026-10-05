@@ -30,8 +30,8 @@ pub struct Activation {
 /// # Errors
 ///
 /// Store errors, and [`Error::Conflict`] when another node activated between
-/// the reads and the commit. The commit is then refused, never merged: `embedding_model.revision` is the
-/// primary key, the registry's conflict clause deactivates nothing and
+/// the reads and the commit. The commit is then refused, never merged:
+/// `embedding_model.revision` is the primary key, the registry's conflict clause deactivates nothing and
 /// violates `active NOT NULL` for a different identity, and the one-active
 /// index refuses a second active row. On `Conflict` the caller reads again and
 /// retries. Any other error is a store failure, including the case where the
@@ -42,6 +42,13 @@ pub async fn activate_provider(
     provider: &impl EmbeddingProvider,
     now: UnixSeconds,
 ) -> Result<Activation, Error> {
+    // The latest revision is read before the active one. A node that activates
+    // in between has then either been seen (the active read returns the same
+    // identity, a no-op) or it commits the very revision number this call
+    // computed: the same identity converges on it, a different one is refused
+    // as a conflict. Reading in the other order could mint a spurious extra
+    // revision for an identity another node had just activated.
+    let latest = ModelRegistry::latest_revision(store).await?;
     if let Some(active) = ModelRegistry::active(store).await?
         && active.model_id == provider.id()
         && active.dims == provider.dims()
@@ -52,8 +59,7 @@ pub async fn activate_provider(
             changed: false,
         });
     }
-    let revision = ModelRegistry::latest_revision(store)
-        .await?
+    let revision = latest
         .unwrap_or(0)
         .checked_add(1)
         .ok_or_else(|| Error::Integrity("model revision numbers are exhausted".to_owned()))?;
