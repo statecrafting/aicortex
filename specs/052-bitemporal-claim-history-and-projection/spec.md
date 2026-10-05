@@ -32,7 +32,7 @@ extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/schema.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/claim_repo.rs", note: "claim history is append-only: no statement updates or deletes a claim or relation row except erasure's tombstone" }
   - { flavor: invariant-freeze, unit: "crates/aicortex-claims/src/projection.rs", note: "the current view is a pure function of claim history, an explicit as-of on both axes, and a policy version" }
