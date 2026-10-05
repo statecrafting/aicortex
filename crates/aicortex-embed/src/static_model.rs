@@ -134,16 +134,18 @@ impl StaticEmbeddingEngine {
             .into_iter()
             .filter(|id| *id != unknown)
             .collect();
-        // `new` caps the budget at `u16::MAX`, so the count always fits.
-        let count = u16::try_from(ids.len()).unwrap_or(u16::MAX);
-        if count == 0 {
+        if ids.is_empty() {
             return Err(Error::Validation(
                 "the text has no token this model can embed".to_owned(),
             ));
         }
         let mut sum = Array1::<f32>::zeros(table.dims);
+        let mut count = 0_u16;
         for id in ids {
             sum += &table.row(id)?;
+            count = count
+                .checked_add(1)
+                .ok_or_else(|| Error::Integrity("token count exceeds the budget".to_owned()))?;
         }
         let mut pooled = sum / f32::from(count);
         if self.normalize {
