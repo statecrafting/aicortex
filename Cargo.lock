@@ -18,6 +18,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "action-gate-core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "462261da44651a95c079c2e4a9f5f777eaa1bb22f76157bf70bc04b8e9a6e2b3"
+dependencies = [
+ "action-gate-types",
+ "canonical-keysort-json",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
 name = "action-gate-types"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -202,7 +216,7 @@ dependencies = [
 name = "aicortex-gate"
 version = "0.1.0"
 dependencies = [
- "action-gate-core",
+ "action-gate-core 0.3.0",
  "aicortex-claims",
  "aicortex-embed",
  "aicortex-store",
@@ -3487,7 +3501,7 @@ version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "54b2d1e32f398a41613610bf67a32e4363bd631b4ba263892ba79fdbda20b208"
 dependencies = [
- "action-gate-core",
+ "action-gate-core 0.2.0",
  "action-gate-types",
  "canonical-keysort-json",
  "rahi-ledger",

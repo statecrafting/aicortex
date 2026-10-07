@@ -48,6 +48,12 @@
 //! 7. Origin (B-7): established admits, asserted quarantines, unestablished
 //!    refuses.
 //!
+//! Steps 2 to 7 are the required checks of one closed action-gate gate
+//! (`walk`, spec 057), registered in this order under the ids of
+//! [`CAPTURE_STEPS`]. A refusal ends the walk, so the ceiling still stops the
+//! scan; a quarantine does not, so a later refusal outranks it wherever origin
+//! is registered; and a missing step refuses rather than admits.
+//!
 //! # Position
 //!
 //! ```no_run
@@ -91,17 +97,22 @@ pub mod normalize;
 pub mod rules;
 pub mod secrets;
 pub mod verdict;
+mod walk;
 
-use aicortex_types::{AdmissionOverride, DecisionRef, Memory, MemoryId, Status, TrustClass};
+use aicortex_types::{
+    AdmissionOverride, DecisionRef, Memory, MemoryBody, MemoryId, SourceSystem, Status, TrustClass,
+};
 use rahi_types::Sub;
+
+use crate::walk::{Judged, Step, Walked};
 
 pub use candidate::{Candidate, Origin};
 pub use claim_gate::{
-    AdmissionPolicy, AdmittedClaim, Ceiling, ClaimContext, ClaimField, ClaimReason, ClaimVerdict,
-    INITIAL_POLICY_ID, KIND_CLAIM_BATCH, KIND_CLAIM_CORRECTION, KIND_CLAIM_HOLD, KIND_CLAIM_REFUSE,
-    KIND_POLICY_CHANGE, PolicyDocument, PolicyError, PolicyRef, Qualification, SeedAcceptance,
-    SourceState, TargetFacts, batch_entry, ceiling_of, correction_entry, policy_entry,
-    proposal_entry,
+    AdmissionPolicy, AdmittedClaim, CLAIM_STEPS, Ceiling, ClaimContext, ClaimField, ClaimReason,
+    ClaimVerdict, INITIAL_POLICY_ID, KIND_CLAIM_BATCH, KIND_CLAIM_CORRECTION, KIND_CLAIM_HOLD,
+    KIND_CLAIM_REFUSE, KIND_POLICY_CHANGE, PolicyDocument, PolicyError, PolicyRef, Qualification,
+    SeedAcceptance, SourceState, TargetFacts, batch_entry, ceiling_of, correction_entry,
+    policy_entry, proposal_entry,
 };
 pub use limits::{
     DEFAULT_MAX_BODY_BYTES, DEFAULT_MAX_MEDIA_REFS, DEFAULT_MEDIA_TOP_LEVELS, Limits,
@@ -286,18 +297,10 @@ impl Gate {
     /// always yield the same verdict (B-10).
     #[must_use]
     pub fn evaluate(&self, candidate: &Candidate) -> Verdict {
-        match self.fault(candidate) {
-            Some(reason) => Verdict::Refuse(reason),
-            None if candidate.origin.is_established() => Verdict::Admit(self.admit(candidate)),
-            None if candidate.origin.is_assertable() => Verdict::Quarantine(
-                self.quarantine(candidate),
-                Reason::OriginUnestablished {
-                    origin: candidate.origin,
-                },
-            ),
-            None => Verdict::Refuse(Reason::OriginUnestablished {
-                origin: candidate.origin,
-            }),
+        match self.walk_capture(candidate, &CAPTURE_WALK) {
+            Walked::Pass => Verdict::Admit(self.admit(candidate)),
+            Walked::Hold(reason) => Verdict::Quarantine(self.quarantine(candidate), reason),
+            Walked::Fault(reason) => Verdict::Refuse(reason),
         }
     }
 
@@ -362,59 +365,19 @@ impl Gate {
         material
     }
 
-    /// The first thing wrong with `candidate`, in the order of the module
-    /// documentation, or `None` when nothing is.
-    fn fault(&self, candidate: &Candidate) -> Option<Reason> {
-        let body = normalize::body(&candidate.parts.body);
-        if body.text.trim().is_empty() {
-            return Some(Reason::EmptyAfterNormalization);
-        }
-        let bytes = body.text.len();
-        let ceiling = self.rules.limits.max_body_bytes;
-        if bytes > ceiling {
-            return Some(Reason::TooLarge { bytes, ceiling });
-        }
-        if let Some(fault) = self.media_fault(&body) {
-            return Some(Reason::UnsupportedMedia(fault));
-        }
-        if self
-            .rules
-            .denied_sources
-            .contains(&candidate.parts.provenance.source.system)
-        {
-            return Some(Reason::PolicyDenied {
-                policy: format!("denied-source:{}", candidate.parts.provenance.source.system),
-            });
-        }
-        self.secret_fault(&body)
-    }
-
-    /// The media ceilings of B-6.
-    fn media_fault(&self, body: &aicortex_types::MemoryBody) -> Option<MediaFault> {
-        let count = body.media.len();
-        let ceiling = self.rules.limits.max_media_refs;
-        if count > ceiling {
-            return Some(MediaFault::TooMany { count, ceiling });
-        }
-        body.media
-            .iter()
-            .position(|media| !self.rules.limits.admits_media(media))
-            .map(|index| MediaFault::UnsupportedType { index })
-    }
-
-    /// The detectors of B-4, over the text and then the title.
-    ///
-    /// The title is scanned too, and its offsets are reported against it: a
-    /// credential pasted into a note's title is a credential.
-    fn secret_fault(&self, body: &aicortex_types::MemoryBody) -> Option<Reason> {
-        let in_text = secrets::scan(&body.text, &self.rules.secrets);
-        let in_title = body
-            .title
-            .as_deref()
-            .and_then(|title| secrets::scan(title, &self.rules.secrets));
-        in_text.or(in_title).map(|finding| Reason::SecretDetected {
-            detector: finding.detector,
-            offset: finding.offset,
+    /// Walk `steps` over `candidate`, requiring every id of
+    /// [`CAPTURE_STEPS`] (spec 057 B-3).
+    fn walk_capture(&self, candidate: &Candidate, steps: &[CaptureStep]) -> Walked<Reason> {
+        let subject = Capture {
+            body: normalize::body(&candidate.parts.body),
+            source: candidate.parts.provenance.source.system.clone(),
+            origin: candidate.origin,
+            rules: self.rules.clone(),
+        };
+        walk::walk(subject, steps, &CAPTURE_STEPS, |code| {
+            Reason::PolicyDenied {
+                policy: code.to_owned(),
+            }
         })
     }
 
@@ -436,5 +399,299 @@ impl Gate {
         let mut memory = self.normalized(candidate);
         memory.status = Status::Quarantined;
         Admitted::new(memory)
+    }
+}
+
+/// The check ids of [`Gate::evaluate`]'s walk, in registration order (spec
+/// 057 B-3): every one is required, so a walk without one of them refuses.
+pub const CAPTURE_STEPS: [&str; 6] = [
+    "capture.empty",
+    "capture.too_large",
+    "capture.media",
+    "capture.denied_source",
+    "capture.secrets",
+    "capture.origin",
+];
+
+/// What the capture walk judges: the normalized body (B-8), the source
+/// system, the origin, and the rules, owned so each step can hold a share.
+struct Capture {
+    body: MemoryBody,
+    source: SourceSystem,
+    origin: Origin,
+    rules: RuleSet,
+}
+
+type CaptureStep = Step<Capture, Reason>;
+
+/// The steps of the module documentation, in its order (013 B-2 to B-7).
+const CAPTURE_WALK: [CaptureStep; 6] = [
+    Step {
+        id: CAPTURE_STEPS[0],
+        judge: empty,
+    },
+    Step {
+        id: CAPTURE_STEPS[1],
+        judge: too_large,
+    },
+    Step {
+        id: CAPTURE_STEPS[2],
+        judge: media,
+    },
+    Step {
+        id: CAPTURE_STEPS[3],
+        judge: denied_source,
+    },
+    Step {
+        id: CAPTURE_STEPS[4],
+        judge: secrets_step,
+    },
+    Step {
+        id: CAPTURE_STEPS[5],
+        judge: origin,
+    },
+];
+
+/// Empty after normalization (B-6).
+fn empty(capture: &Capture) -> Judged<Reason> {
+    if capture.body.text.trim().is_empty() {
+        Judged::Fault(Reason::EmptyAfterNormalization)
+    } else {
+        Judged::Pass
+    }
+}
+
+/// The text ceiling (B-6), before any scan.
+fn too_large(capture: &Capture) -> Judged<Reason> {
+    let bytes = capture.body.text.len();
+    let ceiling = capture.rules.limits.max_body_bytes;
+    if bytes > ceiling {
+        Judged::Fault(Reason::TooLarge { bytes, ceiling })
+    } else {
+        Judged::Pass
+    }
+}
+
+/// The media ceilings of B-6.
+fn media(capture: &Capture) -> Judged<Reason> {
+    let limits = &capture.rules.limits;
+    let body = &capture.body;
+    let count = body.media.len();
+    let ceiling = limits.max_media_refs;
+    let fault = if count > ceiling {
+        Some(MediaFault::TooMany { count, ceiling })
+    } else {
+        body.media
+            .iter()
+            .position(|media| !limits.admits_media(media))
+            .map(|index| MediaFault::UnsupportedType { index })
+    };
+    fault.map_or(Judged::Pass, |fault| {
+        Judged::Fault(Reason::UnsupportedMedia(fault))
+    })
+}
+
+/// Deployment policy (B-2, `PolicyDenied`).
+fn denied_source(capture: &Capture) -> Judged<Reason> {
+    if capture.rules.denied_sources.contains(&capture.source) {
+        Judged::Fault(Reason::PolicyDenied {
+            policy: format!("denied-source:{}", capture.source),
+        })
+    } else {
+        Judged::Pass
+    }
+}
+
+/// The detectors of B-4, over the text and then the title.
+///
+/// The title is scanned too, and its offsets are reported against it: a
+/// credential pasted into a note's title is a credential.
+fn secrets_step(capture: &Capture) -> Judged<Reason> {
+    let rules = &capture.rules.secrets;
+    let in_text = secrets::scan(&capture.body.text, rules);
+    let in_title = || {
+        capture
+            .body
+            .title
+            .as_deref()
+            .and_then(|title| secrets::scan(title, rules))
+    };
+    in_text.or_else(in_title).map_or(Judged::Pass, |finding| {
+        Judged::Fault(Reason::SecretDetected {
+            detector: finding.detector,
+            offset: finding.offset,
+        })
+    })
+}
+
+/// Origin (B-7): established admits, asserted quarantines, unestablished
+/// refuses.
+fn origin(capture: &Capture) -> Judged<Reason> {
+    let origin = capture.origin;
+    if origin.is_established() {
+        Judged::Pass
+    } else if origin.is_assertable() {
+        Judged::Hold(Reason::OriginUnestablished { origin })
+    } else {
+        Judged::Fault(Reason::OriginUnestablished { origin })
+    }
+}
+
+/// Spec 057's three properties of the walk, over the production steps.
+#[cfg(test)]
+#[allow(
+    clippy::unwrap_used,
+    clippy::expect_used,
+    clippy::indexing_slicing,
+    clippy::panic
+)]
+mod walk_properties {
+    use std::cell::Cell;
+
+    use aicortex_types::{
+        Actor, ActorId, Importance, MemoryKind, MemoryParts, Provenance, Scope, SourceRef,
+    };
+    use rahi_types::UnixSeconds;
+
+    use super::*;
+
+    const SECRET: &str = "ghp_9wQk2LmXr4Tb8Zc1Nd6Vf3Hs5Jg7Pa0Ye2Uu";
+
+    fn candidate(text: String, origin: Origin) -> Candidate {
+        let at = UnixSeconds::new(1_800_000_000);
+        Candidate::new(
+            MemoryParts {
+                id: MemoryId::now_v7(),
+                scope: Scope::personal(Sub::new("sub-walk")),
+                kind: MemoryKind::Observation,
+                body: MemoryBody::text(text),
+                actor: Actor::human(ActorId::new("walker").unwrap()),
+                provenance: Provenance::captured(
+                    SourceRef::new(SourceSystem::new("walk").unwrap()),
+                    at,
+                    at,
+                ),
+                trust: TrustClass::Assertion,
+                importance: Importance::at(at).unwrap(),
+                created: at,
+            },
+            origin,
+        )
+    }
+
+    thread_local! {
+        static SCANS: Cell<usize> = const { Cell::new(0) };
+    }
+
+    /// The production detectors, counting how often they run.
+    fn counted_secrets(capture: &Capture) -> Judged<Reason> {
+        SCANS.with(|scans| scans.set(scans.get() + 1));
+        secrets_step(capture)
+    }
+
+    fn with_step(id: &'static str, judge: fn(&Capture) -> Judged<Reason>) -> Vec<CaptureStep> {
+        CAPTURE_WALK
+            .iter()
+            .map(|step| {
+                if step.id == id {
+                    Step { id, judge }
+                } else {
+                    *step
+                }
+            })
+            .collect()
+    }
+
+    #[test]
+    fn the_walk_registers_every_documented_step_in_order() {
+        assert_eq!(walk::step_ids(&CAPTURE_WALK), CAPTURE_STEPS);
+    }
+
+    /// B-6 via action-gate 004 B-4: the ceiling's refusal ends the walk, so
+    /// an oversized body is never scanned, and an ordinary one is.
+    #[test]
+    fn a_refusal_ends_the_walk_so_the_ceiling_stops_the_scan() {
+        let gate = Gate::standard();
+        let steps = with_step(CAPTURE_STEPS[4], counted_secrets);
+        let oversized = format!("{SECRET} ").repeat(2_000);
+        SCANS.with(|scans| scans.set(0));
+        let walked = gate.walk_capture(&candidate(oversized, Origin::Authenticated), &steps);
+        assert!(
+            matches!(walked, Walked::Fault(Reason::TooLarge { .. })),
+            "{walked:?}"
+        );
+        assert_eq!(
+            SCANS.with(Cell::get),
+            0,
+            "the detectors ran past the ceiling"
+        );
+
+        let walked = gate.walk_capture(
+            &candidate(format!("key {SECRET}"), Origin::Authenticated),
+            &steps,
+        );
+        assert!(
+            matches!(
+                walked,
+                Walked::Fault(Reason::SecretDetected { offset: 4, .. })
+            ),
+            "{walked:?}"
+        );
+        // Once by the gate, once more to recover the deciding step's reason
+        // (057 D-2).
+        assert_eq!(SCANS.with(Cell::get), 2);
+    }
+
+    /// B-4 and B-7 via action-gate 004 B-5: origin's quarantine does not end
+    /// the walk, so a credential is refused under an asserted origin even
+    /// when origin is registered first.
+    #[test]
+    fn a_quarantine_never_outranks_a_refusal_wherever_origin_is_registered() {
+        let gate = Gate::standard();
+        let mut origin_first = CAPTURE_WALK.to_vec();
+        origin_first.rotate_right(1);
+        assert_eq!(origin_first[0].id, "capture.origin");
+        for steps in [&CAPTURE_WALK[..], &origin_first[..]] {
+            let walked =
+                gate.walk_capture(&candidate(format!("key {SECRET}"), Origin::Asserted), steps);
+            assert!(
+                matches!(walked, Walked::Fault(Reason::SecretDetected { .. })),
+                "{walked:?}"
+            );
+            let walked = gate.walk_capture(
+                &candidate("an ordinary note".into(), Origin::Asserted),
+                steps,
+            );
+            assert_eq!(
+                walked,
+                Walked::Hold(Reason::OriginUnestablished {
+                    origin: Origin::Asserted
+                })
+            );
+        }
+    }
+
+    /// B-5 via action-gate 004 B-3: every step is required, so a walk that
+    /// lacks any one of them, the detectors included, refuses a candidate the
+    /// full walk admits.
+    #[test]
+    fn a_walk_missing_a_required_step_refuses_rather_than_admits() {
+        let gate = Gate::standard();
+        let clean = candidate("an ordinary note".into(), Origin::Authenticated);
+        assert_eq!(gate.walk_capture(&clean, &CAPTURE_WALK), Walked::Pass);
+        for dropped in CAPTURE_STEPS {
+            let steps: Vec<CaptureStep> = CAPTURE_WALK
+                .iter()
+                .filter(|step| step.id != dropped)
+                .copied()
+                .collect();
+            assert_eq!(
+                gate.walk_capture(&clean, &steps),
+                Walked::Fault(Reason::PolicyDenied {
+                    policy: action_gate_core::closed::REQUIRED_UNREGISTERED.to_owned()
+                }),
+                "dropping {dropped} did not refuse"
+            );
+        }
     }
 }

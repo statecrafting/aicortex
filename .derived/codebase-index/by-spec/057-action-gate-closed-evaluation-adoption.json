@@ -1,14 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '057-action-gate-closed-evaluation-adoption' file unit 'crates/aicortex-gate/src/walk.rs' does not exist",
-        "path": "crates/aicortex-gate/src/walk.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "010-chassis-adoption-and-workspace",
@@ -30,13 +20,21 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-gate/src/walk.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-gate/tests/differential.rs",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/walk.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -140,5 +138,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "777abb4645be8b9d9cc57d8a4eaf160eebe845f30a808dc6e8b70b2b9dd3993a"
+  "shardHash": "4d5fbf8ceb3782234f873669bd3b587ce8cacb64b1082af2c42efd2682d5d7c8"
 }
