@@ -81,9 +81,8 @@
         "nature": "additive",
         "spec": "010-chassis-adoption-and-workspace",
         "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
+          "kind": "file",
+          "path": "Cargo.toml"
         }
       },
       {
@@ -210,6 +209,6 @@
     "summary": "Everything that enters the store passes one gate, and the gate runs before the transaction opens. It refuses credentials rather than redacting them, because a redacted secret is still a secret that was transmitted, stored in a log, and possibly embedded. It caps size, requires an establishable origin, and quarantines rather than admits when origin is doubtful. Every refusal is a ledgered Decision with a reason code and never the offending content. The rule set is data, the corpus of fixtures is committed, and the gate is a pure function so its verdicts are reproducible in review.\n",
     "title": "The write gate: refuse secrets, cap size, establish origin, quarantine the rest"
   },
-  "shardHash": "c959b02fffd3ed478c37dd43f61d178826a5e3d75bf45867ae161bdb6d37b6a3",
+  "shardHash": "34da3b606c16bd52e6134e1b5e5b48b1c92048372386451f4d6bb784e955a252",
   "specVersion": "1.9.0"
 }

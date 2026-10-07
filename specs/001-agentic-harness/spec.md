@@ -133,7 +133,7 @@ constitution is 000's; this spec owns the operational summary of it.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.28.0
+- **AC-1.** `make ci` exits 0 on a clean checkout with `spec-spine` 0.29.0
   on `PATH`.
 - **AC-2.** `scripts/spec-dag.sh` reports the corpus acyclic with every
   dependency lower-numbered.
@@ -535,6 +535,18 @@ consumes this repository as a registered target.
   from main's lockfile, and the regenerated index, then force-pushed (#25 was
   merged this way). Copying the bot's lockfile wholesale is wrong when main's
   has moved since, because it can roll back unrelated crates.
+
+- **D-17 (2026-10-05, owner decision, manifest input projection).** The pin
+  moves to spec-spine 0.29.0, whose spec 192 folds a hashed `Cargo.toml` as
+  its cargo input projection: a dependency's version string is replaced by a
+  placeholder and every other field is kept. The ten section extensions of
+  the root `Cargo.toml` therefore become file extensions of the same unit,
+  and `Cargo.toml` is listed in `extra_hashed_inputs`. A version-only bump
+  then leaves every shard and `inputs.json` fresh, and the coupling gate's
+  dependency-only waiver accepts it, so a Dependabot cargo pull request
+  passes without the rebuild D-16 describes. An added dependency, a feature
+  change, or a `git` or `path` source still stales the index. D-15's weekly
+  grouping stays, to bound review volume.
 
 ## Verification
 

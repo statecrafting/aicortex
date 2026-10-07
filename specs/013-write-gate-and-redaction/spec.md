@@ -27,7 +27,7 @@ establishes:
   - "crates/aicortex-gate/testdata/corpus/"
   - "crates/aicortex-store/src/decision_key.rs"
 extends:
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/provenance.rs", nature: additive }
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/lib.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/Cargo.toml", nature: additive }

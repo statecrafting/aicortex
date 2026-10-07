@@ -22,7 +22,7 @@ order. Code arrives one spec per pull request under `crates/`, `apps/`,
 `eval/`, `docker/`, and `deploy/`; a session may land several specs in build
 order (spec 048).
 
-Governance is `spec-spine` **0.28.0** on your `PATH` (CI pins the same
+Governance is `spec-spine` **0.29.0** on your `PATH` (CI pins the same
 version, and `spec-spine.toml [meta] required_version` makes the CLI refuse
 to run below it). All governed reads of `.derived/` go through its CLI.
 

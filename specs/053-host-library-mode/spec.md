@@ -19,7 +19,7 @@ establishes:
   - "crates/aicortex-store/tests/host_library.rs"
   - { kind: crate, id: "aicortex-external-host-fixture" }
 extends:
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }

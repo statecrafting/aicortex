@@ -28,8 +28,8 @@ establishes:
   - "crates/aicortex-store/src/predicate_registry_repo.rs"
   - "crates/aicortex-store/tests/predicate_registry.rs"
 extends:
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace" }, nature: additive }
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/lib.rs", nature: additive }
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/provenance.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }

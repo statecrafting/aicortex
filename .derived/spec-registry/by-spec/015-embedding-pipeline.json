@@ -269,9 +269,8 @@
         "nature": "additive",
         "spec": "010-chassis-adoption-and-workspace",
         "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
+          "kind": "file",
+          "path": "Cargo.toml"
         }
       }
     ],
@@ -311,6 +310,6 @@
     "summary": "The predecessor captured a memory in two non-atomic calls: insert the row, then update the embedding. A failure between them produced a memory that search could never reach and nothing ever retried. This spec makes the second half a durable job: capture stages outbox work in the same transaction as the row, a worker drains it idempotently with backoff and a dead letter state that preflight reports, and every stored vector names the model, dimension, and normalization it was produced under so a model change is a migration rather than a silent reinterpretation.\n",
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
-  "shardHash": "468ff533d7be211455202e8a53c42ff070ac84a56fdac33b94fbd335da015d77",
+  "shardHash": "61ef1fb8d3b558794c412e09e1de4323e9a86ef066df20022889d7b8c0774e8d",
   "specVersion": "1.9.0"
 }
