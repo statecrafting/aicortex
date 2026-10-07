@@ -478,13 +478,18 @@ fn same_capture(rules: &RuleSet, candidate: &Candidate, case: &str) -> Verdict {
         matches,
         "{case}: the walk answered {verdict:?}, the old evaluator {expected:?}"
     );
-    if let (Some(reason), oracle::Capture::Refuse(expected)) = (verdict.reason(), &expected) {
-        assert_eq!(
-            serde_json::to_vec(reason).unwrap(),
-            serde_json::to_vec(expected).unwrap(),
-            "{case}: the reason bytes differ"
-        );
-    }
+    // Every reason, a quarantine's as well as a refusal's, in bytes (FR-002).
+    let expected_reason = match &expected {
+        oracle::Capture::Quarantine(_, reason) | oracle::Capture::Refuse(reason) => Some(reason),
+        oracle::Capture::Admit(_) => None,
+    };
+    assert_eq!(
+        verdict
+            .reason()
+            .map(|reason| serde_json::to_vec(reason).unwrap()),
+        expected_reason.map(|reason| serde_json::to_vec(reason).unwrap()),
+        "{case}: the reason bytes differ"
+    );
     verdict
 }
 
@@ -986,17 +991,18 @@ fn same_claim(
         matches,
         "{name}: the walk answered {verdict:?}, the old evaluator {expected:?}"
     );
-    if let Some(reason) = verdict.reason() {
-        let expected = match &expected {
-            oracle::Judgement::Refuse(reason) | oracle::Judgement::Hold(reason) => reason,
-            oracle::Judgement::Admit(_) => unreachable!(),
-        };
-        assert_eq!(
-            serde_json::to_vec(reason).unwrap(),
-            serde_json::to_vec(expected).unwrap(),
-            "{name}: the reason bytes differ"
-        );
-    }
+    // Every reason, a hold's as well as a refusal's, in bytes (FR-002).
+    let expected_reason = match &expected {
+        oracle::Judgement::Refuse(reason) | oracle::Judgement::Hold(reason) => Some(reason),
+        oracle::Judgement::Admit(_) => None,
+    };
+    assert_eq!(
+        verdict
+            .reason()
+            .map(|reason| serde_json::to_vec(reason).unwrap()),
+        expected_reason.map(|reason| serde_json::to_vec(reason).unwrap()),
+        "{name}: the reason bytes differ"
+    );
     verdict
 }
 
