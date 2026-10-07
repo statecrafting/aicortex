@@ -5,6 +5,7 @@
     ],
     "created": "2026-10-07",
     "dependsOn": [
+      "010-chassis-adoption-and-workspace",
       "013-write-gate-and-redaction",
       "047-shared-secret-detector-convergence",
       "051-claim-admission-and-authority"
@@ -131,6 +132,6 @@
     "summary": "aicortex-gate sequences its two questions, 013's write gate and 051's claim admission, with hand-written chains of early returns. action-gate 0.3.0 (its spec 004) adds a closed evaluation mode written for exactly this consumer: deny by default, required checks, a deny that ends the walk, and a degrade that does not. This spec moves the sequencing onto that mode, one required check per rule in the documented order, and keeps every aicortex type, payload, admission token and ledger entry in aicortex-gate as adapter code. Behaviour does not change, and a differential test against the replaced evaluators shows it.\n",
     "title": "Sequence the write gate and claim admission with action-gate's closed evaluation mode"
   },
-  "shardHash": "59b53c8c490a78bb04dae91305574dc0fdadbb5281954474252e481aa8f33d76",
+  "shardHash": "777abb4645be8b9d9cc57d8a4eaf160eebe845f30a808dc6e8b70b2b9dd3993a",
   "specVersion": "1.9.0"
 }

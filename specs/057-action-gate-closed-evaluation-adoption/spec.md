@@ -10,6 +10,7 @@ implementation: in-progress
 risk: high
 wave: 5
 depends_on:
+  - "010-chassis-adoption-and-workspace"
   - "013-write-gate-and-redaction"
   - "047-shared-secret-detector-convergence"
   - "051-claim-admission-and-authority"

@@ -337,12 +337,12 @@ mod oracle {
         })
     }
 
-    struct Statement<'a> {
-        by: &'a str,
-        asserted: AuthorityLevel,
+    pub struct Statement<'a> {
+        pub by: &'a str,
+        pub asserted: AuthorityLevel,
     }
 
-    fn user_statements(proposal: &ClaimProposal) -> Vec<Statement<'_>> {
+    pub fn user_statements(proposal: &ClaimProposal) -> Vec<Statement<'_>> {
         proposal
             .evidence
             .iter()
@@ -361,7 +361,7 @@ mod oracle {
             .collect()
     }
 
-    fn earned(
+    pub fn earned(
         proposal: &ClaimProposal,
         policy: &AdmissionPolicy,
         honoured_statement: bool,
@@ -1006,10 +1006,12 @@ fn same_claim(
     verdict
 }
 
-/// How many of 051's leading faults `case` carries, each checked on its own.
+/// How many of 051's refusing rules `case` breaks, each checked on its own
+/// rather than in order, so a case that breaks several is counted as such.
 fn claim_faults(gate: &Gate, registry: &RegistrySnapshot, case: &ClaimCase) -> usize {
     let proposal = case.proposal();
     let claim = &proposal.claim;
+    let context = case.context();
     let secret = [
         match &claim.value {
             ClaimValue::Text(text) => Some(text.as_str()),
@@ -1023,16 +1025,45 @@ fn claim_faults(gate: &Gate, registry: &RegistrySnapshot, case: &ClaimCase) -> u
     .flatten()
     .any(|text| aicortex_gate::secrets::scan(text, &gate.rules().secrets).is_some());
     let floor = case.policy.document().score_floor;
+    let evidence = &proposal.evidence;
+    let seeded = evidence
+        .iter()
+        .any(|item| matches!(item, Evidence::OperatorSeed { .. }));
+    let stated = evidence
+        .iter()
+        .any(|item| item.kind() == aicortex_types::EvidenceKind::UserStatement);
+    let statements = oracle::user_statements(&proposal);
+    let honoured = !statements.is_empty();
+    let correcting = honoured && proposal.corrected().next().is_some();
+    let own_data = statements
+        .iter()
+        .any(|statement| statement.by == claim.scope.owner.as_str());
+    let relation_fault = proposal.relations.iter().any(|relation| {
+        context.targets.get(&relation.to).is_none_or(|target| {
+            target.scope != claim.scope
+                || relation.to == claim.id
+                || (own_data
+                    && relation.kind == aicortex_types::RelationKind::Supersedes
+                    && target.sourcing == aicortex_types::Sourcing::Supplier)
+        })
+    });
     [
         aicortex_claims::validate(claim, registry).is_err(),
         secret,
-        proposal.evidence.is_empty(),
-        oracle::unavailable_source(&proposal, &case.context()).is_some(),
+        evidence.is_empty(),
+        oracle::unavailable_source(&proposal, &context).is_some(),
+        seeded && stated,
         floor.is_some_and(|floor| {
-            proposal.evidence.iter().any(
-                |evidence| matches!(evidence, Evidence::ModelScore { score, .. } if *score < floor),
-            )
+            evidence
+                .iter()
+                .any(|item| matches!(item, Evidence::ModelScore { score, .. } if *score < floor))
         }),
+        statements
+            .iter()
+            .any(|statement| !statement.asserted.is_user()),
+        !evidence.is_empty()
+            && oracle::earned(&proposal, &case.policy, honoured, correcting).is_none(),
+        relation_fault,
     ]
     .into_iter()
     .filter(|fault| *fault)
@@ -1152,7 +1183,7 @@ fn fr002_claim_walk_matches_the_old_evaluator_over_the_corpus_and_its_variations
     }
 
     eprintln!(
-        "051: {} cases, {} with two or more leading faults",
+        "051: {} cases, {} with two or more faults",
         seen.cases, seen.multi
     );
     assert_eq!(

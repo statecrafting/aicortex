@@ -11,6 +11,7 @@
   },
   "mapping": {
     "dependsOn": [
+      "010-chassis-adoption-and-workspace",
       "013-write-gate-and-redaction",
       "047-shared-secret-detector-convergence",
       "051-claim-admission-and-authority"
@@ -139,5 +140,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "59b53c8c490a78bb04dae91305574dc0fdadbb5281954474252e481aa8f33d76"
+  "shardHash": "777abb4645be8b9d9cc57d8a4eaf160eebe845f30a808dc6e8b70b2b9dd3993a"
 }
