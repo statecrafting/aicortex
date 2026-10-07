@@ -1,0 +1,143 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '057-action-gate-closed-evaluation-adoption' file unit 'crates/aicortex-gate/src/walk.rs' does not exist",
+        "path": "crates/aicortex-gate/src/walk.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "013-write-gate-and-redaction",
+      "047-shared-secret-detector-convergence",
+      "051-claim-admission-and-authority"
+    ],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/claim_gate.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/tests/differential.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/walk.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/tests/differential.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/tests/differential.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/claim_gate.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/claim_gate.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/013-write-gate-and-redaction/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/047-shared-secret-detector-convergence/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/047-shared-secret-detector-convergence/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/051-claim-admission-and-authority/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/051-claim-admission-and-authority/spec.md"
+        }
+      }
+    ],
+    "specId": "057-action-gate-closed-evaluation-adoption",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "59b53c8c490a78bb04dae91305574dc0fdadbb5281954474252e481aa8f33d76"
+}
