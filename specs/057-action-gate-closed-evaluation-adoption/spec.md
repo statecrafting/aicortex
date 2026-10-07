@@ -6,7 +6,7 @@ kind: "feature"
 domain: "memory"
 created: "2026-10-07"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: high
 wave: 5
 depends_on:
@@ -215,6 +215,16 @@ by approving it.
   whose oracle then runs against the evaluators it reproduces and so shows
   that the reproduction is faithful; then the pin, `walk.rs` and the
   switch of both questions onto it, under the same unchanged test.
+
+- **D-7 (2026-10-07, build session; evidence).** With the walk in place,
+  `tests/differential.rs` runs unchanged from the pull request that added
+  it: 1,020 capture inputs (615 with two or more faults) and 21,387 claim
+  inputs (7,309 with two or more faults) yield equal verdicts,
+  reasons and reason bytes, and every verdict, reason code and 051 rule
+  name occurs. Swapping two steps of either walk fails it. The B-6
+  properties are unit tests in `lib.rs` (`walk_properties`), and FR-004 is
+  a unit test of each walk. `cargo deny check` passes and warns that
+  `action-gate-core` appears twice (D-3).
 
 ## 8. Follow-ups and open questions
 
