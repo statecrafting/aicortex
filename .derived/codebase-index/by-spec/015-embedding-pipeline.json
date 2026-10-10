@@ -25,7 +25,27 @@
         "source": "spec-edge"
       },
       {
+        "path": "apps/aicortex/src/embedding_preflight.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/src/embedding_service.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "apps/aicortex/src/main.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/embedding.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/embedding_process.rs",
         "source": "spec-edge"
       },
       {
@@ -50,6 +70,10 @@
       },
       {
         "path": "crates/aicortex-embed/src/config.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/deployment.rs",
         "source": "spec-edge"
       },
       {
@@ -210,6 +234,58 @@
       {
         "locations": [
           {
+            "file": "apps/aicortex/src/embedding_preflight.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/embedding_preflight.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/src/embedding_service.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/embedding_service.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/embedding.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/embedding.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/embedding_process.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/embedding_process.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-embed/Cargo.toml"
           }
         ],
@@ -257,6 +333,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-embed/src/config.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/deployment.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/deployment.rs"
         }
       },
       {
@@ -574,6 +663,19 @@
       {
         "locations": [
           {
+            "file": "apps/aicortex/tests/cell.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/cell.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "apps/aicortex/tests/migrate.rs"
           }
         ],
@@ -810,5 +912,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "c17d3d2cfb001bc88ec36b97ced94fa1d689677c76e58e131debf17af5760c56"
+  "shardHash": "2e3665127bde7c1ee4e70a5276e66fef6edcbf5d1089778633f0dc8d736fa488"
 }

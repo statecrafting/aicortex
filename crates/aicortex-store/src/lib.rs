@@ -98,9 +98,10 @@ pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
 pub use embedding_memory::{
     ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingMemory,
-    EmbeddingQueueCounts, EmbeddingTarget, active_embedding, embedding_coverage, embedding_memory,
-    embedding_processor, embedding_queue_counts, live_memory_total, memories_missing_embedding,
-    stage_active_embedding, stage_complete_embedding_coverage_guard, stage_live_memory_guard,
+    EmbeddingQueueCounts, EmbeddingTarget, ReadStore, active_embedding, embedding_coverage,
+    embedding_memory, embedding_processor, embedding_queue_counts, live_memory_total,
+    memories_missing_embedding, scope_keys_after, stage_active_embedding,
+    stage_complete_embedding_coverage_guard, stage_live_memory_guard,
 };
 pub use erasure::{
     Authority, DERIVATIVES, Derivative, Erased, Eraser, Erasure, KIND_ERASE, KIND_ERASE_SCOPE,

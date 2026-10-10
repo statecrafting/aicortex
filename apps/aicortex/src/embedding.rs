@@ -11,9 +11,10 @@
 //! - `POST /embedding/reembed` stage one bounded re-embedding pass.
 //! - `POST /embedding/drop` drop an inactive revision once coverage is full.
 //!
-//! The worker is not started here. Rahi 0.4.0 has no managed-service
-//! lifecycle, and an untracked task would outlive its owner (D-25);
-//! `aicortex_embed::run_worker` is the function a service host mounts.
+//! The worker is not started here. `embedding_service` mounts it as a managed
+//! service of `aicortex serve` (rahi spec 047, D-25), and `embedding_preflight`
+//! contributes `app.embedding` to `aicortex preflight` (rahi spec 049). These
+//! routes remain the scope-bound view of one scope (D-18).
 
 #![forbid(unsafe_code)]
 
