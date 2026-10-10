@@ -10,6 +10,7 @@ implementation: pending
 risk: critical
 wave: 2
 depends_on:
+  - "015-embedding-pipeline"
   - "019-untrusted-content-boundary"
 establishes:
   - "crates/aicortex-api/Cargo.toml"
@@ -170,6 +171,28 @@ documents.
   use these scopes are 045's; 035's claim routes use them as amended there.
   The maintainer adopted this on 2026-09-12; the agent authored the text
   and this entry records that authority rather than assuming it.
+
+- **D-3 (2026-10-10, proposed amendment, awaiting owner approval).** Owner
+  direction 2026-10-10: 020 and 021 follow 015 directly, ahead of 016 to
+  018, so local agents and machine intake have a surface before ranked
+  recall exists.
+  - **Order.** 020 depends on 015 and on 019 (which now depends on 015,
+    019 D-2). After 015 completes, the build order is 019, 020, 021, then
+    016, 017, 018. Because the lowest-number rule of `AGENTS.md` would pick
+    016 first, this decision is the recorded override: while 019, 020, or
+    021 is ready and pending, it is picked before 016 to 018.
+  - **Staged routes.** This spec's build ships B-1 to B-3 and B-5 to B-10
+    and the B-4 routes that need no ranking or graph: `POST /capture`,
+    `GET /memories`, `GET /memories/{id}`, `PATCH /memories/{id}`,
+    `DELETE /memories/{id}`, `GET /stats`, `POST /promote/{id}`, and
+    `GET /events`. `POST /search` is mounted by 018's build session and
+    `GET /entities` and `GET /entities/{id}/neighbors` by 017's, each
+    through an `extends` edge on this crate's router and DTOs, and each
+    carrying FR-005 for its route. AC-2's final step reads the captured
+    memory back with `GET /memories/{id}` until 018 lands, and 018's build
+    restores "searches for it".
+  - **What does not change.** Authorization, scopes, the envelope rule, and
+    every FR. FR-005 binds on every content-returning route that exists.
 
 ## Verification
 
