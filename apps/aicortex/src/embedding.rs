@@ -34,6 +34,10 @@ use serde_json::{Value, json};
 /// The operator subject recorded against egress admission at activation.
 const OPERATOR_ACTOR: &str = "aicortex-operator";
 
+/// The re-embedding batch a request without a `limit` stages.
+const DEFAULT_REEMBED_LIMIT: u32 = 100;
+const _: () = assert!(DEFAULT_REEMBED_LIMIT <= aicortex_embed::MAX_REEMBED_BATCH);
+
 /// What the operator routes close over.
 ///
 /// The configuration is read once, when the router is built, and a malformed
@@ -64,6 +68,7 @@ impl Embedding {
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct ScopeQuery {
     scope_id: String,
 }
@@ -165,7 +170,7 @@ async fn reembed(
         embedding.app.store(),
         &request.scope_id,
         request.cursor.as_deref(),
-        request.limit.unwrap_or(100),
+        request.limit.unwrap_or(DEFAULT_REEMBED_LIMIT),
         unix_now(),
     )
     .await?;
