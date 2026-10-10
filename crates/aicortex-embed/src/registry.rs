@@ -1,6 +1,7 @@
 //! The model revision registry and coverage report.
 
-use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
+use aicortex_types::MemoryId;
+use rahi_store::{Blob, Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
@@ -8,7 +9,7 @@ use aicortex_store::{
     embedding_coverage, live_memory_total, stage_complete_embedding_coverage_guard,
 };
 
-use crate::provider::{EmbeddingProvider, ModelId};
+use crate::provider::{EmbeddingProvider, ModelId, Vector};
 
 /// One immutable model revision.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -66,6 +67,17 @@ pub struct Coverage {
     pub total: u64,
 }
 
+/// One stored chunk vector read back under an explicit model revision.
+#[derive(Clone, Debug, PartialEq)]
+pub struct StoredVector {
+    /// The memory the vector belongs to.
+    pub memory_id: MemoryId,
+    /// The chunk the vector was computed from.
+    pub chunk_ordinal: u32,
+    /// The decoded vector.
+    pub vector: Vector,
+}
+
 /// Registry statements and reads.
 #[derive(Clone, Copy, Debug, Default)]
 pub struct ModelRegistry;
@@ -78,6 +90,19 @@ struct ModelRow {
     normalized: i64,
     first_seen: i64,
     active: i64,
+}
+
+#[derive(Debug, Deserialize)]
+struct VectorRow {
+    memory_id: String,
+    chunk_ordinal: i64,
+    dims: i64,
+    vector: Blob,
+}
+
+#[derive(Debug, Deserialize)]
+struct LatestRow {
+    revision: Option<i64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -147,6 +172,86 @@ impl ModelRegistry {
             )
             .await?;
         rows.into_iter().next().map(model_from_row).transpose()
+    }
+
+    /// The highest revision ever recorded, active or not.
+    ///
+    /// # Errors
+    ///
+    /// Store errors or a revision outside `u32`.
+    pub async fn latest_revision(store: &StoreHandle) -> Result<Option<u32>, Error> {
+        let rows: Vec<LatestRow> = store
+            .query_consistent(
+                "SELECT MAX(revision) AS revision FROM embedding_model",
+                vec![],
+            )
+            .await?;
+        rows.into_iter()
+            .next()
+            .and_then(|row| row.revision)
+            .map(|revision| {
+                u32::try_from(revision)
+                    .map_err(|_| Error::Integrity("model revision is outside u32".to_owned()))
+            })
+            .transpose()
+    }
+
+    /// Read stored vectors comparable to a query embedded under `query`.
+    ///
+    /// This is the revision predicate of B-8: the caller names the revision
+    /// its query vector was produced under, and the statement matches rows
+    /// by revision, model identity, width, and normalization together, so a
+    /// vector from another revision cannot be returned and therefore cannot
+    /// be compared. Rows come in `(memory_id, chunk_ordinal)` order; pass the
+    /// last row's pair as `after` for the next page.
+    ///
+    /// # Errors
+    ///
+    /// Store errors, or [`Error::Integrity`] for a row whose bytes disagree
+    /// with its recorded width.
+    pub async fn vectors(
+        store: &StoreHandle,
+        scope_id: &str,
+        query: &ModelRevision,
+        after: Option<(MemoryId, u32)>,
+        limit: u32,
+    ) -> Result<Vec<StoredVector>, Error> {
+        let (after_memory, after_ordinal) = after.map_or((String::new(), -1), |(id, ordinal)| {
+            (id.to_string(), i64::from(ordinal))
+        });
+        let rows: Vec<VectorRow> = store
+            .query_consistent(
+                "SELECT memory_id, chunk_ordinal, dims, vector FROM embedding
+                 WHERE scope_id = ?1 AND model_revision = ?2 AND model_id = ?3
+                   AND dims = ?4 AND normalized = ?5
+                   AND (memory_id > ?6 OR (memory_id = ?6 AND chunk_ordinal > ?7))
+                 ORDER BY memory_id, chunk_ordinal LIMIT ?8",
+                vec![
+                    Value::from(scope_id),
+                    Value::Integer(i64::from(query.revision)),
+                    Value::from(query.model_id.as_str()),
+                    Value::Integer(i64::from(query.dims)),
+                    Value::from(query.normalized),
+                    Value::from(after_memory),
+                    Value::Integer(after_ordinal),
+                    Value::Integer(i64::from(limit)),
+                ],
+            )
+            .await?;
+        rows.into_iter()
+            .map(|row| {
+                let dims = u16::try_from(row.dims)
+                    .map_err(|_| Error::Integrity("vector width is outside u16".to_owned()))?;
+                Ok(StoredVector {
+                    memory_id: row.memory_id.parse().map_err(|error| {
+                        Error::Integrity(format!("stored memory id is invalid: {error}"))
+                    })?,
+                    chunk_ordinal: u32::try_from(row.chunk_ordinal)
+                        .map_err(|_| Error::Integrity("chunk ordinal is outside u32".to_owned()))?,
+                    vector: Vector::from_le_bytes(row.vector.as_slice(), dims)?,
+                })
+            })
+            .collect()
     }
 
     /// Coverage of every model revision, including zero-coverage revisions.
