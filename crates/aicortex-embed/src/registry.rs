@@ -6,7 +6,7 @@ use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
 
 use aicortex_store::{
-    embedding_coverage, live_memory_total, stage_complete_embedding_coverage_guard,
+    ReadStore, embedding_coverage, live_memory_total, stage_complete_embedding_coverage_guard,
 };
 
 use crate::provider::{EmbeddingProvider, ModelId, Vector};
@@ -163,7 +163,7 @@ impl ModelRegistry {
     /// # Errors
     ///
     /// Store errors or an invalid registry row.
-    pub async fn active(store: &StoreHandle) -> Result<Option<ModelRevision>, Error> {
+    pub async fn active(store: &impl ReadStore) -> Result<Option<ModelRevision>, Error> {
         let rows: Vec<ModelRow> = store
             .query_consistent(
                 "SELECT model_id, revision, dims, normalized, first_seen, active
@@ -262,7 +262,7 @@ impl ModelRegistry {
     /// # Errors
     ///
     /// Store errors or negative counts in a corrupted row.
-    pub async fn coverage(store: &StoreHandle, scope_id: &str) -> Result<Vec<Coverage>, Error> {
+    pub async fn coverage(store: &impl ReadStore, scope_id: &str) -> Result<Vec<Coverage>, Error> {
         let total = live_memory_total(store, scope_id).await?;
         let embedded = embedding_coverage(store, scope_id)
             .await?
@@ -292,7 +292,7 @@ impl ModelRegistry {
     /// # Errors
     ///
     /// Store errors or a negative count in a corrupted row.
-    pub async fn live_total(store: &StoreHandle, scope_id: &str) -> Result<u64, Error> {
+    pub async fn live_total(store: &impl ReadStore, scope_id: &str) -> Result<u64, Error> {
         live_memory_total(store, scope_id).await
     }
 

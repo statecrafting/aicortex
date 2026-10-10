@@ -4,7 +4,8 @@ use std::mem::size_of;
 use std::time::{Duration, Instant};
 
 use aicortex_store::{
-    embedding_memory, embedding_queue_counts, memories_missing_embedding, stage_live_memory_guard,
+    ReadStore, embedding_memory, embedding_queue_counts, memories_missing_embedding,
+    stage_live_memory_guard,
 };
 use aicortex_types::{MemoryId, Status};
 use rahi_store::{
@@ -117,7 +118,7 @@ impl EmbeddingPreflight {
     ///
     /// Store errors or corrupt persisted values.
     pub async fn read(
-        store: &StoreHandle,
+        store: &impl ReadStore,
         scope_id: &str,
         now: UnixSeconds,
     ) -> Result<Self, Error> {
@@ -1015,7 +1016,7 @@ async fn reembed_under_lease(
 ///
 /// Store errors or negative/corrupt aggregate values.
 pub async fn queue_health(
-    store: &StoreHandle,
+    store: &impl ReadStore,
     scope_id: &str,
     now: UnixSeconds,
 ) -> Result<QueueHealth, Error> {

@@ -113,6 +113,11 @@ chrono-tz = { version = "0.10", default-features = false, features = ["std"] }
 trybuild = "1"
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
 
+# The embedding gauges of spec 015 B-3. The chassis owns the `/metrics`
+# registry and locks this version without default features; the application
+# registers its own collectors on that registry, so it needs the type.
+prometheus = { version = "0.14", default-features = false }
+
 ndarray = { version = "0.17", default-features = false, features = ["std"] }
 safetensors = "0.7"
 # Unicode general categories for the WordPiece normalizer (015 D-22): BERT strips

@@ -12,6 +12,7 @@
 pub mod activation;
 pub mod chunk;
 pub mod config;
+pub mod deployment;
 pub mod local;
 pub mod migrations;
 pub mod operator;
@@ -29,6 +30,7 @@ pub use config::{
     CapabilityFailure, ConfiguredProvider, EMBEDDING_SERVICE, EmbeddingConfig, LocalConfig,
     ModelShape, NoTransport, RemoteConfig,
 };
+pub use deployment::DeploymentHealth;
 pub use local::{LocalEngine, LocalProvider, WeightArtifact, WeightFetcher};
 pub use migrations::{EMBEDDING_MIGRATION_VERSION, migration};
 pub use provider::{EmbeddingProvider, ModelId, Vector};

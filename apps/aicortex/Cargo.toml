@@ -30,13 +30,18 @@ rahi-kernel = { workspace = true }
 rahi-store = { workspace = true }
 rahi-types = { workspace = true }
 axum = { workspace = true }
+prometheus = { workspace = true }
+tokio = { workspace = true, features = ["time"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
 [dev-dependencies]
+aicortex-types = { workspace = true }
 rahi-ops = { workspace = true }
+ring = { workspace = true }
+safetensors = { workspace = true }
 tempfile = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["sync", "time"] }
 toml = { workspace = true }
 
 [lints]
