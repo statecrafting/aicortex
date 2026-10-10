@@ -152,7 +152,7 @@ thesis.
   the instruction grade is that a human decided; a tool would make the
   agent the decider by default, since it is the one holding the connection.
 
-- **D-3 (2026-10-10, proposed amendment, awaiting owner approval).** Owner
+- **D-3 (2026-10-10, amendment, approved by the owner 2026-10-10).** Owner
   direction 2026-10-10 builds this spec right after 020, ahead of 016 to 018
   (020 D-3). It keeps its dependency on 020, because every tool maps to a
   020 handler and this spec extends 020's DTOs. The seven-tool surface of

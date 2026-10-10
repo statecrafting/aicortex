@@ -125,7 +125,7 @@ therefore does not claim.
   wrong often enough in both directions to be worse than useless, and its
   presence encourages treating unflagged content as safe.
 
-- **D-2 (2026-10-10, proposed amendment, awaiting owner approval).** The
+- **D-2 (2026-10-10, amendment, approved by the owner 2026-10-10).** The
   owner's 2026-10-10 reorder builds 020 and 021 directly after 015, ahead
   of 016 to 018. Both return memory bodies (020 B-5, 021 B-6), and B-1
   allows a body out only through the envelope function, so the boundary has

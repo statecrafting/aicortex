@@ -89,14 +89,14 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "021-the-mcp-server": "f38118cfaa18dc519de51803c9d9214ac1ab95186583577a17021032a6f17977",
+      "021-the-mcp-server": "5beee45f273d8cfe7423f68e81440e6e82fc00f70fc09a151a368fb41152540a",
       "1-purpose": "cc0e1557dc41e0bfd1a28a660a749ded7a413329b508e68e4ff175682b891b18",
       "2-territory": "d5842d4011564bfc565ed7e326514a51176947785a8d6b3a4b4c0587187b2ae1",
       "3-behavior": "6417dd366f845f86ae044817c976af6b60a7680e56c50789f8256e35be8c75ad",
       "4-functional-requirements": "222ac1e46a566989cf880aa7f60e5f562b2dfa8e1c1a7b4e02523b97320bff6e",
       "5-acceptance-criteria": "7bf3f5fc1f23a4a8385dedc2ee15e4e8e183fb8c3b26d37a551eea358f23e831",
       "6-out-of-scope": "3c24c16f329ea129e2fc1e4736e95d252c1444af057f98d30f219f1bd3142ee0",
-      "7-resolved-decisions": "65f3260e4697bd207d6cb21f0721e8183af58cb731be11d1d10fe7c3dfc97633",
+      "7-resolved-decisions": "7043f48476d0c17df48c6c5ceef1989dd1cc835bac48ecef6d00b9ef0f9fa319",
       "verification": "257672220f7d5b576f9378bd12f61ce1fd948f9cbf41a97c122cdd311c25ce34"
     },
     "sectionHeadings": [
@@ -115,6 +115,6 @@
     "summary": "One remote MCP server over streamable HTTP, stateless per request, serving every client that speaks the protocol. Seven tools, no more: capture, search, fetch, list, update, forget, and relate. Authorization is the chassis's resource server, so an unauthenticated initialize answers the challenge that lets a client discover the authorization server and register itself without the user pasting anything. Tool results carry envelopes and the framing statement, and the tool descriptions themselves never contain recalled content.\n",
     "title": "The MCP server: streamable HTTP, a small tool surface, OAuth discovery that bootstraps itself"
   },
-  "shardHash": "c6f1e797575a584b4a8e1724abffb8ef631a016c70de6ca3fe2fe3417f3da569",
+  "shardHash": "b52529a66bbc1890c17b939ec1597fd1ff267e99ec326d6ebb616e1a599718ff",
   "specVersion": "1.9.0"
 }

@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 1
 depends_on:
@@ -30,6 +30,8 @@ establishes:
   - "apps/aicortex/src/embedding_preflight.rs"
   - "apps/aicortex/src/embedding_service.rs"
   - "apps/aicortex/src/embedding.rs"
+  - "apps/aicortex/src/embedding_fetch.rs"
+  - "apps/aicortex/tests/embedding_fetch.rs"
   - "crates/aicortex-embed/src/wordpiece.rs"
   - "apps/aicortex/tests/embedding.rs"
   - "apps/aicortex/tests/embedding_process.rs"
@@ -120,13 +122,16 @@ which gains its first egress entry only when a remote provider is enabled.
   ModelId; fn dims(&self) -> u16; fn normalized(&self) -> bool; async fn
   embed(&self, batch: &[&str]) -> Result<Vec<Vector>>; }`. Providers are
   selected by configuration and resolved once at boot.
-- **B-5 (local is the default).** `LocalProvider` runs a bundled
-  sentence-embedding model in-process on CPU, with the weights fetched to
-  `models/` at first boot by `preflight` from a configured URL and verified
-  against a pinned digest, or supplied by the image. With the local
-  provider selected the process makes no outbound call at all, and the
-  manifest declares no egress host, which is what makes the privacy claim
-  provable (041).
+- **B-5 (local is the default; amended 2026-10-10, D-32).** `LocalProvider`
+  runs a bundled sentence-embedding model in-process on CPU, with the
+  weights supplied by the image or the operator, or fetched to `models/`
+  once by `serve`, before the worker binds, from a configured URL through
+  the kernel's `Governed<Egress>` facade and verified against a pinned
+  digest. `preflight` reports an absent artifact and never fetches. The
+  shipped manifest declares no egress host, and once its artifacts are in
+  place the local provider makes no outbound call at all, which is what
+  makes the privacy claim provable (041). A deployment that fetches grants
+  the artifact host in its own ceiling, which is a reviewable diff.
 - **B-6 (remote is governed).** `RemoteProvider` calls a configured
   endpoint through the kernel's `Governed<Egress>` facade
   (`rahi://015`). Enabling it requires adding the host to the manifest
@@ -163,9 +168,10 @@ which gains its first egress entry only when a remote provider is enabled.
 - **FR-003.** A provider that always errors moves the row to
   `DeadLetter` after the configured attempts, and `preflight` reports a
   non-zero count.
-- **FR-004.** With the local provider selected, a test asserts the process
-  opens no socket during a capture, and the manifest contains no egress
-  host.
+- **FR-004 (amended 2026-10-10, D-33).** With the local provider selected,
+  a test asserts that booting the provider and embedding opens no socket,
+  and that the shipped manifest contains no egress host. The whole-process
+  form, a capture through a booted `serve`, is 020 FR-009.
 - **FR-005.** A remote provider configured but absent from the manifest
   ceiling fails `preflight` with a named capability error.
 - **FR-006.** A query embedded under revision 2 never matches rows stored
@@ -447,13 +453,44 @@ configuration with a pinned digest rather than a spec-level commitment.
   keeps the previous values. This supersedes D-27's statement that queue
   gauges are not wired.
 
-## Status (2026-10-10, in progress: two items remain)
+- **D-32 (2026-10-10, owner decision).** The one-time model fetch moves
+  from `preflight` to `serve`, superseding D-1's "fetched by `preflight`".
+  Rahi's `preflight` never mutates (`rahi://030` B-3) and its application
+  checks receive no kernel (`rahi://049`), so a fetch there could be neither
+  written nor adjudicated. `serve` has both. When a local artifact is absent
+  or fails its pin, `Cell::services` builds the `embedding` service's
+  `Governed<Egress>` facade and the worker, before it binds, admits each
+  artifact's host through the kernel and downloads it with the HTTPS client
+  of `apps/aicortex/src/embedding_fetch.rs`, the cell's one governed egress
+  call site (spec 010 B-8). That client refuses redirects and proxies, ends
+  the download at the 1 GiB artifact bound, and is shown the kernel's
+  `Permit` rather than a URL, so a request reaches only the admitted host.
+  The bytes are verified against the pin before the rename (`ensure_weights`).
+  A failed fetch is written to the process log and retried, the pause
+  doubling from the worker's five-second error backoff to a five-minute cap,
+  so a wrong pin does not re-download on a fixed beat. Until it succeeds
+  nothing binds and `preflight` keeps warning that the artifact is absent.
+  Because redirects are refused, the configured URL must name the host that
+  serves the bytes, not one that redirects to a CDN. The privacy claim is unchanged: the shipped manifest grants no host,
+  so a deployment that has not widened its ceiling makes no outbound call, and
+  `serve` refuses to start when an absent artifact's host is not granted
+  (D-30). D-1's reasons stand: the image stays small and the fetch remains a
+  verified, one-time, reportable step.
+- **D-33 (2026-10-10, owner decision).** FR-004's whole-process form moves
+  to 020 as its FR-009. A capture route is what that test drives, and 020
+  creates the first one. Under the build order of 020 D-3, 020 depends on
+  this spec, so keeping that form here would leave 015 open with nothing
+  able to close it. This spec keeps the embedding-path probe and the
+  manifest assertion.
+
+## Status (2026-10-10, complete)
 
 Implemented and locally verified on rahi 0.6.0: the provider contracts,
 bounded chunking, the monotonic model registry, the revision-partitioned
 durable worker, erasure integration and capture staging, the re-embedding
 scheduler, artifact verification, the governed remote boundary, the operator
-routes (D-27), and now the chassis hooks.
+routes (D-27), the chassis hooks (D-29, D-30, D-31), and the governed model
+fetch at `serve` boot (D-32).
 
 - **Worker lifecycle (B-2).** `Cell::services` mounts `embedding-worker` as a
   managed service when a provider is configured, with its stop wired to the
@@ -469,28 +506,18 @@ routes (D-27), and now the chassis hooks.
   `embedding.remote.egress`.
 - **Metrics (B-3).** The dead-letter, pending, and oldest-pending-age gauges
   are on the chassis `/metrics` registry (D-31).
+- **Model fetch (B-5, D-32).** `apps/aicortex/tests/embedding_fetch.rs` boots
+  a real kernel and a loopback TLS mirror. Absent artifacts are fetched once
+  through the admitted host and verified, and a second pass fetches nothing.
+  Bytes that miss the pin are not installed, and an ungranted host is denied
+  before any request. The transport refuses a redirect and an oversized body,
+  and a worker given absent artifacts fetches them before it binds.
+- **FR-004 (D-33).** The shipped manifest declares no egress, and booting the
+  local provider and embedding opens no socket. The whole-process form is
+  020 FR-009.
 
-What remains, so the spec stays `in-progress`:
-
-- **First-boot model fetch (B-5, D-1).** `preflight` cannot fetch weights.
-  Rahi 0.6.0's `PreflightContext` offers a read-only store, the manifest, and
-  the environment, with no governed egress facade and no HTTP client for an
-  application, and this repository may not link its own (spec 010 B-8). The
-  verified-fetch logic exists (`LocalProvider::ensure_weights`,
-  `WeightFetcher`) and awaits a rahi egress transport. Weights must be
-  supplied by the image or the operator; `app.embedding` warns when they are
-  absent and fails when their fetch host is missing from the ceiling. A
-  remote provider is likewise reachable only through a host-supplied
-  transport, and the activate route reports that.
-- **FR-004, whole-process form.** A test asserts that the shipped manifest
-  declares no egress and that booting the local provider and embedding opens
-  no socket, but the probe brackets the embedding path. The binary has no
-  capture route until the surface specs (020, 021) land, so a socket probe
-  over a booted `serve` during a capture cannot be written yet.
-
-Requirement status: B-2, B-3, AC-1, AC-2, FR-001, FR-002, FR-003, FR-005,
-FR-006, and FR-007 are satisfied and tested; B-5's fetch and FR-004's
-whole-process form are not. One limit is known: work staged under a replaced
+Requirement status: B-2, B-3, B-5, AC-1, AC-2, and FR-001 to FR-007 are
+satisfied and tested. One limit is known: work staged under a replaced
 revision is not drained by the process that replaced it (D-29), and stays
 visible as pending.
 
@@ -503,4 +530,5 @@ each scope, which covers memories written while no model was active.
 
 ```verify:cli
 cargo test -p aicortex-embed --locked
+cargo test -p aicortex --locked --test embedding --test embedding_fetch --test embedding_process
 ```

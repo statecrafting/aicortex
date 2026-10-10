@@ -118,6 +118,19 @@ tokio = { version = "1", default-features = false, features = ["macros", "rt-mul
 # registers its own collectors on that registry, so it needs the type.
 prometheus = { version = "0.14", default-features = false }
 
+# The one-time model fetch of spec 015 B-5 (D-32): an HTTPS client used only
+# at the governed egress call site, after the kernel has admitted the host.
+# rahi ships no client by design (its `Permit` is shown to the caller's own),
+# and this is the version and TLS stack hiqlite already locks, so it adds no
+# tree. Tests only: `rcgen` and `axum-server` stand up the TLS mirror the
+# fetch test downloads from, at the versions hiqlite carries.
+reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
+rcgen = "0.14"
+axum-server = { version = "0.8", features = ["tls-rustls"] }
+# The mirror selects its TLS provider explicitly, because the tree enables
+# both of rustls's and none is chosen for a server by default.
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
+
 ndarray = { version = "0.17", default-features = false, features = ["std"] }
 safetensors = "0.7"
 # Unicode general categories for the WordPiece normalizer (015 D-22): BERT strips

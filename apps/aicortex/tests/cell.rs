@@ -476,9 +476,9 @@ const ROUTER_HOMES: [&str; 3] = [
     "crates/aicortex-mcp/",
 ];
 
-/// The governed egress call sites. None exists before a spec declares an
-/// egress host (B-4).
-const EGRESS_SITES: [&str; 0] = [];
+/// The governed egress call sites: the one-time model fetch of spec 015
+/// D-32, which builds its client only to show it a kernel permit.
+const EGRESS_SITES: [&str; 1] = ["apps/aicortex/src/embedding_fetch.rs"];
 
 /// B-8 over one source file: every line that reimplements the chassis.
 fn reimplementation_problems(path: &str, source: &str) -> Vec<String> {

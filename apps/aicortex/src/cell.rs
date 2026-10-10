@@ -9,6 +9,7 @@
 #![forbid(unsafe_code)]
 
 mod embedding;
+pub mod embedding_fetch;
 pub mod embedding_preflight;
 pub mod embedding_service;
 

@@ -138,6 +138,13 @@ only crate that defines a wire DTO.
 - **FR-008.** `scopes.rs` enumerates exactly the seven scopes of B-3, and a
   table test asserts that no `memory.*` scope satisfies a `coordination.*`
   requirement and no `coordination.*` scope satisfies a `memory.*` one.
+- **FR-009 (added 2026-10-10, 015 D-33).** With the local embedding
+  provider selected and its artifacts in place, a test boots `aicortex
+  serve`, captures a memory through `POST /capture`, waits for its
+  embedding, and asserts that the process opened no outbound socket, and
+  that the shipped manifest declares no egress host. This is 015 FR-004's
+  whole-process form, which moved here because this spec creates the first
+  capture route.
 
 ## 5. Acceptance criteria
 
@@ -172,7 +179,7 @@ documents.
   The maintainer adopted this on 2026-09-12; the agent authored the text
   and this entry records that authority rather than assuming it.
 
-- **D-3 (2026-10-10, proposed amendment, awaiting owner approval).** Owner
+- **D-3 (2026-10-10, amendment, approved by the owner 2026-10-10).** Owner
   direction 2026-10-10: 020 and 021 follow 015 directly, ahead of 016 to
   018, so local agents and machine intake have a surface before ranked
   recall exists.
@@ -193,6 +200,8 @@ documents.
     restores "searches for it".
   - **What does not change.** Authorization, scopes, the envelope rule, and
     every FR. FR-005 binds on every content-returning route that exists.
+    FR-009, added after this entry by 015 D-33, adds a test and changes
+    no route.
 
 ## Verification
 

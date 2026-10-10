@@ -25,6 +25,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "apps/aicortex/src/embedding_fetch.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "apps/aicortex/src/embedding_preflight.rs",
         "source": "spec-edge"
       },
@@ -42,6 +46,10 @@
       },
       {
         "path": "apps/aicortex/tests/embedding.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/embedding_fetch.rs",
         "source": "spec-edge"
       },
       {
@@ -234,6 +242,19 @@
       {
         "locations": [
           {
+            "file": "apps/aicortex/src/embedding_fetch.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/embedding_fetch.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "apps/aicortex/src/embedding_preflight.rs"
           }
         ],
@@ -268,6 +289,19 @@
         "unit": {
           "kind": "file",
           "path": "apps/aicortex/tests/embedding.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/embedding_fetch.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/embedding_fetch.rs"
         }
       },
       {
@@ -912,5 +946,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "2e3665127bde7c1ee4e70a5276e66fef6edcbf5d1089778633f0dc8d736fa488"
+  "shardHash": "0f5af8371add8105c0dcbd8553809d69b4559db86f7806ed0fcd845605c4c196"
 }
