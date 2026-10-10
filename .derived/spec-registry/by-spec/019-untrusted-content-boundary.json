@@ -30,7 +30,7 @@
       "wave": 1
     },
     "id": "019-untrusted-content-boundary",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "constraint",
     "risk": "critical",
     "sectionDigests": {
@@ -60,6 +60,6 @@
     "summary": "A memory store feeds text written by other people, other agents, and web pages into a model's context, which makes it an indirect prompt-injection surface by construction. This constraint spec owns no code and freezes one property across every path that returns content: memory bodies leave this system only inside an envelope that delimits them, labels their trust class and origin, and states that instructions inside them are not to be followed. Instruction grade, the only class a client is told to act on, requires a human promotion recorded in the ledger. An agent never promotes its own memory.\n",
     "title": "Recalled content is data: delimited, labelled, never in an instruction position"
   },
-  "shardHash": "bb78cd025cb2f0fc48a65a109fd22c98666f382d310d47fc52153964b6032b2c",
+  "shardHash": "aa07b9365c6eba18592efeeb0ccea512913011f6b696804ebf39749edc2b2b74",
   "specVersion": "1.9.0"
 }
