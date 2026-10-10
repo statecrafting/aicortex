@@ -25,6 +25,8 @@ establishes:
   - "crates/aicortex-embed/src/config.rs"
   - "crates/aicortex-embed/src/activation.rs"
   - "crates/aicortex-embed/src/service.rs"
+  - "crates/aicortex-embed/src/operator.rs"
+  - "apps/aicortex/src/embedding.rs"
   - "crates/aicortex-embed/src/wordpiece.rs"
   - "crates/aicortex-embed/tests/worker.rs"
   - "crates/aicortex-embed/tests/chunk.rs"
@@ -361,44 +363,74 @@ configuration with a pinned digest rather than a spec-level commitment.
   identity, width, and normalization together. A vector of another revision
   is not returned, so it cannot be compared; spec 016's recall must read
   vectors only through it.
+- **D-27 (2026-10-05, implementation).** The operator verbs of B-9 are routes
+  on the cell's operator surface, not new argv verbs: spec 010 B-3 gives the
+  chassis every verb and the `Cell` trait offers no verb hook, while
+  `operator_routes` is mounted behind the operator role. They are
+  `GET /operator/embedding/status`, `POST .../activate`, `.../reembed`, and
+  `.../drop`, each naming its scope explicitly (D-24). The provider
+  configuration is read from the process environment when the router is
+  built; a malformed configuration is held and reported by each route,
+  because a `Cell` cannot fail while building routes. Activation of a remote
+  provider checks the ceiling and then reports that this build links no remote
+  transport, rather than activating a model nothing can call. Queue gauges in
+  the chassis `/metrics` registry are not wired: D-18 makes queue health
+  scope-bound, and a collector would have to read every scope, which needs the
+  separately authorized operator-wide surface D-18 names.
 
-## Status (2026-10-04, in progress: runtime and chassis hooks required)
+## Status (2026-10-05, in progress: chassis hooks required)
 
-The provider contracts, bounded chunking, monotonic model registry,
-revision-partitioned durable worker, erasure integration and capture-staging
-primitive,
-re-embedding scheduler, artifact verification, governed remote boundary, and
-preflight report are implemented and locally verified. The erasure transaction
-also removes pending, claimed, failed, and dead embedding work plus its attempt
-history, so an in-flight stale worker cannot recreate vectors after erasure.
+Implemented and locally verified: the provider contracts, bounded chunking,
+the monotonic model registry, the revision-partitioned durable worker, erasure
+integration and capture staging, the re-embedding scheduler, artifact
+verification, the governed remote boundary, the preflight report, and now the
+runtime that was missing. Provider configuration is read from the environment
+and checked against the manifest ceiling as a plain function (D-23). A concrete
+in-process engine backs `LocalProvider` (D-22). Activation numbers revisions
+monotonically (D-24). The worker is a service function a host mounts and joins
+(D-25). The B-8 revision predicate is `ModelRegistry::vectors` (D-26). The
+operator verbs (status, activate, re-embed, drop) are operator routes (D-27),
+and one test drives them through the real engine from first activation to a
+model change and a drop.
 
-The spec is not complete. `aicortex serve` still lacks provider configuration,
-a concrete local inference engine, first-activation and model-change wiring,
-the managed background-worker lifecycle, and the re-embed and drop operator
-verbs (B-2, B-4, B-5, B-6, B-9). The product preflight report can read the
-active revision, scope-bound queue counts and oldest-pending age, and
-per-scope coverage, but the pinned chassis has no product preflight extension
-hook through which to invoke it without violating spec 010 B-3 and B-6. Rahi
-0.4.0 also does not expose tenant-level queue counts or a product collector
-hook in the chassis `/metrics` registry (B-3). Expected quarantine dead letters
-are reported separately from failed work and do not degrade readiness. An
-inactive revision's queued work completes as a terminal no-op, so a
-scope-local drop does not consult another scope's queue counts.
+The spec is not complete. What the pinned chassis (rahi 0.4.0) blocks:
 
-Every memory write, standalone capture and host insert alike, stages
-embedding work whenever a model is active (D-21). The current application has
-no first-activation wiring, so a fresh deployment captures without jobs until
-an operator activates a model and the re-embedding pass covers those
-memories.
+- **Worker lifecycle (B-2).** `aicortex serve` does not run the worker. Rahi has
+  no managed-service lifecycle (rahi spec 047, planned for 0.5.0), and an
+  untracked task would outlive its owner. `run_worker` is ready to mount.
+- **Product preflight (B-3, AC-2, FR-003, FR-005 at the process boundary).**
+  The chassis has no product preflight extension hook (rahi spec 049, planned
+  for 0.5.0), so `aicortex preflight` cannot call `EmbeddingConfig::check` or
+  print `EmbeddingPreflight`. The check and the report exist as functions, and
+  `GET /operator/embedding/status` serves the report meanwhile. A remote
+  provider missing from the ceiling is refused by `check`, by
+  `activate_configured`, and by the activate route, but it does not yet fail
+  `serve` at boot.
+- **Metrics (B-3).** The registry hook exists (`rahi_edge::obs::current`), but
+  queue health is scope-bound (D-18), so a collector would need the
+  operator-wide surface D-18 names.
+- **First-boot model fetch (B-5, D-1).** Fetching missing weights belongs to
+  preflight and needs a fetch transport; activation requires the artifacts to
+  be present (supplied by the image or the operator). No remote HTTP transport
+  is linked, so `RemoteProvider` is reachable only through a host-supplied
+  transport.
 
-FR-002 and FR-007 have direct tests. FR-003 has direct dead-letter transition
-and library report coverage, but its application preflight reporting path
-remains open with the chassis hook. FR-001, FR-004, FR-005, and FR-006 also
-remain open: there is no induced worker-crash test, and there is no booted
-local-provider socket probe, denied-host application preflight fixture, or
-query predicate until the runtime wiring and spec 016 recall implementation
-exist. These are recorded as open requirements, not inferred from lower-level
-unit tests.
+Requirement status: FR-002 and FR-007 have direct tests. FR-001 has an induced
+crash test (a worker task aborted inside inference leaves the outbox row, and
+a later drain embeds it once). FR-003 has direct dead-letter transition and
+library report coverage, but its application preflight path stays open with
+the hook. FR-004 has a test that the shipped manifest declares no egress and
+that booting the local provider and embedding opens no socket; the probe
+brackets the embedding path and does not cover a booted `serve`, so the
+whole-process form stays open. FR-005 has a test that the check names the
+failure; the `preflight` and boot forms stay open with the hook. FR-006 has a
+fixture holding two revisions that the revision predicate keeps apart; spec
+016's recall must read through that predicate.
+
+Every memory write, standalone capture and host insert alike, stages embedding
+work whenever a model is active (D-21). A fresh deployment captures without
+jobs until an operator activates a model and runs the re-embedding pass for
+each scope, which covers memories written while no model was active.
 
 ## Verification
 
