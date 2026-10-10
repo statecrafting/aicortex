@@ -138,9 +138,8 @@
         "nature": "additive",
         "spec": "010-chassis-adoption-and-workspace",
         "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
+          "kind": "file",
+          "path": "Cargo.toml"
         }
       }
     ],
@@ -257,6 +256,6 @@
     "summary": "A claim has three times: when it holds in the world (valid time, with precision, zone, open ends, and uncertainty), when the source said so (source-declared time), and when this store learned it (transaction time). History is append-only on the transaction axis; retraction, correction, and supersession are appended records, and only erasure removes content, leaving a tombstone. Supersession is scoped to one subject, predicate, and slot, so a schedule change to one segment supersedes that attribute alone. The current view is a deterministic projection of history under an explicit as-of on both axes and a policy version, ordered by the source's own time and the claim's authority, never by arrival, so reordered email delivery yields the same answer.\n",
     "title": "Bitemporal claim history: valid time apart from record time, supersession per slot, and a current view that is a pure function"
   },
-  "shardHash": "def637e03ad63f10e354ab7d5c6a0dd67a7d0572b14cfa4d6985cca7e2854fae",
+  "shardHash": "dc39e9c3992e2cbcfdef6dfb551b1e0aeeac79b6b3b03cc676ceb6e9a8d3d7e8",
   "specVersion": "1.9.0"
 }

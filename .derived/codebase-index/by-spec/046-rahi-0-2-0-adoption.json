@@ -50,6 +50,19 @@
       {
         "locations": [
           {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "apps/aicortex/Cargo.toml"
           }
         ],
@@ -115,24 +128,6 @@
       {
         "locations": [
           {
-            "file": "Cargo.toml",
-            "span": {
-              "endLine": 122,
-              "startLine": 20
-            }
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": ".github/dependabot.yml"
           }
         ],
@@ -161,5 +156,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "f46a628e072cb148d9dc49c690d1bc3772e6f6180fb9544c12f1447033aa8e02"
+  "shardHash": "d293669d8ba1444a0fc187d7fad16e8ce9aac1c72348f6bb390809a3d88bce36"
 }

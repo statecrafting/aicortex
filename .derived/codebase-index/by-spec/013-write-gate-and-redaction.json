@@ -295,6 +295,19 @@
       {
         "locations": [
           {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/Cargo.toml"
           }
         ],
@@ -425,24 +438,6 @@
       {
         "locations": [
           {
-            "file": "Cargo.toml",
-            "span": {
-              "endLine": 122,
-              "startLine": 20
-            }
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "crates/aicortex-store/src/memory_repo.rs"
           }
         ],
@@ -471,5 +466,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "df9a2ab38970020fa6d4cef1fc1fb8547516e7e98a262aec1b8a4fcc86f6d1de"
+  "shardHash": "416755a919e8e1b12349745fea510b8b2045b19e501ca173688c5b6fda846a91"
 }

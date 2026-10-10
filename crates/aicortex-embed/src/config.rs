@@ -115,12 +115,21 @@ pub struct CapabilityFailure {
     pub check: &'static str,
     /// The manifest service whose grant is missing.
     pub service: String,
-    /// The host that was not admitted.
+    /// The host that was not admitted, or the endpoint text itself when it
+    /// names no valid host (the `.endpoint` checks).
     pub host: String,
 }
 
 impl fmt::Display for CapabilityFailure {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if self.check.ends_with(".endpoint") {
+            return write!(
+                formatter,
+                "{}: {:?} is not a supported https endpoint (an https URL on the standard port \
+                 with a lowercase host), so no egress grant can admit it",
+                self.check, self.host
+            );
+        }
         write!(
             formatter,
             "{}: the manifest ceiling grants service {} no http.egress to {}; add the host to \
@@ -222,33 +231,43 @@ impl EmbeddingConfig {
     /// Whether the manifest ceiling admits this configuration (B-5, B-6).
     ///
     /// A remote provider needs `http.egress` to its endpoint's host. A local
-    /// provider needs none while its artifacts are present and verified; an
-    /// absent artifact needs its fetch host. The question is answered from
-    /// the manifest, so no socket is opened and no boot is attempted.
+    /// provider needs none while its artifacts are present; an absent
+    /// artifact needs its fetch host. The question is answered from the
+    /// manifest and the artifact's existence, so no socket is opened and no
+    /// boot is attempted. Whether a present artifact matches its pin is
+    /// [`Self::check`]'s question, not the ceiling's.
     ///
     /// # Errors
     ///
-    /// [`CapabilityFailure`] naming the check, the service, and the host.
-    /// An endpoint that is not a supported `https` host is a configuration
-    /// error and is reported by [`Self::check`].
+    /// [`CapabilityFailure`] naming the check, the service, and the host. An
+    /// endpoint that is not a supported `https` host is refused under the
+    /// `.endpoint` check name and is never looked up in the manifest, so a
+    /// malformed endpoint cannot be admitted by a malformed ceiling entry.
     pub fn check_ceiling(&self, manifest: &Manifest) -> Result<(), CapabilityFailure> {
         match self {
             Self::Disabled => Ok(()),
-            Self::Remote(remote) => {
-                let host = parse_https_endpoint(&remote.endpoint)
-                    .map(|parsed| parsed.host)
-                    .unwrap_or_else(|_| remote.endpoint.clone());
-                admit(manifest, "embedding.remote.egress", &host)
-            }
+            Self::Remote(remote) => admit_endpoint(
+                manifest,
+                "embedding.remote.egress",
+                "embedding.remote.endpoint",
+                &remote.endpoint,
+            ),
             Self::Local(local) => {
-                for artifact in [&local.weights, &local.tokenizer] {
-                    if artifact.verify().is_ok() {
-                        continue;
+                for (artifact, egress_check, endpoint_check) in [
+                    (
+                        &local.weights,
+                        "embedding.weights.egress",
+                        "embedding.weights.endpoint",
+                    ),
+                    (
+                        &local.tokenizer,
+                        "embedding.tokenizer.egress",
+                        "embedding.tokenizer.endpoint",
+                    ),
+                ] {
+                    if is_absent(artifact) {
+                        admit_endpoint(manifest, egress_check, endpoint_check, &artifact.url)?;
                     }
-                    let host = parse_https_endpoint(&artifact.url)
-                        .map(|parsed| parsed.host)
-                        .unwrap_or_else(|_| artifact.url.clone());
-                    admit(manifest, "embedding.weights.egress", &host)?;
                 }
                 Ok(())
             }
@@ -262,14 +281,25 @@ impl EmbeddingConfig {
     ///
     /// # Errors
     ///
-    /// [`Error::Denied`] carrying a [`CapabilityFailure`] when the ceiling
-    /// does not admit the provider; [`Error::Config`] for an endpoint that
-    /// is not a supported `https` host.
+    /// [`Error::Config`] for an endpoint that is not a supported `https`
+    /// host; [`Error::Denied`] carrying a [`CapabilityFailure`] when the
+    /// ceiling does not admit the provider; [`Error::Integrity`] or
+    /// [`Error::Io`] naming a present local artifact that does not match its
+    /// pin or cannot be read, which is reported as what it is rather than as
+    /// a missing egress grant.
     pub fn check(&self, manifest: &Manifest) -> Result<(), Error> {
         if let Self::Remote(remote) = self {
             parse_https_endpoint(&remote.endpoint)?;
         }
-        self.check_ceiling(manifest).map_err(Error::from)
+        self.check_ceiling(manifest).map_err(Error::from)?;
+        if let Self::Local(local) = self {
+            for artifact in [&local.weights, &local.tokenizer] {
+                if !is_absent(artifact) {
+                    artifact.verify()?;
+                }
+            }
+        }
+        Ok(())
     }
 
     /// The vectors this configuration promises, when a provider is set.
@@ -411,6 +441,34 @@ fn text(env: &dyn EnvReader, key: &str) -> Option<String> {
 
 fn required(env: &dyn EnvReader, key: &str) -> Result<String, Error> {
     text(env, key).ok_or_else(|| Error::Config(format!("{key} is required and not set")))
+}
+
+/// Whether the artifact is definitely missing. Any other failure to inspect
+/// it (a permission problem on a parent directory, say) counts as present
+/// here, so the ceiling never blames a missing egress grant for it;
+/// [`EmbeddingConfig::check`] then verifies the artifact and reports the real
+/// I/O error.
+fn is_absent(artifact: &WeightArtifact) -> bool {
+    matches!(
+        std::fs::symlink_metadata(&artifact.path),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound
+    )
+}
+
+fn admit_endpoint(
+    manifest: &Manifest,
+    egress_check: &'static str,
+    endpoint_check: &'static str,
+    endpoint: &str,
+) -> Result<(), CapabilityFailure> {
+    match parse_https_endpoint(endpoint) {
+        Ok(parsed) => admit(manifest, egress_check, &parsed.host),
+        Err(_) => Err(CapabilityFailure {
+            check: endpoint_check,
+            service: EMBEDDING_SERVICE.to_owned(),
+            host: endpoint.to_owned(),
+        }),
+    }
 }
 
 fn admit(manifest: &Manifest, check: &'static str, host: &str) -> Result<(), CapabilityFailure> {

@@ -2586,6 +2586,28 @@ async fn activation_numbers_revisions_monotonically_and_registers_every_one() {
         .await
         .expect("rollback");
     assert_eq!(rollback.model.revision, 3);
+    // A concurrent activator that computed the same next revision for a
+    // different identity is refused by the registry, not merged.
+    let loser = ModelRevision {
+        model_id: ModelId::new("third-model").expect("model id"),
+        revision: 3,
+        ..test_model(true)
+    };
+    let mut txn = TxnBuilder::new();
+    ModelRegistry::activate(&mut txn, &loser).expect("statements stage");
+    assert!(
+        store.txn(txn.into_statements()).await.is_err(),
+        "revision 3 already names another identity"
+    );
+    assert_eq!(
+        ModelRegistry::active(&store)
+            .await
+            .expect("active reads")
+            .expect("a model is active")
+            .model_id
+            .as_str(),
+        "test-model"
+    );
     let known = count(
         &store,
         "SELECT COUNT(*) AS count FROM embedding_model",
@@ -2638,6 +2660,40 @@ async fn the_worker_service_drains_until_shutdown_and_returns_its_report() {
     .expect("the service stops when told to");
     assert_eq!(report.completed, 2);
     assert_eq!(report.store_errors, 0);
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn racing_activations_commit_one_and_report_the_other_as_a_conflict() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let now = UnixSeconds::new(10);
+    let (left, right) = tokio::join!(
+        activate_provider(&store, &TestProvider { fail: false }, now),
+        activate_provider(&store, &OtherProvider, now),
+    );
+    let results = [left, right];
+    assert!(results.iter().any(Result::is_ok), "one activation wins");
+    for result in &results {
+        if let Err(error) = result {
+            assert!(matches!(error, Error::Conflict(_)), "{error}");
+        }
+    }
+    let active = ModelRegistry::active(&store)
+        .await
+        .expect("active reads")
+        .expect("a model is active");
+    assert!(["test-model", "other-model"].contains(&active.model_id.as_str()));
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding_model WHERE active = 1",
+            vec![],
+        )
+        .await,
+        1,
+        "exactly one revision is active"
+    );
     fixture.shutdown().await;
 }
 

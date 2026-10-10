@@ -58,7 +58,7 @@ extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
   - { spec: "053-host-library-mode", unit: { kind: crate, id: "aicortex-external-host-fixture" }, nature: additive }
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-embed/src/worker.rs", note: "a memory is never left unembedded and unreported; constitution XI" }
 summary: >
@@ -333,9 +333,12 @@ configuration with a pinned digest rather than a spec-level commitment.
   must exist. The service name that holds embedding egress grants is
   `embedding`. `EmbeddingConfig::check` answers the B-5 and B-6 ceiling
   question from the manifest alone (`Manifest::covers`), opens no socket, and
-  returns a `CapabilityFailure` naming the check (`embedding.remote.egress`
-  or `embedding.weights.egress`), the service, and the host; it converts to
-  `Error::Denied`. It is a plain function so a chassis preflight extension
+  returns a `CapabilityFailure` naming the check (`embedding.remote.egress`,
+  `embedding.weights.egress`, or `embedding.tokenizer.egress`, or the
+  matching `.endpoint` name for a malformed URL, which is never looked up in
+  the manifest), the service, and the host; it converts to `Error::Denied`.
+  Present artifacts need no egress; `check` also verifies them against their
+  pins and reports a mismatch as an integrity error, not a missing grant. It is a plain function so a chassis preflight extension
   can mount it unchanged; until one exists the application cannot make
   `preflight` call it.
 - **D-24 (2026-10-05, implementation).** Activation is `activate_provider`:

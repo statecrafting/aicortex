@@ -12,7 +12,7 @@ wave: 4
 depends_on:
   - "013-write-gate-and-redaction"
 extends:
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "deny.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
   - { spec: "001-agentic-harness", unit: ".github/dependabot.yml", nature: additive }

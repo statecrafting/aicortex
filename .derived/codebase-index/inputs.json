@@ -1,7 +1,7 @@
 {
   "inputs": {
     ".claude/agents/architect.md": {
-      "contentHash": "4f3ab74fa2d3fab3a28c816e8a0641c4601adba22b542602c3b20ab34376ac60"
+      "contentHash": "35cffbfe3e64d2f988ee8c99a07a1c0e36446e1f64f6f70c30c2510323173963"
     },
     ".claude/agents/explorer.md": {
       "contentHash": "b8e06ec7caec71fa5b34a9a139562a955f7fdb4aa784d65bf17bfdb9abc42c34"
@@ -106,22 +106,25 @@
       "contentHash": "c6543d237a50d94a81935ccdcfc6fc15a162b30f133d7d251c4777ab8ad0f4d2"
     },
     ".statecraft/environment.json": {
-      "contentHash": "c85e54f872029ff0c4491ba5afe13bcb65f5a7da10eee385615735c75a18c6c9"
+      "contentHash": "27b8301590dc0fc3f5fcc776e599faab1f1689aa882a465d30a8f07278d079a2"
     },
     ".statecraft/setup/github-actions-rust.json": {
       "contentHash": "a11cc6d1e1ca830904f1d8e9788c2e8c5a307d64ff469a687ad2309bee75d880"
     },
     "AGENTS.md": {
-      "contentHash": "873899c388b41b71af0f9ce123cd1f8ca669682e34454d3a205d920de4f40d7a"
+      "contentHash": "f14fee545969e5bfc5958f0623fd1fcf8886a73853a48e1c94f4103357cd71eb"
     },
     "CLAUDE.md": {
       "contentHash": "134cf78051ee5d0248c7ec9bd3024c7ea274199af114ae469ce8d1f3acd1c6fa"
+    },
+    "Cargo.toml": {
+      "contentHash": "ddbdfd6f5d813b16545aef5a70f7e6f1db7feb37e39f093bb5185b713875719a"
     },
     "Makefile": {
       "contentHash": "ac68f19e9632b269198b44f2d70be1e625f9e4e28c43f1f067f97f0d5e5d2c1e"
     },
     "README.md": {
-      "contentHash": "731bde864e06523a36fed2d7dd5b34558aad57b240cb75382d900e34ef0ca8fe"
+      "contentHash": "6b5fe1e0587b71c80acf06ad5f4a0017a1b3378cf0513874cf59f5e177213ee3"
     },
     "deny.toml": {
       "contentHash": "cc95317a10026d46f99dd6825e11f3a3d43dd5e95059db147505e0a6819fce6d"
@@ -157,7 +160,7 @@
       "contentHash": "73a9d668559cfb8e3c9ab8e7fc9e27f513e3053056fb5643deb1e216efd8990c"
     },
     "spec-spine.toml": {
-      "contentHash": "50d30366162d1aa13433939e6a6fde93e0aede54846b92b32022e2b556b68d66"
+      "contentHash": "20ec275d1023d901f1a9fd7fe724a5255e6c818ab938607bbe09015909f494cf"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88dcf39d33f7941ae4ac8953d7a3df36cf11e4f735bd1309229f8c63d2270a56"

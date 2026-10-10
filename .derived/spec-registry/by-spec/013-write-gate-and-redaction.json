@@ -81,9 +81,8 @@
         "nature": "additive",
         "spec": "010-chassis-adoption-and-workspace",
         "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
+          "kind": "file",
+          "path": "Cargo.toml"
         }
       },
       {
@@ -184,14 +183,14 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "013-the-write-gate": "ce7bf12b0991600572a543050ef5feb77e421e243da0e98c0d7dc5ec2e1231e6",
+      "013-the-write-gate": "7da30e572ef30f4904c1c9da6edd943138858f97950b089ae18aeb722548c05f",
       "1-purpose": "7dc19e899e09bbb562d78c46dbf6bed2a16689bb1240a46353d3c6dd13ed72fb",
       "2-territory": "331dde62e92be7d302946becc846c094dab5558c450896dc563649fd7e8f7d77",
       "3-behavior": "8d0b220238ad18df84e8fe9282b4fadabee57668b7e1af018eb32b4bcf0755fa",
       "4-functional-requirements": "d74f82185651720df4b1f2a0bdcc041da66fad97ed94c6ff6cbd63007dafd7b1",
       "5-acceptance-criteria": "21f2535019e72390c742ef5b579aeb68bda2b0e5b56d7fb9e7a11e7cfddd11ab",
       "6-out-of-scope": "b569fc8b9caf67d51e08eb2812c92fb4dea431aadab65c7dc85292975605c83a",
-      "7-resolved-decisions": "e6e740541a1832b9d323d97534dd0caab2cfa8db6e72f1793ebf061dbfe42fe0",
+      "7-resolved-decisions": "03c59cb98ca6101ea53794374135f62c70d83fe7b92acbc9b5cdf197ef28b9bd",
       "verification": "c1243f43242c4103948595581b9d0367e693d762a201c49ad1f16ebc9e6e9420"
     },
     "sectionHeadings": [
@@ -210,6 +209,6 @@
     "summary": "Everything that enters the store passes one gate, and the gate runs before the transaction opens. It refuses credentials rather than redacting them, because a redacted secret is still a secret that was transmitted, stored in a log, and possibly embedded. It caps size, requires an establishable origin, and quarantines rather than admits when origin is doubtful. Every refusal is a ledgered Decision with a reason code and never the offending content. The rule set is data, the corpus of fixtures is committed, and the gate is a pure function so its verdicts are reproducible in review.\n",
     "title": "The write gate: refuse secrets, cap size, establish origin, quarantine the rest"
   },
-  "shardHash": "c959b02fffd3ed478c37dd43f61d178826a5e3d75bf45867ae161bdb6d37b6a3",
+  "shardHash": "416755a919e8e1b12349745fea510b8b2045b19e501ca173688c5b6fda846a91",
   "specVersion": "1.9.0"
 }

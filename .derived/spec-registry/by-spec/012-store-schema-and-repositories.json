@@ -81,9 +81,8 @@
         "nature": "additive",
         "spec": "010-chassis-adoption-and-workspace",
         "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
+          "kind": "file",
+          "path": "Cargo.toml"
         }
       },
       {
@@ -137,6 +136,6 @@
     "summary": "The tables and the only code allowed to touch them. Schema arrives as an ordered list of rahi migrations with versions, never as SQL a user pastes from a guide. Every repository call takes a scope and puts it in the SQL, so an unscoped read is not expressible. Aggregates are maintained counters updated in the writing transaction, because the predecessor's statistics call read every row's metadata into memory. Listing is keyset-paged; there is no offset pagination and no unbounded select.\n",
     "title": "Schema and repositories: versioned migrations, scope in the predicate, counters instead of scans"
   },
-  "shardHash": "5445ffd7912d726bf4947ce03959ec1c939da36ad7dc1ae013d6c2d47b92e16d",
+  "shardHash": "f70a8a8c2811c3f97a90f8dd54df4df94b3a191e8434fb6a92b48c53c1a91f76",
   "specVersion": "1.9.0"
 }
