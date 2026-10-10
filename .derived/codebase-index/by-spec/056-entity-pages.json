@@ -1,0 +1,186 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-graph/src/page.rs' does not exist",
+        "path": "crates/aicortex-graph/src/page.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-graph/tests/page.rs' does not exist",
+        "path": "crates/aicortex-graph/tests/page.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-graph/testdata/pages/' does not exist",
+        "path": "crates/aicortex-graph/testdata/pages/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-graph/src/lib.rs' does not exist",
+        "path": "crates/aicortex-graph/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-api/src/entities.rs' does not exist",
+        "path": "crates/aicortex-api/src/entities.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
+        "path": "crates/aicortex-api/src/dto.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-api/tests/api.rs' does not exist",
+        "path": "crates/aicortex-api/tests/api.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/tools.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '056-entity-pages' file unit 'crates/aicortex-mcp/tests/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/tests/tools.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "017-entities-and-typed-edges",
+      "019-untrusted-content-boundary",
+      "021-mcp-server"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/page.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/testdata/pages/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/tests/page.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/entities.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/api.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/017-entities-and-typed-edges/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/017-entities-and-typed-edges/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "056-entity-pages",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "6ff73759b2ded59290730a273adab3854acb08676c92f654cc134aa63506b124"
+}
