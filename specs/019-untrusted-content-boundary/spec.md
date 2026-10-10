@@ -10,7 +10,7 @@ implementation: pending
 risk: critical
 wave: 1
 depends_on:
-  - "018-retrieval-and-recall-trace"
+  - "015-embedding-pipeline"
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-recall/src/lib.rs", note: "every returned memory carries its envelope; no raw body escapes" }
   - { flavor: invariant-freeze, unit: "crates/aicortex-types/src/trust.rs", note: "Instruction grade requires a human Promotion" }
@@ -124,6 +124,20 @@ therefore does not claim.
   detection. A classifier that tries to spot injected instructions is
   wrong often enough in both directions to be worse than useless, and its
   presence encourages treating unflagged content as safe.
+
+- **D-2 (2026-10-10, proposed amendment, awaiting owner approval).** The
+  owner's 2026-10-10 reorder builds 020 and 021 directly after 015, ahead
+  of 016 to 018. Both return memory bodies (020 B-5, 021 B-6), and B-1
+  allows a body out only through the envelope function, so the boundary has
+  to exist before the first content-returning route. This spec therefore
+  depends on 015 instead of 018 and is built before 020. Its frozen
+  property is unchanged; what changes is when it first binds. The
+  envelope function, its delimiter escaping (FR-002), and the framing
+  statement are established by this spec's build session in
+  `aicortex-recall`'s envelope module, which 018 then extends with ranking
+  and the trace rather than founding the crate. The invariant-freeze edge
+  on `crates/aicortex-recall/src/lib.rs` stands. FR-005 (curator digests)
+  binds when 023 is built, as before.
 
 ## Verification
 

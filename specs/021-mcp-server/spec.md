@@ -152,6 +152,19 @@ thesis.
   the instruction grade is that a human decided; a tool would make the
   agent the decider by default, since it is the one holding the connection.
 
+- **D-3 (2026-10-10, proposed amendment, awaiting owner approval).** Owner
+  direction 2026-10-10 builds this spec right after 020, ahead of 016 to 018
+  (020 D-3). It keeps its dependency on 020, because every tool maps to a
+  020 handler and this spec extends 020's DTOs. The seven-tool surface of
+  D-1 is fixed and stays fixed: `capture`, `fetch`, `list`, `update`, and
+  `forget` are served by this build; `search` and `relate` are listed with
+  their final schemas from the start, and until 018 and 017 mount their
+  routes each answers a JSON-RPC error with a stable `not_yet_available`
+  code (B-3), never a partial or unranked result. 018's and 017's build
+  sessions replace those answers through `extends` edges. Adding or
+  removing a tool later would break clients that cached the list, which is
+  why the list does not wait.
+
 ## Verification
 
 ```verify:cli

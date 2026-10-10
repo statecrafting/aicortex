@@ -11,7 +11,7 @@
   },
   "mapping": {
     "dependsOn": [
-      "018-retrieval-and-recall-trace"
+      "015-embedding-pipeline"
     ],
     "implementingPaths": [
       {
@@ -47,5 +47,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "acaa35f7c561e3c89cf66ae8a608593ebfa1e5558568c6628254917612147462"
+  "shardHash": "7f71c918b0375abf615b8721295d4335d81a0df157eefb4eddc8c151fddc38e0"
 }
