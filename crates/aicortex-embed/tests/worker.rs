@@ -2840,6 +2840,12 @@ mod operator_flow {
         assert!(activated.changed);
         assert_eq!(activated.model.revision, 1);
 
+        for limit in [0, aicortex_embed::MAX_REEMBED_BATCH + 1] {
+            let refused = reembed_scope(&store, "scope-a", None, limit, UnixSeconds::new(11))
+                .await
+                .expect_err("a limit outside the bound is refused, not clamped");
+            assert!(matches!(refused, Error::Config(_)), "{refused}");
+        }
         let pass = reembed_scope(&store, "scope-a", None, 2, UnixSeconds::new(11))
             .await
             .expect("first pass");

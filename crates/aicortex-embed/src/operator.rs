@@ -13,7 +13,7 @@ use crate::activation::{Activation, activate_provider};
 use crate::config::EmbeddingConfig;
 use crate::registry::ModelRegistry;
 use crate::remote::EmbeddingTransport;
-use crate::worker::{MAX_REEMBED_BATCH, ReembeddingBatch, stage_reembedding_batch};
+use crate::worker::{ReembeddingBatch, stage_reembedding_batch};
 
 /// Check the configuration against the manifest ceiling, resolve the
 /// provider, and make its model the active revision.
@@ -54,7 +54,7 @@ pub async fn activate_configured<T: EmbeddingTransport>(
 ///
 /// [`Error::Conflict`] when no model is active; [`Error::Validation`] for a
 /// cursor that is not a memory id; store errors; [`Error::Config`] for a
-/// limit outside `1..=MAX_REEMBED_BATCH`.
+/// limit outside `1..=`[`MAX_REEMBED_BATCH`](crate::worker::MAX_REEMBED_BATCH).
 pub async fn reembed_scope(
     store: &StoreHandle,
     scope_id: &str,
@@ -71,15 +71,7 @@ pub async fn reembed_scope(
                 .map_err(|_| Error::Validation(format!("cursor {raw:?} is not a memory id")))
         })
         .transpose()?;
-    stage_reembedding_batch(
-        store,
-        scope_id,
-        &active,
-        cursor,
-        limit.min(MAX_REEMBED_BATCH),
-        now,
-    )
-    .await
+    stage_reembedding_batch(store, scope_id, &active, cursor, limit, now).await
 }
 
 /// Drop one inactive revision's vectors and chunks for `scope_id`, once the
