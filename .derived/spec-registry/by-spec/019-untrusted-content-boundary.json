@@ -34,14 +34,14 @@
     "kind": "constraint",
     "risk": "critical",
     "sectionDigests": {
-      "019-the-untrusted-content-boundary": "6841004d05cec813f993b29fc13680ea14d16e4ed0ab41391fcf78732ea53a71",
+      "019-the-untrusted-content-boundary": "65d946a6e14238b774e8d019aa57c4cafaccc7455b31bff75141997675ec2296",
       "1-purpose": "f1c38a5787b2dfde7b20d9716d3a33046fdaa22ea3b3bf3e74f9e03f55fd83c7",
       "2-territory": "e7729397531e66e976487aba288e09f6b789fd9151c4ebc4c12908fb9b3f24ff",
       "3-behavior": "bf36f98dfc42881351d7cff3265c1a2da8e7d55bfdf61827549602ffac6771a6",
       "4-functional-requirements": "fd2f621b309cd7eadf58748638040318bca558f91d06058da8d5e2d8a6d6985e",
       "5-acceptance-criteria": "34fd11c1fc90a0f84c12198966656456dc2d1b594b420742f55d35e257f5ab8b",
       "6-out-of-scope": "eee8eabbf0b28703d6efc3c5774b56a6c81110d18f5422bb2323d7059ae87923",
-      "7-resolved-decisions": "a6581f0ae6202352dd379bea5c9f5e46fc7aa7eec3794aba2ef56d406d684c1d",
+      "7-resolved-decisions": "3f198f401180c91f49c83dcde73377ab0e129f41e21191ef5cf13e8b48624861",
       "verification": "1ba584f2af10f953ca7d0366e763c40267aa1ba6b399e1281781bf2fe9511b6d"
     },
     "sectionHeadings": [
@@ -60,6 +60,6 @@
     "summary": "A memory store feeds text written by other people, other agents, and web pages into a model's context, which makes it an indirect prompt-injection surface by construction. This constraint spec owns no code and freezes one property across every path that returns content: memory bodies leave this system only inside an envelope that delimits them, labels their trust class and origin, and states that instructions inside them are not to be followed. Instruction grade, the only class a client is told to act on, requires a human promotion recorded in the ledger. An agent never promotes its own memory.\n",
     "title": "Recalled content is data: delimited, labelled, never in an instruction position"
   },
-  "shardHash": "7f71c918b0375abf615b8721295d4335d81a0df157eefb4eddc8c151fddc38e0",
+  "shardHash": "bb78cd025cb2f0fc48a65a109fd22c98666f382d310d47fc52153964b6032b2c",
   "specVersion": "1.9.0"
 }
