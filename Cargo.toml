@@ -23,15 +23,15 @@ authors = ["Bartek Kus"]
 # all-nine-together adoption; spec 014 moves them to released rahi v0.4.0.
 # A chassis bump is a single change to
 # these nine lines that revisits deny.toml with it (D-8).
-rahi-types = "=0.4.0"
-rahi-store = "=0.4.0"
-rahi-ledger = "=0.4.0"
-rahi-kernel = "=0.4.0"
-rahi-idp = "=0.4.0"
-rahi-edge = "=0.4.0"
-rahi-ops = "=0.4.0"
-rahi-harness = "=0.4.0"
-rahi-cli = "=0.4.0"
+rahi-types = "=0.6.0"
+rahi-store = "=0.6.0"
+rahi-ledger = "=0.6.0"
+rahi-kernel = "=0.6.0"
+rahi-idp = "=0.6.0"
+rahi-edge = "=0.6.0"
+rahi-ops = "=0.6.0"
+rahi-harness = "=0.6.0"
+rahi-cli = "=0.6.0"
 
 # The router type the Cell returns (B-3). The chassis's edge is built on it,
 # and this is the version rahi locks, so the workspace adds no second copy
@@ -66,7 +66,7 @@ aicortex-embed = { path = "crates/aicortex-embed", version = "=0.1.0" }
 # its tables and scan instead of keeping its own. Exact pin, as the chassis
 # is (047 B-4); default features only, so no `regex` (action-gate 001 D-1).
 # `golden-vectors` is enabled by aicortex-gate's tests alone.
-action-gate-core = { version = "=0.2.0", default-features = false }
+action-gate-core = { version = "=0.3.0", default-features = false }
 
 # The wire the round-trip fixtures of 011 are written in, and the canonical
 # form spec 012 D-3 stores a memory record as. The chassis locks it already.
