@@ -215,10 +215,10 @@ fn b2_the_workspace_pins_nine_rahi_crates_to_one_exact_version() -> Outcome {
     Ok(())
 }
 
-/// Spec 046 FR-001: the version every rahi package resolves to. The exact
-/// pin of B-2 is a requirement; this is what `cargo metadata --locked` says
-/// the requirement produced.
-const RAHI_VERSION: &str = "0.4.0";
+/// Spec 046 FR-001, at the version spec 058 FR-001 sets: the version every
+/// rahi package resolves to. The exact pin of B-2 is a requirement; this is
+/// what `cargo metadata --locked` says the requirement produced.
+const RAHI_VERSION: &str = "0.6.0";
 
 #[test]
 fn fr001_046_every_rahi_package_resolves_to_one_version() -> Outcome {

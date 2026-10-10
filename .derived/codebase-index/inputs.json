@@ -127,7 +127,7 @@
       "contentHash": "6b5fe1e0587b71c80acf06ad5f4a0017a1b3378cf0513874cf59f5e177213ee3"
     },
     "deny.toml": {
-      "contentHash": "cc95317a10026d46f99dd6825e11f3a3d43dd5e95059db147505e0a6819fce6d"
+      "contentHash": "0ed5f46b5270fde78de8fea0890253eadb04a3d7134756b188de8ffbd4fc7fca"
     },
     "docs/design/00-lineage.md": {
       "contentHash": "bf83c8e47d73ae02cfa9361b241ea15fedcf49f16f1fc9b04135acc2c216b8fb"
@@ -136,7 +136,7 @@
       "contentHash": "0033d6ae22ee86b5ae1e36cc347e61a1a898425e88e5c615e1fb95906c9fb11f"
     },
     "docs/design/02-rahi-chassis-prerequisites-handoff.md": {
-      "contentHash": "ee64ce3a55840df462a6d09e7b95e736d85c56b176ff0f056ea42e780fff91d0"
+      "contentHash": "32957083a7209828db3cbc19d75be818ef21b67de5ee4d5c385ed1f440d2b65b"
     },
     "rust-toolchain.toml": {
       "contentHash": "cfa8b02ef36a6184d951240f0ef86c628dd637f94a74def5b05d8201540ceefc"
