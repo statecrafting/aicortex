@@ -8,6 +8,8 @@
 
 #![forbid(unsafe_code)]
 
+mod embedding;
+
 use axum::Router;
 use rahi_cli::Cell;
 use rahi_edge::AppState;
@@ -53,9 +55,11 @@ impl Cell for Aicortex {
     }
 
     /// The operator surface, mounted by the chassis behind the operator
-    /// role. Empty until a spec adds an operator route.
+    /// role. Spec 015 adds the embedding verbs (activate, re-embed, drop,
+    /// status); the provider configuration is read from the process
+    /// environment once, here.
     fn operator_routes(state: AppState) -> Router {
-        let _ = state;
-        Router::new()
+        let embedding = embedding::Embedding::new(state, &rahi_cli::process_env());
+        embedding::mount(Router::new()).with_state(embedding)
     }
 }
