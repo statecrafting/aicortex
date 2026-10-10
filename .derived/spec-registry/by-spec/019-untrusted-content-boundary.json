@@ -26,22 +26,74 @@
       "015-embedding-pipeline"
     ],
     "domain": "retrieval",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/envelope.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/tests/boundary.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "018-retrieval-and-recall-trace",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "018-retrieval-and-recall-trace",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/rules/"
+        }
+      }
+    ],
     "extraFrontmatter": {
       "wave": 1
     },
     "id": "019-untrusted-content-boundary",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "constraint",
     "risk": "critical",
     "sectionDigests": {
-      "019-the-untrusted-content-boundary": "65d946a6e14238b774e8d019aa57c4cafaccc7455b31bff75141997675ec2296",
+      "019-the-untrusted-content-boundary": "2d6fdc519c240dff96a524a0dca1eaf7f257145ce7a00eeacbf481f08c42c22b",
       "1-purpose": "f1c38a5787b2dfde7b20d9716d3a33046fdaa22ea3b3bf3e74f9e03f55fd83c7",
       "2-territory": "e7729397531e66e976487aba288e09f6b789fd9151c4ebc4c12908fb9b3f24ff",
       "3-behavior": "bf36f98dfc42881351d7cff3265c1a2da8e7d55bfdf61827549602ffac6771a6",
       "4-functional-requirements": "fd2f621b309cd7eadf58748638040318bca558f91d06058da8d5e2d8a6d6985e",
       "5-acceptance-criteria": "34fd11c1fc90a0f84c12198966656456dc2d1b594b420742f55d35e257f5ab8b",
       "6-out-of-scope": "eee8eabbf0b28703d6efc3c5774b56a6c81110d18f5422bb2323d7059ae87923",
-      "7-resolved-decisions": "3f198f401180c91f49c83dcde73377ab0e129f41e21191ef5cf13e8b48624861",
+      "7-resolved-decisions": "a0a2a04e8662abd8a6ae278a5160931b26881ef157df639df7a94f3633ca3980",
       "verification": "1ba584f2af10f953ca7d0366e763c40267aa1ba6b399e1281781bf2fe9511b6d"
     },
     "sectionHeadings": [
@@ -58,8 +110,28 @@
     "specPath": "specs/019-untrusted-content-boundary/spec.md",
     "status": "approved",
     "summary": "A memory store feeds text written by other people, other agents, and web pages into a model's context, which makes it an indirect prompt-injection surface by construction. This constraint spec owns no code and freezes one property across every path that returns content: memory bodies leave this system only inside an envelope that delimits them, labels their trust class and origin, and states that instructions inside them are not to be followed. Instruction grade, the only class a client is told to act on, requires a human promotion recorded in the ledger. An agent never promotes its own memory.\n",
+    "supersedes": [
+      {
+        "note": "D-2: 019 founds the crate before 018 adds ranking",
+        "scope": "partial",
+        "spec": "018-retrieval-and-recall-trace",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/Cargo.toml"
+        }
+      },
+      {
+        "note": "D-2: 019 establishes the boundary before 018 extends the public surface",
+        "scope": "partial",
+        "spec": "018-retrieval-and-recall-trace",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      }
+    ],
     "title": "Recalled content is data: delimited, labelled, never in an instruction position"
   },
-  "shardHash": "aa07b9365c6eba18592efeeb0ccea512913011f6b696804ebf39749edc2b2b74",
+  "shardHash": "48d569e1437d2795a9400a0ad8598aecdf5c9405351884dd0c55bfb8c4fb7c3a",
   "specVersion": "1.9.0"
 }

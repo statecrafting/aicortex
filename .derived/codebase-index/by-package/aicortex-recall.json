@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-recall",
+    "path": "crates/aicortex-recall",
+    "specRef": "019-untrusted-content-boundary",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "198a5349c3b98e5bdc888a785eb00d60da399656eb1a75a04ad12440c55f32b8"
+}
