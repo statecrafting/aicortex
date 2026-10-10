@@ -8,7 +8,9 @@
 //! Two services exist:
 //!
 //! - `embedding-worker`, mounted only when a provider is configured. It
-//!   drains the outbox for the active model revision. It never returns
+//!   first installs any pinned local artifact that is absent, through the
+//!   governed fetch of [`crate::embedding_fetch`] (D-32), then drains the
+//!   outbox for the active model revision. It never returns
 //!   before shutdown, because the chassis treats an early `Ok` as a stop
 //!   (rahi spec 047 B-7); every error it meets is retried after a pause.
 //! - `embedding-metrics`, always mounted. It refreshes the dead-letter,
@@ -28,8 +30,11 @@ use aicortex_embed::{
 use prometheus::{IntGauge, Opts, Registry};
 use rahi_cli::{ManagedService, ServiceShutdown};
 use rahi_edge::AppState;
+use rahi_kernel::{CapabilityKind, Egress, Governed};
 use rahi_store::StoreHandle;
 use rahi_types::{EnvReader, Error, Result, Sub};
+
+use crate::embedding_fetch::{HttpsFetcher, WeightFetch, needs_provisioning};
 
 /// The worker's name in stop records.
 pub const WORKER_NAME: &str = "embedding-worker";
@@ -43,6 +48,10 @@ const WORKER_ACTOR: &str = "aicortex-embedding-worker";
 /// How often the worker re-reads the registry while it has nothing to run,
 /// and while it runs, to notice a model change.
 const POLL: Duration = Duration::from_secs(5);
+
+/// The longest pause between two failed model fetches (D-32). The first
+/// retry waits the worker's error backoff and each later one doubles it.
+pub const FETCH_BACKOFF_CAP: Duration = Duration::from_secs(300);
 
 /// How often the gauges are refreshed.
 const METRICS_INTERVAL: Duration = Duration::from_secs(30);
@@ -140,7 +149,9 @@ impl Gauges {
 /// The configuration is read once and held to the manifest ceiling before
 /// anything runs, so a remote provider whose host is absent from the ceiling,
 /// or a local artifact that does not match its pin, fails `serve` at boot
-/// with the named error rather than at first use (B-6, FR-005).
+/// with the named error rather than at first use (B-6, FR-005). An absent
+/// local artifact passes that check only when its host is granted, and then
+/// the worker fetches it before binding (B-5, D-32).
 ///
 /// # Errors
 ///
@@ -154,6 +165,18 @@ pub fn compose(
 ) -> Result<Vec<ManagedService>> {
     let config = EmbeddingConfig::from_env(env)?;
     config.check(state.kernel().manifest())?;
+    let fetch = if needs_provisioning(&config) {
+        let egress = Governed::new(
+            state.kernel(),
+            aicortex_embed::EMBEDDING_SERVICE,
+            CapabilityKind::HttpEgress,
+            "*",
+            Egress,
+        )?;
+        Some(WeightFetch::new(egress, HttpsFetcher::new()?))
+    } else {
+        None
+    };
     let gauges = Gauges::new()?;
     if let Some(obs) = rahi_edge::obs::current() {
         gauges.register(obs.metrics().registry())?;
@@ -163,16 +186,18 @@ pub fn compose(
         let signal = signal.clone();
         async move { signal.cancelled().await }
     };
-    Ok(build(config, state.store().clone(), gauges, stop))
+    Ok(build(config, state.store().clone(), gauges, fetch, stop))
 }
 
 /// The services for a configuration, a store, and a stop signal.
 ///
-/// `stop` makes a fresh future that resolves when the process is stopping.
+/// `fetch` installs absent local artifacts before the worker binds; `stop`
+/// makes a fresh future that resolves when the process is stopping.
 pub fn build<S, Fut>(
     config: EmbeddingConfig,
     store: StoreHandle,
     gauges: Gauges,
+    fetch: Option<WeightFetch>,
     stop: S,
 ) -> Vec<ManagedService>
 where
@@ -184,7 +209,10 @@ where
         collect(store.clone(), gauges, stop.clone()),
     )];
     if !matches!(config, EmbeddingConfig::Disabled) {
-        services.push(ManagedService::new(WORKER_NAME, work(config, store, stop)));
+        services.push(ManagedService::new(
+            WORKER_NAME,
+            work(config, store, fetch, stop),
+        ));
     }
     services
 }
@@ -267,11 +295,46 @@ async fn model_changed(store: &StoreHandle, bound: &ModelRevision) {
 /// deployment captures without jobs until an operator activates a model
 /// (D-21, D-29). A remote provider is never booted, because this build links
 /// no remote transport (D-27).
-pub async fn work<S, Fut>(config: EmbeddingConfig, store: StoreHandle, stop: S) -> Result<()>
+///
+/// Before anything binds, `fetch` installs every absent pinned artifact. A
+/// failed fetch is logged and retried, the pause doubling from the error
+/// backoff up to [`FETCH_BACKOFF_CAP`], until it succeeds or the process
+/// stops; until then the worker binds nothing and `preflight` keeps
+/// warning that the artifact is absent (D-32).
+pub async fn work<S, Fut>(
+    config: EmbeddingConfig,
+    store: StoreHandle,
+    fetch: Option<WeightFetch>,
+    stop: S,
+) -> Result<()>
 where
     S: Fn() -> Fut + Clone + Send + Sync + 'static,
     Fut: Future<Output = ()> + Send + 'static,
 {
+    if let Some(fetch) = fetch {
+        let mut backoff = SETTINGS.error_backoff;
+        loop {
+            let outcome = tokio::select! {
+                biased;
+                () = stop() => return Ok(()),
+                outcome = fetch.provision(&config) => outcome,
+            };
+            let Err(error) = outcome else {
+                break;
+            };
+            // A wrong pin or an ungranted host does not heal by itself, so
+            // the retry slows down rather than re-downloading on a fixed beat,
+            // and every failure is named where the operator reads the log.
+            eprintln!(
+                "{WORKER_NAME}: model fetch failed, retrying in {}s: {error}",
+                backoff.as_secs()
+            );
+            if pause(&stop, backoff).await {
+                return Ok(());
+            }
+            backoff = backoff.saturating_mul(2).min(FETCH_BACKOFF_CAP);
+        }
+    }
     let holder = format!("aicortex-embed-{}", std::process::id());
     let actor = Sub::new(WORKER_ACTOR);
     loop {

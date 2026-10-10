@@ -587,6 +587,7 @@ async fn services_are_the_collector_alone_when_no_provider_is_configured() {
         EmbeddingConfig::Disabled,
         fixture.handle(),
         Gauges::new().expect("gauges"),
+        None,
         stop,
     );
     let names: Vec<&str> = services
@@ -607,6 +608,7 @@ async fn services_include_the_named_worker_when_a_provider_is_configured() {
         config,
         fixture.handle(),
         Gauges::new().expect("gauges"),
+        None,
         stop,
     );
     let names: Vec<&str> = services
@@ -628,7 +630,12 @@ async fn b2_the_worker_binds_after_activation_embeds_and_stops_on_shutdown() {
     let config = EmbeddingConfig::from_env(&env).expect("configuration parses");
     let (sender, stop) = stop_signal();
 
-    let running = tokio::spawn(embedding_service::work(config.clone(), store.clone(), stop));
+    let running = tokio::spawn(embedding_service::work(
+        config.clone(),
+        store.clone(),
+        None,
+        stop,
+    ));
     // With no model active the service idles: it neither returns nor fails.
     tokio::time::sleep(Duration::from_millis(500)).await;
     assert!(
