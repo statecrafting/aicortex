@@ -39,7 +39,7 @@
       "wave": 4
     },
     "id": "058-rahi-0-6-0-adoption",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "tooling",
     "obligations": [
       {
@@ -93,14 +93,14 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "058-rahi-0-6-0-and-action-gate-core-0-3-0-adoption": "4c11c7f57f26463959f76c83ec8ca7672ebd7efab2da94099389f6725b036cd3",
+      "058-rahi-0-6-0-and-action-gate-core-0-3-0-adoption": "7d44c27857238637e90304d5c447d9727a73f7f3f341717f92f43d5b772ae2cf",
       "1-purpose": "d33d954823ab83ce4b71e275575528af846aef13982fbb59e6bcc6ce23741a75",
       "2-territory": "bc604d5ee5f0150a5418231305d84a6f12fcef73e5e12060ff9da217be83fb60",
       "3-behavior": "b3f9ff7566e1d07339a6852a374a4c65af30cb735b9642e149f3ca34aad94d39",
-      "4-functional-requirements": "9c16628f86a5f6576d93a7b2a41f14c53da8cd21514977dbb799bfe8de297eee",
+      "4-functional-requirements": "7ddcbff6e166e588c60633de06deb8be513964870b1299e2494df20f4b0c0d9d",
       "5-acceptance-criteria": "80e9696d3675fb181c25ba343fa1e509abeaf25249d4265fde856b2c04f77d0a",
       "6-out-of-scope": "a7683d09f979a694ffc715b1a5eae308db3268e0ffb50ff05c891242ab77058b",
-      "7-resolved-decisions": "e2fdf94b6f9a0e73d6d12ac3e48d64b7b4fa1bbc23b2302ae7c36c931c7734f7",
+      "7-resolved-decisions": "290c181bf9f89584f97195fb71ee2f58e0cd6e002a4df3f77d6e35496749e651",
       "8-open-questions": "015559aceccc73b6a4e0fcf4c089b53e723152799b4d9ec8cf50119cc9d005b7",
       "verification": "9f781f9496823ac022ba6d6c6a56f6c66d4e258c4683296022a09fe016489407"
     },
@@ -121,6 +121,6 @@
     "summary": "The nine rahi crates are pinned at `=0.4.0` and action-gate-core at `=0.2.0`. rahi 0.6.0 (crates.io) adds managed services (rahi 047), cell-contributed preflight checks (rahi 049), and the binding document (rahi 040), all through default `Cell` methods, so a cell that overrides none of them keeps its lifecycle. action-gate-core 0.3.0 adds an opt-in closed mode and leaves every open gate's evaluation and hash unchanged. This spec moves both pins in one change, keeps the exact-pin rule, leaves closed mode off, re-runs the supply-chain revisit spec 010 requires at a chassis bump, and refreshes the chassis handoff note. It is the prerequisite for finishing spec 015, whose worker lifecycle and product preflight wait on rahi 047 and 049.\n",
     "title": "Move the chassis to rahi 0.6.0 and action-gate-core to 0.3.0, with closed mode left off"
   },
-  "shardHash": "301dfcd7cb5945f0d1c17152466c23c5d7abb1e929edf19f0fe9227a8b92fb57",
+  "shardHash": "8514d03e105a4a92637f396377b9f29a8b4950b1afec856930d6178be3f8a634",
   "specVersion": "1.9.0"
 }

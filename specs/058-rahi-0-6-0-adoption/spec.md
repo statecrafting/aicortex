@@ -6,7 +6,7 @@ kind: "tooling"
 domain: "chassis"
 created: "2026-10-10"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: high
 wave: 4
 depends_on:
@@ -114,8 +114,9 @@ spec 046 FR-001), and `docs/design/02-rahi-chassis-prerequisites-handoff.md`.
   asserts `0.6.0` for every resolved `rahi-*` package.
 - **FR-002.** `cargo tree --locked -i action-gate-core@0.3.0` shows
   aicortex-gate as its consumer.
-- **FR-003.** No source file in the workspace calls `closed()`,
-  `require(`, or `require_all(` on an action-gate builder.
+- **FR-003.** Every `action_gate_core` path a workspace source file names
+  is under `action_gate_core::secrets`. No gate builder is imported, so no
+  gate here can be closed.
 - **FR-004.** Spec 047's golden-vector parity test passes unchanged against
   0.3.0.
 
@@ -159,6 +160,12 @@ rahi's work.
     between the two: no aicortex crate calls a `rahi-kernel` item that
     returns or takes an action-gate `Gate`. The copy disappears when a rahi
     release moves `rahi-kernel` to 0.3.0.
+  `cargo deny check` on this tree passes with that one skip and the
+  advisory, licence and source policies unchanged; without the skip it
+  fails on `tower-http`. The 31 other duplicates it reports as warnings are
+  the chassis's lower primitives and build-graph forks spec 010 D-6
+  already describes. FR-003 holds by inspection: the workspace names
+  `action_gate_core::secrets` in four files and no other path.
   `opentelemetry` moves 0.32 to 0.33 as one family under rahi-edge, with no
   duplicate. The workspace declares `rahi-harness` at `=0.6.0`, and no
   member depends on it, as 046 D-4 recorded for 0.2.0.
