@@ -307,6 +307,32 @@
       {
         "locations": [
           {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-gate/tests/compile_fail/"
           }
         ],
@@ -411,42 +437,6 @@
       {
         "locations": [
           {
-            "file": "Cargo.toml",
-            "span": {
-              "endLine": 133,
-              "startLine": 6
-            }
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "anchor": "workspace",
-          "file": "Cargo.toml",
-          "kind": "section"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "Cargo.toml",
-            "span": {
-              "endLine": 122,
-              "startLine": 20
-            }
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "crates/aicortex-types/src/claim.rs"
           }
         ],
@@ -501,5 +491,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "c1ec91f9cbbb6d7c8d76bff541e1613a4c522eb8caad0be66d1997a13e83a274"
+  "shardHash": "b7f611f10b5775f724f671aa40537ca0213c117e852fdb97d0b6e1bb9a74436f"
 }

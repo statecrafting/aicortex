@@ -25,8 +25,8 @@ establishes:
   - "crates/aicortex-types/tests/compile_fail/"
   - "crates/aicortex-types/testdata/memories/"
 extends:
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-types/src/provenance.rs", note: "a memory without provenance cannot be constructed; constitution IX" }
 summary: >

@@ -241,12 +241,32 @@ impl Node {
     }
 }
 
+/// Open a single-voter store on free ports.
+///
+/// A port taken between `free_addr` and the bind is retried, each attempt in
+/// a fresh directory: a half-opened node must not leave Raft or SQLite state
+/// behind for the node that replaces it.
+async fn open_store() -> (Store, tempfile::TempDir) {
+    let mut last = None;
+    for _ in 0..5 {
+        let dir = tempfile::tempdir().expect("a temporary directory");
+        match Store::open(&config(&dir.path().join("hiqlite"))).await {
+            Ok(store) => return (store, dir),
+            Err(error) if error.message().contains("Address already in use") => {
+                last = Some(error);
+            }
+            Err(error) => panic!("a single-voter node opens: {error}"),
+        }
+    }
+    panic!(
+        "a single-voter node opens after bounded port retries: {}",
+        last.expect("a port collision was recorded")
+    )
+}
+
 /// Open a single-voter node with the cell's schema and a fresh chain.
 pub async fn node() -> Node {
-    let dir = tempfile::tempdir().expect("a temporary directory");
-    let store = Store::open(&config(&dir.path().join("hiqlite")))
-        .await
-        .expect("a single-voter node opens");
+    let (store, dir) = open_store().await;
     store
         .handle()
         .migrate(aicortex_store::migrations())

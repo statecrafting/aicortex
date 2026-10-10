@@ -56,7 +56,7 @@ extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
   - { spec: "053-host-library-mode", unit: { kind: crate, id: "aicortex-external-host-fixture" }, nature: additive }
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-embed/src/worker.rs", note: "a memory is never left unembedded and unreported; constitution XI" }
 summary: >

@@ -19,7 +19,7 @@ extends:
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/Cargo.toml", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/testdata/corpus/", nature: additive }
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/tests/gate.rs", nature: additive }
-  - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.dependencies" }, nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/013-write-gate-and-redaction/spec.md" }, role: constraint }
 obligations:

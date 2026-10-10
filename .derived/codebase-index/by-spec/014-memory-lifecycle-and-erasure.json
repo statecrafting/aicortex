@@ -134,6 +134,19 @@
       {
         "locations": [
           {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "apps/aicortex/tests/cell.rs"
           }
         ],
@@ -251,24 +264,6 @@
       {
         "locations": [
           {
-            "file": "Cargo.toml",
-            "span": {
-              "endLine": 122,
-              "startLine": 20
-            }
-          }
-        ],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "anchor": "workspace.dependencies",
-          "file": "Cargo.toml",
-          "kind": "section"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": "crates/aicortex-store/src/erasure.rs"
           }
         ],
@@ -310,5 +305,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "207c7be73f2742d7ceeaa147f3388453d376517b5e6f7aaf627457f0aa7a9570"
+  "shardHash": "08ff50e29ffe2a8cedfc682d6eb13d63909ef6ec487f748cee7558b2bb3529ff"
 }
