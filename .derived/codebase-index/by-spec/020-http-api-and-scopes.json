@@ -71,6 +71,7 @@
   },
   "mapping": {
     "dependsOn": [
+      "015-embedding-pipeline",
       "019-untrusted-content-boundary"
     ],
     "implementingPaths": [
@@ -228,5 +229,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "c40b8ff90acf0849a50e62d6af9711efa881750d68ffb9dfe8160ca8a91112bf"
+  "shardHash": "cc8a7aee0b26b718602658513c98bf0980c46811878420bde15a3509383e4590"
 }
