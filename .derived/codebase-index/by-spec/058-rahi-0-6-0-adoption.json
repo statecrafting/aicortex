@@ -1,0 +1,119 @@
+{
+  "mapping": {
+    "dependsOn": [
+      "046-rahi-0-2-0-adoption",
+      "047-shared-secret-detector-convergence"
+    ],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "deny.toml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/cell.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/cell.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "deny.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "deny.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/02-rahi-chassis-prerequisites-handoff.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/02-rahi-chassis-prerequisites-handoff.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/010-chassis-adoption-and-workspace/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/010-chassis-adoption-and-workspace/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/046-rahi-0-2-0-adoption/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/046-rahi-0-2-0-adoption/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/047-shared-secret-detector-convergence/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/047-shared-secret-detector-convergence/spec.md"
+        }
+      }
+    ],
+    "specId": "058-rahi-0-6-0-adoption",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "301dfcd7cb5945f0d1c17152466c23c5d7abb1e929edf19f0fe9227a8b92fb57"
+}
