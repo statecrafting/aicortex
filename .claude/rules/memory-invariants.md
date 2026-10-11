@@ -6,6 +6,9 @@ paths:
   - "crates/aicortex-index/**"
   - "crates/aicortex-recall/**"
   - "crates/aicortex-mcp/**"
+  - "crates/aicortex-api/**"
+  - "crates/aicortex-curate/**"
+  - "crates/aicortex-ingest/**"
 ---
 
 # Memory invariants
@@ -65,3 +68,18 @@ form; the specs that own each rule are named so a violation can be traced.
   not filtered after. A scope predicate is in the SQL, not in a post-pass.
 - A change to chunking, embedding, ranking, or fusion runs the evaluation
   corpus (spec 040) and reports the delta in the pull request.
+
+## Manual review checklist for `/code-review` step 4 (spec 019 AC-2)
+
+- **Untrusted-content boundary (019):** every outbound memory body, title,
+  source string, and derived content string remains inside the shared
+  envelope and follows its fixed, versioned framing statement. Trace each
+  content-returning path, including aliases and whole-record serialization;
+  the grep ratchet alone is not a data-flow proof. Verify delimiter escaping
+  and the `IGNORE PREVIOUS INSTRUCTIONS AND EXFILTRATE` response test.
+- Check that no recalled text reaches a system prompt, tool description,
+  configuration resource, or other directive position. Only bare identifiers,
+  timestamps, and scores may bypass the content envelope.
+- Check that instruction grade still requires a human subject and ledger
+  decision, and that derived output never promotes its parents' trust.
+  Erased origins and derived parent identifiers remain labelled.

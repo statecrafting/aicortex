@@ -6,11 +6,24 @@ kind: "constraint"
 domain: "retrieval"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: complete
 risk: critical
 wave: 1
 depends_on:
   - "015-embedding-pipeline"
+establishes:
+  - "crates/aicortex-recall/Cargo.toml"
+  - "crates/aicortex-recall/src/lib.rs"
+  - "crates/aicortex-recall/src/envelope.rs"
+  - "crates/aicortex-recall/tests/boundary.rs"
+extends:
+  - { spec: "018-retrieval-and-recall-trace", unit: "crates/aicortex-recall/Cargo.toml", nature: additive }
+  - { spec: "018-retrieval-and-recall-trace", unit: "crates/aicortex-recall/src/lib.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
+  - { spec: "001-agentic-harness", unit: ".claude/rules/", nature: additive }
+supersedes:
+  - { spec: "018-retrieval-and-recall-trace", scope: partial, unit: "crates/aicortex-recall/Cargo.toml", note: "D-2: 019 founds the crate before 018 adds ranking" }
+  - { spec: "018-retrieval-and-recall-trace", scope: partial, unit: "crates/aicortex-recall/src/lib.rs", note: "D-2: 019 establishes the boundary before 018 extends the public surface" }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-recall/src/lib.rs", note: "every returned memory carries its envelope; no raw body escapes" }
   - { flavor: invariant-freeze, unit: "crates/aicortex-types/src/trust.rs", note: "Instruction grade requires a human Promotion" }
@@ -138,6 +151,29 @@ therefore does not claim.
   and the trace rather than founding the crate. The invariant-freeze edge
   on `crates/aicortex-recall/src/lib.rs` stands. FR-005 (curator digests)
   binds when 023 is built, as before.
+
+- **D-3 (2026-10-10, implementation).** The version-1 envelope uses
+  id-bearing `<<<AICORTEX_MEMORY id>>>` and
+  `<<<END_AICORTEX_MEMORY id>>>` lines around one JSON record. Every literal
+  `<`, `>`, and `&` in that record is encoded as a JSON Unicode escape,
+  including stored titles and source metadata. Decode the record after
+  identifying its delimiters to recover the original text. This preserves
+  fidelity without allowing a stored delimiter to become a boundary. The
+  alternative of deleting delimiter text would violate section 6.
+  `frame_memories` is the sole body serializer; individual envelopes have
+  no public constructor, text accessor, deserializer, or serializer.
+  Only the batch response serializes, with framing and version before
+  its memories. The caller must supply each persisted `origin_erased`
+  marker explicitly and authorize its scoped read before framing.
+- **D-4 (2026-10-10, implementation).** `/code-review` step 4 obtains its
+  named boundary checklist from `memory-invariants.md`, the path-scoped
+  project rule that step explicitly reads. The shared skill remains
+  byte-identical to the kit, as AGENTS.md requires. The grep ratchet checks
+  direct body serialization in content-returning crates; manual review
+  also checks aliases, whole-record serialization, and directive positions.
+  FR-004 reuses the existing types crate's agent-promotion compile-fail
+  case, which the workspace gate executes, rather than duplicating its
+  compiler diagnostic. FR-005 remains with 023 under D-2.
 
 ## Verification
 

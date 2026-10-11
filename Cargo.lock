@@ -245,6 +245,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "aicortex-recall"
+version = "0.1.0"
+dependencies = [
+ "aicortex-types",
+ "rahi-types",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "aicortex-store"
 version = "0.1.0"
 dependencies = [

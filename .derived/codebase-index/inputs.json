@@ -25,7 +25,7 @@
       "contentHash": "48849d68e478a309667de8f4bc680f807a65d38efb53dd5a0f8c014b8b9e82d5"
     },
     ".claude/rules/memory-invariants.md": {
-      "contentHash": "18129283f136e40691e7ff3eb70c8179ef03ef2953f5ad4e772c1a5a538020aa"
+      "contentHash": "1d41a069b2af6f83527d5255749da2248179b83d72cea9d68e921b3ee75f34c8"
     },
     ".claude/rules/orchestrator-rules.md": {
       "contentHash": "ef923ecb44037eadeafcaf8886fc3091acfe3d02cc41003b172459b42a155df8"
@@ -118,7 +118,7 @@
       "contentHash": "134cf78051ee5d0248c7ec9bd3024c7ea274199af114ae469ce8d1f3acd1c6fa"
     },
     "Cargo.toml": {
-      "contentHash": "52dfb8958a0f2ed49d97f6d35be8e2c19d27af0e8f923e651fe36dbd34e48b8d"
+      "contentHash": "b3bb8b992b43d6ff893e5ddb87926ac5b43a5d78de01c5327758b11721fbc2d7"
     },
     "Makefile": {
       "contentHash": "ac68f19e9632b269198b44f2d70be1e625f9e4e28c43f1f067f97f0d5e5d2c1e"
