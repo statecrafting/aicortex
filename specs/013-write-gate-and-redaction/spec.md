@@ -385,6 +385,13 @@ the chassis's (`rahi://020`, `rahi://025`). Promotion out of quarantine
   built from the characters this split separates on. Rejected: adding the
   punctuation to the boundary table, which would have split
   `scheme://user:password@host` into pieces and blinded the URL detector.
+
+- **D-13 (2026-10-06, implementation).** The AC-2 test fixture opens its
+  single-voter store through a bounded retry on fresh ports, each attempt in a
+  fresh directory. Its free-port probe releases the listener before the store
+  binds, so a parallel test can take the port in between; CI failed on that
+  race with "Address already in use". Any other open failure still fails the
+  test. The store crate's own fixture already retries this way.
 ## Verification
 
 ```verify:cli

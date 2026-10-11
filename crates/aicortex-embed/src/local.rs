@@ -20,13 +20,13 @@ static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 /// Maximum accepted size of one fetched model artifact.
 pub const MAX_WEIGHT_BYTES: usize = 1024 * 1024 * 1024;
 
-/// The configured model artifact fetched by preflight, or supplied by the
-/// image.
+/// The configured model artifact, supplied by the image or fetched once by
+/// `serve` (015 D-32).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct WeightArtifact {
     /// Destination under the deployment's `models/` directory.
     pub path: PathBuf,
-    /// Source used only by the preflight fetcher when the artifact is absent.
+    /// Source used only by the boot-time fetch when the artifact is absent.
     pub url: String,
     /// Lowercase SHA-256 of the expected bytes.
     pub sha256: String,
@@ -205,7 +205,7 @@ fn too_large(path: &Path) -> Error {
     ))
 }
 
-/// A preflight-owned transport for the one-time artifact fetch.
+/// The governed transport for the one-time artifact fetch.
 #[allow(async_fn_in_trait)]
 pub trait WeightFetcher: Send + Sync {
     /// Fetch `https://{permit.host()}{path}` and return at most `max_bytes`.
@@ -251,7 +251,7 @@ impl<E> fmt::Debug for LocalProvider<E> {
 }
 
 impl<E> LocalProvider<E> {
-    /// Construct a provider after preflight has verified the artifact.
+    /// Construct a provider from an artifact verified against its pin.
     ///
     /// # Errors
     ///
@@ -284,8 +284,8 @@ impl<E> LocalProvider<E> {
     /// Ensure the artifact exists and matches its pin.
     ///
     /// Existing valid bytes cause no fetch. Missing or invalid bytes are
-    /// fetched through the caller's governed preflight transport, verified
-    /// before rename, and never exposed under the final name unverified.
+    /// fetched through the caller's governed transport, verified before
+    /// rename, and never exposed under the final name unverified.
     ///
     /// # Errors
     ///

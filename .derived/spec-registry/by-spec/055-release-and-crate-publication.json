@@ -1,0 +1,149 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-27",
+    "dependsOn": [
+      "053-host-library-mode"
+    ],
+    "domain": "ops",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": ".github/workflows/release.yml"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/release-check.sh"
+      },
+      {
+        "kind": "file",
+        "path": "docs/release.md"
+      },
+      {
+        "kind": "file",
+        "path": "CHANGELOG.md"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "013-write-gate-and-redaction",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "050-typed-claims-and-predicate-registry",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "anchor": "workspace.package",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 5
+    },
+    "id": "055-release-and-crate-publication",
+    "implementation": "pending",
+    "kind": "tooling",
+    "obligations": [
+      {
+        "anchor": "3-1-what-publishes-and-who-decides",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "Only an annotated tag on a commit already on main, pushed by a human, publishes; no workflow, schedule, or agent creates the tag."
+      },
+      {
+        "anchor": "3-1-what-publishes-and-who-decides",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "Only the four library crates named in B-2 are publishable; the app and every fixture keep publish = false."
+      },
+      {
+        "anchor": "3-3-what-a-release-says",
+        "id": "I-3",
+        "kind": "invariant",
+        "text": "A release note distinguishes published from deployed, qualified, and production-ready, and asserts none of the latter three."
+      },
+      {
+        "anchor": "3-2-the-release-check",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "A registry consumer outside this workspace builds against the published crates with no path, git, or patch source and runs the 053 external-host proof."
+      }
+    ],
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/053-host-library-mode/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "055-release-and-crate-publication": "2ad834ebdd3f45a356c9a3e7b41f567c24a730d1618ad721c6d83816456ad2e6",
+      "1-purpose": "d798868e56f80b6cf1540f3e36ca623d281afddfae07fcf1203240bee6d33f77",
+      "2-territory": "b35e6ea734fec26d4ece9105b8b90eda2d4ec33417736fd9aee4d575b7ae1dca",
+      "3-1-what-publishes-and-who-decides": "591e5866cb4e9aad21b3fa4d67047761014cd1893fc36445bb40b09b89429edf",
+      "3-2-the-release-check": "0bdaab85590a870b22f650502efd0cac4a600582a935b3ccedcf5816a0b12025",
+      "3-3-what-a-release-says": "9ebb61b03f780099f59e4b1675cb3a5a664f12cb9986c04ea6f5eaae7065b8a1",
+      "3-behavior": "1c9d6eb2094cece933b6a9563458c88229eae7a4d963bc1aac6b28622ac37b09",
+      "4-functional-requirements": "8066a16b2fea1e401c702d6d8e3d9fa160a1a0b5e6d0a9f19a49f7a4f90f67d9",
+      "5-acceptance-criteria": "ee4950c141cfec284263b25ba382e027b76991918d48cd894af75200f18e8668",
+      "6-out-of-scope": "d428cf4d86fa4df2a5ceee5d372ed58273e9badf040bc27311b50acf060223ad",
+      "7-resolved-decisions": "53ad34f686fcc0750504616020bac92aee4fcc2de8ba8c9600d7ff84be185287",
+      "verification": "6937fe0e7779f18f3a8ebe58d245ac6a0fe5be914fed537ff9ebb0e6d96a9f1b"
+    },
+    "sectionHeadings": [
+      "055: Release and crate publication",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 What publishes and who decides",
+      "3.2 The release check",
+      "3.3 What a release says",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/055-release-and-crate-publication/spec.md",
+    "status": "approved",
+    "summary": "No aicortex crate has been published, so host-library consumers (053) pin an exact source revision. This spec makes the four library crates that host-library mode needs (types, store, gate, claims) publishable to crates.io under one lockstep version, adds a release check that packages them and builds a registry-only consumer, and adds a workflow that publishes only from an annotated tag a human pushed. Publication stays a separate human act from merge, deployment, and qualification, and a release note must say which of those it is.\n",
+    "title": "Release the library crates: a tag publishes, a human cuts the tag, and nothing else is implied"
+  },
+  "shardHash": "7519f858d8985c04455aaf23ca48e6b6c5eb9af8cf487f574b1989f4b04a638b",
+  "specVersion": "1.9.0"
+}

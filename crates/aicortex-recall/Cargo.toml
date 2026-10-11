@@ -1,0 +1,22 @@
+[package]
+name = "aicortex-recall"
+version = "0.1.0"
+description = "The untrusted content boundary for Aicortex recall and client surfaces"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "019-untrusted-content-boundary"
+
+[dependencies]
+aicortex-types = { workspace = true }
+rahi-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

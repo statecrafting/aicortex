@@ -16,9 +16,10 @@ use aicortex_embed::migrations::{EMBEDDING_MIGRATION_VERSION, migration};
 use aicortex_embed::provider::{EmbeddingProvider, ModelId, Vector};
 use aicortex_embed::registry::{ModelRegistry, ModelRevision};
 use aicortex_embed::{
-    ActiveEmbedding, ChunkConfig, Chunker, EmbeddingPreflight, EmbeddingWorker, WorkerConfig,
-    embedding_processor, embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
-    stage_live_embedding, stage_reembedding_batch,
+    ActiveEmbedding, ChunkConfig, Chunker, EmbeddingPreflight, EmbeddingWorker, ServiceSettings,
+    WorkerConfig, activate_provider, embedding_processor, embedding_work_key, queue_health,
+    run_worker, stage_active_embedding, stage_embedding, stage_live_embedding,
+    stage_reembedding_batch,
 };
 use aicortex_types::{
     Actor, ActorId, Importance, Memory, MemoryBody, MemoryId, MemoryKind, MemoryParts, Provenance,
@@ -256,7 +257,7 @@ impl EmbeddingProvider for OtherProvider {
     }
 
     async fn embed(&self, batch: &[&str]) -> Result<Vec<Vector>, Error> {
-        batch.iter().map(|_| Vector::new(vec![1.0, 0.0])).collect()
+        batch.iter().map(|_| Vector::new(vec![0.0, 1.0])).collect()
     }
 }
 
@@ -2337,4 +2338,638 @@ async fn scoped_derivatives_and_coverage_never_cross_scope_boundaries() {
         2
     );
     fixture.shutdown().await;
+}
+
+#[derive(Clone, Debug)]
+struct CrashingProvider {
+    entered: Arc<tokio::sync::Notify>,
+}
+
+impl EmbeddingProvider for CrashingProvider {
+    fn id(&self) -> ModelId {
+        ModelId::new("test-model").expect("static model id")
+    }
+
+    fn dims(&self) -> u16 {
+        2
+    }
+
+    fn normalized(&self) -> bool {
+        true
+    }
+
+    async fn embed(&self, _batch: &[&str]) -> Result<Vec<Vector>, Error> {
+        self.entered.notify_one();
+        std::future::pending().await
+    }
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_worker_crash_before_commit_leaves_the_work_for_exactly_one_later_embedding() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    let memory = test_memory("alice", "Survive a worker that dies mid-flight.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+
+    // The worker claims the row, reaches inference, and is killed there: the
+    // task is aborted, so nothing after the provider call ever runs.
+    let entered = Arc::new(tokio::sync::Notify::new());
+    let crashing = EmbeddingWorker::new(
+        CrashingProvider {
+            entered: Arc::clone(&entered),
+        },
+        model.clone(),
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 4,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 3,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "doomed",
+    )
+    .expect("worker config");
+    let doomed_store = store.clone();
+    let task =
+        tokio::spawn(async move { crashing.drain(&doomed_store, UnixSeconds::new(3)).await });
+    tokio::time::timeout(Duration::from_secs(20), entered.notified())
+        .await
+        .expect("the worker reached inference");
+    task.abort();
+    assert!(task.await.expect_err("the task was aborted").is_cancelled());
+
+    assert_eq!(
+        count(&store, "SELECT COUNT(*) AS count FROM embedding", vec![]).await,
+        0,
+        "nothing committed"
+    );
+    let health = queue_health(&store, "scope-a", UnixSeconds::new(4))
+        .await
+        .expect("queue health reads");
+    assert_eq!(health.pending, 1, "the outbox row is still present");
+
+    // After the dead worker's claim lapses, the next drain embeds it once.
+    let healthy = worker_for_model(TestProvider { fail: false }, model, "survivor", 3);
+    let report = healthy
+        .drain(&store, UnixSeconds::new(100))
+        .await
+        .expect("the survivor drains");
+    assert_eq!(report.completed, 1);
+    let again = healthy
+        .drain(&store, UnixSeconds::new(101))
+        .await
+        .expect("a second drain finds nothing");
+    assert_eq!(again.claimed, 0);
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding WHERE memory_id = ?1",
+            vec![Value::from(memory.id.to_string())],
+        )
+        .await,
+        1,
+        "exactly one embedding"
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_query_under_one_revision_never_reads_another_revisions_vectors() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let first = test_model(true);
+    activate(&store, &first).await;
+    let memory = test_memory("alice", "Held under two model revisions.", 2);
+    insert_memory(&store, "scope-a", &memory).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &first, UnixSeconds::new(2))
+        .expect("work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("work commits");
+    worker_for_model(TestProvider { fail: false }, first.clone(), "w1", 3)
+        .drain(&store, UnixSeconds::new(3))
+        .await
+        .expect("revision 1 embeds");
+
+    // Revision 2 is a different model with the same width: the case where a
+    // careless comparison would silently succeed.
+    let second = ModelRevision {
+        model_id: ModelId::new("other-model").expect("model id"),
+        revision: 2,
+        first_seen: UnixSeconds::new(4),
+        ..test_model(true)
+    };
+    activate(&store, &second).await;
+    let mut txn = TxnBuilder::new();
+    stage_embedding(&mut txn, "scope-a", memory.id, &second, UnixSeconds::new(4))
+        .expect("revision 2 work stages");
+    store
+        .txn(txn.into_statements())
+        .await
+        .expect("revision 2 work commits");
+    let other = EmbeddingWorker::new(
+        OtherProvider,
+        second.clone(),
+        Chunker::new(ChunkConfig {
+            threshold_bytes: 256,
+            target_bytes: 128,
+            overlap_bytes: 16,
+            max_chunks_per_memory: 512,
+        })
+        .expect("chunk config"),
+        WorkerConfig {
+            batch_size: 4,
+            hold_for: Duration::from_secs(5),
+            retry: RetryPolicy {
+                max_attempts: 3,
+                base: Duration::from_secs(1),
+                cap: Duration::from_secs(2),
+            },
+        },
+        "w2",
+    )
+    .expect("worker config");
+    other
+        .drain(&store, UnixSeconds::new(5))
+        .await
+        .expect("revision 2 embeds");
+
+    let under_second = ModelRegistry::vectors(&store, "scope-a", &second, None, 10)
+        .await
+        .expect("revision 2 reads");
+    assert_eq!(under_second.len(), 1);
+    let under_first = ModelRegistry::vectors(&store, "scope-a", &first, None, 10)
+        .await
+        .expect("revision 1 reads");
+    assert_eq!(under_first.len(), 1);
+    assert_eq!(under_first[0].vector.values(), &[1.0, 0.0]);
+    assert_ne!(
+        under_first[0].vector, under_second[0].vector,
+        "each revision returns only its own vector"
+    );
+
+    // A query model that names revision 2's number but another identity
+    // matches nothing: the identity is part of the predicate.
+    let forged = ModelRevision {
+        model_id: ModelId::new("test-model").expect("model id"),
+        ..second
+    };
+    assert!(
+        ModelRegistry::vectors(&store, "scope-a", &forged, None, 10)
+            .await
+            .expect("forged query reads")
+            .is_empty()
+    );
+    assert!(
+        ModelRegistry::vectors(&store, "scope-b", &first, None, 10)
+            .await
+            .expect("foreign scope reads")
+            .is_empty()
+    );
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn activation_numbers_revisions_monotonically_and_registers_every_one() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let now = UnixSeconds::new(10);
+
+    let first = activate_provider(&store, &TestProvider { fail: false }, now)
+        .await
+        .expect("first activation");
+    assert!(first.changed);
+    assert_eq!(first.model.revision, 1);
+
+    let restart = activate_provider(&store, &TestProvider { fail: false }, now)
+        .await
+        .expect("restart");
+    assert!(!restart.changed, "the same identity keeps its revision");
+    assert_eq!(restart.model.revision, 1);
+
+    let changed = activate_provider(&store, &OtherProvider, now)
+        .await
+        .expect("model change");
+    assert!(changed.changed);
+    assert_eq!(changed.model.revision, 2);
+    assert_eq!(
+        ModelRegistry::active(&store)
+            .await
+            .expect("active reads")
+            .expect("a model is active")
+            .revision,
+        2
+    );
+
+    // A rollback to the former model is a new revision, never a reused one.
+    let rollback = activate_provider(&store, &TestProvider { fail: false }, now)
+        .await
+        .expect("rollback");
+    assert_eq!(rollback.model.revision, 3);
+    // A concurrent activator that computed the same next revision for a
+    // different identity is refused by the registry, not merged.
+    let loser = ModelRevision {
+        model_id: ModelId::new("third-model").expect("model id"),
+        revision: 3,
+        ..test_model(true)
+    };
+    let mut txn = TxnBuilder::new();
+    ModelRegistry::activate(&mut txn, &loser).expect("statements stage");
+    assert!(
+        store.txn(txn.into_statements()).await.is_err(),
+        "revision 3 already names another identity"
+    );
+    assert_eq!(
+        ModelRegistry::active(&store)
+            .await
+            .expect("active reads")
+            .expect("a model is active")
+            .model_id
+            .as_str(),
+        "test-model"
+    );
+    let known = count(
+        &store,
+        "SELECT COUNT(*) AS count FROM embedding_model",
+        vec![],
+    )
+    .await;
+    assert_eq!(known, 3, "every revision stays registered");
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn the_worker_service_drains_until_shutdown_and_returns_its_report() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let model = test_model(true);
+    activate(&store, &model).await;
+    for text in ["The first memory.", "The second memory."] {
+        let memory = test_memory("alice", text, 2);
+        insert_memory(&store, "scope-a", &memory).await;
+        let mut txn = TxnBuilder::new();
+        stage_embedding(&mut txn, "scope-a", memory.id, &model, UnixSeconds::new(2))
+            .expect("work stages");
+        store
+            .txn(txn.into_statements())
+            .await
+            .expect("work commits");
+    }
+    let embedding_worker = worker_for_model(TestProvider { fail: false }, model, "service", 3);
+    let watcher = store.clone();
+    // The shutdown future is the caller's: here it resolves once both rows
+    // are embedded. The service spawns nothing; this future is the join.
+    let shutdown = async move {
+        loop {
+            if count(&watcher, "SELECT COUNT(*) AS count FROM embedding", vec![]).await == 2 {
+                break;
+            }
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+    };
+    let settings = ServiceSettings {
+        idle: Duration::from_millis(50),
+        error_backoff: Duration::from_millis(50),
+        shutdown_grace: Duration::from_secs(5),
+    };
+    let report = tokio::time::timeout(
+        Duration::from_secs(60),
+        run_worker(&embedding_worker, &store, settings, shutdown),
+    )
+    .await
+    .expect("the service stops when told to");
+    assert_eq!(report.completed, 2);
+    assert_eq!(report.store_errors, 0);
+    fixture.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 4)]
+async fn racing_activations_commit_one_and_report_the_other_as_a_conflict() {
+    let fixture = Fixture::migrated().await;
+    let store = fixture.handle();
+    let now = UnixSeconds::new(10);
+    let (left, right) = tokio::join!(
+        activate_provider(&store, &TestProvider { fail: false }, now),
+        activate_provider(&store, &OtherProvider, now),
+    );
+    let results = [left, right];
+    assert!(results.iter().any(Result::is_ok), "one activation wins");
+    for result in &results {
+        if let Err(error) = result {
+            assert!(matches!(error, Error::Conflict(_)), "{error}");
+        }
+    }
+    let active = ModelRegistry::active(&store)
+        .await
+        .expect("active reads")
+        .expect("a model is active");
+    assert!(["test-model", "other-model"].contains(&active.model_id.as_str()));
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM embedding_model WHERE active = 1",
+            vec![],
+        )
+        .await,
+        1,
+        "exactly one revision is active"
+    );
+    fixture.shutdown().await;
+}
+
+mod operator_flow {
+    use std::collections::BTreeMap;
+
+    use aicortex_embed::operator::{activate_configured, drop_revision, reembed_scope};
+    use aicortex_embed::static_model::EMBEDDINGS_TENSOR;
+    use aicortex_embed::{
+        EmbeddingConfig, EmbeddingPreflight, EmbeddingWorker, ModelRegistry, ModelRevision,
+        NoTransport, default_chunker, default_worker_config,
+    };
+    use rahi_kernel::Manifest;
+    use rahi_types::{Error, Sub, UnixSeconds};
+    use ring::digest::{SHA256, digest};
+    use safetensors::Dtype;
+    use safetensors::tensor::TensorView;
+
+    use super::{Fixture, count, insert_memory, test_memory};
+
+    const TOKENIZER: &str = r#"{
+      "normalizer": {"type": "BertNormalizer", "lowercase": true},
+      "pre_tokenizer": {"type": "BertPreTokenizer"},
+      "model": {"type": "WordPiece", "unk_token": "[UNK]",
+                "vocab": {"[UNK]": 0, "red": 1, "green": 2, "blue": 3}}
+    }"#;
+
+    fn sha(bytes: &[u8]) -> String {
+        digest(&SHA256, bytes)
+            .as_ref()
+            .iter()
+            .map(|byte| format!("{byte:02x}"))
+            .collect()
+    }
+
+    fn weights() -> Vec<u8> {
+        let data: Vec<u8> = [9.0_f32, 9.0, 1.0, 0.0, 0.0, 1.0, 1.0, 1.0]
+            .iter()
+            .flat_map(|value| value.to_le_bytes())
+            .collect();
+        let view = TensorView::new(Dtype::F32, vec![4, 2], &data).expect("view");
+        safetensors::serialize([(EMBEDDINGS_TENSOR, view)], None).expect("serialize")
+    }
+
+    fn local_config(models: &std::path::Path, model: &str) -> EmbeddingConfig {
+        let weights = weights();
+        let env: BTreeMap<String, String> = [
+            ("AICORTEX_EMBED_MODEL", model.to_owned()),
+            ("AICORTEX_EMBED_DIMS", "2".to_owned()),
+            (
+                "AICORTEX_EMBED_MODELS_DIR",
+                models.to_str().expect("utf-8").to_owned(),
+            ),
+            (
+                "AICORTEX_EMBED_WEIGHTS_FILE",
+                "model.safetensors".to_owned(),
+            ),
+            (
+                "AICORTEX_EMBED_WEIGHTS_URL",
+                "https://models.example/m".to_owned(),
+            ),
+            ("AICORTEX_EMBED_WEIGHTS_SHA256", sha(&weights)),
+            ("AICORTEX_EMBED_TOKENIZER_FILE", "tokenizer.json".to_owned()),
+            (
+                "AICORTEX_EMBED_TOKENIZER_URL",
+                "https://models.example/t".to_owned(),
+            ),
+            ("AICORTEX_EMBED_TOKENIZER_SHA256", sha(TOKENIZER.as_bytes())),
+        ]
+        .into_iter()
+        .map(|(key, value)| (key.to_owned(), value))
+        .collect();
+        EmbeddingConfig::from_env(&env).expect("configuration parses")
+    }
+
+    fn closed_manifest() -> Manifest {
+        Manifest::parse(include_str!("../../../apps/aicortex/manifest.toml")).expect("manifest")
+    }
+
+    async fn embed_all(
+        config: &EmbeddingConfig,
+        store: &rahi_store::StoreHandle,
+        revision: u32,
+        at: u64,
+    ) {
+        let provider = config
+            .boot(None, &Sub::new("operator"), NoTransport)
+            .await
+            .expect("boots")
+            .expect("configured");
+        let model = ModelRevision::from_provider(&provider, revision, UnixSeconds::new(at), true)
+            .expect("revision");
+        let worker = EmbeddingWorker::new(
+            provider,
+            model,
+            default_chunker().expect("chunker"),
+            default_worker_config(),
+            "operator-flow",
+        )
+        .expect("worker");
+        loop {
+            let report = worker
+                .drain(store, UnixSeconds::new(at))
+                .await
+                .expect("drains");
+            if report.claimed == 0 {
+                break;
+            }
+            assert_eq!(report.completed, report.claimed);
+        }
+    }
+
+    /// B-9 end to end with the real engine: memories captured before any
+    /// model exists are covered by the first re-embedding pass; a model
+    /// change keeps the old revision queryable until coverage is complete
+    /// and an operator drops it.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn activation_reembedding_and_drop_form_one_migration() {
+        let root = tempfile::tempdir().expect("temporary root");
+        let models = root.path().join("models");
+        std::fs::create_dir_all(&models).expect("models directory");
+        std::fs::write(models.join("model.safetensors"), weights()).expect("weights");
+        std::fs::write(models.join("tokenizer.json"), TOKENIZER).expect("tokenizer");
+        let fixture = Fixture::migrated().await;
+        let store = fixture.handle();
+
+        for (index, text) in ["red green", "blue", "green blue"].iter().enumerate() {
+            let memory = test_memory("alice", text, 2 + index as u64);
+            insert_memory(&store, "scope-a", &memory).await;
+        }
+        let first = local_config(&models, "static-one");
+        // The manifest declares no egress; present artifacts need none.
+        let activated = activate_configured(
+            &first,
+            &closed_manifest(),
+            None,
+            &Sub::new("operator"),
+            NoTransport,
+            &store,
+            UnixSeconds::new(10),
+        )
+        .await
+        .expect("first activation");
+        assert!(activated.changed);
+        assert_eq!(activated.model.revision, 1);
+
+        for limit in [0, aicortex_embed::MAX_REEMBED_BATCH + 1] {
+            let refused = reembed_scope(&store, "scope-a", None, limit, UnixSeconds::new(11))
+                .await
+                .expect_err("a limit outside the bound is refused, not clamped");
+            assert!(matches!(refused, Error::Config(_)), "{refused}");
+        }
+        let pass = reembed_scope(&store, "scope-a", None, 2, UnixSeconds::new(11))
+            .await
+            .expect("first pass");
+        assert_eq!((pass.staged, pass.more), (2, true));
+        let pass = reembed_scope(
+            &store,
+            "scope-a",
+            pass.cursor.map(|id| id.to_string()).as_deref(),
+            2,
+            UnixSeconds::new(12),
+        )
+        .await
+        .expect("second pass");
+        assert_eq!((pass.staged, pass.more), (1, false));
+        embed_all(&first, &store, 1, 13).await;
+        let report = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(14))
+            .await
+            .expect("report");
+        assert_eq!(report.coverage.len(), 1);
+        assert_eq!(report.coverage[0].embedded, 3);
+        assert!(report.readiness_warning().is_none());
+
+        // A model change: same artifacts under a new identity.
+        let second = local_config(&models, "static-two");
+        let changed = activate_configured(
+            &second,
+            &closed_manifest(),
+            None,
+            &Sub::new("operator"),
+            NoTransport,
+            &store,
+            UnixSeconds::new(20),
+        )
+        .await
+        .expect("model change");
+        assert_eq!(changed.model.revision, 2);
+        let early = drop_revision(&store, "scope-a", 1)
+            .await
+            .expect_err("coverage of the new revision is incomplete");
+        assert!(matches!(early, Error::Conflict(_)), "{early}");
+        assert_eq!(
+            ModelRegistry::vectors(&store, "scope-a", &activated.model, None, 10)
+                .await
+                .expect("old revision stays queryable")
+                .len(),
+            3
+        );
+
+        let mut cursor = None;
+        loop {
+            let pass = reembed_scope(
+                &store,
+                "scope-a",
+                cursor.as_deref(),
+                2,
+                UnixSeconds::new(21),
+            )
+            .await
+            .expect("re-embedding pass");
+            cursor = pass.cursor.map(|id| id.to_string());
+            if !pass.more {
+                break;
+            }
+        }
+        embed_all(&second, &store, 2, 22).await;
+        drop_revision(&store, "scope-a", 1)
+            .await
+            .expect("complete coverage permits the drop");
+        assert!(
+            ModelRegistry::vectors(&store, "scope-a", &activated.model, None, 10)
+                .await
+                .expect("dropped revision reads")
+                .is_empty()
+        );
+        assert_eq!(
+            count(
+                &store,
+                "SELECT COUNT(*) AS count FROM embedding WHERE model_revision = 2",
+                vec![],
+            )
+            .await,
+            3
+        );
+        let health = EmbeddingPreflight::read(&store, "scope-a", UnixSeconds::new(23))
+            .await
+            .expect("report");
+        assert_eq!(health.queue.dead, 0);
+        fixture.shutdown().await;
+    }
+
+    /// B-6: a remote provider absent from the ceiling is refused before any
+    /// row is written.
+    #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+    async fn activation_refuses_a_remote_host_the_ceiling_does_not_admit() {
+        let fixture = Fixture::migrated().await;
+        let store = fixture.handle();
+        let env: BTreeMap<String, String> = [
+            ("AICORTEX_EMBED_PROVIDER", "remote"),
+            ("AICORTEX_EMBED_MODEL", "remote-model"),
+            ("AICORTEX_EMBED_DIMS", "8"),
+            ("AICORTEX_EMBED_ENDPOINT", "https://models.example/embed"),
+        ]
+        .into_iter()
+        .map(|(key, value)| (key.to_owned(), value.to_owned()))
+        .collect();
+        let config = EmbeddingConfig::from_env(&env).expect("parses");
+        let error = activate_configured(
+            &config,
+            &closed_manifest(),
+            None,
+            &Sub::new("operator"),
+            NoTransport,
+            &store,
+            UnixSeconds::new(1),
+        )
+        .await
+        .expect_err("the host is not in the ceiling");
+        assert!(matches!(error, Error::Denied(_)), "{error}");
+        assert!(error.to_string().contains("embedding.remote.egress"));
+        assert_eq!(
+            ModelRegistry::latest_revision(&store).await.expect("reads"),
+            None,
+            "nothing was registered"
+        );
+        fixture.shutdown().await;
+    }
 }

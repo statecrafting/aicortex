@@ -69,6 +69,13 @@ deny = [
   { crate = "tower-http", deny-multiple-versions = true },
   { crate = "reqwest", deny-multiple-versions = true },
 ]
+# A duplicate the chassis forces into a refused stack is skipped by exact
+# version, never by crate, so the waiver lapses when rahi converges it
+# (spec 058 B-5, D-3). rahi 0.6.0's edge takes tower-http 0.7 for its static
+# slot, a minor ahead of the 0.6 copy reqwest carries under hiqlite's cryptr.
+skip = [
+  { crate = "tower-http@0.6.11", reason = "rahi 0.6.0: reqwest 0.13 under hiqlite carries 0.6, rahi-edge takes 0.7 (spec 058 D-3)" },
+]
 # Not refused, and so still reported as warnings: at the published rahi
 # 0.1.0 the chassis carries two copies of aws-lc-sys (0.39.1 under s3-simple,
 # 0.45.0 under rustls -> aws-lc-rs) and of the lower primitives digest,

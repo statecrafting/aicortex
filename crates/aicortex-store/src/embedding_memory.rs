@@ -4,10 +4,13 @@
 //! predicate ratchet of spec 012 covers every such statement. The embedding
 //! crate receives decoded records, bounded identifiers, and aggregates only.
 
+use std::future::Future;
+
 use aicortex_types::{Memory, MemoryId};
 use rahi_store::{ProcessingKey, ReceiptKey, Statement, StoreHandle, TxnBuilder, Value, Work};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
+use serde::de::DeserializeOwned;
 
 /// Rahi processing namespace holding embedding jobs.
 pub const EMBEDDING_NAMESPACE: &str = "aicortex.memory";
@@ -56,6 +59,87 @@ struct MemoryRow {
 #[derive(Debug, Deserialize)]
 struct IdRow {
     id: String,
+}
+
+/// A store that can only be read.
+///
+/// The product preflight runs against the chassis's read-only store view,
+/// which offers queries and nothing else (rahi spec 049 B-3). The report
+/// readers take this trait instead of a [`StoreHandle`] so the same
+/// statements serve the worker, the operator routes, the metrics collector,
+/// and preflight, and so a reader cannot write by construction.
+pub trait ReadStore: Send + Sync {
+    /// Read the local replica.
+    ///
+    /// # Errors
+    ///
+    /// Store errors.
+    fn query<T: DeserializeOwned + Send + 'static>(
+        &self,
+        sql: &'static str,
+        values: Vec<Value>,
+    ) -> impl Future<Output = Result<Vec<T>, Error>> + Send;
+
+    /// Read through the leader.
+    ///
+    /// # Errors
+    ///
+    /// Store errors.
+    fn query_consistent<T: DeserializeOwned + Send + 'static>(
+        &self,
+        sql: &'static str,
+        values: Vec<Value>,
+    ) -> impl Future<Output = Result<Vec<T>, Error>> + Send;
+}
+
+impl ReadStore for StoreHandle {
+    fn query<T: DeserializeOwned + Send + 'static>(
+        &self,
+        sql: &'static str,
+        values: Vec<Value>,
+    ) -> impl Future<Output = Result<Vec<T>, Error>> + Send {
+        Self::query(self, sql, values)
+    }
+
+    fn query_consistent<T: DeserializeOwned + Send + 'static>(
+        &self,
+        sql: &'static str,
+        values: Vec<Value>,
+    ) -> impl Future<Output = Result<Vec<T>, Error>> + Send {
+        Self::query_consistent(self, sql, values)
+    }
+}
+
+/// Scope keys in ascending order, strictly after `after`, at most `limit`.
+///
+/// This reads the `scope` table, never `memory`, and returns keys only: it
+/// is the inventory an operator-wide aggregate walks (D-18, D-28), so the
+/// per-scope statements that follow keep their scope predicate. No tenant
+/// surface calls it.
+///
+/// # Errors
+///
+/// Store errors.
+pub async fn scope_keys_after(
+    store: &impl ReadStore,
+    after: Option<&str>,
+    limit: u32,
+) -> Result<Vec<String>, Error> {
+    let rows: Vec<ScopeKeyRow> = store
+        .query(
+            "SELECT scope_id FROM scope WHERE scope_id > ?1 ORDER BY scope_id LIMIT ?2",
+            vec![
+                Value::from(after.unwrap_or("")),
+                Value::Integer(i64::from(limit)),
+            ],
+        )
+        .await?;
+    Ok(rows.into_iter().map(|row| row.scope_id).collect())
+}
+
+#[derive(Debug, Deserialize)]
+struct ScopeKeyRow {
+    scope_id: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -342,7 +426,7 @@ pub async fn memories_missing_embedding(
 /// # Errors
 ///
 /// Store errors, a missing aggregate row, or a negative counter.
-pub async fn live_memory_total(store: &StoreHandle, scope_id: &str) -> Result<u64, Error> {
+pub async fn live_memory_total(store: &impl ReadStore, scope_id: &str) -> Result<u64, Error> {
     let rows: Vec<CountRow> = store
         .query(
             "SELECT COALESCE(SUM(count), 0) AS count FROM scope_counter
@@ -363,7 +447,7 @@ pub async fn live_memory_total(store: &StoreHandle, scope_id: &str) -> Result<u6
 ///
 /// Store errors or corrupt revision and count values.
 pub async fn embedding_coverage(
-    store: &StoreHandle,
+    store: &impl ReadStore,
     scope_id: &str,
 ) -> Result<Vec<(u32, u64)>, Error> {
     let rows: Vec<CoverageRow> = store
@@ -422,7 +506,7 @@ pub fn stage_complete_embedding_coverage_guard(txn: &mut TxnBuilder, scope_id: &
 ///
 /// Store errors or a missing aggregate row.
 pub async fn embedding_queue_counts(
-    store: &StoreHandle,
+    store: &impl ReadStore,
     scope_id: &str,
     namespace: &str,
     processor_glob: &str,

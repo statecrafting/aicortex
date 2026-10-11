@@ -1,0 +1,170 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-27",
+    "dependsOn": [
+      "017-entities-and-typed-edges",
+      "019-untrusted-content-boundary",
+      "021-mcp-server"
+    ],
+    "domain": "retrieval",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/page.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/tests/page.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/testdata/pages/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "017-entities-and-typed-edges",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/entities.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/api.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 5
+    },
+    "id": "056-entity-pages",
+    "implementation": "pending",
+    "kind": "feature",
+    "obligations": [
+      {
+        "anchor": "3-1-a-projection-not-a-document",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "An entity page is computed on read from stored entities, edges, mentions, and memories; no page body is persisted and no model generates page text."
+      },
+      {
+        "anchor": "3-2-what-a-page-holds",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "Every fact on a page cites at least one source memory that still exists in the scope; a fact whose sources are all erased or superseded does not appear."
+      },
+      {
+        "anchor": "3-3-trust-and-the-boundary",
+        "id": "I-3",
+        "kind": "invariant",
+        "text": "Every memory body and every literal edge object on a page is returned inside the 019 envelope."
+      },
+      {
+        "anchor": "3-4-surfaces",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "The page is served by GET /entities/{id} and by the existing relate MCP tool; the MCP surface stays at seven tools."
+      }
+    ],
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/017-entities-and-typed-edges/spec.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "medium",
+    "sectionDigests": {
+      "056-entity-pages": "9c0890d235f7e29ba42d1d86fafe3987d3e7470b402592a5f388d7075623dcd1",
+      "1-purpose": "3a3865cf1de82bcd605852e78ea5f91d44a697776a9a7660f9daba1dc3e87afe",
+      "2-territory": "8e5d5cf88a7b6e2949565c25f314951735000864cc4aecfb46285cb8a0df29c8",
+      "3-1-a-projection-not-a-document": "67780b817b7ad0a071dc9d5a901dd7cf0a82ae9f8f5c9b2800027c8b8ee47b96",
+      "3-2-what-a-page-holds": "47f28ea16e5da53849df33631246b612a3b61ccbf44ce76f8587b79908403178",
+      "3-3-trust-and-the-boundary": "b95918bcb356de6768db6099827f8915034d1ab893be70f78fa6064808004e87",
+      "3-4-surfaces": "a251465a06fa33c6871b6cd24cff557060a31662282ff7d41869b072a7a6707a",
+      "3-behavior": "c34b4b18f86d59de4cc6331967bc32b651c5bf41e8a5445df58e96bc66c923e7",
+      "4-functional-requirements": "0793d7113803b2a48af9f7bc70c16eb714785fb3a28deefa3f3c2d8ef18651ab",
+      "5-acceptance-criteria": "98f95e2c04cfac2dc1342d9efb86d9768a83adb89a6eb5540e3d6a932c151511",
+      "6-out-of-scope": "4a816e75414e95981ada4dbc0d6400412bd0893cb2fe297d124a09cc12d83dd0",
+      "7-resolved-decisions": "f79265cb687c3b0d6a0ef61cb79b86dc734ca8d33e898327feaaa70824c9c94d",
+      "verification": "14fbdc02d8a70dc0f5a9ca759d92892251e3464645d63042d51ad76faf9a20aa"
+    },
+    "sectionHeadings": [
+      "056: Entity pages",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 A projection, not a document",
+      "3.2 What a page holds",
+      "3.3 Trust and the boundary",
+      "3.4 Surfaces",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/056-entity-pages/spec.md",
+    "status": "approved",
+    "summary": "The predecessor's users built entity wikis by hand on top of a flat table (openbrain://valued-capabilities). Spec 017 supplies the entities, aliases, typed edges, and mentions, and a bounded neighbor walk, but no single view of what the store holds about one entity. This spec adds that view as a pure, bounded projection computed on read: header, facts grouped by predicate with their source memories, open contradictions shown side by side, and recent mentions in 019 envelopes. It generates no prose, stores no page, and so needs no erasure path of its own.\n",
+    "title": "Entity pages: one cited, computed view of what the store holds about an entity, with no generated prose"
+  },
+  "shardHash": "6ff73759b2ded59290730a273adab3854acb08676c92f654cc134aa63506b124",
+  "specVersion": "1.9.0"
+}

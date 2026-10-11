@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 1
 depends_on:
@@ -22,10 +22,23 @@ establishes:
   - "crates/aicortex-embed/src/registry.rs"
   - "crates/aicortex-embed/src/migrations.rs"
   - "crates/aicortex-embed/src/static_model.rs"
+  - "crates/aicortex-embed/src/config.rs"
+  - "crates/aicortex-embed/src/activation.rs"
+  - "crates/aicortex-embed/src/service.rs"
+  - "crates/aicortex-embed/src/operator.rs"
+  - "crates/aicortex-embed/src/deployment.rs"
+  - "apps/aicortex/src/embedding_preflight.rs"
+  - "apps/aicortex/src/embedding_service.rs"
+  - "apps/aicortex/src/embedding.rs"
+  - "apps/aicortex/src/embedding_fetch.rs"
+  - "apps/aicortex/tests/embedding_fetch.rs"
   - "crates/aicortex-embed/src/wordpiece.rs"
+  - "apps/aicortex/tests/embedding.rs"
+  - "apps/aicortex/tests/embedding_process.rs"
   - "crates/aicortex-embed/tests/worker.rs"
   - "crates/aicortex-embed/tests/chunk.rs"
   - "crates/aicortex-embed/tests/static_model.rs"
+  - "crates/aicortex-embed/tests/config.rs"
   - "crates/aicortex-embed/testdata/vectors/"
   - "crates/aicortex-store/src/embedding_memory.rs"
   - "crates/aicortex-store/tests/embedding_staging.rs"
@@ -50,6 +63,7 @@ extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/main.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/tests/cell.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
   - { spec: "053-host-library-mode", unit: { kind: crate, id: "aicortex-external-host-fixture" }, nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
@@ -108,13 +122,16 @@ which gains its first egress entry only when a remote provider is enabled.
   ModelId; fn dims(&self) -> u16; fn normalized(&self) -> bool; async fn
   embed(&self, batch: &[&str]) -> Result<Vec<Vector>>; }`. Providers are
   selected by configuration and resolved once at boot.
-- **B-5 (local is the default).** `LocalProvider` runs a bundled
-  sentence-embedding model in-process on CPU, with the weights fetched to
-  `models/` at first boot by `preflight` from a configured URL and verified
-  against a pinned digest, or supplied by the image. With the local
-  provider selected the process makes no outbound call at all, and the
-  manifest declares no egress host, which is what makes the privacy claim
-  provable (041).
+- **B-5 (local is the default; amended 2026-10-10, D-32).** `LocalProvider`
+  runs a bundled sentence-embedding model in-process on CPU, with the
+  weights supplied by the image or the operator, or fetched to `models/`
+  once by `serve`, before the worker binds, from a configured URL through
+  the kernel's `Governed<Egress>` facade and verified against a pinned
+  digest. `preflight` reports an absent artifact and never fetches. The
+  shipped manifest declares no egress host, and once its artifacts are in
+  place the local provider makes no outbound call at all, which is what
+  makes the privacy claim provable (041). A deployment that fetches grants
+  the artifact host in its own ceiling, which is a reviewable diff.
 - **B-6 (remote is governed).** `RemoteProvider` calls a configured
   endpoint through the kernel's `Governed<Egress>` facade
   (`rahi://015`). Enabling it requires adding the host to the manifest
@@ -151,9 +168,10 @@ which gains its first egress entry only when a remote provider is enabled.
 - **FR-003.** A provider that always errors moves the row to
   `DeadLetter` after the configured attempts, and `preflight` reports a
   non-zero count.
-- **FR-004.** With the local provider selected, a test asserts the process
-  opens no socket during a capture, and the manifest contains no egress
-  host.
+- **FR-004 (amended 2026-10-10, D-33).** With the local provider selected,
+  a test asserts that booting the provider and embedding opens no socket,
+  and that the shipped manifest contains no egress host. The whole-process
+  form, a capture through a booted `serve`, is 020 FR-009.
 - **FR-005.** A remote provider configured but absent from the manifest
   ceiling fails `preflight` with a named capability error.
 - **FR-006.** A query embedded under revision 2 never matches rows stored
@@ -318,47 +336,199 @@ configuration with a pinned digest rather than a spec-level commitment.
   token is a validation error that follows the normal retry and dead-letter
   path. Real-model verification is an ignored test keyed to
   `AICORTEX_TEST_MODEL_DIR`; no test touches the network.
+- **D-23 (2026-10-05, implementation).** Provider configuration is read from
+  `AICORTEX_EMBED_*` variables through rahi's `EnvReader` and resolved once by
+  `EmbeddingConfig::boot`. With no provider selected and no model named the
+  configuration is `Disabled`, not an error: the deployment captures with no
+  embedding work until a model is configured (D-21), and B-5's "local is the
+  default" governs which provider a named model uses, not whether a model
+  must exist. The service name that holds embedding egress grants is
+  `embedding`. `EmbeddingConfig::check` answers the B-5 and B-6 ceiling
+  question from the manifest alone (`Manifest::covers`), opens no socket, and
+  returns a `CapabilityFailure` naming the check (`embedding.remote.egress`,
+  `embedding.weights.egress`, or `embedding.tokenizer.egress`, or the
+  matching `.endpoint` name for a malformed URL, which is never looked up in
+  the manifest), the service, and the host; it converts to `Error::Denied`.
+  Present artifacts need no egress; `check` also verifies them against their
+  pins and reports a mismatch as an integrity error, not a missing grant. It is a plain function so a chassis preflight extension
+  can mount it unchanged; until one exists the application cannot make
+  `preflight` call it.
+- **D-24 (2026-10-05, implementation).** Activation is `activate_provider`:
+  the first provider becomes revision 1; an identical identity keeps the
+  active revision so a restart is a no-op; any other identity becomes the
+  latest recorded revision plus one (D-7). Activation does not enqueue the
+  re-embedding pass, because that pass is bound to one scope (D-17, D-18) and
+  the pipeline holds no scope inventory outside the storage crate's scoped
+  adapter; the per-scope pass stays the explicit `stage_reembedding_batch`
+  step an operator or a scope owner's surface drives.
+- **D-25 (2026-10-05, implementation).** The worker lifecycle is
+  `run_worker(worker, store, settings, shutdown)`: a future that drains, idles,
+  retries store errors after a backoff, and returns a `ServiceReport` when the
+  caller's `shutdown` future resolves. It spawns nothing and holds no handle,
+  so a managed-service host mounts and joins it and no untracked task can
+  outlive its owner. A drain in progress at shutdown may finish for a bounded
+  grace; past it the drain is dropped, which is the induced-crash case the
+  durable queue and its fenced claims already make safe (FR-001).
+- **D-26 (2026-10-05, implementation).** The B-8 revision predicate is
+  `ModelRegistry::vectors`: the caller passes the `ModelRevision` its query
+  embedding was produced under, and the statement matches revision, model
+  identity, width, and normalization together. A vector of another revision
+  is not returned, so it cannot be compared; spec 016's recall must read
+  vectors only through it.
+- **D-27 (2026-10-05, implementation).** The operator verbs of B-9 are routes
+  on the cell's operator surface, not new argv verbs: spec 010 B-3 gives the
+  chassis every verb and the `Cell` trait offers no verb hook, while
+  `operator_routes` is mounted behind the operator role. They are
+  `GET /operator/embedding/status`, `POST .../activate`, `.../reembed`, and
+  `.../drop`, each naming its scope explicitly (D-24). The provider
+  configuration is read from the process environment when the router is
+  built; a malformed configuration is held and reported by each route,
+  because a `Cell` cannot fail while building routes. Activation of a remote
+  provider checks the ceiling and then reports that this build links no remote
+  transport, rather than activating a model nothing can call. Queue gauges in
+  the chassis `/metrics` registry are not wired: D-18 makes queue health
+  scope-bound, and a collector would have to read every scope, which needs the
+  separately authorized operator-wide surface D-18 names.
+- **D-28 (2026-10-10, implementation).** Operator-wide embedding figures are a
+  sum of scoped reads, and `preflight` and the `/metrics` collector are the
+  separately authorized surfaces D-18 requires. `preflight` is an operator
+  verb run on the host with the data directory, the key set, and the
+  deployment environment; no tenant, token, or route reaches it. The
+  collector reports bare aggregates on the chassis scrape endpoint, a probe
+  outside tenant authorization, with no label that names a scope. Neither
+  adds a storage method that reads memories across scopes (012 B-3):
+  `scope_keys_after` reads the `scope` table's keys and nothing else, and
+  every statement that touches `memory` keeps its scope predicate because the
+  walk calls the existing scoped readers once per scope. The walk runs inside
+  a time budget (three seconds in `preflight`, which the chassis bounds at
+  five; ten in the collector) and reports `complete = false` and a "lower
+  bound" line when the budget ends it, never a silently partial total. The
+  scoped routes of D-27 are unchanged. Only counts and ages leave: no scope
+  key, memory identifier, or content. The report readers take the
+  `aicortex_store::ReadStore` trait (query and query_consistent) instead of a
+  `StoreHandle`, so the chassis's query-only `StoreView` can drive them and
+  no reader can write by construction; the application wraps the view in a
+  newtype because the trait and the view are both foreign to it.
+- **D-29 (2026-10-10, implementation).** Worker lifecycle policy. The
+  `embedding-worker` managed service is mounted when the configuration is not
+  `Disabled`. It never returns before `serve` stops it, because the chassis
+  treats an early `Ok` as a stop (rahi 047 B-7) and an `Err` as a failure:
+  every store, boot, or provider error is retried after a pause. With no
+  model active it idles and polls the registry every five seconds, so a fresh
+  deployment captures without jobs (D-21) and the worker binds when an
+  operator activates a model. It binds only when the configured provider
+  produces the active model's vectors (id, width, normalization); the
+  configuration is read once per process, so an active model the
+  configuration does not serve (another node activated it, or the
+  environment changed without an activation) leaves the worker idle and the
+  rows pending, which `preflight` shows. When the active model changes at
+  runtime the bound `run_worker` is stopped, its drain given the bounded
+  grace of D-25, and the service rebinds to the new revision. That grace is
+  five seconds, inside the chassis's ten-second service join. Work staged
+  under a replaced revision is not drained by this process, which retains no
+  provider for the old model; it stays visible as pending (D-10), and the
+  re-embedding pass (D-24) covers the memories under the new revision. A
+  remote provider is never booted, because this build links no remote
+  transport (D-27); the worker idles for it.
+- **D-30 (2026-10-10, implementation).** Boot and preflight policy. `serve`
+  reads the provider configuration in `Cell::services` and runs
+  `EmbeddingConfig::check` against the manifest before any service starts, so
+  a malformed configuration, a remote provider absent from the ceiling, or a
+  local artifact that fails its pin refuses to start with the named error
+  (B-6, FR-005 at boot), superseding D-23's closing sentence. The
+  `app.embedding` check fails on a configuration or ceiling error or an
+  unreadable store, and warns on a non-zero dead-letter count, any readiness
+  warning of the report, a partial walk, or an absent local artifact. "Readiness
+  warning" is a preflight warning and a gauge, not a `/readyz` failure: a
+  dead letter must be loud but must not take a serving cell out of rotation.
+  The chassis skips application checks when the store did not open, so the
+  process-boundary form of FR-005 and AC-2 holds for a deployment that has
+  run `first-boot` and `migrate`.
+- **D-31 (2026-10-10, implementation).** Metrics. The `embedding-metrics`
+  service is mounted whether or not a provider is configured, because dead
+  work outlives the configuration that produced it. It registers
+  `aicortex_embedding_dead_letters`, `aicortex_embedding_pending`, and
+  `aicortex_embedding_oldest_pending_age_seconds` on the chassis registry and
+  refreshes them every thirty seconds from the D-28 walk; a failed refresh
+  keeps the previous values. This supersedes D-27's statement that queue
+  gauges are not wired.
 
-## Status (2026-10-04, in progress: runtime and chassis hooks required)
+- **D-32 (2026-10-10, owner decision).** The one-time model fetch moves
+  from `preflight` to `serve`, superseding D-1's "fetched by `preflight`".
+  Rahi's `preflight` never mutates (`rahi://030` B-3) and its application
+  checks receive no kernel (`rahi://049`), so a fetch there could be neither
+  written nor adjudicated. `serve` has both. When a local artifact is absent
+  or fails its pin, `Cell::services` builds the `embedding` service's
+  `Governed<Egress>` facade and the worker, before it binds, admits each
+  artifact's host through the kernel and downloads it with the HTTPS client
+  of `apps/aicortex/src/embedding_fetch.rs`, the cell's one governed egress
+  call site (spec 010 B-8). That client refuses redirects and proxies, ends
+  the download at the 1 GiB artifact bound, and is shown the kernel's
+  `Permit` rather than a URL, so a request reaches only the admitted host.
+  The bytes are verified against the pin before the rename (`ensure_weights`).
+  A failed fetch is written to the process log and retried, the pause
+  doubling from the worker's five-second error backoff to a five-minute cap,
+  so a wrong pin does not re-download on a fixed beat. Until it succeeds
+  nothing binds and `preflight` keeps warning that the artifact is absent.
+  Because redirects are refused, the configured URL must name the host that
+  serves the bytes, not one that redirects to a CDN. The privacy claim is unchanged: the shipped manifest grants no host,
+  so a deployment that has not widened its ceiling makes no outbound call, and
+  `serve` refuses to start when an absent artifact's host is not granted
+  (D-30). D-1's reasons stand: the image stays small and the fetch remains a
+  verified, one-time, reportable step.
+- **D-33 (2026-10-10, owner decision).** FR-004's whole-process form moves
+  to 020 as its FR-009. A capture route is what that test drives, and 020
+  creates the first one. Under the build order of 020 D-3, 020 depends on
+  this spec, so keeping that form here would leave 015 open with nothing
+  able to close it. This spec keeps the embedding-path probe and the
+  manifest assertion.
 
-The provider contracts, bounded chunking, monotonic model registry,
-revision-partitioned durable worker, erasure integration and capture-staging
-primitive,
-re-embedding scheduler, artifact verification, governed remote boundary, and
-preflight report are implemented and locally verified. The erasure transaction
-also removes pending, claimed, failed, and dead embedding work plus its attempt
-history, so an in-flight stale worker cannot recreate vectors after erasure.
+## Status (2026-10-10, complete)
 
-The spec is not complete. `aicortex serve` still lacks provider configuration,
-a concrete local inference engine, first-activation and model-change wiring,
-the managed background-worker lifecycle, and the re-embed and drop operator
-verbs (B-2, B-4, B-5, B-6, B-9). The product preflight report can read the
-active revision, scope-bound queue counts and oldest-pending age, and
-per-scope coverage, but the pinned chassis has no product preflight extension
-hook through which to invoke it without violating spec 010 B-3 and B-6. Rahi
-0.4.0 also does not expose tenant-level queue counts or a product collector
-hook in the chassis `/metrics` registry (B-3). Expected quarantine dead letters
-are reported separately from failed work and do not degrade readiness. An
-inactive revision's queued work completes as a terminal no-op, so a
-scope-local drop does not consult another scope's queue counts.
+Implemented and locally verified on rahi 0.6.0: the provider contracts,
+bounded chunking, the monotonic model registry, the revision-partitioned
+durable worker, erasure integration and capture staging, the re-embedding
+scheduler, artifact verification, the governed remote boundary, the operator
+routes (D-27), the chassis hooks (D-29, D-30, D-31), and the governed model
+fetch at `serve` boot (D-32).
 
-Every memory write, standalone capture and host insert alike, stages
-embedding work whenever a model is active (D-21). The current application has
-no first-activation wiring, so a fresh deployment captures without jobs until
-an operator activates a model and the re-embedding pass covers those
-memories.
+- **Worker lifecycle (B-2).** `Cell::services` mounts `embedding-worker` as a
+  managed service when a provider is configured, with its stop wired to the
+  chassis `ServiceShutdown` (D-25, D-29). A test starts it with no model
+  active, activates the configured model, stages a memory, sees the vector
+  committed, and sees `Ok` only after the stop.
+- **Product preflight (B-3, AC-2, FR-003, FR-005).** `Cell::preflight_checks`
+  contributes `app.embedding` (D-30): the configuration against the ceiling
+  with the named capability error, the active revision, pending, dead-letter,
+  and quarantined counts, the oldest pending age, and coverage per revision,
+  warning on a dead letter. Through the real binary, a remote provider missing
+  from the ceiling fails `preflight` and `serve` with
+  `embedding.remote.egress`.
+- **Metrics (B-3).** The dead-letter, pending, and oldest-pending-age gauges
+  are on the chassis `/metrics` registry (D-31).
+- **Model fetch (B-5, D-32).** `apps/aicortex/tests/embedding_fetch.rs` boots
+  a real kernel and a loopback TLS mirror. Absent artifacts are fetched once
+  through the admitted host and verified, and a second pass fetches nothing.
+  Bytes that miss the pin are not installed, and an ungranted host is denied
+  before any request. The transport refuses a redirect and an oversized body,
+  and a worker given absent artifacts fetches them before it binds.
+- **FR-004 (D-33).** The shipped manifest declares no egress, and booting the
+  local provider and embedding opens no socket. The whole-process form is
+  020 FR-009.
 
-FR-002 and FR-007 have direct tests. FR-003 has direct dead-letter transition
-and library report coverage, but its application preflight reporting path
-remains open with the chassis hook. FR-001, FR-004, FR-005, and FR-006 also
-remain open: there is no induced worker-crash test, and there is no booted
-local-provider socket probe, denied-host application preflight fixture, or
-query predicate until the runtime wiring and spec 016 recall implementation
-exist. These are recorded as open requirements, not inferred from lower-level
-unit tests.
+Requirement status: B-2, B-3, B-5, AC-1, AC-2, and FR-001 to FR-007 are
+satisfied and tested. One limit is known: work staged under a replaced
+revision is not drained by the process that replaced it (D-29), and stays
+visible as pending.
+
+Every memory write, standalone capture and host insert alike, stages embedding
+work whenever a model is active (D-21). A fresh deployment captures without
+jobs until an operator activates a model and runs the re-embedding pass for
+each scope, which covers memories written while no model was active.
 
 ## Verification
 
 ```verify:cli
 cargo test -p aicortex-embed --locked
+cargo test -p aicortex --locked --test embedding --test embedding_fetch --test embedding_process
 ```
