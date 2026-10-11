@@ -290,7 +290,9 @@ manifest will eventually declare. The reference deployment (044).
   to 0.8 with default features disabled and only `alloc` enabled. The
   embedding loader consumes in-memory `SafeTensors::deserialize`; it needs
   no file serialization API. Disabling `std` excludes safetensors' tempfile
-  dependency and file-writing implementation. Rejected: enabling the
+  dependency and file-writing implementation. safetensors still declares
+  a macOS-specific `libc` dependency independently of its features; the
+  lockfile reuses the workspace's existing libc 0.2.189. Rejected: enabling the
   default feature set and relying solely on callers avoiding that API.
   Refresh tokio to 1.53.2 and uuid to 1.28.0 in the same grouped lockfile
   update, without changing the chassis pins or supply-chain policy.
