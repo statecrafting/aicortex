@@ -215,10 +215,10 @@ fn b2_the_workspace_pins_nine_rahi_crates_to_one_exact_version() -> Outcome {
     Ok(())
 }
 
-/// Spec 046 FR-001: the version every rahi package resolves to. The exact
-/// pin of B-2 is a requirement; this is what `cargo metadata --locked` says
-/// the requirement produced.
-const RAHI_VERSION: &str = "0.4.0";
+/// Spec 046 FR-001, at the version spec 058 FR-001 sets: the version every
+/// rahi package resolves to. The exact pin of B-2 is a requirement; this is
+/// what `cargo metadata --locked` says the requirement produced.
+const RAHI_VERSION: &str = "0.6.0";
 
 #[test]
 fn fr001_046_every_rahi_package_resolves_to_one_version() -> Outcome {
@@ -434,11 +434,12 @@ fn fr003_ac3_preflight_on_an_empty_data_directory_fails_only_keys() -> Outcome {
         })
         .collect();
     let names: Vec<&str> = checks.iter().map(|(_, name)| *name).collect();
-    assert_eq!(
-        names,
-        rahi_ops::preflight::CHECKS.to_vec(),
-        "report:\n{report}"
-    );
+    // The chassis's checks, then the cell's own (rahi spec 049 B-1): the
+    // embedding check of spec 015, which is skipped while the store is not
+    // open.
+    let mut expected = rahi_ops::preflight::CHECKS.to_vec();
+    expected.push("app.embedding");
+    assert_eq!(names, expected, "report:\n{report}");
 
     let failed: Vec<&str> = checks
         .iter()
@@ -448,7 +449,7 @@ fn fr003_ac3_preflight_on_an_empty_data_directory_fails_only_keys() -> Outcome {
     assert_eq!(failed, vec!["keys"], "report:\n{report}");
 
     // Nothing that listens was opened: the store and rauthy were skipped.
-    for name in ["hiqlite", "rauthy"] {
+    for name in ["hiqlite", "rauthy", "app.embedding"] {
         assert!(
             checks.contains(&("SKIP", name)),
             "{name} was not skipped:\n{report}"
@@ -475,9 +476,9 @@ const ROUTER_HOMES: [&str; 3] = [
     "crates/aicortex-mcp/",
 ];
 
-/// The governed egress call sites. None exists before a spec declares an
-/// egress host (B-4).
-const EGRESS_SITES: [&str; 0] = [];
+/// The governed egress call sites: the one-time model fetch of spec 015
+/// D-32, which builds its client only to show it a kernel permit.
+const EGRESS_SITES: [&str; 1] = ["apps/aicortex/src/embedding_fetch.rs"];
 
 /// B-8 over one source file: every line that reimplements the chassis.
 fn reimplementation_problems(path: &str, source: &str) -> Vec<String> {

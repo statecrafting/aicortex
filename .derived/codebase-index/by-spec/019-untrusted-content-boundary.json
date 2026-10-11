@@ -1,19 +1,37 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '019-untrusted-content-boundary' file unit 'crates/aicortex-recall/src/lib.rs' does not exist",
-        "path": "crates/aicortex-recall/src/lib.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
-      "018-retrieval-and-recall-trace"
+      "015-embedding-pipeline"
     ],
     "implementingPaths": [
+      {
+        "path": ".claude/rules/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/aicortex-recall/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/src/envelope.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/tests/boundary.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-types/src/trust.rs",
         "source": "spec-edge"
@@ -21,7 +39,141 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/envelope.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/envelope.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/tests/boundary.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/tests/boundary.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": ".claude/rules/"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": ".claude/rules/"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "supersedes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "supersedes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "constrains",
         "unit": {
@@ -47,5 +199,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "acaa35f7c561e3c89cf66ae8a608593ebfa1e5558568c6628254917612147462"
+  "shardHash": "48d569e1437d2795a9400a0ad8598aecdf5c9405351884dd0c55bfb8c4fb7c3a"
 }

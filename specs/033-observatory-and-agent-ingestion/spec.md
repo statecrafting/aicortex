@@ -116,6 +116,18 @@ as a design position.
   changes without notice and is unavailable for three of the four target
   clients.
 
+- **D-2 (2026-10-10, owner decision, F-12 direction).** Statecraft
+  DecisionBundles and statecraft-cli receipts are a producer of this spec's
+  push contract, one-way and read-only: aicortex accepts them over
+  this spec's ingest routes under `/api/v1/ingest` as untrusted evidence whose
+  content digest is verified on ingest, and never writes back into
+  Statecraft. A bundle's decisions map under B-3 and B-7: evidence about
+  what a session decided, never authority, and never promotable by its
+  producer. Agents recall them through MCP (021). The wire contract waits
+  until Statecraft spec 005 is complete; until then no Statecraft-specific
+  schema enters `session-event.schema.json`, and claude-observatory stays
+  the first producer (B-8).
+
 ## Verification
 
 ```verify:cli

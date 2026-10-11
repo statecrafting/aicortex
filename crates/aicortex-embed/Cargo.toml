@@ -24,7 +24,7 @@ unicode-general-category = { workspace = true }
 unicode-normalization = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-tokio = { workspace = true, features = ["time"] }
+tokio = { workspace = true, features = ["time", "macros"] }
 
 half = { workspace = true }
 ndarray = { workspace = true }

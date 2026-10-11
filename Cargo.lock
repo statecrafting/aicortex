@@ -18,6 +18,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "action-gate-core"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "462261da44651a95c079c2e4a9f5f777eaa1bb22f76157bf70bc04b8e9a6e2b3"
+dependencies = [
+ "action-gate-types",
+ "canonical-keysort-json",
+ "hex",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
 name = "action-gate-types"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -126,14 +140,25 @@ dependencies = [
 name = "aicortex"
 version = "0.1.0"
 dependencies = [
+ "aicortex-embed",
  "aicortex-store",
+ "aicortex-types",
  "axum",
+ "axum-server",
+ "prometheus",
  "rahi-cli",
  "rahi-edge",
  "rahi-kernel",
+ "rahi-ledger",
  "rahi-ops",
  "rahi-store",
  "rahi-types",
+ "rcgen",
+ "reqwest",
+ "ring",
+ "rustls",
+ "safetensors",
+ "serde",
  "serde_json",
  "tempfile",
  "tokio",
@@ -202,7 +227,7 @@ dependencies = [
 name = "aicortex-gate"
 version = "0.1.0"
 dependencies = [
- "action-gate-core",
+ "action-gate-core 0.3.0",
  "aicortex-claims",
  "aicortex-embed",
  "aicortex-store",
@@ -217,6 +242,16 @@ dependencies = [
  "tokio",
  "trybuild",
  "unicode-normalization",
+]
+
+[[package]]
+name = "aicortex-recall"
+version = "0.1.0"
+dependencies = [
+ "aicortex-types",
+ "rahi-types",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -2924,9 +2959,9 @@ checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
 name = "opentelemetry"
-version = "0.32.0"
+version = "0.33.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0142c63252a9e054e68a4c61a5778f7b14f576274d593f8ce883d191a099682"
+checksum = "8c1f1a6ac9c875a4941e4c7c085b61e8f4daa326de03b4701768c3491a6ad9ee"
 dependencies = [
  "futures-core",
  "futures-sink",
@@ -2938,9 +2973,9 @@ dependencies = [
 
 [[package]]
 name = "opentelemetry-otlp"
-version = "0.32.0"
+version = "0.33.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9966929966d17620d7c316c643ba62631826e10021409357772d5eea84f62c35"
+checksum = "0756af24841e367128ef31c831999937b8b5c5197d47914590d8f4e2e88c2e1a"
 dependencies = [
  "http",
  "opentelemetry",
@@ -2955,9 +2990,9 @@ dependencies = [
 
 [[package]]
 name = "opentelemetry-proto"
-version = "0.32.0"
+version = "0.33.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56d658ba1faf63f7b9c492cfbe6e0ec365440a16132d3270c1065f7b33f1b638"
+checksum = "d576f5dddc3299341bcd85a04be17b2564844c0c9563214f02d85f2524d1afae"
 dependencies = [
  "opentelemetry",
  "opentelemetry_sdk",
@@ -2968,9 +3003,9 @@ dependencies = [
 
 [[package]]
 name = "opentelemetry_sdk"
-version = "0.32.1"
+version = "0.33.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b59f80e1ac4d5ff7a2db8fb6c80badb7f0f3f858211fba08dd9aaec750894f9"
+checksum = "372a912db2974d1990207006fd0e3aa0ef3fd4ad3be43c65cfaadf2206866061"
 dependencies = [
  "futures-channel",
  "futures-executor",
@@ -3419,9 +3454,9 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rahi-cli"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "197c61555b627677a0d7cfe290c011aabafd3355225d396d0ca9b7aa1d9bb250"
+checksum = "08a30cf6611305726c92e0fe99727817c4206afa36f2a6df6c44eba98c57ad2b"
 dependencies = [
  "axum",
  "rahi-edge",
@@ -3437,12 +3472,12 @@ dependencies = [
 
 [[package]]
 name = "rahi-edge"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6140d599ff1adbb8e5114901077232ef13be6ff6311c08077233163ee84e294"
+checksum = "2edbed23154a71baa8a5c1a9d2e0760bc9de0987e159cc2943b34264fd2f4223"
 dependencies = [
  "axum",
- "base64 0.22.1",
+ "base64 0.23.1",
  "futures-core",
  "getrandom 0.4.3",
  "opentelemetry",
@@ -3455,7 +3490,7 @@ dependencies = [
  "rahi-types",
  "serde_json",
  "tokio",
- "tower-http",
+ "tower-http 0.7.1",
  "tracing",
  "tracing-opentelemetry",
  "tracing-subscriber",
@@ -3463,12 +3498,12 @@ dependencies = [
 
 [[package]]
 name = "rahi-idp"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "483f8f93940335df41d2247d8f1aafe102e3cc4a8e1a194113b61eed981c3c32"
+checksum = "6da9001235082404dee8276faa2016b4497c6efec03f4e181df59619ad4537dd"
 dependencies = [
  "axum",
- "base64 0.22.1",
+ "base64 0.23.1",
  "getrandom 0.4.3",
  "rahi-kernel",
  "rahi-store",
@@ -3483,11 +3518,11 @@ dependencies = [
 
 [[package]]
 name = "rahi-kernel"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54b2d1e32f398a41613610bf67a32e4363bd631b4ba263892ba79fdbda20b208"
+checksum = "e7e577ae62583b41c36a86ac92c841facb52694d589a593d84c073f4c25e2599"
 dependencies = [
- "action-gate-core",
+ "action-gate-core 0.2.0",
  "action-gate-types",
  "canonical-keysort-json",
  "rahi-ledger",
@@ -3502,14 +3537,14 @@ dependencies = [
 
 [[package]]
 name = "rahi-ledger"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ea6d63843ba561b51e20460af0599113c03b32a5d8a1f08eaa4e9cb2f46794e"
+checksum = "952f5bfbcf713c8b9f4febad833b531000868ef7153daeb1a3f6cab5c98ca8a7"
 dependencies = [
  "async-trait",
  "attest-ledger-core",
  "attest-ledger-types",
- "base64 0.22.1",
+ "base64 0.23.1",
  "canonical-keysort-json",
  "ed25519-dalek",
  "rahi-store",
@@ -3524,12 +3559,12 @@ dependencies = [
 
 [[package]]
 name = "rahi-ops"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9833623e7fc3d75a7d84664c275c0dd73062be9f245fc3056df6e3ec25899107"
+checksum = "8de9c6e4cb24926ac56f86cffeb2d0719dc043bccf1c127db83b36b593804627"
 dependencies = [
  "age",
- "base64 0.22.1",
+ "base64 0.23.1",
  "fs4",
  "getrandom 0.4.3",
  "nix",
@@ -3551,9 +3586,9 @@ dependencies = [
 
 [[package]]
 name = "rahi-store"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "447d101b9f06c56a91aea16f64e778b874b9f16b9c2a3bdbda1a7b1903aa1fd9"
+checksum = "59f167d26959c4d7d5807fea2ea82328dcb693c50135f5e0ac58a0161c3db6a4"
 dependencies = [
  "attest-ledger-core",
  "futures-core",
@@ -3566,9 +3601,9 @@ dependencies = [
 
 [[package]]
 name = "rahi-types"
-version = "0.4.0"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38f54dc6d2dfda490c81330b97105e09c154b01b8549d9c8aa89fef396ec6269"
+checksum = "d08efc5b7a805d4610d7bfa90e7a585b6f3a70eaeebdab14a8655aad96ec7d3c"
 dependencies = [
  "serde",
 ]
@@ -3771,7 +3806,7 @@ dependencies = [
  "tokio-rustls",
  "tokio-util",
  "tower",
- "tower-http",
+ "tower-http 0.6.11",
  "tower-service",
  "url",
  "wasm-bindgen",
@@ -4818,6 +4853,28 @@ dependencies = [
  "http",
  "http-body",
  "http-body-util",
+ "pin-project-lite",
+ "tokio",
+ "tokio-util",
+ "tower",
+ "tower-layer",
+ "tower-service",
+ "url",
+]
+
+[[package]]
+name = "tower-http"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "08a05a66a4fdd61cbbe0a1d755ffe0ca6aba159dd4820936a0ff8a8278245b9c"
+dependencies = [
+ "bitflags",
+ "bytes",
+ "futures-core",
+ "futures-util",
+ "http",
+ "http-body",
+ "http-body-util",
  "http-range-header",
  "httpdate",
  "mime",
@@ -4826,10 +4883,8 @@ dependencies = [
  "pin-project-lite",
  "tokio",
  "tokio-util",
- "tower",
  "tower-layer",
  "tower-service",
- "url",
 ]
 
 [[package]]
@@ -4900,9 +4955,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-opentelemetry"
-version = "0.33.0"
+version = "0.34.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adbc64cba7137545b8044cb1fe9814f7aacf3c6b5f9b45be8bb5db538befdb26"
+checksum = "0a904802a1b902f43638b677ff2a650847e3b4404101b6c586d648e8c1e3e8fe"
 dependencies = [
  "js-sys",
  "opentelemetry",

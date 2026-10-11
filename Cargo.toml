@@ -23,15 +23,15 @@ authors = ["Bartek Kus"]
 # all-nine-together adoption; spec 014 moves them to released rahi v0.4.0.
 # A chassis bump is a single change to
 # these nine lines that revisits deny.toml with it (D-8).
-rahi-types = "=0.4.0"
-rahi-store = "=0.4.0"
-rahi-ledger = "=0.4.0"
-rahi-kernel = "=0.4.0"
-rahi-idp = "=0.4.0"
-rahi-edge = "=0.4.0"
-rahi-ops = "=0.4.0"
-rahi-harness = "=0.4.0"
-rahi-cli = "=0.4.0"
+rahi-types = "=0.6.0"
+rahi-store = "=0.6.0"
+rahi-ledger = "=0.6.0"
+rahi-kernel = "=0.6.0"
+rahi-idp = "=0.6.0"
+rahi-edge = "=0.6.0"
+rahi-ops = "=0.6.0"
+rahi-harness = "=0.6.0"
+rahi-cli = "=0.6.0"
 
 # The router type the Cell returns (B-3). The chassis's edge is built on it,
 # and this is the version rahi locks, so the workspace adds no second copy
@@ -61,12 +61,13 @@ aicortex-store = { path = "crates/aicortex-store", version = "=0.1.0" }
 aicortex-gate = { path = "crates/aicortex-gate", version = "=0.1.0" }
 aicortex-claims = { path = "crates/aicortex-claims", version = "=0.1.0" }
 aicortex-embed = { path = "crates/aicortex-embed", version = "=0.1.0" }
+aicortex-recall = { path = "crates/aicortex-recall", version = "=0.1.0" }
 
 # The family's secret detector registry (spec 047): aicortex-gate consumes
 # its tables and scan instead of keeping its own. Exact pin, as the chassis
 # is (047 B-4); default features only, so no `regex` (action-gate 001 D-1).
 # `golden-vectors` is enabled by aicortex-gate's tests alone.
-action-gate-core = { version = "=0.2.0", default-features = false }
+action-gate-core = { version = "=0.3.0", default-features = false }
 
 # The wire the round-trip fixtures of 011 are written in, and the canonical
 # form spec 012 D-3 stores a memory record as. The chassis locks it already.
@@ -112,6 +113,24 @@ chrono-tz = { version = "0.10", default-features = false, features = ["std"] }
 # against rahi's single-voter node.
 trybuild = "1"
 tokio = { version = "1", default-features = false, features = ["macros", "rt-multi-thread"] }
+
+# The embedding gauges of spec 015 B-3. The chassis owns the `/metrics`
+# registry and locks this version without default features; the application
+# registers its own collectors on that registry, so it needs the type.
+prometheus = { version = "0.14", default-features = false }
+
+# The one-time model fetch of spec 015 B-5 (D-32): an HTTPS client used only
+# at the governed egress call site, after the kernel has admitted the host.
+# rahi ships no client by design (its `Permit` is shown to the caller's own),
+# and this is the version and TLS stack hiqlite already locks, so it adds no
+# tree. Tests only: `rcgen` and `axum-server` stand up the TLS mirror the
+# fetch test downloads from, at the versions hiqlite carries.
+reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
+rcgen = "0.14"
+axum-server = { version = "0.8", features = ["tls-rustls"] }
+# The mirror selects its TLS provider explicitly, because the tree enables
+# both of rustls's and none is chosen for a server by default.
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
 
 ndarray = { version = "0.17", default-features = false, features = ["std"] }
 safetensors = "0.7"

@@ -687,6 +687,17 @@ approves this spec, which stays `draft`.
   stays `pending`, the spec keeps its wave 4 place in the build order, and
   P-2 and P-3 remain proposals.
 
+- **D-19 (2026-10-10, owner decision, F-12 direction).** aicortex ingests
+  Statecraft DecisionBundles and statecraft-cli receipts one-way and
+  read-only, as untrusted evidence verified by digest. aicortex never
+  writes into Statecraft and holds no decision authority over it: a
+  recalled bundle or receipt is data under 019, never an approval, a merge
+  instruction, or a launch (P-3 stands). Local agent recall of that
+  evidence goes through MCP (021); machine intake goes through HTTP (020,
+  033). The wire contract (field set, digest algorithm, and the bundle
+  identity this spec records) waits until Statecraft spec 005 is complete,
+  and no schema for it is written here before then.
+
 ## Verification
 
 These are implementation acceptance, deliberately not run successfully by

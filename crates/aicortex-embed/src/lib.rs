@@ -9,22 +9,37 @@
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
 
+pub mod activation;
 pub mod chunk;
+pub mod config;
+pub mod deployment;
 pub mod local;
 pub mod migrations;
+pub mod operator;
 pub mod provider;
 pub mod registry;
 pub mod remote;
+pub mod service;
 pub mod static_model;
 pub mod wordpiece;
 pub mod worker;
 
+pub use activation::{Activation, activate_provider};
 pub use chunk::{Chunk, ChunkConfig, Chunker};
+pub use config::{
+    CapabilityFailure, ConfiguredProvider, EMBEDDING_SERVICE, EmbeddingConfig, LocalConfig,
+    ModelShape, NoTransport, RemoteConfig,
+};
+pub use deployment::DeploymentHealth;
 pub use local::{LocalEngine, LocalProvider, WeightArtifact, WeightFetcher};
 pub use migrations::{EMBEDDING_MIGRATION_VERSION, migration};
 pub use provider::{EmbeddingProvider, ModelId, Vector};
-pub use registry::{Coverage, ModelRegistry, ModelRevision};
+pub use registry::{Coverage, ModelRegistry, ModelRevision, StoredVector};
 pub use remote::{EmbeddingTransport, RemoteProvider};
+pub use service::{
+    ServiceReport, ServiceSettings, default_chunk_config, default_chunker, default_worker_config,
+    run_worker, unix_now,
+};
 pub use static_model::StaticEmbeddingEngine;
 pub use wordpiece::WordPiece;
 pub use worker::{

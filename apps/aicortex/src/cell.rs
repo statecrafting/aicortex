@@ -8,10 +8,16 @@
 
 #![forbid(unsafe_code)]
 
+mod embedding;
+pub mod embedding_fetch;
+pub mod embedding_preflight;
+pub mod embedding_service;
+
 use axum::Router;
-use rahi_cli::Cell;
+use rahi_cli::{AppCheck, Cell, ManagedService, ServiceShutdown};
 use rahi_edge::AppState;
 use rahi_store::{Migration, MigrationSet};
+use rahi_types::Result;
 
 /// The cell.
 ///
@@ -53,9 +59,26 @@ impl Cell for Aicortex {
     }
 
     /// The operator surface, mounted by the chassis behind the operator
-    /// role. Empty until a spec adds an operator route.
+    /// role. Spec 015 adds the embedding verbs (activate, re-embed, drop,
+    /// status); the provider configuration is read from the process
+    /// environment once, here.
     fn operator_routes(state: AppState) -> Router {
-        let _ = state;
-        Router::new()
+        let embedding = embedding::Embedding::new(state, &rahi_cli::process_env());
+        embedding::mount(Router::new()).with_state(embedding)
+    }
+
+    /// The embedding preflight check (spec 015 B-3, AC-2, FR-005): the
+    /// configured provider against the manifest ceiling, then the active
+    /// revision, queue health, and coverage from the read-only store view.
+    fn preflight_checks() -> Vec<AppCheck> {
+        vec![embedding_preflight::check()]
+    }
+
+    /// The embedding worker and its metrics collector as managed services
+    /// (spec 015 B-2, D-25). A malformed or un-admitted provider configuration
+    /// fails the composition, so `serve` refuses to start rather than failing
+    /// at first use.
+    fn services(state: AppState, shutdown: ServiceShutdown) -> Result<Vec<ManagedService>> {
+        embedding_service::compose(&state, &shutdown, &rahi_cli::process_env())
     }
 }
