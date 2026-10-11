@@ -174,8 +174,12 @@ fn empty_and_multiple_batches_keep_framing_and_input_order() -> Outcome {
 fn raw_body_serialization(source: &str) -> bool {
     let compact: String = source.chars().filter(|c| !c.is_whitespace()).collect();
     [
-        "serialize_field(\"body\"",
-        "\"body\":",
+        "serialize_field(\"body\",&memory.body",
+        "serialize_field(\"body\",&record.body",
+        "\"body\":memory.body",
+        "\"body\":&memory.body",
+        "\"body\":record.body",
+        "\"body\":&record.body",
         "Json(memory)",
         "Json(&memory)",
         "Json(memory.body",
@@ -229,6 +233,7 @@ fn fr003_outbound_body_serialization_has_one_boundary_site() -> Outcome {
     for name in ["recall", "api", "mcp", "curate", "ingest"] {
         audit_sources(&root.join(format!("crates/aicortex-{name}/src")), &boundary)?;
     }
+    audit_sources(&root.join("apps/aicortex/src"), &boundary)?;
     for prohibited in [
         "serde_json::to_value(&memory.body)?",
         "Json ( memory )",
@@ -251,8 +256,18 @@ fn fr003_outbound_body_serialization_has_one_boundary_site() -> Outcome {
             )));
         }
     }
-    assert!(!raw_body_serialization(
-        "frame_memories([EnvelopeInput::new(&memory, false)])?"
-    ));
+    for allowed in [
+        "frame_memories([EnvelopeInput::new(&memory, false)])?",
+        "json!({\"body\": \"health check\"})",
+        "json!({\"body\": response.payload})",
+        "state.serialize_field(\"body\", &response.payload)?",
+        "serde_json::to_writer(&mut output, &framed)?",
+        "serde_json::to_writer_pretty(&mut output, &framed)?",
+    ] {
+        assert!(
+            !raw_body_serialization(allowed),
+            "unrelated body site: {allowed}"
+        );
+    }
     Ok(())
 }

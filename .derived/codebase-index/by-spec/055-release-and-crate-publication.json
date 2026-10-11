@@ -1,0 +1,179 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '055-release-and-crate-publication' file unit '.github/workflows/release.yml' does not exist",
+        "path": ".github/workflows/release.yml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '055-release-and-crate-publication' file unit 'scripts/release-check.sh' does not exist",
+        "path": "scripts/release-check.sh"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '055-release-and-crate-publication' file unit 'docs/release.md' does not exist",
+        "path": "docs/release.md"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '055-release-and-crate-publication' file unit 'CHANGELOG.md' does not exist",
+        "path": "CHANGELOG.md"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "053-host-library-mode"
+    ],
+    "implementingPaths": [
+      {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-claims/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/Cargo.toml",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": ".github/workflows/release.yml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "CHANGELOG.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "docs/release.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "scripts/release-check.sh"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-claims/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-gate/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml",
+            "span": {
+              "endLine": 19,
+              "startLine": 13
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "anchor": "workspace.package",
+          "file": "Cargo.toml",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/053-host-library-mode/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/053-host-library-mode/spec.md"
+        }
+      }
+    ],
+    "specId": "055-release-and-crate-publication",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "6b6f0066506c43421fdb0b43646addca89b9df85239ed1f66fa24325ff9538fe"
+}
