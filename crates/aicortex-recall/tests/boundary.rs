@@ -180,15 +180,26 @@ fn raw_body_serialization(source: &str) -> bool {
         "Json(&memory)",
         "Json(memory.body",
         "Json(&memory.body",
-        "serde_json::to_value(memory",
-        "serde_json::to_value(&memory",
-        "serde_json::to_string(memory",
-        "serde_json::to_string(&memory",
-        "serde_json::to_vec(memory",
-        "serde_json::to_vec(&memory",
     ]
     .iter()
     .any(|needle| compact.contains(needle))
+        || ["to_value", "to_string", "to_string_pretty", "to_vec"]
+            .iter()
+            .any(|name| {
+                ["memory", "&memory"]
+                    .iter()
+                    .any(|value| compact.contains(&format!("serde_json::{name}({value}")))
+            })
+        || ["to_writer", "to_writer_pretty"].iter().any(|name| {
+            compact
+                .split(&format!("serde_json::{name}("))
+                .skip(1)
+                .any(|call| {
+                    call.split_once(',').is_some_and(|(_, value)| {
+                        value.starts_with("memory") || value.starts_with("&memory")
+                    })
+                })
+        })
 }
 
 fn audit_sources(path: &Path, boundary: &Path) -> Outcome {
@@ -225,6 +236,20 @@ fn fr003_outbound_body_serialization_has_one_boundary_site() -> Outcome {
         "json!({\"body\": record.body})",
     ] {
         assert!(raw_body_serialization(prohibited));
+    }
+    for name in ["to_value", "to_string", "to_string_pretty", "to_vec"] {
+        for value in ["memory", "&memory", "memory.body", "&memory.body"] {
+            assert!(raw_body_serialization(&format!(
+                "serde_json::{name}({value})?"
+            )));
+        }
+    }
+    for name in ["to_writer", "to_writer_pretty"] {
+        for value in ["memory", "&memory", "memory.body", "&memory.body"] {
+            assert!(raw_body_serialization(&format!(
+                "serde_json::{name}(&mut output, {value})?"
+            )));
+        }
     }
     assert!(!raw_body_serialization(
         "frame_memories([EnvelopeInput::new(&memory, false)])?"

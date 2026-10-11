@@ -7,6 +7,5 @@
 pub mod envelope;
 
 pub use envelope::{
-    EnvelopeInput, FRAMING_STATEMENT, FRAMING_VERSION, FramedMemories, MemoryEnvelope,
-    frame_memories,
+    EnvelopeInput, FRAMING_STATEMENT, FRAMING_VERSION, FramedMemories, frame_memories,
 };

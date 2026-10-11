@@ -36,13 +36,7 @@ impl<'a> EnvelopeInput<'a> {
 /// There is no raw-text accessor, deserializer, public constructor, or
 /// standalone serializer. Only a framed batch can be serialized, so callers
 /// cannot accidentally omit the framing sentence.
-///
-/// ```compile_fail
-/// use aicortex_recall::MemoryEnvelope;
-/// fn serializable<T: serde::Serialize>() {}
-/// serializable::<MemoryEnvelope>();
-/// ```
-pub struct MemoryEnvelope {
+struct MemoryEnvelope {
     text: String,
 }
 
