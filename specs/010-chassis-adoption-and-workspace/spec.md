@@ -286,6 +286,15 @@ manifest will eventually declare. The reference deployment (044).
   the approved text and this entry records that authority rather than
   assuming it.
 
+- **D-10 (2026-10-10, dependency maintenance, PR 63).** Update safetensors
+  to 0.8 with default features disabled and only `alloc` enabled. The
+  embedding loader consumes in-memory `SafeTensors::deserialize`; it needs
+  no file serialization API. Disabling `std` excludes safetensors' tempfile
+  dependency and file-writing implementation. Rejected: enabling the
+  default feature set and relying solely on callers avoiding that API.
+  Refresh tokio to 1.53.2 and uuid to 1.28.0 in the same grouped lockfile
+  update, without changing the chassis pins or supply-chain policy.
+
 ## Status (2026-09-17, complete: the chassis release landed)
 
 rahi published all nine crates at `0.1.0`, none yanked, tagged `v0.1.0`. The
