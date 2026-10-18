@@ -1,7 +1,7 @@
 ---
 id: "057-action-gate-closed-evaluation-adoption"
 title: "Sequence the write gate and claim admission with action-gate's closed evaluation mode"
-status: draft
+status: approved
 kind: "feature"
 domain: "memory"
 created: "2026-10-07"
