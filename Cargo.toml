@@ -133,7 +133,7 @@ axum-server = { version = "0.8", features = ["tls-rustls"] }
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
 
 ndarray = { version = "0.17", default-features = false, features = ["std"] }
-safetensors = "0.7"
+safetensors = { version = "0.8", default-features = false, features = ["alloc"] }
 # Unicode general categories for the WordPiece normalizer (015 D-22): BERT strips
 # category Mn after NFD and splits on category P, so the exact tables matter.
 unicode-general-category = "1"
