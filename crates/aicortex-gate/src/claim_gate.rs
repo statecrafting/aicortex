@@ -26,6 +26,12 @@
 //!
 //! No step reads a score except step 6, which is what B-6's perturbation
 //! test holds.
+//!
+//! The ten steps are the required checks of one closed action-gate gate
+//! (spec 057), registered in this order under the ids of [`CLAIM_STEPS`]. A
+//! refusal ends the walk; the ground's hold does not, so a refusal outranks
+//! it; and a missing step refuses. Building the [`AdmittedClaim`] (its
+//! relations, conflicts and corrections) follows the walk's admission.
 
 use std::collections::BTreeMap;
 
@@ -38,8 +44,9 @@ use aicortex_types::{
 use rahi_types::Sub;
 use serde::{Deserialize, Serialize};
 
-use crate::rules::DetectorId;
+use crate::rules::{DetectorId, SecretRules};
 use crate::verdict::{DigestRef, LedgerEntry};
+use crate::walk::{self, Judged, Step, Walked};
 
 /// The decision kind of one admission batch (B-11).
 pub const KIND_CLAIM_BATCH: &str = "claims.admission.batch";
@@ -610,166 +617,27 @@ impl crate::Gate {
         policy: &AdmissionPolicy,
         context: &ClaimContext,
     ) -> Judgement {
-        let claim = &proposal.claim;
-        if let Err(error) = aicortex_claims::validate(claim, registry) {
-            return Judgement::Refuse(invalid(&error));
-        }
-        if let Some(reason) = self.claim_secret(claim) {
-            return Judgement::Refuse(reason);
-        }
-        if proposal.evidence.is_empty() {
-            return Judgement::Refuse(ClaimReason::NoProvenance);
-        }
-        if let Some(source) = unavailable_source(proposal, context) {
-            return Judgement::Refuse(ClaimReason::SourceUnavailable { source });
-        }
-        let statements = user_statements(proposal);
-        let seeds: Vec<&SeedRef> = proposal
-            .evidence
-            .iter()
-            .filter_map(|evidence| match evidence {
-                Evidence::OperatorSeed { seed, .. } => Some(seed),
-                _ => None,
-            })
-            .collect();
-        let states_the_owners_word = proposal
-            .evidence
-            .iter()
-            .any(|evidence| evidence.kind() == EvidenceKind::UserStatement);
-        if !seeds.is_empty() && states_the_owners_word {
-            return Judgement::Refuse(ClaimReason::PolicyDenied {
-                rule: "seed_with_user_statement",
-            });
-        }
-        if let Some(floor) = policy.doc.score_floor {
-            let below = proposal.evidence.iter().any(
-                |evidence| matches!(evidence, Evidence::ModelScore { score, .. } if *score < floor),
-            );
-            if below {
-                return Judgement::Refuse(ClaimReason::BelowScoreFloor);
-            }
-        }
-        if statements
-            .iter()
-            .any(|statement| !statement.asserted.is_user())
-        {
-            return Judgement::Refuse(ClaimReason::PolicyDenied {
-                rule: "user_statement_below_user_level",
-            });
-        }
-
-        let correcting = !statements.is_empty() && proposal.corrected().next().is_some();
-        let Some(authority) = earned(proposal, policy, !statements.is_empty(), correcting) else {
-            return Judgement::Refuse(ClaimReason::AuthorityInsufficient);
+        let subject = Proposal {
+            proposal: proposal.clone(),
+            registry: registry.clone(),
+            policy: policy.clone(),
+            context: context.clone(),
+            secrets: self.rules().secrets.clone(),
         };
-        let owner = claim.scope.owner.as_str();
-        let own_data = statements.iter().any(|statement| statement.by == owner);
-        let sourcing = if own_data {
-            Sourcing::User
-        } else if !seeds.is_empty() {
-            Sourcing::Seed
-        } else {
-            Sourcing::Supplier
-        };
-
-        let mut relations = Vec::with_capacity(proposal.relations.len());
-        let mut conflicts = Vec::new();
-        let mut outranked = false;
-        for relation in &proposal.relations {
-            let Some(target) = context.targets.get(&relation.to) else {
-                return Judgement::Refuse(ClaimReason::PolicyDenied {
-                    rule: "unknown_target",
-                });
-            };
-            if target.scope != claim.scope {
-                return Judgement::Refuse(ClaimReason::PolicyDenied {
-                    rule: "cross_scope_relation",
-                });
-            }
-            if relation.kind == RelationKind::Supersedes {
-                if sourcing == Sourcing::User && target.sourcing == Sourcing::Supplier {
-                    return Judgement::Refuse(ClaimReason::PolicyDenied {
-                        rule: "user_supersedes_supplier",
-                    });
-                }
-                outranked |= target.authority > authority;
-            }
-            if relation.kind == RelationKind::Contradicts
-                && correcting
-                && target.sourcing == Sourcing::Supplier
-            {
-                conflicts.push(relation.to);
-            }
-            match ClaimRelation::new(
-                claim.id,
-                relation.kind,
-                RelationTarget::Claim(relation.to),
-                claim.provenance.clone(),
-            ) {
-                Ok(built) => relations.push(built),
-                Err(_) => {
-                    return Judgement::Refuse(ClaimReason::PolicyDenied {
-                        rule: "self_relation",
-                    });
-                }
-            }
-        }
-
-        let reviewed = proposal
-            .evidence
-            .iter()
-            .any(|evidence| matches!(evidence, Evidence::ReviewApproval { .. }));
-        if outranked && !reviewed {
-            return Judgement::Hold(ClaimReason::AuthorityInsufficient);
-        }
-        let seeded = !seeds.is_empty() && seeds.iter().all(|seed| policy.accepts(seed));
-        let grounded = reviewed || own_data || seeded || policy.qualifies(claim, authority);
-        if !grounded {
-            return Judgement::Hold(ClaimReason::AuthorityInsufficient);
-        }
-        let corrects = if correcting {
-            proposal.corrected().collect()
-        } else {
-            Vec::new()
-        };
-        Judgement::Admit(Box::new(AdmittedClaim {
-            claim: claim.clone(),
-            proposal: proposal.id,
-            proposer: proposal.proposer.clone(),
-            policy: policy.reference(),
-            authority,
-            sourcing,
-            evidence: proposal.evidence.clone(),
-            relations,
-            corrects,
-            conflicts,
-        }))
+        walk_claim(subject, &CLAIM_WALK)
     }
+}
 
-    /// The detectors of 013 over the claim's value, condition, slot and
-    /// subject key, in that order.
-    fn claim_secret(&self, claim: &Claim) -> Option<ClaimReason> {
-        let value = match &claim.value {
-            aicortex_types::ClaimValue::Text(text) => Some(text.as_str()),
-            _ => None,
-        };
-        let fields = [
-            (ClaimField::Value, value),
-            (ClaimField::Condition, claim.epistemic.condition()),
-            (
-                ClaimField::Slot,
-                claim.slot.as_ref().map(|slot| slot.as_str()),
-            ),
-            (ClaimField::Subject, Some(claim.subject.key.as_str())),
-        ];
-        fields.into_iter().find_map(|(field, text)| {
-            let finding = crate::secrets::scan(text?, &self.rules().secrets)?;
-            Some(ClaimReason::SecretDetected {
-                field,
-                detector: finding.detector,
-                offset: finding.offset,
-            })
-        })
+/// Walk `steps` over `subject`, requiring every id of [`CLAIM_STEPS`], and
+/// build the admitted claim when every step passes.
+fn walk_claim(subject: Proposal, steps: &[ClaimStep]) -> Judgement {
+    let walked = walk::walk(subject.clone(), steps, &CLAIM_STEPS, |rule| {
+        ClaimReason::PolicyDenied { rule }
+    });
+    match walked {
+        Walked::Fault(reason) => Judgement::Refuse(reason),
+        Walked::Hold(reason) => Judgement::Hold(reason),
+        Walked::Pass => admitted(&subject),
     }
 }
 
@@ -777,6 +645,369 @@ enum Judgement {
     Admit(Box<AdmittedClaim>),
     Hold(ClaimReason),
     Refuse(ClaimReason),
+}
+
+/// The check ids of [`crate::Gate::evaluate_claim`]'s walk, in registration
+/// order (spec 057 B-3): every one is required, so a walk without one of
+/// them refuses.
+pub const CLAIM_STEPS: [&str; 10] = [
+    "claim.vocabulary",
+    "claim.secrets",
+    "claim.provenance",
+    "claim.sources",
+    "claim.seed",
+    "claim.score_floor",
+    "claim.user_level",
+    "claim.authority",
+    "claim.relations",
+    "claim.ground",
+];
+
+/// What the claim walk judges, owned so each step can hold a share.
+#[derive(Clone)]
+struct Proposal {
+    proposal: ClaimProposal,
+    registry: RegistrySnapshot,
+    policy: AdmissionPolicy,
+    context: ClaimContext,
+    secrets: SecretRules,
+}
+
+type ClaimStep = Step<Proposal, ClaimReason>;
+
+/// The steps of the module documentation, in its order (B-9).
+const CLAIM_WALK: [ClaimStep; 10] = [
+    Step {
+        id: CLAIM_STEPS[0],
+        judge: vocabulary,
+    },
+    Step {
+        id: CLAIM_STEPS[1],
+        judge: secrets_step,
+    },
+    Step {
+        id: CLAIM_STEPS[2],
+        judge: provenance,
+    },
+    Step {
+        id: CLAIM_STEPS[3],
+        judge: sources,
+    },
+    Step {
+        id: CLAIM_STEPS[4],
+        judge: seed,
+    },
+    Step {
+        id: CLAIM_STEPS[5],
+        judge: score_floor,
+    },
+    Step {
+        id: CLAIM_STEPS[6],
+        judge: user_level,
+    },
+    Step {
+        id: CLAIM_STEPS[7],
+        judge: authority_step,
+    },
+    Step {
+        id: CLAIM_STEPS[8],
+        judge: relations_step,
+    },
+    Step {
+        id: CLAIM_STEPS[9],
+        judge: ground,
+    },
+];
+
+/// A refusal when `refused`, a pass otherwise.
+const fn fault_if(refused: bool, reason: ClaimReason) -> Judged<ClaimReason> {
+    if refused {
+        Judged::Fault(reason)
+    } else {
+        Judged::Pass
+    }
+}
+
+/// The claim against its registered vocabulary (050 B-14).
+fn vocabulary(subject: &Proposal) -> Judged<ClaimReason> {
+    match aicortex_claims::validate(&subject.proposal.claim, &subject.registry) {
+        Ok(_) => Judged::Pass,
+        Err(error) => Judged::Fault(invalid(&error)),
+    }
+}
+
+/// The detectors of 013 over the claim's value, condition, slot and
+/// subject key, in that order.
+fn secrets_step(subject: &Proposal) -> Judged<ClaimReason> {
+    let claim = &subject.proposal.claim;
+    let value = match &claim.value {
+        aicortex_types::ClaimValue::Text(text) => Some(text.as_str()),
+        _ => None,
+    };
+    let fields = [
+        (ClaimField::Value, value),
+        (ClaimField::Condition, claim.epistemic.condition()),
+        (
+            ClaimField::Slot,
+            claim.slot.as_ref().map(|slot| slot.as_str()),
+        ),
+        (ClaimField::Subject, Some(claim.subject.key.as_str())),
+    ];
+    fields
+        .into_iter()
+        .find_map(|(field, text)| {
+            let finding = crate::secrets::scan(text?, &subject.secrets)?;
+            Some(ClaimReason::SecretDetected {
+                field,
+                detector: finding.detector,
+                offset: finding.offset,
+            })
+        })
+        .map_or(Judged::Pass, Judged::Fault)
+}
+
+/// Evidence at all.
+fn provenance(subject: &Proposal) -> Judged<ClaimReason> {
+    fault_if(
+        subject.proposal.evidence.is_empty(),
+        ClaimReason::NoProvenance,
+    )
+}
+
+/// Every stored source it cites, available.
+fn sources(subject: &Proposal) -> Judged<ClaimReason> {
+    unavailable_source(&subject.proposal, &subject.context).map_or(Judged::Pass, |source| {
+        Judged::Fault(ClaimReason::SourceUnavailable { source })
+    })
+}
+
+/// A seed dressed as the owner's word (B-14).
+fn seed(subject: &Proposal) -> Judged<ClaimReason> {
+    let evidence = &subject.proposal.evidence;
+    let states_the_owners_word = evidence
+        .iter()
+        .any(|evidence| evidence.kind() == EvidenceKind::UserStatement);
+    fault_if(
+        !seeds(&subject.proposal).is_empty() && states_the_owners_word,
+        ClaimReason::PolicyDenied {
+            rule: "seed_with_user_statement",
+        },
+    )
+}
+
+/// The score floor (B-6's one use of a score).
+fn score_floor(subject: &Proposal) -> Judged<ClaimReason> {
+    let below = subject.policy.doc.score_floor.is_some_and(|floor| {
+        subject.proposal.evidence.iter().any(
+            |evidence| matches!(evidence, Evidence::ModelScore { score, .. } if *score < floor),
+        )
+    });
+    fault_if(below, ClaimReason::BelowScoreFloor)
+}
+
+/// A user statement asserted below the user's level.
+fn user_level(subject: &Proposal) -> Judged<ClaimReason> {
+    fault_if(
+        user_statements(&subject.proposal)
+            .iter()
+            .any(|statement| !statement.asserted.is_user()),
+        ClaimReason::PolicyDenied {
+            rule: "user_statement_below_user_level",
+        },
+    )
+}
+
+/// The authority the evidence earns under the policy's ceilings.
+fn authority_step(subject: &Proposal) -> Judged<ClaimReason> {
+    fault_if(
+        Grounds::of(subject).authority.is_none(),
+        ClaimReason::AuthorityInsufficient,
+    )
+}
+
+/// The relations against the claims they target (B-8, B-10).
+fn relations_step(subject: &Proposal) -> Judged<ClaimReason> {
+    let grounds = Grounds::of(subject);
+    match grounds.authority {
+        Some(authority) => match relate(subject, &grounds, authority) {
+            Ok(_) => Judged::Pass,
+            Err(reason) => Judged::Fault(reason),
+        },
+        None => Judged::Fault(ClaimReason::AuthorityInsufficient),
+    }
+}
+
+/// The ground of admission; otherwise, or when a relation supersedes
+/// a claim of higher authority, a hold.
+fn ground(subject: &Proposal) -> Judged<ClaimReason> {
+    let grounds = Grounds::of(subject);
+    let Some(authority) = grounds.authority else {
+        return Judged::Fault(ClaimReason::AuthorityInsufficient);
+    };
+    let related = match relate(subject, &grounds, authority) {
+        Ok(related) => related,
+        Err(reason) => return Judged::Fault(reason),
+    };
+    let proposal = &subject.proposal;
+    let reviewed = proposal
+        .evidence
+        .iter()
+        .any(|evidence| matches!(evidence, Evidence::ReviewApproval { .. }));
+    if related.outranked && !reviewed {
+        return Judged::Hold(ClaimReason::AuthorityInsufficient);
+    }
+    let seeds = seeds(proposal);
+    let seeded = !seeds.is_empty() && seeds.iter().all(|seed| subject.policy.accepts(seed));
+    let grounded = reviewed
+        || grounds.own_data
+        || seeded
+        || subject.policy.qualifies(&proposal.claim, authority);
+    if grounded {
+        Judged::Pass
+    } else {
+        Judged::Hold(ClaimReason::AuthorityInsufficient)
+    }
+}
+
+/// The facts several steps share, derived the same way each time.
+struct Grounds {
+    authority: Option<AuthorityLevel>,
+    correcting: bool,
+    own_data: bool,
+    sourcing: Sourcing,
+}
+
+impl Grounds {
+    fn of(subject: &Proposal) -> Self {
+        let proposal = &subject.proposal;
+        let statements = user_statements(proposal);
+        let correcting = !statements.is_empty() && proposal.corrected().next().is_some();
+        let authority = earned(
+            proposal,
+            &subject.policy,
+            !statements.is_empty(),
+            correcting,
+        );
+        let owner = proposal.claim.scope.owner.as_str();
+        let own_data = statements.iter().any(|statement| statement.by == owner);
+        let sourcing = if own_data {
+            Sourcing::User
+        } else if !seeds(proposal).is_empty() {
+            Sourcing::Seed
+        } else {
+            Sourcing::Supplier
+        };
+        Self {
+            authority,
+            correcting,
+            own_data,
+            sourcing,
+        }
+    }
+}
+
+/// The relations a proposal would append, and what they say about it.
+struct Related {
+    relations: Vec<ClaimRelation>,
+    conflicts: Vec<ClaimId>,
+    outranked: bool,
+}
+
+/// The relations against the claims they target, in the proposal's order;
+/// the first one that breaks a rule refuses.
+fn relate(
+    subject: &Proposal,
+    grounds: &Grounds,
+    authority: AuthorityLevel,
+) -> Result<Related, ClaimReason> {
+    let proposal = &subject.proposal;
+    let claim = &proposal.claim;
+    let mut related = Related {
+        relations: Vec::with_capacity(proposal.relations.len()),
+        conflicts: Vec::new(),
+        outranked: false,
+    };
+    for relation in &proposal.relations {
+        let Some(target) = subject.context.targets.get(&relation.to) else {
+            return Err(ClaimReason::PolicyDenied {
+                rule: "unknown_target",
+            });
+        };
+        if target.scope != claim.scope {
+            return Err(ClaimReason::PolicyDenied {
+                rule: "cross_scope_relation",
+            });
+        }
+        if relation.kind == RelationKind::Supersedes {
+            if grounds.sourcing == Sourcing::User && target.sourcing == Sourcing::Supplier {
+                return Err(ClaimReason::PolicyDenied {
+                    rule: "user_supersedes_supplier",
+                });
+            }
+            related.outranked |= target.authority > authority;
+        }
+        if relation.kind == RelationKind::Contradicts
+            && grounds.correcting
+            && target.sourcing == Sourcing::Supplier
+        {
+            related.conflicts.push(relation.to);
+        }
+        let built = ClaimRelation::new(
+            claim.id,
+            relation.kind,
+            RelationTarget::Claim(relation.to),
+            claim.provenance.clone(),
+        )
+        .map_err(|_| ClaimReason::PolicyDenied {
+            rule: "self_relation",
+        })?;
+        related.relations.push(built);
+    }
+    Ok(related)
+}
+
+/// The admitted claim, built after every step passed. The refusals here are
+/// the steps' own and cannot recur on a walk that passed them; they are
+/// answered rather than assumed away.
+fn admitted(subject: &Proposal) -> Judgement {
+    let grounds = Grounds::of(subject);
+    let Some(authority) = grounds.authority else {
+        return Judgement::Refuse(ClaimReason::AuthorityInsufficient);
+    };
+    let related = match relate(subject, &grounds, authority) {
+        Ok(related) => related,
+        Err(reason) => return Judgement::Refuse(reason),
+    };
+    let proposal = &subject.proposal;
+    let corrects = if grounds.correcting {
+        proposal.corrected().collect()
+    } else {
+        Vec::new()
+    };
+    Judgement::Admit(Box::new(AdmittedClaim {
+        claim: proposal.claim.clone(),
+        proposal: proposal.id,
+        proposer: proposal.proposer.clone(),
+        policy: subject.policy.reference(),
+        authority,
+        sourcing: grounds.sourcing,
+        evidence: proposal.evidence.clone(),
+        relations: related.relations,
+        corrects,
+        conflicts: related.conflicts,
+    }))
+}
+
+/// The seed sets a proposal's evidence names.
+fn seeds(proposal: &ClaimProposal) -> Vec<&SeedRef> {
+    proposal
+        .evidence
+        .iter()
+        .filter_map(|evidence| match evidence {
+            Evidence::OperatorSeed { seed, .. } => Some(seed),
+            _ => None,
+        })
+        .collect()
 }
 
 /// A user statement the gate honours: made by a human proposer about
@@ -951,5 +1182,15 @@ pub fn policy_entry(policy: &AdmissionPolicy, digest: &str, actor: &Sub) -> Ledg
             "qualified": policy.doc.qualified.len(),
             "seeds": policy.doc.seeds.len(),
         }),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn the_walk_registers_every_documented_step_in_order() {
+        assert_eq!(walk::step_ids(&CLAIM_WALK), CLAIM_STEPS);
     }
 }

@@ -51,7 +51,7 @@
       "wave": 5
     },
     "id": "057-action-gate-closed-evaluation-adoption",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "feature",
     "obligations": [
       {
@@ -98,7 +98,7 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "057-action-gate-closed-evaluation-adoption": "20b596b71c18985ab13aa24df419928a29fa67e22d01a0b1c61c6c678b02afcc",
+      "057-action-gate-closed-evaluation-adoption": "4c0e83988218f740f9e172aefda879c7c3335dfcdba7912f759442cd0e0da6be",
       "1-purpose": "729b648fb9c59ebb28dac45b64b8fd1ddce682b94ac0ab8b66e2c8dc4daf4493",
       "2-territory": "40e623dbc2c4041a9f47cb02bf8230ed47ad7e17ec24cb2bb6ade2b5dad3d0f7",
       "3-1-what-moves-and-what-stays": "378a86d558225508faef248d40aa88b0e4c415fff5f53fe123e7f0396dcbaad0",
@@ -108,7 +108,7 @@
       "4-functional-requirements": "ef4b2d337bbc0547e4c4a7bc8db3ab36ccadbb862d6e94153dc3612b9a61fb21",
       "5-acceptance-criteria": "031a228a222b2e30505066e345510eaa79be4faa8b7f0f31c635ba778fc58275",
       "6-out-of-scope": "45e79cce5a0829b4e2782f019c56fe09254ac560512279f00e6c18e32d36e74d",
-      "7-resolved-decisions": "e33349bab3a7f30c52df21d3b8316f1f46d73589202d96199eade7155093cb14",
+      "7-resolved-decisions": "b1f27932ae41cf0c8f489c1108470065ba7f5314a7706dd01cc452de49b90142",
       "8-follow-ups-and-open-questions": "388c0b927da1583bc832e705df1e1b478fae6eade69a012844ec2d7fadf42dbc",
       "verification": "f353e2eaa7c89d438a19ce97284d83c93a106e4af600b6e1ab0929d76debf177"
     },
@@ -132,6 +132,6 @@
     "summary": "aicortex-gate sequences its two questions, 013's write gate and 051's claim admission, with hand-written chains of early returns. action-gate 0.3.0 (its spec 004) adds a closed evaluation mode written for exactly this consumer: deny by default, required checks, a deny that ends the walk, and a degrade that does not. This spec moves the sequencing onto that mode, one required check per rule in the documented order, and keeps every aicortex type, payload, admission token and ledger entry in aicortex-gate as adapter code. Behaviour does not change, and a differential test against the replaced evaluators shows it.\n",
     "title": "Sequence the write gate and claim admission with action-gate's closed evaluation mode"
   },
-  "shardHash": "777abb4645be8b9d9cc57d8a4eaf160eebe845f30a808dc6e8b70b2b9dd3993a",
+  "shardHash": "4d5fbf8ceb3782234f873669bd3b587ce8cacb64b1082af2c42efd2682d5d7c8",
   "specVersion": "1.9.0"
 }
