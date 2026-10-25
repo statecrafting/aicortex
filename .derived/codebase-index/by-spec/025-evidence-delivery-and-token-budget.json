@@ -1,0 +1,194 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-recall/src/delivery.rs' does not exist",
+        "path": "crates/aicortex-recall/src/delivery.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-recall/tests/delivery.rs' does not exist",
+        "path": "crates/aicortex-recall/tests/delivery.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-recall/testdata/delivery/' does not exist",
+        "path": "crates/aicortex-recall/testdata/delivery/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-api/src/search.rs' does not exist",
+        "path": "crates/aicortex-api/src/search.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
+        "path": "crates/aicortex-api/src/dto.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-api/tests/api.rs' does not exist",
+        "path": "crates/aicortex-api/tests/api.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/tools.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-mcp/tests/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/tests/tools.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "018-retrieval-and-recall-trace",
+      "019-untrusted-content-boundary",
+      "021-mcp-server"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-recall/src/envelope.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/src/lib.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/delivery.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/testdata/delivery/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/tests/delivery.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/search.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/api.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/envelope.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/envelope.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "025-evidence-delivery-and-token-budget",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "0032009e16136a09697b0595d1ad3ebc5f39062c58dd34d23e4edc209997848f"
+}

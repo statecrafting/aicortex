@@ -1,0 +1,145 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-10-25",
+    "dependsOn": [
+      "018-retrieval-and-recall-trace",
+      "019-untrusted-content-boundary",
+      "021-mcp-server"
+    ],
+    "domain": "retrieval",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/delivery.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/tests/delivery.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/testdata/delivery/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "018-retrieval-and-recall-trace",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "019-untrusted-content-boundary",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/envelope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/search.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/api.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 2
+    },
+    "id": "025-evidence-delivery-and-token-budget",
+    "implementation": "pending",
+    "kind": "feature",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "025-evidence-delivery-and-the-token-budget": "395c66da99d641d7896bf8176cb98c79c8d98f51f3cbec8c709b3c366bc600ff",
+      "1-purpose": "e6e544cdc3c25b11a419c9dcc3203e7ebf0814a51c5035ce5f65caab8b94dd17",
+      "2-territory": "5d212bb7ce9be87322df70e6f4480009bd866534535efcf5aaab8e5acc4c0d34",
+      "3-1-the-unit": "3a135a82ebdf05098d6221173bc9330d203bfca13a1a607824a7243414ac089b",
+      "3-2-the-budget": "1d4b3edad70a42b0971a17f812341c21f237180c95512532b63eb6934af92066",
+      "3-3-safety-and-determinism": "01ec99bf51bf637da2f774ae86e1bffb882cf2f2688c5976585327a214da03a8",
+      "3-4-surfaces": "60312117277b5916332826328e4cfcc395871fd50222142de7484c1dcd37cf14",
+      "3-behavior": "145d0289dd1f08842a3ecac440d53f757f72b8549d0cfba74985b851a0517210",
+      "4-functional-requirements": "1ce18e0b0ac09fb47320d77c05b73f34ae950b7a5b2744c5d9119c3b5124b7b8",
+      "5-acceptance-criteria": "bb00d0819ba69979f5dc50c79b1364a4a4c94e14ccb6cc8e5e1af8d1d9811587",
+      "6-out-of-scope": "0f3b816104fe261f10ee4c91169c99c1aba06eb602938c779e6addd2a03456a2",
+      "7-resolved-decisions": "3509f9db9b1cae447962091250758223963d91a45b1e2259a8e5a30d6f0eba20",
+      "verification": "1e1da10a1a380518d200c5ab4adc7998f8bff1d6f1b3a720275bbe36fd237d50"
+    },
+    "sectionHeadings": [
+      "025: Evidence delivery and the token budget",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 The unit",
+      "3.2 The budget",
+      "3.3 Safety and determinism",
+      "3.4 Surfaces",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/025-evidence-delivery-and-token-budget/spec.md",
+    "status": "draft",
+    "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
+    "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
+  },
+  "shardHash": "0032009e16136a09697b0595d1ad3ebc5f39062c58dd34d23e4edc209997848f",
+  "specVersion": "1.9.0"
+}
