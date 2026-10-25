@@ -73,18 +73,25 @@
           "kind": "file",
           "path": "specs/019-untrusted-content-boundary/spec.md"
         }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
       }
     ],
     "risk": "high",
     "sectionDigests": {
-      "034-curation": "031d6e6e28b6a09839a7cf7e85f072293a616146c8729c073198e35936ac4e7f",
+      "034-curation": "e6230f71a1928c2f8dbe180777501475701d7d201ab4366fc69a44151cbf9f6a",
       "1-purpose": "b584c6c62db46d8f87a794804935ff32403a35b8fb59e63049cbfa723d94c8ef",
       "2-territory": "8d0eec9e2da38227819533f23cefd57f77ff55b0546c2307914678a536e43503",
-      "3-behavior": "4aac91cf3b816e7f6bf3e3592efca8f8d0d916eb1f0f9318290eeb714e017e72",
-      "4-functional-requirements": "218c408f035f7678923165c89eb4368fb594ba4b2f34a53e3b2baa825e484755",
+      "3-behavior": "9693cb700169943d4a1a42464633be46c82d7120ec9f215f34a5568ee58d874f",
+      "4-functional-requirements": "5cd6bc1e5cc5e4bff548574798b3457d1ed63d57457bfd837b13b8d5e293c362",
       "5-acceptance-criteria": "7e99e70d1551ca9f2b93bdd6743700b9bb4dec1fc4917ce989d0e217e2bdafdd",
       "6-out-of-scope": "36aadee74db6c4f5f3b49c5a1819347084759990321d993da7cc23dd87930060",
-      "7-resolved-decisions": "72a66259581e8be94367dffbaece3d21df4b598f68dd331cb89232fde50e13bb",
+      "7-resolved-decisions": "d8ad6cdd456cccd87064df28fc97cb6834e5949439d35e0f0c8b22f156478b5b",
       "verification": "6da77541072dc0ecf00e525d98602cc3f935c807e18af12689cf668a1f3c17eb"
     },
     "sectionHeadings": [
@@ -99,10 +106,10 @@
       "Verification"
     ],
     "specPath": "specs/034-curation-workers/spec.md",
-    "status": "approved",
+    "status": "draft",
     "summary": "Without curation a memory store becomes a landfill: long notes that match nothing, near-duplicates from three sources, facts that stopped being true, and no way to see what a week contained. Five workers address that, all sharing one discipline: they run under a lease in bounded batches, every change they make is a lifecycle transition that is visible and reversible, they never delete, and anything they produce inherits the lowest trust class of its inputs. A curator can propose; only a human promotes.\n",
     "title": "Curation: atomize, enrich, consolidate, expire, digest, all bounded and reversible"
   },
-  "shardHash": "5d22937e1903f186d714e2398dba0c5ebd4f8f3a934a7aa3420932ec967373d2",
+  "shardHash": "5edbf7b45bab4231a28c2def69fcb01e7c5c74b9786d1ffa8909f0350c805253",
   "specVersion": "1.9.0"
 }

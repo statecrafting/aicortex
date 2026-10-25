@@ -157,6 +157,19 @@
       {
         "locations": [
           {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "specs/019-untrusted-content-boundary/spec.md"
           }
         ],
@@ -169,8 +182,8 @@
       }
     ],
     "specId": "034-curation-workers",
-    "specStatus": "approved"
+    "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "5d22937e1903f186d714e2398dba0c5ebd4f8f3a934a7aa3420932ec967373d2"
+  "shardHash": "5edbf7b45bab4231a28c2def69fcb01e7c5c74b9786d1ffa8909f0350c805253"
 }
