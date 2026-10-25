@@ -1,0 +1,258 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/src/pointer.rs' does not exist",
+        "path": "crates/aicortex-graph/src/pointer.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/tests/pointer.rs' does not exist",
+        "path": "crates/aicortex-graph/tests/pointer.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/testdata/pointers/' does not exist",
+        "path": "crates/aicortex-graph/testdata/pointers/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/pointers.rs' does not exist",
+        "path": "crates/aicortex-api/src/pointers.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/tests/pointers.rs' does not exist",
+        "path": "crates/aicortex-api/tests/pointers.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/src/lib.rs' does not exist",
+        "path": "crates/aicortex-graph/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/router.rs' does not exist",
+        "path": "crates/aicortex-api/src/router.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
+        "path": "crates/aicortex-api/src/dto.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'clients/matrix.toml' does not exist",
+        "path": "clients/matrix.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'clients/README.md' does not exist",
+        "path": "clients/README.md"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'clients/claude-code/' does not exist",
+        "path": "clients/claude-code/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'clients/codex/' does not exist",
+        "path": "clients/codex/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'clients/cursor/' does not exist",
+        "path": "clients/cursor/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'clients/antigravity/' does not exist",
+        "path": "clients/antigravity/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/tests/clients.rs' does not exist",
+        "path": "crates/aicortex-api/tests/clients.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "017-entities-and-typed-edges",
+      "019-untrusted-content-boundary",
+      "020-http-api-and-scopes",
+      "022-client-adapters"
+    ],
+    "implementingPaths": [],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/pointers.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/pointers.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/pointer.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/testdata/pointers/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/tests/pointer.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "clients/README.md"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "clients/antigravity/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "clients/claude-code/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "clients/codex/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "clients/cursor/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "clients/matrix.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/clients.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "026-read-side-entity-pointers",
+    "specStatus": "draft"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "8d71715885211f539f747d70c37a8fb8fc2b94fef256fbdad653d1f7be41998f"
+}
