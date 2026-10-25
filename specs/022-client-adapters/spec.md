@@ -1,7 +1,7 @@
 ---
 id: "022-client-adapters"
 title: "Client adapters: one capability matrix, four install paths, zero client code in the core"
-status: approved
+status: draft
 kind: "feature"
 domain: "clients"
 created: "2026-09-03"
@@ -22,6 +22,9 @@ establishes:
   - "crates/aicortex-api/tests/clients.rs"
 extends:
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
+references:
+  - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
+  - { unit: { kind: file, path: "specs/013-write-gate-and-redaction/spec.md" }, role: context }
 summary: >
   Connecting is one URL, and everything a client needs beyond that is
   generated rather than written by hand. This spec owns the capability
@@ -85,6 +88,20 @@ contents. No other crate contains a client name.
   fixtures for each client in the matrix, so a claim in the matrix is
   backed by a fixture. Adding a client is a matrix row, a directory, and a
   fixture set.
+- **B-8 (durable memory, not runtime state; added 2026-10-25, D-2).** A
+  capture hook sends only durable classes, each with its 011 B-4 kind: a
+  preference (`Preference`), a correction (`Correction`), a decision
+  (`Decision`), a commitment someone made (`Task`), or a fact the user
+  wants kept (`Fact`). It never sends runtime state: the progress of the
+  current task, tool output, local file system paths, connection or
+  server settings, credentials, or which plugins, servers, hooks, or
+  skills are active (`gbrain://memory-boundaries`). A durable decision
+  about a setup may be captured as a decision without the setup's
+  settings or credentials. The hook filters by the structure the client
+  exposes (event type, tool name, message role), never by asking a model.
+  The gate remains the backstop for credentials (013 B-3, B-4, D-14); it
+  does not classify the other runtime classes, so this rule lives here.
+  Each client's README states the rule and the off switch.
 
 ## 4. Functional requirements
 
@@ -97,6 +114,10 @@ contents. No other crate contains a client name.
   capture DTO.
 - **FR-004.** A hook whose request fails returns success to its client and
   records the failure locally, asserted against a server returning 503.
+- **FR-005.** For each client, a recorded session fixture that contains a
+  decision, a correction, tool output, a local path, a task progress note,
+  an MCP server configuration, and a plugin activation produces capture
+  payloads for the decision and the correction only, each with its kind.
 
 ## 5. Acceptance criteria
 
@@ -116,6 +137,20 @@ server.
   rather than published as static documentation, because the one value a
   user must get right is the URL of their own instance, and a static
   document cannot know it.
+
+- **D-2 (2026-10-25, amendment, pending owner review).** Added B-8 and
+  FR-005: capture hooks send durable classes only and never runtime state.
+  The observation is `gbrain://memory-boundaries`
+  (`docs/design/00-lineage.md`). The rule sits here rather than in the
+  gate because a hook sees the session's structure (which event, which
+  tool, which role) and the gate sees only text; 013 D-14 records the
+  gate's side of the same decision. B-4 already said a hook sends "the
+  decision, the correction, or the summary"; B-8 makes the excluded
+  classes explicit and testable. The read-side pointer hook observed
+  alongside this is spec 026's, which reaches this spec's matrix and
+  client directories through `extends` edges. The amendment adds behavior
+  to an approved spec that no human has reviewed, so this spec returns to
+  `status: draft` (constitution V).
 
 ## Verification
 

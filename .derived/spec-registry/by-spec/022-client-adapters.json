@@ -58,16 +58,32 @@
     "id": "022-client-adapters",
     "implementation": "pending",
     "kind": "feature",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
+        }
+      }
+    ],
     "risk": "medium",
     "sectionDigests": {
-      "022-client-adapters": "2295a82fc6057efc17fa5fa6d544c899277664f9f232d5131b0fff2e62dec39a",
+      "022-client-adapters": "fb0b46573113ae3615d27b65dbcffebdb5f7f8d03562130103a423ce1b6d2508",
       "1-purpose": "03696686a843665f3bdd97c36255676f45f7dbbf26fba1b2d6efce9eae50ece7",
       "2-territory": "41b5088baeca1a4ad42c1ad9018402f8720492fbf564be98ab1c623da18fadc2",
-      "3-behavior": "3973c0492ee3e8ade0026da02ddc5e337c780ba84ab8137911ff7d42deb1338f",
-      "4-functional-requirements": "153be8a015b03ecc355cf1c8b86f7c82acfdfcf8c4646ecd89583ecd78924768",
+      "3-behavior": "421151f3efbd89c41455c91fada0fce12408aad568e1fb6baeac5d80adb34406",
+      "4-functional-requirements": "98c8a36aa59015e7a88587a2476ca932a29cf36c35bca89962f3907e24e9ef2c",
       "5-acceptance-criteria": "44491057a47245cffe05f59b4259c32845aa5ff25fe007abc3a4cb439fbd2e2e",
       "6-out-of-scope": "7cf1f75b904541bfcd1e807a51ffe72c4113af3e984d11369225f32d1a76be4a",
-      "7-resolved-decisions": "fdbaf1cd6f570b791fce8037fa1b15fb00a4842c97fac3513502863c8a998bef",
+      "7-resolved-decisions": "ca8e13e77cd794ab862c17daaf3227f15594ea5a643dac23bd0eb9b493ac6a10",
       "verification": "0a29d40d64c2142b535a92d3cfdd53d69ef52a01c1603d5c6e70ae447cbdc0cf"
     },
     "sectionHeadings": [
@@ -82,10 +98,10 @@
       "Verification"
     ],
     "specPath": "specs/022-client-adapters/spec.md",
-    "status": "approved",
+    "status": "draft",
     "summary": "Connecting is one URL, and everything a client needs beyond that is generated rather than written by hand. This spec owns the capability matrix: which clients support remote MCP, which support OAuth against it, and what each offers for automatic capture, which is the only place they genuinely differ. It ships per-client configuration snippets and the hook or notification payloads that turn a session into captured memories, and a route that serves the correct snippet for a client so setup is a copy rather than a document to follow.\n",
     "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
   },
-  "shardHash": "c449d7a965408c8feeba051613fd2a61d28f568f3102f79e9e99057eb486704c",
+  "shardHash": "a34bc530e991050111121de90a7c149f7bb8dfb21d8b528e383260b1eb5f651e",
   "specVersion": "1.9.0"
 }
