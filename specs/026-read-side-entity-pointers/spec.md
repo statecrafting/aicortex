@@ -134,10 +134,10 @@ adds no table, no migration, no worker, and no MCP tool.
   scope with no matches (020's non-disclosing rule). The scope check runs
   before any lookup and yields the entity set to resolve against: an
   unreadable scope yields the empty set, which then goes through the same
-  resolution path as a readable scope that holds no entities. Neither the
-  content nor the work done (and hence the latency) separates an
-  unreadable scope from a readable empty one, and nothing about an
-  unreadable scope's contents is read.
+  resolution path as a readable scope that holds no entities. The
+  guarantee is structural: the response and the code path are those of a
+  readable empty scope, and nothing about an unreadable scope's contents
+  is read, so its contents cannot shape the work done.
 
 ### 3.3 The client side
 
@@ -172,7 +172,8 @@ adds no table, no migration, no worker, and no MCP tool.
 - **FR-002.** A fixture entity whose only mentioning memory is erased, and
   another whose only one is quarantined, produce no pointer.
 - **FR-003.** A cross-scope request returns the same response as a request
-  against a scope with no matches.
+  against a scope with no matches, and an instrumented store records no
+  read of the unreadable scope's entities, aliases, or mentions during it.
 - **FR-004.** A hostile canonical name (019's delimiter and instruction
   fixtures) appears only inside an envelope, after the framing statement.
 - **FR-005.** A message long enough to resolve more pointers than the
@@ -226,8 +227,9 @@ Entity summaries in prose, which 017 B-6 forbids.
 - **D-3 (2026-10-25, this spec).** Off by default per client, unlike the
   observed system, where the pointer layer is on unless disabled. Every
   optional behavior in this product that reaches a model's context or
-  leaves the process is opt-in (034 B-8, 041 B-3), and this one sends the
-  user's message to the server on every turn.
+  leaves the process is opt-in, as a matter of this product's design
+  rather than of any one spec, and this one sends the user's message to
+  the server on every turn.
 
 Open for the owner before approval:
 

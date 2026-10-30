@@ -139,17 +139,17 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "026-read-side-entity-pointers": "969467aef9c24dc8320d1d7fe990437891d8cf6293ce5c173556266c0c7baad1",
+      "026-read-side-entity-pointers": "5bbd321ace3a7a86533c4ae87a64a8048995a827ba5d7bf3c39fee159dc878ed",
       "1-purpose": "48e45cd5346d3cc3de6af84b520ca38960270f1874e39a284dcb0295650e8087",
       "2-territory": "45c333b46d6982a3ec0147f95103b4de8edcf925297d1765e9efc1969e4132c8",
       "3-1-resolution": "4137a6f6390c6200246200edf083cafe5ca6d92c30ce9fe2ca0ef6af763761b5",
-      "3-2-the-pointer": "6e347eb897f9642863c3c5daf09ee75757cf737d9dd3d41e79536d26d2c679a2",
+      "3-2-the-pointer": "7e0be9a9db3cffcb335991ddbfccb0d1bc92ed76d14c0f1e0d14747b2588f2f9",
       "3-3-the-client-side": "86a78a9764a0c2a448cce453fd812a2769497471944909aae4d6521d674dee2d",
-      "3-behavior": "d8b400de4f330704f50e77564b27ff351cdeb473c70a6556847c4214450da9a0",
-      "4-functional-requirements": "0bdcbd097403ce1ed28c7ef61b20ebd75d6eb28090f2ea12bc61be5923c9c516",
+      "3-behavior": "f0701c93121979dbf76b257a4a6e422a23401c0ff645c42e9df5e76719615ac0",
+      "4-functional-requirements": "aeee3e54230c5f465f3cf15d06e1fdee3cda1d3e1c33da2e6953a6b2cd4125cc",
       "5-acceptance-criteria": "4e26432d577e92290ceb7c9073faf5188b9586ac18f068a1cea476349177a9c2",
       "6-out-of-scope": "543a8a96f08dd2c43cf8e33d9c91c9437993aceb1ece0c458d04f7a851841593",
-      "7-resolved-decisions": "2552296959565a94fc3e3f1152de96cb59d90763937f07596927f3f0707d2a24",
+      "7-resolved-decisions": "171547a6af660105d34784bd0c5a37cd01a3368e393f29c07c03aa5130c4e87a",
       "verification": "cd47013ad6bcd59db76bfa37081d47e68be829dcfe79586030ac691b6c709932"
     },
     "sectionHeadings": [
@@ -171,6 +171,6 @@
     "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project the user just named, so the agent answers generically about facts the store knew. This spec adds a per-turn pointer: a client hook sends the user's message to one read-only route, which resolves entity names by exact and normalized alias match in the caller's scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times. The block is untrusted data under 019, bounded in size, scoped by the caller's token, opt-in per client, and the hook does nothing when it fails.\n",
     "title": "Read-side entity pointers: tell the agent each turn that memory about a named entity exists"
   },
-  "shardHash": "7ee799cc5755482dc6a2bbc0e306a05d94c69c2bad516bcdab08e2a34719bcc6",
+  "shardHash": "7d5554aedd41185099b638f9c86fc32326cf68734638868ca5f93a44808ed7ed",
   "specVersion": "1.9.0"
 }
