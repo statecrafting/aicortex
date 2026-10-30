@@ -61,8 +61,11 @@ B-9 to B-11 (amended 2026-10-30, D-2) reach units other specs own only
 through `extends` edges: 011's `provenance.rs` gains the optional
 conversation reference, and 012's migrations and provenance repository
 gain its nullable columns, its index, and the scope-predicated read of a
-conversation's turns. Spec 025, if it is built first, adds the same field
-exactly as B-9 defines it (025 section 2); this spec's build then uses it
+conversation's turns. Spec 025, if it is built first, is to add the same field
+exactly as B-9 defines it; 025 is a draft, and its section 2 takes on
+that obligation through its own amendment, which is reviewed separately.
+Until then this sentence is a requirement on 025, not a description of
+it, and FR-010 is what enforces it. This spec's build then uses it
 rather than adding it again. The check is concrete: if `Provenance` in
 `crates/aicortex-types/src/provenance.rs` already has a `conversation`
 field and the store already has `conversation_turns`, this build adds no
@@ -131,8 +134,10 @@ are built.
   identifier, the conversation's creation time as the export states it
   (or, if it states none, the timestamp of the first message that has
   text) in RFC 3339 UTC, and the text of the first message that has text,
-  joined by a single NUL byte. A conversation with no message that has
-  text stores nothing and needs no id. Those inputs
+  joined by a single NUL byte. The join is unambiguous: a parser
+  identifier and an RFC 3339 time contain no NUL by construction, and the
+  text, which may, is the last field. A conversation with no message that
+  has text stores nothing and needs no id. Those inputs
   are fixed by the export, so the id is the same on every re-import of
   the same export and on a later export that still holds the
   conversation. Two conversations of one export that derive the same id

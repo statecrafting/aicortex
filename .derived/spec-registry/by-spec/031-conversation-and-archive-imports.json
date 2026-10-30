@@ -110,15 +110,15 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "031-imports": "368650c2c48c3c883fdb159d5b47e062aef0413affd9b8b7f5002212b18609b9",
+      "031-imports": "3d318484c65c07db5616e0ef1aebfb0a5061573989e1ed77c92f2842fd38e664",
       "1-purpose": "e91161e052a1a58fcf3cd30631d8a5571f48665ee7f4b3a3e0bb25185931c7be",
-      "2-territory": "0a10c2c8ecbb16aebe594238b2ab529ea7a477b60fdfb2849db3461fe6e3f89d",
-      "3-behavior": "1369f8a1dd2ad6ec0a7b0360b3987d12bc14798a863ce80e10cdcbc0c3881a22",
+      "2-territory": "0ff401582b9ba98be62682493b187ff2f36228a65d00eb771070a8ed39a5f4da",
+      "3-behavior": "623d79f9b88c2032441ece69a487c6987859b7f8c40c6b2e62fe76a69b25bfb3",
       "4-functional-requirements": "a0bf6064138822780d99dac7a32482d2327d500ce6f8f1e94ae03c22a3dbae44",
       "5-acceptance-criteria": "f58c807f92702f226aacd3e4c8eac42c5f8754df180292315d9cd78fe3c316fd",
       "6-out-of-scope": "1c0c1eb27f6db6ff7f3dc86714f9bdc8612725a7ea93c54a2e5d0a5e6ca72699",
       "7-resolved-decisions": "8c6c1906c6a649f4ce1e5fe1a3ca4f72f35048847636a999cb4fcf4c5cdfc0b5",
-      "conversations-as-messages-amended-2026-10-30-d-2": "b7f950ce23ce92e960fc8ad92157000009dc27844b67bb16ee5f60579943a905",
+      "conversations-as-messages-amended-2026-10-30-d-2": "7ceaf5795a5fc123b8722eb914369e377634857b38169aedfabe677e859b06fb",
       "verification": "350469a6a7ebd41a03803dde9d7e0b3da2d7f1ee7ad0bb7cd27befafbf422193"
     },
     "sectionHeadings": [
@@ -138,6 +138,6 @@
     "summary": "A memory system is worth little on day one and a great deal once it knows what you already said. This spec brings a user's existing history in: chat exports from the major assistants, a note vault on disk, a read-later archive, and mail, each as an adapter over the framework. A conversation is stored as one memory per message, linked by a shared conversation id and a turn number in provenance, so each turn keeps its own author and trust class and can be redacted or forgotten alone. The interesting work is not fetching, it is extracting from those turns the memories worth keeping, and doing it without sending the archive anywhere.\n",
     "title": "Bringing a history in: chat exports, note vaults, and read-later archives"
   },
-  "shardHash": "ef0196f15aed812670ff9d4fffdf378a93d5856bae7bf74088c5ee0bc0fad658",
+  "shardHash": "c0b1901e648c663bb6fd68185374361082825c7e7ddc6f42830c65f1d372806d",
   "specVersion": "1.9.0"
 }
