@@ -138,14 +138,14 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "025-evidence-delivery-and-the-token-budget": "f95edd2989a5c5eac103529dbc930f0840cba9005f27126fe808996cd7386c51",
+      "025-evidence-delivery-and-the-token-budget": "4279ab24523b73fd5a1afe5522f8f77af94142263360104b15a17be05e0c2c3c",
       "1-purpose": "e6e544cdc3c25b11a419c9dcc3203e7ebf0814a51c5035ce5f65caab8b94dd17",
       "2-territory": "6c4b39bdfc85bc85d1a9a110f4f01af9e98a02b8a3489f86a78937cd518f472a",
       "3-1-the-unit": "8a8f50cbd8a87b013e22b7f341840f7734750d1c2403276b2670075ddfa6fdef",
       "3-2-the-budget": "d86868462d52e43e20b179a1a04d3e93dd0c73fca1091d9f4cabd986033f04b9",
-      "3-3-safety-and-determinism": "d122b2799a0e094ad51dec29692774078c3ebdd5f37389017be0f37a706e0d97",
+      "3-3-safety-and-determinism": "e5c607e55f213bc8ca85ba6f54ee1ba0c13c2e33a1f6e8f98c6b1b18e77f6e5a",
       "3-4-surfaces": "60312117277b5916332826328e4cfcc395871fd50222142de7484c1dcd37cf14",
-      "3-behavior": "c683fc5691d6e6dbc6617251fcffa65c8f71cd8a799d3e39fef55e586a250990",
+      "3-behavior": "460426a4645be6e45be5ff881927d3c4c511d6157dd05abedc3dc67e06a404b8",
       "4-functional-requirements": "3e26d29a99b08623a855ae7485c3dcb39926be5e3deb813dce89d69b8a788442",
       "5-acceptance-criteria": "bb00d0819ba69979f5dc50c79b1364a4a4c94e14ccb6cc8e5e1af8d1d9811587",
       "6-out-of-scope": "f653f7c806c913453bdd7ec3e1555ca1eb0cf0858cb89d191d2cdeab8c84146d",
@@ -172,6 +172,6 @@
     "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap, in the declared counter's units, over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. For a turn of an imported conversation, stored one memory per message under 031, the window is the turns around the hit and the record is the whole conversation. The default counter is a fixed formula over UTF-8 bytes, named in every response. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
     "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
   },
-  "shardHash": "ed907830637bcc36f8f4efe391a0c476bf142c69cca45e418ba148c1925ca03b",
+  "shardHash": "b41d82350f5a8e6a2f4c06cf850b296ce3a8296c5bcb9f3326143399fc7bea50",
   "specVersion": "1.9.0"
 }

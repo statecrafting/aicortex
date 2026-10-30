@@ -276,7 +276,9 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
     (B-6 step 1 or 5);
   - `conversation`: the result is delivered as a conversation unit, a
     `Window` or `Record` over turns (B-1), whether requested directly or
-    resolved from `Auto`;
+    resolved from `Auto`, including a unit that leaves out turns an
+    earlier unit already delivered (B-6); leaving shared turns out is not
+    a reduction;
   - `reduced`: the result is delivered at a lower rung of the ladder than
     the unit requested for it (B-6), including a conversational memory
     delivered as `Turn`;
