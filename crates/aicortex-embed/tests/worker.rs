@@ -383,7 +383,15 @@ impl Fixture {
                 .await
                 .expect("memory counter fixture applies");
         }
-        for statement in migration().sql.split(';').map(str::trim) {
+        // Spec 016's text index migration follows 015's: the worker writes
+        // a chunk's postings in the chunk's own transaction (016 B-5).
+        let text_index = aicortex_store::text_index_migration();
+        for statement in migration()
+            .sql
+            .split(';')
+            .chain(text_index.sql.split(';'))
+            .map(str::trim)
+        {
             if !statement.is_empty() {
                 handle
                     .execute(statement.to_owned(), vec![])
@@ -1004,6 +1012,32 @@ async fn concurrent_workers_commit_one_scoped_embedding() {
         .collect::<String>();
     assert_eq!(chunks.len(), 1);
     assert_eq!(chunks[0].chunk_id, expected);
+    // Spec 016 B-5: the chunk's text postings commit with it, once: three
+    // tokens and the reserved length posting, each counted once.
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM chunk_token
+             WHERE scope_id = ?1 AND memory_id = ?2 AND chunk_id = ?3",
+            vec![
+                Value::from("scope-a"),
+                Value::from(memory.id.to_string()),
+                Value::from(expected.as_str()),
+            ],
+        )
+        .await,
+        4
+    );
+    assert_eq!(
+        count(
+            &store,
+            "SELECT COUNT(*) AS count FROM token_df
+             WHERE scope_id = ?1 AND model_revision = 1 AND token = 'sentence' AND df = 1",
+            vec![Value::from("scope-a")],
+        )
+        .await,
+        1
+    );
     fixture.shutdown().await;
 }
 

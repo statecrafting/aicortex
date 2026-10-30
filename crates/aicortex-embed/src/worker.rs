@@ -3,6 +3,9 @@
 use std::mem::size_of;
 use std::time::{Duration, Instant};
 
+use aicortex_index::text::ChunkText;
+use aicortex_index::tokenize::TokenizerConfig;
+use aicortex_store::text_postings;
 use aicortex_store::{
     ReadStore, embedding_memory, embedding_queue_counts, memories_missing_embedding,
     stage_live_memory_guard,
@@ -544,6 +547,21 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                 Value::Integer(i64::from(self.model.revision)),
             ],
         ));
+        // Spec 016 B-5: the chunk's text postings are replaced with the chunk,
+        // in this transaction, so the text index never describes chunks that
+        // are gone or misses chunks that exist.
+        text_postings::stage_uncount_memory(
+            &mut txn,
+            claim.key.receipt.tenant.as_str(),
+            &memory.id.to_string(),
+            Some(self.model.revision),
+        );
+        text_postings::stage_delete_memory_postings(
+            &mut txn,
+            claim.key.receipt.tenant.as_str(),
+            &memory.id.to_string(),
+            Some(self.model.revision),
+        );
         txn.push(Statement::with_params(
             "DELETE FROM chunk
              WHERE scope_id = ?1 AND memory_id = ?2 AND model_revision = ?3",
@@ -554,6 +572,23 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             ],
         ));
         for (chunk, vector) in chunks.iter().zip(vectors.iter()) {
+            let id = chunk_id(
+                claim.key.receipt.tenant.as_str(),
+                memory.id,
+                self.model.revision,
+                chunk.ordinal,
+            );
+            aicortex_index::text::stage_chunk(
+                &mut txn,
+                &ChunkText {
+                    scope_id: claim.key.receipt.tenant.as_str(),
+                    memory_id: memory.id,
+                    revision: self.model.revision,
+                    chunk_id: &id,
+                    text: &chunk.text,
+                },
+                &TokenizerConfig::default(),
+            );
             txn.push(Statement::with_params(
                 "INSERT INTO chunk
                  (chunk_id, scope_id, memory_id, model_revision, ordinal, byte_start, byte_end)
@@ -571,12 +606,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                         usize_to_sql(chunk.byte_end)
                             .map_err(|error| ProcessError::item(error, &claim))?,
                     ),
-                    Value::from(chunk_id(
-                        claim.key.receipt.tenant.as_str(),
-                        memory.id,
-                        self.model.revision,
-                        chunk.ordinal,
-                    )),
+                    Value::from(id),
                 ],
             ));
             txn.push(Statement::with_params(

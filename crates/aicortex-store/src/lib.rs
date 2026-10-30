@@ -87,6 +87,7 @@ pub mod migrations;
 pub mod predicate_registry_repo;
 pub mod provenance_repo;
 pub mod scope_repo;
+pub mod text_postings;
 
 pub use claim_admission_repo::{
     AdmissionDecisions, AdmissionRecord, ClaimAdmissionRepo, policy_digest,
@@ -126,6 +127,7 @@ pub use predicate_registry_repo::{
 };
 pub use provenance_repo::ProvenanceRepo;
 pub use scope_repo::{ScopeId, ScopeRepo, ScopeRow};
+pub use text_postings::{TEXT_INDEX_VERSION, text_index_migration};
 
 /// The lowercase hex SHA-256 of `material`.
 ///

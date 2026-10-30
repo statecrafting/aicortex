@@ -13,6 +13,7 @@ publish = false
 spec = "015-embedding-pipeline"
 
 [dependencies]
+aicortex-index = { workspace = true }
 aicortex-store = { workspace = true }
 aicortex-types = { workspace = true }
 rahi-kernel = { workspace = true }

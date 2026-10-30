@@ -60,6 +60,10 @@
       {
         "kind": "file",
         "path": "crates/aicortex-index/tests/common/mod.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/text_postings.rs"
       }
     ],
     "extends": [
@@ -78,24 +82,96 @@
           "kind": "file",
           "path": "Cargo.toml"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/worker.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/tests/worker.rs"
+        }
       }
     ],
     "extraFrontmatter": {
       "wave": 1
     },
     "id": "016-vector-index-and-scan",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "kernel",
     "risk": "high",
     "sectionDigests": {
-      "016-the-index": "670450dc5a8710fe5acd4713105f8d40266a383209bc7120ab143e252f0bd363",
+      "016-the-index": "4997532c84d41a7b4d1090d74bca1dea62f1c91f239b9e3d439a474dfd2bb429",
       "1-purpose": "3d4bbf9949690d7e940f4f5decd6884137728e1f9c0bb57707d9d84310d0e0e6",
       "2-territory": "0ebc4910bf1edbe98e224b4db47b4044a67fec408d19e28e4255f0aacfb686aa",
       "3-behavior": "7196f04a0ac5451d63375a62e4bb4292b8cfef17c749c68eb89be7b318c0161e",
       "4-functional-requirements": "e60216b3b3264f7374768ae263f3375036f6233311005ace78e99e413a592f90",
       "5-acceptance-criteria": "46766d60f4e817f039e051d02693bc9865a52ba697333d7c7905e6dfa77dc6f2",
       "6-out-of-scope": "8b85e4bf8eeebcc24ae938260732073c6a2ac52346ed86040ef873a0bf79e2b5",
-      "7-resolved-decisions": "bfe1552052ae5ab783ebcb35f7a2d2a7948deee37f7ff6e2dafb66328794b108",
+      "7-resolved-decisions": "c17ad4ac8094113f623eb715ea9c86e3ed8d419d1a2d98f1e32c6b2463265bcd",
       "verification": "14079011bc6b6f1eb235b634fdf83ea6a237e4e136425aa50a5786adb5a41250"
     },
     "sectionHeadings": [
@@ -114,6 +190,6 @@
     "summary": "Similarity is computed in this process. Vectors are BLOBs read through rahi's paged read, scored by dot product against a normalized query, and reduced by a bounded top-k heap, with the scope predicate in the SQL so a scan never leaves its scope. The text channel is an application-owned inverted index rather than FTS5, because FTS5 is not compiled into hiqlite's SQLite build and a loadable extension is refused by the chassis. A trait boundary exists so an approximate index can replace the scan when the evaluation corpus says it must, and not before.\n",
     "title": "The index: a paged cosine scan, an application-owned text index, and no SQLite extension"
   },
-  "shardHash": "eb38ccfb1be72fb2d71222425cbe252db037ea0610159d83bfa651e555409d0f",
+  "shardHash": "779dcf3a6da1fd3de2bc8e568b9e1aff71a0e728d257b1a14d6f94b6f4929d12",
   "specVersion": "1.9.0"
 }

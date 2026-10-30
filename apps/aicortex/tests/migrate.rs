@@ -300,6 +300,7 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
             migration.version,
             aicortex_store::migrations::ERASURE_RECEIPTS_VERSION
                 | aicortex_store::migrations::EMBEDDING_MIGRATION_VERSION
+                | aicortex_store::migrations::TEXT_INDEX_VERSION
         );
         assert_eq!(
             migration.additive, expected,
