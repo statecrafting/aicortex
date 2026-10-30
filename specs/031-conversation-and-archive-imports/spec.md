@@ -114,8 +114,16 @@ rather than adding it again.
   turn: u32 }`, whose wire form is the provenance key `conversation`
   holding an object with exactly the keys `id` (a string) and `turn` (an
   unsigned integer): `id` is the export's own conversation identifier, or, when
-  the export has none, a digest of the export's identity for that
-  conversation that is stable across re-imports of the same export; `turn`
+  the export has none, a derived id: the string `d:` followed by the
+  lowercase hexadecimal SHA-256 of the UTF-8 bytes of the parser's
+  identifier, the conversation's creation time as the export states it
+  (or, if it states none, the first message's timestamp) in RFC 3339 UTC,
+  and the first message's text, joined by a single NUL byte. Those inputs
+  are fixed by the export, so the id is the same on every re-import of
+  the same export and on a later export that still holds the
+  conversation. Two conversations of one export that derive the same id
+  are not merged: the second is refused, counted in the run report, and
+  listed in the dry run; `turn`
   is the message's 1-based position in the export's message order,
   assigned before skipping, so a skipped message leaves a gap rather than
   renumbering the turns after it. Two message memories are turns of one
@@ -190,6 +198,11 @@ rather than adding it again.
   in order; with `Between` over a range containing an erased turn returns
   the others in the range and nothing outside it; and with a reversed
   range returns the typed error.
+- **FR-012.** For a committed export fixture whose conversations carry no
+  identifier, two imports derive the same `d:` ids, each equal to the
+  value recorded in the fixture, and two conversations in one fixture that
+  derive the same id import as one conversation plus one refusal counted
+  in the run report.
 
 ## 5. Acceptance criteria
 
@@ -224,8 +237,8 @@ with no export, which are added as new parsers behind B-2's detection.
   touching the whole chat; and wider reads stay available, because 025's
   `Window` can return the turns around a hit and its `Record` can rebuild
   the conversation from the shared id. B-2 is amended, B-3 is narrowed to
-  one message per candidate, and B-9 to B-11 and FR-006 to FR-009 are
-  added. Rejected: one `Reference` memory per thread, which was B-2's
+  one message per candidate, and B-9 to B-11, FR-006 to FR-012, and AC-3
+  are added, with the matching Verification lines. Rejected: one `Reference` memory per thread, which was B-2's
   earlier text. Because the owner directed this amendment, this spec stays
   `status: approved`: constitution V makes approval a human act, and the
   human authority who approves this corpus decided the content of this
