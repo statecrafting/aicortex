@@ -1,7 +1,7 @@
 ---
 id: "026-read-side-entity-pointers"
 title: "Read-side entity pointers: tell the agent, inside its recall results, that memory about a named entity exists"
-status: draft
+status: approved
 kind: "feature"
 domain: "clients"
 created: "2026-10-25"

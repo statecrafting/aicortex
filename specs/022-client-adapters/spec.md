@@ -1,7 +1,7 @@
 ---
 id: "022-client-adapters"
 title: "Client adapters: one capability matrix, four install paths, zero client code in the core"
-status: draft
+status: approved
 kind: "feature"
 domain: "clients"
 created: "2026-09-03"

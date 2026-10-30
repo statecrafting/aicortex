@@ -36,11 +36,6 @@
         "code": "W-001",
         "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
         "path": "crates/aicortex-ingest/src/registry.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '032-capture-sources-and-webhooks' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
       }
     ]
   },
@@ -48,7 +43,12 @@
     "dependsOn": [
       "031-conversation-and-archive-imports"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -105,7 +105,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

@@ -31,11 +31,6 @@
         "code": "W-001",
         "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-curate/tests/review.rs' does not exist",
         "path": "crates/aicortex-curate/tests/review.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
       }
     ]
   },
@@ -44,6 +39,10 @@
       "022-client-adapters"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
@@ -105,7 +104,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

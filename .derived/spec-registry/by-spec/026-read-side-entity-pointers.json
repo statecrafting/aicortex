@@ -163,10 +163,10 @@
       "Verification"
     ],
     "specPath": "specs/026-read-side-entity-pointers/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project it just asked about, so the agent answers generically about facts the store knew. This spec adds entity pointers to the existing recall result: when a search asks for them, the server resolves entity names in the query by exact and normalized alias match in the searched scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times beside the evidence. The block is untrusted data under 019, bounded in size, counted inside any delivery budget, and opt-in per request. No client hook carries pointers: every client's hook output starts as \"not a data position\", and the MCP surface stays at seven tools.\n",
     "title": "Read-side entity pointers: tell the agent, inside its recall results, that memory about a named entity exists"
   },
-  "shardHash": "766a6225d42bda3b33530bba5199fc77838b4a2d25f466e6338c546cda92021c",
+  "shardHash": "5a64df4c4ec97482ad3b327bb6ed745fc65908843fde31d2dee77501cb02b0c8",
   "specVersion": "1.10.0"
 }

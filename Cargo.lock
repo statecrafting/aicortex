@@ -126,6 +126,7 @@ dependencies = [
 name = "aicortex"
 version = "0.1.0"
 dependencies = [
+ "aicortex-api",
  "aicortex-embed",
  "aicortex-store",
  "aicortex-types",
@@ -134,6 +135,7 @@ dependencies = [
  "prometheus",
  "rahi-cli",
  "rahi-edge",
+ "rahi-idp",
  "rahi-kernel",
  "rahi-ledger",
  "rahi-ops",
@@ -149,6 +151,32 @@ dependencies = [
  "tempfile",
  "tokio",
  "toml 1.1.6+spec-1.1.0",
+]
+
+[[package]]
+name = "aicortex-api"
+version = "0.1.0"
+dependencies = [
+ "aicortex-embed",
+ "aicortex-gate",
+ "aicortex-recall",
+ "aicortex-store",
+ "aicortex-types",
+ "axum",
+ "base64 0.23.1",
+ "rahi-edge",
+ "rahi-idp",
+ "rahi-kernel",
+ "rahi-ledger",
+ "rahi-store",
+ "rahi-types",
+ "rcgen",
+ "reqwest",
+ "ring",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]
@@ -3712,6 +3740,7 @@ version = "0.14.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8774e05a7d0de114588e6a28fe7e71694b82614ed569d86d8b389dfbc98b8ad8"
 dependencies = [
+ "aws-lc-rs",
  "pem",
  "ring",
  "rustls-pki-types",
@@ -5572,6 +5601,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d43b0f71ce057da06bc0851b23ee24f3f86190b07203dd8f567d0b706a185202"
 dependencies = [
  "asn1-rs",
+ "aws-lc-rs",
  "data-encoding",
  "der-parser",
  "lazy_static",
