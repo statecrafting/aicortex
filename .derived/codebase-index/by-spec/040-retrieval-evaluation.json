@@ -121,7 +121,10 @@
   },
   "mapping": {
     "dependsOn": [
+      "012-store-schema-and-repositories",
+      "014-memory-lifecycle-and-erasure",
       "018-retrieval-and-recall-trace",
+      "020-http-api-and-scopes",
       "035-agent-coordination"
     ],
     "implementingPaths": [
@@ -459,5 +462,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "089a8e21ec561a8ca6a27d1ca42271d8d6539bc89890ad2b82d68974abb6f207"
+  "shardHash": "eed2afb11176f341a7bc5230bca5b163d886eb0e35d8e780810ed815c1dbe422"
 }

@@ -5,7 +5,10 @@
     ],
     "created": "2026-09-03",
     "dependsOn": [
+      "012-store-schema-and-repositories",
+      "014-memory-lifecycle-and-erasure",
       "018-retrieval-and-recall-trace",
+      "020-http-api-and-scopes",
       "035-agent-coordination"
     ],
     "domain": "ops",
@@ -179,9 +182,9 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "040-evaluation": "52c9c4ce7fc6194e9dd4287f6b517552e7ce0633a47ef3280f78d2448030d92f",
+      "040-evaluation": "7bfcaf1ee3263a3128e9e676b2e4230d4065f8262ca4d34de6648913ca3db2de",
       "1-purpose": "167d8c6e6afd1f32c0253beaa993a57e96427c498823dc96654346f8ec879aaa",
-      "2-territory": "a3a9da96c1340306f2c72ff2260a936034af4e8053ab45f701d000a1204b61bc",
+      "2-territory": "176d7d52f9cba780f571c0b215d9436d84719cd3f6d9b5f053c17755d213e9bc",
       "3-behavior": "e83a68d08dcdcf4591c3d3ef370b5fc77172b2ec75a75cfc993a48be43d81420",
       "4-functional-requirements": "693fe40bd436d7e2b9ab326791fb61e5c815c4c56e708135c6d93951f7b246bb",
       "5-acceptance-criteria": "bff08249ada83c827e9aefe82d8eee8bde0fdc389351218a30ac190ba5b78c3a",
@@ -207,6 +210,6 @@
     "summary": "Retrieval quality is the product, and it degrades invisibly. This spec builds the instrument: a committed golden corpus of memories and queries with judged relevance, a runner that loads it into a temporary instance and executes every query, metrics that are the standard ones rather than invented, a baseline file per configuration, and a gate that fails a change which moves a metric down by more than its tolerance without an explicit, justified baseline update. Constitution XIV becomes a command with an exit code.\n",
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
-  "shardHash": "089a8e21ec561a8ca6a27d1ca42271d8d6539bc89890ad2b82d68974abb6f207",
+  "shardHash": "eed2afb11176f341a7bc5230bca5b163d886eb0e35d8e780810ed815c1dbe422",
   "specVersion": "1.9.0"
 }
