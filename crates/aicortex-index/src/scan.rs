@@ -146,7 +146,8 @@ pub struct ScanOutcome {
     pub truncated: bool,
     /// Rows scored.
     pub scanned: u64,
-    /// Pages read.
+    /// Pages read that returned rows; the empty read that ends a scan on an
+    /// exact page boundary is not counted.
     pub pages: u32,
 }
 
@@ -321,6 +322,9 @@ pub async fn scan_rows<S: PageSource>(
             .as_ref()
             .map(|(memory, ordinal)| (memory.as_str(), *ordinal));
         let page = source.page(after, config.page_size).await?;
+        if page.is_empty() {
+            break;
+        }
         outcome.pages = outcome.pages.saturating_add(1);
         let full = u32::try_from(page.len()).is_ok_and(|len| len >= config.page_size);
         if let Some(last) = page.last() {

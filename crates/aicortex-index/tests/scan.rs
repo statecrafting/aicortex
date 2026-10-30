@@ -294,6 +294,8 @@ async fn fr006_an_exhausted_budget_returns_the_best_so_far_marked_truncated() {
     .unwrap();
     assert!(!outcome.truncated);
     assert_eq!(outcome.scanned, 100);
+    // The empty read past an exactly full last page is not a page.
+    assert_eq!(outcome.pages, 10);
     assert_eq!(ids(&outcome.candidates), reference(&chunks, &needle, 5));
     node.shutdown().await;
 }
