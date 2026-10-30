@@ -114,10 +114,13 @@ contents. No other crate contains a client name.
   capture DTO.
 - **FR-004.** A hook whose request fails returns success to its client and
   records the failure locally, asserted against a server returning 503.
-- **FR-005.** For each client, a recorded session fixture that contains a
-  decision, a correction, tool output, a local path, a task progress note,
-  an MCP server configuration, and a plugin activation produces capture
-  payloads for the decision and the correction only, each with its kind.
+- **FR-005.** For each client, a recorded session fixture that contains
+  one item of each durable class B-8 names (a preference, a correction, a
+  decision, a commitment, and a fact the user asks to keep) and one item
+  of each runtime class it excludes (a task progress note, tool output, a
+  local path, an MCP server configuration, a credential, and a plugin
+  activation) produces exactly five capture payloads, one per durable
+  item, each with its B-8 kind, and none for any runtime item.
 
 ## 5. Acceptance criteria
 
