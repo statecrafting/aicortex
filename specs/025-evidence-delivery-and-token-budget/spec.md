@@ -152,8 +152,8 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
 
 ### 3.2 The budget
 
-- **B-4 (what is counted).** `TokenBudget` is a hard cap, in the declared
-  counter's units (B-5), on the model-facing payload: 019's framing statement and its version line, every
+- **B-4 (what is counted).** `TokenBudget` is a hard cap on the
+  model-facing payload, counted in the declared counter's units (B-5): 019's framing statement and its version line, every
   envelope's opening and closing delimiters and labels, every delivered
   body text, and every cut and omission marker. Nothing the model reads in
   that payload is uncounted. The trace summary that 020 and 021 attach as
@@ -195,7 +195,13 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   delivered inside an earlier result's `Window` or `Record` is not
   delivered again: a later result that is such a turn is reported with
   the reason `covered` and the id of the result that carried it, uses no
-  budget, and keeps its place in the prefix.
+  budget, and keeps its place in the prefix. A covered result is not
+  expanded in its own right: turns its own `Window` would have reached
+  beyond the carrying unit are not delivered for it, because a second,
+  overlapping unit of the same conversation would spend budget on a lower
+  rank to repeat context the model already has. Its report lists the
+  turns the carrying unit actually delivered, so the client can see how
+  much context surrounds it.
   1. The rank-one result is reserved first. If its requested unit does not
      fit, it is reduced along the ladder; if its chunk alone does not fit, it is cut at a sentence or line boundary and
      ends with a cut marker. It is never dropped.
@@ -250,7 +256,8 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   version (and the fallback when B-5's applies), and the dropped ids. The
   reasons are, in order of precedence:
   - `covered`: the result is a turn already delivered inside an earlier
-    result's conversation unit (B-6);
+    result's conversation unit (B-6); it reports a token count of zero
+    and no byte ranges of its own;
   - `cut`: the result is delivered as a cut chunk with a cut marker
     (B-6 step 1 or 5);
   - `conversation`: the result is delivered as a conversation unit, a
