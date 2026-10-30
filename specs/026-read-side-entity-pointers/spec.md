@@ -89,8 +89,10 @@ adds no table, no migration, no worker, and no MCP tool.
   is a pure function of the stored entities and its arguments.
 - **B-2 (the message is not stored).** The text a hook sends is used for
   resolution and discarded. It is not persisted, not embedded, not logged,
-  and not placed in a trace. A pointer request is not a capture and does
-  not pass through the write gate, because it writes nothing.
+  and not placed in a trace. The route is excluded from every request or
+  response body logging layer the router mounts, so the body is not logged
+  before the handler runs either. A pointer request is not a capture and
+  does not pass through the write gate, because it writes nothing.
 - **B-3 (live sources only).** An entity is pointed at only if at least
   one `Active` memory in the scope mentions it. Its mention count and last
   seen time are computed over `Active` memories only, so a pointer never
@@ -112,8 +114,14 @@ adds no table, no migration, no worker, and no MCP tool.
   stored content and never tells the agent it must act.
 - **B-6 (bounded).** A set holds at most a configured number of pointers
   (default 5) and at most a configured token size including the framing
-  and every envelope label (default 400, under a named in-process counter
-  that makes no outbound call). It is
+  and every envelope label (default 400). Tokens are counted by one named,
+  versioned, in-process counter that makes no outbound call, whose
+  identifier travels in the response; it is the counter 025 B-5 names when
+  that spec is built. Where no counter is configured, size is counted in
+  UTF-8 bytes, one token per byte, which never under-counts a subword
+  tokenizer, and the response names that fallback. The bound is exact
+  under the named counter and an estimate against a client model with a
+  different tokenizer. The set is
   ordered by first match position in the text, then mention count
   descending, then entity id, and cut from the end, with the response
   marked truncated. The text a hook may send is bounded (default 8 KiB);
@@ -132,7 +140,11 @@ adds no table, no migration, no worker, and no MCP tool.
   position is a data position, and the verification date or
   `verified = false`. A client whose only injection position is one it
   treats as directive (a system prompt, an instruction file, a rules file)
-  is `none`, because 019 B-3 forbids placing stored content there.
+  is `none`, because 019 B-3 forbids placing stored content there. Until
+  a human has verified from the client's documented semantics that its
+  hook position is a data position, the row is `none` or `verified =
+  false`, and no pointer hook snippet is generated for it, so an
+  unverified client can never receive a pointer.
 - **B-9 (opt-in).** The pointer hook is shipped beside the capture hook
   but enabled only when the user installs it from the generated snippet.
   A deployment can disable the route, which the hook treats as a failure.
@@ -159,13 +171,18 @@ adds no table, no migration, no worker, and no MCP tool.
 - **FR-005.** A message long enough to resolve more pointers than the
   bounds returns a truncated set whose counted size is within the token
   bound.
-- **FR-006.** A test asserts the route writes nothing, opens no socket, and
-  that the sent text appears in no log line, trace, or stored row.
+- **FR-006.** A test drives the fully assembled router, with every layer
+  it mounts in production, under a capturing tracing subscriber at the
+  most verbose level, and sends a unique sentinel string. It asserts the
+  route writes nothing and opens no socket, and that the sentinel appears
+  in no captured log line or span, no trace, and no stored row.
 - **FR-007.** For each client with `read_pointer` enabled, the hook
   returns success and adds nothing when the server answers 503 or exceeds
   the deadline.
 - **FR-008.** Every matrix row has a `read_pointer` entry that is either
-  `none`, verified with a date and a fixture, or `verified = false`.
+  `none`, verified with a date and a fixture, or `verified = false`, and
+  no pointer hook snippet is generated for a row that is `none` or
+  `verified = false`.
 
 ## 5. Acceptance criteria
 
@@ -208,7 +225,8 @@ Open for the owner before approval:
   019 B-3. A hook that adds context to the next model turn may be treated
   by some clients as a system-level note. This spec makes the matrix
   record the answer per client, but the first rows need a human judgment
-  of each client's documented semantics.
+  of each client's documented semantics. B-8 keeps an unanswered row
+  safe in the meantime: it ships no pointer hook.
 
 ## Verification
 

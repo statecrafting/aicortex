@@ -139,17 +139,17 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "026-read-side-entity-pointers": "dcf83ad518736f2fa6b58ff52686b8a36171d8ed5a242f090f73a800fdb11655",
+      "026-read-side-entity-pointers": "a6572941a07ae00ddacb2beb22e8328a9c65d2d5df3ef369315b7001192b9df9",
       "1-purpose": "1c9d4b679dedf5926d9fb73c47b0b3687877c87872950f77d8ddd016026ef9dc",
       "2-territory": "45c333b46d6982a3ec0147f95103b4de8edcf925297d1765e9efc1969e4132c8",
-      "3-1-resolution": "ea1206bbf51ed36d75802d063f356f762972cab3715cd2500fa0c1c8c89280ee",
-      "3-2-the-pointer": "6906a49430a196b6b37b6f62c2aa9d52c3830811e38fbd2eb4eff90b4e5d8267",
-      "3-3-the-client-side": "cbc76b71a1c8f68bfb3eb0dd8e56e8a7afd2069b0c4ebf679716f50c04b0b2bc",
-      "3-behavior": "4f770f4a0c1a80cf479858ea5ecc67d1bc1a01161edfd2903f0a22db25c50cf5",
-      "4-functional-requirements": "2a4421f1423aaacb128981a1ac214a92e689760f8829f57892d422ebdbd6faa0",
+      "3-1-resolution": "4137a6f6390c6200246200edf083cafe5ca6d92c30ce9fe2ca0ef6af763761b5",
+      "3-2-the-pointer": "029d68acf702be93e35e6c13b1fda77874894a89ad23079df2a891d1de1c1b9a",
+      "3-3-the-client-side": "86a78a9764a0c2a448cce453fd812a2769497471944909aae4d6521d674dee2d",
+      "3-behavior": "8f3efed36b2fe8e77a006413865b359c5f5205fca2cc0c5356aa550d86c332d4",
+      "4-functional-requirements": "d8b1cd9de36b0b73db4af3d8829253e7aa1cd5d58c32775118a01d4061ff99be",
       "5-acceptance-criteria": "4e26432d577e92290ceb7c9073faf5188b9586ac18f068a1cea476349177a9c2",
       "6-out-of-scope": "a72826b209057f4608a474f6b8a946ae6b6db2d5a148490f4591c6e359c5a0ec",
-      "7-resolved-decisions": "3dc2e1b1d2e5e3a33b608f9bb5637623a739984eb8e5c942f212d42d3dc4feb4",
+      "7-resolved-decisions": "2552296959565a94fc3e3f1152de96cb59d90763937f07596927f3f0707d2a24",
       "verification": "cd47013ad6bcd59db76bfa37081d47e68be829dcfe79586030ac691b6c709932"
     },
     "sectionHeadings": [
@@ -171,6 +171,6 @@
     "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project the user just named, so the agent answers generically about facts the store knew. This spec adds a per-turn pointer: a client hook sends the user's message to one read-only route, which resolves entity names by exact and normalized alias match in the caller's scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times. The block is untrusted data under 019, bounded in size, scoped by the caller's token, opt-in per client, and the hook does nothing when it fails.\n",
     "title": "Read-side entity pointers: tell the agent each turn that memory about a named entity exists"
   },
-  "shardHash": "8d71715885211f539f747d70c37a8fb8fc2b94fef256fbdad653d1f7be41998f",
+  "shardHash": "cc9572e68be5bb2af9ae45b51a0bcefbc7c91cf2b8112e3534f95c04d5df28d6",
   "specVersion": "1.9.0"
 }
