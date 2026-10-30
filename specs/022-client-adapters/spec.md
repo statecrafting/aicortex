@@ -124,6 +124,10 @@ contents. No other crate contains a client name.
   local path, an MCP server configuration, a credential, and a plugin
   activation) produces exactly five capture payloads, one per durable
   item, each with its B-8 kind, and none for any runtime item.
+- **FR-006.** Every client directory's README states the B-8 rule (durable
+  classes only, never runtime state) and names the setting that turns
+  automatic capture off, asserted by the clients test reading each README
+  for both.
 
 ## 5. Acceptance criteria
 
@@ -144,9 +148,9 @@ server.
   user must get right is the URL of their own instance, and a static
   document cannot know it.
 
-- **D-2 (2026-10-25, amendment, pending owner review).** Added B-8 and
-  FR-005, and amended B-4 to defer to B-8: capture hooks send durable
-  classes only and never runtime state. The observation is
+- **D-2 (2026-10-25, amendment, pending owner review).** Added B-8,
+  FR-005, and FR-006, and amended B-4 to defer to B-8: capture hooks send
+  durable classes only and never runtime state. The observation is
   `gbrain://memory-boundaries` (`docs/design/00-lineage.md`). The rule
   sits here rather than in the gate because a hook sees the session's
   structure (which event, which tool, which role) and the gate sees only
@@ -156,8 +160,9 @@ server.
   preferences (`Preference`), commitments (`Task`), and facts the user
   wants kept (`Fact`), drops the session summary, which is not one of
   those kinds, and makes the excluded runtime classes explicit; FR-005
-  tests both sides. B-4 now names B-8 as the one list of what is sent, so
-  the two rules cannot drift. The read-side pointer hook observed
+  tests both sides, and FR-006 tests that each client's README states the
+  rule and its off switch. B-4 now names B-8 as the one list of what is
+  sent, so the two rules cannot drift. The read-side pointer hook observed
   alongside this is outside this amendment and is not specified here. The
   amendment adds behavior to an approved spec that no human has reviewed,
   so this spec returns to `status: draft` (constitution V).
