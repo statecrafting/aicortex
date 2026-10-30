@@ -103,9 +103,12 @@ return.
   the conversational source kinds that exist when this spec is built; a
   later spec that introduces one (031's chat imports, for example) adds its
   kind to the list through an `extends` edge on this module.
-- **B-3 (default unit).** With no unit requested the unit is `Chunk`, so a
-  response that does not ask for delivery is byte-identical to one from a
-  build without this stage. Changing the default requires an evaluation run
+- **B-3 (default unit).** A request that asks for delivery carries a
+  `unit`, a `window_radius`, or a `token_budget`. A request that carries
+  none of them does not run this stage at all, and no budget, default or
+  otherwise, applies to it, so its response is byte-identical to one from
+  a build without this stage. A request that asks for delivery without
+  naming a unit gets `Chunk`. Changing the default requires an evaluation run
   (040) reported in the pull request, under the same rule as 018 B-10.
 
 ### 3.2 The budget
@@ -119,9 +122,10 @@ return.
   form instead.
 - **B-5 (the counter).** Tokens are counted by one named, versioned,
   in-process counter, whose identifier travels in the response. It makes
-  no outbound call. A counter that cannot run falls back to a declared
-  upper bound derived from the byte length that never under-counts, and the
-  response names the fallback. The cap holds exactly under the named
+  no outbound call. A counter that cannot run falls back to counting one
+  token per UTF-8 byte, which never under-counts a subword tokenizer
+  because every such token covers at least one byte, and the response
+  names the fallback. The cap holds exactly under the named
   counter; against a client model with a different tokenizer the count is
   an estimate, and the response says which counter produced it.
 - **B-6 (packing).** Packing walks the fused order once and is
@@ -150,7 +154,8 @@ return.
   is refused with a typed error naming the minimum, rather than returning an
   empty or unframed response.
 - **B-8 (server ceiling).** The deployment configures a default budget and
-  a maximum. A request may lower the budget and may not exceed the maximum;
+  a maximum; the default applies only to a request that asks for delivery
+  (B-3) without naming a budget. A request may lower the budget and may not exceed the maximum;
   a request above it is clamped and the response says so. The `Duration`
   budget of 018 B-9 is unchanged and independent.
 
