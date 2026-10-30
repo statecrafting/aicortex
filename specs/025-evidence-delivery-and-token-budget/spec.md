@@ -132,8 +132,11 @@ return.
   deterministic. Every reduction, for every rank, follows one ladder from
   the requested unit downwards: `Record`, then `Window { radius }` for
   each radius from the request's `window_radius` (default 1) down to 1,
-  then `Chunk`. "Largest unit no larger than the requested one" means the
-  first rung of that ladder, at or below the requested unit, that fits.
+  then `Chunk`. `Auto` is not a rung: before packing, it is resolved per
+  memory under B-1 and B-2 to `Record` or `Chunk`, and that resolved unit
+  is the requested unit for that memory's walk down the ladder. "Largest
+  unit no larger than the requested one" means the first rung of that
+  ladder, at or below the requested unit, that fits.
   1. The rank-one result is reserved first. If its requested unit does not
      fit, it is reduced along the ladder; if its chunk alone does not fit, it is cut at a sentence or line boundary and
      ends with a cut marker. It is never dropped.

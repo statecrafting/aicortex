@@ -107,14 +107,14 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "025-evidence-delivery-and-the-token-budget": "bcff374929d44950fc204fc241631f7a13619db91ddcf7fbd5c715d0e3400a78",
+      "025-evidence-delivery-and-the-token-budget": "33bfe7f01e73e1effa909bab95eadb542e28e717010faf3caded5b86a2bbea4c",
       "1-purpose": "e6e544cdc3c25b11a419c9dcc3203e7ebf0814a51c5035ce5f65caab8b94dd17",
       "2-territory": "5d212bb7ce9be87322df70e6f4480009bd866534535efcf5aaab8e5acc4c0d34",
       "3-1-the-unit": "6ecfc4355b59cdb019f11f683af746a5feb38957e84b60b79888f7945b94fc14",
-      "3-2-the-budget": "7caa127755492fc02b2677e57219c0b9c0b5e5ab9921c88c00fb3a23d4031c3a",
+      "3-2-the-budget": "53b72070c7662da86de9316cc35f9fee7e0e7914d23b42cd094c5096200e84f6",
       "3-3-safety-and-determinism": "01ec99bf51bf637da2f774ae86e1bffb882cf2f2688c5976585327a214da03a8",
       "3-4-surfaces": "60312117277b5916332826328e4cfcc395871fd50222142de7484c1dcd37cf14",
-      "3-behavior": "f930d018cca58694b3f268289be222a7ce8e81aacc169b92aceca1a55cdc99f7",
+      "3-behavior": "21c31bb103c79bc6c47b2917008c0b8369feab7076a4af8a3450f60a96c1221e",
       "4-functional-requirements": "b3889af292349a82d32eba97207bb32313180ae6de61ab61c43b3afb6e63ae00",
       "5-acceptance-criteria": "bb00d0819ba69979f5dc50c79b1364a4a4c94e14ccb6cc8e5e1af8d1d9811587",
       "6-out-of-scope": "0f3b816104fe261f10ee4c91169c99c1aba06eb602938c779e6addd2a03456a2",
@@ -141,6 +141,6 @@
     "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
     "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
   },
-  "shardHash": "aa5c01ac34d14a17db9a9d82182676afc35fd42fc1012d90feec0ee9b110fc75",
+  "shardHash": "bd2a897e6f51decc24088e0e2f16a3db7c9c7b3c659309ab54104e2009574ba1",
   "specVersion": "1.9.0"
 }
