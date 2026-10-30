@@ -307,7 +307,11 @@ manifest will eventually declare. The reference deployment (044).
   only at build time through `rahi-ops -> age 0.12 -> i18n-embed-fl ->
   i18n-config`, and `crypto-bigint` 0.5 (RUSTSEC-2026-0387) only through
   `rahi-ops -> age 0.12 -> p256 -> elliptic-curve 0.13`, whose patched line
-  (0.7) `elliptic-curve` 0.13 cannot take. Both are ignored by id in
+  (0.7) `elliptic-curve` 0.13 cannot take. No P-256 operation runs on
+  secret material here: rahi-ops keys backups with `age::x25519` only
+  (`backup_identity`, `backup_recipient`, and the archive's encryptor and
+  decryptor), and age reaches `p256` only through its tag recipients, which
+  nothing in the tree constructs. Both are ignored by id in
   `deny.toml` with the path each arrives by, exactly as D-6 handles
   chassis-only advisories, and come out when rahi moves off `age` 0.12.
   `unmaintained` stays `all` and no pin moves. Rejected: a workspace
