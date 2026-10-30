@@ -39,11 +39,24 @@
           "kind": "file",
           "path": "crates/aicortex-embed/src/remote.rs"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
       }
     ],
     "specId": "041-privacy-and-egress-boundary",
-    "specStatus": "approved"
+    "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "c1d150b4631d3e98ea345b3f2621bb96dfb7e1596de5ff4c01cf73949c465011"
+  "shardHash": "4305d4579fa9c324339d00c45ace0ae0ef700de903aaab751d78f2be280081a6"
 }
