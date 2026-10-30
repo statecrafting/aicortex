@@ -148,8 +148,10 @@ server.
   gate because a hook sees the session's structure (which event, which
   tool, which role) and the gate sees only text; 013 D-14 records the
   gate's side of the same decision. B-4 already said a hook sends "the
-  decision, the correction, or the summary"; B-8 makes the excluded
-  classes explicit and testable. The read-side pointer hook observed
+  decision, the correction, or the summary"; B-8 widens the sent classes
+  to the durable kinds of 011 B-4 by adding preferences (`Preference`),
+  commitments (`Task`), and facts the user wants kept (`Fact`), and makes
+  the excluded runtime classes explicit; FR-005 tests both sides. The read-side pointer hook observed
   alongside this is outside this amendment: it is proposed separately as
   spec 026 (pull request #77, not yet merged), which would reach this
   spec's matrix and client directories through `extends` edges rather
