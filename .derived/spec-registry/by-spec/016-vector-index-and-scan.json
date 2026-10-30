@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "015-embedding-pipeline"
     ],
@@ -115,5 +116,5 @@
     "title": "The index: a paged cosine scan, an application-owned text index, and no SQLite extension"
   },
   "shardHash": "eb38ccfb1be72fb2d71222425cbe252db037ea0610159d83bfa651e555409d0f",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

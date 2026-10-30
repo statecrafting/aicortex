@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "000-aicortex-bootstrap"
     ],
@@ -135,14 +136,14 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "001-agentic-engineering-harness": "7407f963e1ca6429d054736dfcdb42df5e6f817c0ee827499623e7b3094687b6",
+      "001-agentic-engineering-harness": "6d02936095cf8a32b2972597cfbde14855a4a36a3bcf7a994ad4a65a0006c143",
       "1-purpose": "e8e79fa321ec9a5ff407990e586c2b60720314bd570c6e0461a1d327b25979e9",
       "2-territory": "5c9eee77cc5bdf8cf4cdff7e64e510aca134a5a3274b05196ab264940de1c226",
       "3-behavior": "c1162cc7737998e2d48ecb94b1c2c4ed67ee7c16e02604e4037ea4ac8dd27a66",
       "4-functional-requirements": "64023d74bab0edf9cfc48731c18009e757143943905e030f24dd5d53e4e94156",
       "5-acceptance-criteria": "2ce15f8bf0c4e272f5a86c5b6c58a49d1bbc69897db137aa26c9f964ff464edb",
       "6-out-of-scope": "758afe22a2084f65e8c5136b8df32a85a8aa9016de657b1907b71a5a6cb0d102",
-      "7-resolved-decisions": "e78a7888073029eab02c984aae471cb9c50199990457d1e1c0fed89ff5a262d7",
+      "7-resolved-decisions": "5c417a436929854ace4a35983600c7f0610168bfe39f19142b8a24dfb6e9afd7",
       "engine-upgrade-record-2026-10-02": "3bd336d442dbe47ed7de32ee12c3efc8ea7df6443d022b258dd9280f0269ff37",
       "profile-upgrade-record-2026-10-02": "d26d084ec1ac53f0450dc009347a561cd698b3b52ed68517f57d2dbcf429c187",
       "revision-14-implementation-record-2026-10-02": "d5c20a1c6c5c29d1772c2458c0c97fff2d9ea16eb99132222fc0352815bfb9c1",
@@ -169,6 +170,6 @@
     "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, six behavioral rules of which three are path-scoped, four subagents, ten skills, settings hooks that report and refuse, one Makefile that is the single definition of the gate and splits its reading half from its writing half, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
     "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
   },
-  "shardHash": "ff7a9038fa68bb43a2bc5952d4324e425317805482cf09c9608c5db50fb8d13f",
-  "specVersion": "1.10.0"
+  "shardHash": "dc29d1d578516fcdb6bdfe4bb1a8461f2060ac214b6b4d63ebd733729aebb643",
+  "specVersion": "1.11.0"
 }

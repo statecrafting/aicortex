@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-10-10",
+    "declaresAcceptance": true,
     "dependsOn": [
       "046-rahi-0-2-0-adoption",
       "047-shared-secret-detector-convergence"
@@ -122,5 +123,5 @@
     "title": "Move the chassis to rahi 0.6.0 and action-gate-core to 0.3.0, with closed mode left off"
   },
   "shardHash": "8514d03e105a4a92637f396377b9f29a8b4950b1afec856930d6178be3f8a634",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -14,6 +14,7 @@
       }
     ],
     "created": "2026-09-24",
+    "declaresAcceptance": true,
     "dependsOn": [
       "050-typed-claims-and-predicate-registry"
     ],
@@ -229,5 +230,5 @@
     "title": "Claim admission: an observation is not a proposal, a proposal is not a claim, and a score is never authority"
   },
   "shardHash": "3cbb14dc8794908d3c666cd2f6396e49eafb99ad076905610d2dafbc435c60a2",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

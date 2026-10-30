@@ -50,5 +50,5 @@
     "title": "Adopt Statecraft profile revision 14 with the ordinary Rust code gate"
   },
   "shardHash": "325728f706a1f0b1d67af48838f4fd19d28b8eaf2ecadae998551c4f7464039e",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

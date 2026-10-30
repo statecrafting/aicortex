@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "015-embedding-pipeline",
       "019-untrusted-content-boundary"
@@ -139,5 +140,5 @@
     "title": "The HTTP API: bearer-authorized, scope-gated, streaming where it earns it"
   },
   "shardHash": "d24cd3eb671808f2452e187e6bf160d41232c6fe90f28df7c6e29b238c9daf30",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

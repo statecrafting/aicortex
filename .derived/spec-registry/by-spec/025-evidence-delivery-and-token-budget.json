@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-10-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "018-retrieval-and-recall-trace",
       "019-untrusted-content-boundary",
@@ -173,5 +174,5 @@
     "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
   },
   "shardHash": "ed7e436dca934f3fb183be22fa244f32a96ca0c994b8f973c2c82115286984fd",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

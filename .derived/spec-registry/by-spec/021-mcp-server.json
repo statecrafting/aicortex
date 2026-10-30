@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "020-http-api-and-scopes"
     ],
@@ -116,5 +117,5 @@
     "title": "The MCP server: streamable HTTP, a small tool surface, OAuth discovery that bootstraps itself"
   },
   "shardHash": "b52529a66bbc1890c17b939ec1597fd1ff267e99ec326d6ebb616e1a599718ff",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

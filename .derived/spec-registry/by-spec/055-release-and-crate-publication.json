@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "053-host-library-mode"
     ],
@@ -145,5 +146,5 @@
     "title": "Release the library crates: a tag publishes, a human cuts the tag, and nothing else is implied"
   },
   "shardHash": "7519f858d8985c04455aaf23ca48e6b6c5eb9af8cf487f574b1989f4b04a638b",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }
