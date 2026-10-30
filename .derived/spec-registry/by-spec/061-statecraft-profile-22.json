@@ -17,7 +17,7 @@
       "wave": 4
     },
     "id": "061-statecraft-profile-22",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "tooling",
     "obligations": [
       {
@@ -29,7 +29,7 @@
     ],
     "risk": "low",
     "sectionDigests": {
-      "061-statecraft-profile-revision-22": "ca9bffbaf1b838d7fc75963be91d9cacbd1ece57d2b09e45a4a93c42244ad758",
+      "061-statecraft-profile-revision-22": "8f9007dded51f424b86fb0d4b781ba317583c0926cf01f449fd31b7ffa9a83e0",
       "1-purpose": "6bc971ed7d9069235c13184669b2af71099ded8759a921e7526a4e412afc9167",
       "2-territory": "e486c8fa84b03838dc11865bc5affdddfe6c3903881b18bf8d12c5ffbe6a6ccb",
       "3-migration-contract": "ceee804dfbd93d784ad2f085ec767cf3fe502c4aa6fbaea0a2c3472283f41b28",
@@ -37,7 +37,7 @@
       "5-out-of-scope": "1c694d8377c0fb1b5b7fa6ea7ab0f39b6c4bc7d25bd227fab7374688c3e9385a",
       "6-resolved-decisions": "b120988771fbf5f9f8c669e225657de683b84719f655db87facb20f0f24adb52",
       "7-approval-basis": "9eadde101e8a00b51c162c06468ce16ef26bb943adb74a402427abc65e50f0b6",
-      "8-implementation-record": "cc1179c3471bb7fbba93ed814511649f56cdf118ecab9b2ae7f7b7494f265b1b",
+      "8-implementation-record": "4a3e5e27781fa2675a8f5bc0cf3705a23422d61ae45cfab4f3d509d5afad9f44",
       "verification": "fa6cf76ca701513ebeb4bcd799e04a113391174156e13dc2f0a910c9bad24995"
     },
     "sectionHeadings": [
@@ -57,6 +57,6 @@
     "summary": "Authorizes the migration from Statecraft github-actions-rust revision 21 to revision 22 together with the exact spec-spine pin move from 0.31.0 to 0.32.0. Revision 22's producer links spec-spine-core 0.32.0 and refuses any other pin, so the two moves land together. Revision 22 adds four required jobs (supply chain, workflow lint, ast-grep scan, secret scan); its supply chain job replaces the project's extra job of the same name. Aicortex keeps its ordinary Rust code gate and the corpus attestation and spec DAG jobs.\n",
     "title": "Adopt Statecraft profile revision 22 with spec-spine pinned at 0.32.0"
   },
-  "shardHash": "4bb26f2297a1ef2980ac82cb7e15a83d77ca5e79e7c1e4aa6acbb43d57d41deb",
+  "shardHash": "901c2178f160dd6de122e771a7c386f5f0da760f1709b093fefd6a00387e6899",
   "specVersion": "1.11.0"
 }

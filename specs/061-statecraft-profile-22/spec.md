@@ -7,7 +7,7 @@ domain: "governance"
 authors: ["Bartek Kus"]
 risk: low
 wave: 4
-implementation: in-progress
+implementation: complete
 created: "2026-10-30"
 summary: >
   Authorizes the migration from Statecraft github-actions-rust revision 21 to
@@ -172,12 +172,15 @@ producer is spec-spine-core 0.32.0, checksum
 The rendered profile is revision 22 with identity
 `6da3ede78368133fe8f463ac341a8ea0ce8e959c0c059066f50c8a89253a4c88`.
 
-The reviewed setup plan identity is
-`spine-init:8a29ae5f4c565299e15403e93cf072941fcec2aeaa2776ede8fe7252d85f70ca`.
-It replaces the managed workflows, scripts, policy, remote desired-state
+The reviewed setup plan identity, over the tree the pin pull request left
+at `=0.32.0`, is
+`8e3850e6d28de4a50b8df8b4c78c1ff0e2a3c837c2bd0e58b1aee97a2b8fa9a8`. It
+renders the same managed bytes as the first, combined candidate (plan
+`spine-init:8a29ae5f4c565299e15403e93cf072941fcec2aeaa2776ede8fe7252d85f70ca`),
+and it replaces the managed workflows, scripts, policy, remote desired-state
 document and CODEOWNERS, adds `scripts/statecraft/guard-policy-files.sh` and
 `scripts/statecraft/verify-action-pins.sh`, and withholds the adopted
-`spec-spine.toml` and standards files apart from the pin value. Local
+`spec-spine.toml` and standards files. Local
 verification and the hosted checks are reported in the pull request.
 
 ## Verification
