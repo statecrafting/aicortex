@@ -14,6 +14,7 @@
       }
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "023-review-and-promotion"
     ],
@@ -85,5 +86,5 @@
     "title": "One chain, referenced: decisions live in rahi's ledger and memories point at them"
   },
   "shardHash": "7ed0709f6de574ea404829b7578948076efdac319c81608873d6bec25fa3fd0a",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

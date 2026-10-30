@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "021-mcp-server"
     ],
@@ -103,5 +104,5 @@
     "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
   },
   "shardHash": "e1c47a9bbd6c0f6e14f70b2b5a7771c7e7a7f0f255c494955d64071a52f99130",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

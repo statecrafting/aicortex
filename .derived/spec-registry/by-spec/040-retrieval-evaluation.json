@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "012-store-schema-and-repositories",
       "014-memory-lifecycle-and-erasure",
@@ -211,5 +212,5 @@
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
   "shardHash": "93db0ba39e6932d40e9fb03bff35fafe474ac27549aa89f2ea87c58bf039580a",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

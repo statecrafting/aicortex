@@ -7,6 +7,7 @@
       "Bartek Kus"
     ],
     "created": "2026-10-30",
+    "declaresAcceptance": true,
     "dependsOn": [
       "001-agentic-harness",
       "054-statecraft-profile-14"
@@ -57,5 +58,5 @@
     "title": "Adopt Statecraft profile revision 21 with spec-spine pinned at 0.31.0"
   },
   "shardHash": "6287e8b9d8bbc3757ed55258cc524baf85370dd317e4792400130c8929f05e4c",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

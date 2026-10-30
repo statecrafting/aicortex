@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-24",
+    "declaresAcceptance": true,
     "dependsOn": [
       "013-write-gate-and-redaction"
     ],
@@ -141,5 +142,5 @@
     "title": "Move every chassis pin to rahi 0.2.0 together, and declare which migrations are additive"
   },
   "shardHash": "d293669d8ba1444a0fc187d7fad16e8ce9aac1c72348f6bb390809a3d88bce36",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "017-entities-and-typed-edges"
     ],
@@ -85,5 +86,5 @@
     "title": "Recall: four channels fused into one order, every result explainable, scope in the SQL"
   },
   "shardHash": "f5118b08a95447b7e6731cf8db0365e74e78e573cb33ac9b971791c65921c795",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

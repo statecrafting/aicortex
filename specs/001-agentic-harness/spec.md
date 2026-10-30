@@ -560,6 +560,20 @@ consumes this repository as a registered target.
   `check` or `lint` to pass at `--fail-on-warn`. A branch cut before this
   entry regenerates its shards with 0.31.0 when it next merges main.
 
+- **D-19 (2026-10-30, owner decision, exact pin at 0.32.0).** The pin moves
+  from 0.31.0 to spec-spine 0.32.0, ahead of the Statecraft profile move to
+  revision 22 that spec 061 authorizes: revision 22's producer links
+  spec-spine-core 0.32.0 and refuses any other pin, and revision 22's policy
+  guard keeps a pin move in a pull request of its own, so the pin lands first
+  and the profile follows. `spec-spine.toml [meta]
+  required_version` becomes `=0.32.0`, and `AGENTS.md`, `README.md`, the
+  architect agent move with it, and the profile's recorded engine pin moves
+  with the revision 22 re-render. Every registry shard is regenerated with
+  0.32.0: each gains `declaresAcceptance`
+  and the registry schema moves from 1.10.0 to 1.11.0, and `check` and `lint`
+  pass at `--fail-on-warn` with no corpus edit. A branch cut before this entry
+  regenerates its shards with 0.32.0 when it next merges main.
+
 ## Verification
 
 ```verify:cli

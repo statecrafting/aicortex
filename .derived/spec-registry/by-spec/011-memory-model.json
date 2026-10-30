@@ -14,6 +14,7 @@
       }
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "010-chassis-adoption-and-workspace"
     ],
@@ -121,5 +122,5 @@
     "title": "The memory record: scope, trust class, actor, provenance, and the states a memory can be in"
   },
   "shardHash": "70aac453e9b956c73126fa0e26631ec1aeb5b056fc51ca4b71b34a8841f51267",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

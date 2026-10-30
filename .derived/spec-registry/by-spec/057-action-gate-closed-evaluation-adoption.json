@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-10-07",
+    "declaresAcceptance": true,
     "dependsOn": [
       "010-chassis-adoption-and-workspace",
       "013-write-gate-and-redaction",
@@ -133,5 +134,5 @@
     "title": "Sequence the write gate and claim admission with action-gate's closed evaluation mode"
   },
   "shardHash": "32bcadd2442084d16a9ccf7501eda88f7b3c96f8323c89f9a31f9f674d094aa6",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

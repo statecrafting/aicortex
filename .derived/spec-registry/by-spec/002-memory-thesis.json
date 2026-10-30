@@ -38,6 +38,7 @@
       }
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "000-aicortex-bootstrap"
     ],
@@ -86,5 +87,5 @@
     "title": "Memory thesis: nine responsibilities, one governed cell, provider agnostic by protocol"
   },
   "shardHash": "0a81411ca1f675f03579b43b532d9c1511d50ee2f8d2a0df84c3a8cdc9091d52",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

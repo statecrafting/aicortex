@@ -14,6 +14,7 @@
       }
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "011-memory-model"
     ],
@@ -137,5 +138,5 @@
     "title": "Schema and repositories: versioned migrations, scope in the predicate, counters instead of scans"
   },
   "shardHash": "b803933b09e77b062f9b9ce50e5ee66798eec3a2071f32d0a67bf907bd75008d",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

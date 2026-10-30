@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "024-decision-and-audit-references"
     ],
@@ -103,5 +104,5 @@
     "title": "Source adapters: one contract, incremental and resumable, so a capability is never a fork"
   },
   "shardHash": "3d561e687b49945960747119ac9a73bad0774b65404fbc06adcaef948d34b8ac",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }
