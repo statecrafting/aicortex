@@ -58,14 +58,14 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "018-recall": "eef0196b63e2c4d885919ecc651f3157894d07e2d4acc0299633cd8c2638638a",
+      "018-recall": "8ec4cf92ff8ad3ce54c6ac3298507fa55fb00758e77748c902593e59f525703a",
       "1-purpose": "12eb79601c5277b1eaed13d354120dc5bc73aa78045db6e5227c103c01473fa1",
       "2-territory": "4445ce5a0d5cad27112cd1567995258302a3accfb185d41e791bcf981caf169c",
-      "3-behavior": "206f93d65e4674e88ce0811d99bc427b785ac21d86d2e01e5ed8804f72965c47",
-      "4-functional-requirements": "e3b51a95817682038f83f0c07ce52cb978138df3dd070d8d6b7052a33e385f44",
-      "5-acceptance-criteria": "66e055fe0774b80a89708acd0d1089753b0c71e44abebbfcb986f4eb0df2246b",
+      "3-behavior": "ad1e5fa7c10be9541fea86cc72cc5995a86eb0a32b657e93c61a3a07b9b84479",
+      "4-functional-requirements": "26dc1fca38a83c58188e946870d13ca8171164bf517a2d1809217a5cdcd3e9bf",
+      "5-acceptance-criteria": "ef3b3d9add1ffdb4c3acbdb47e3c1010dca083f333ca619ddfbdbc658488fd97",
       "6-out-of-scope": "5a532b1ce244419b5b6f0278a72981af0774f61c5eb2c1f1fa7ce29fb967b204",
-      "7-resolved-decisions": "8e529e5601c140f648125c68a36fc2f6a18b8d723fe220a0b6caa29e0bb98d94",
+      "7-resolved-decisions": "34065289220ce7b18ca2ab85de53ad6ccd4663794cbb4bc2aaf90abad2116763",
       "verification": "b98d91f345350958f9006b4ae6e935b68063418d7b9a070d8527d8c7d64c3e0d"
     },
     "sectionHeadings": [
@@ -80,10 +80,10 @@
       "Verification"
     ],
     "specPath": "specs/018-retrieval-and-recall-trace/spec.md",
-    "status": "approved",
+    "status": "draft",
     "summary": "One query, four candidate channels (vector, text, recency, graph), one fused order, and a trace that explains it. Fusion is reciprocal rank with declared weights and an importance prior, chosen because it needs no score calibration between channels that do not share a scale. Every result set carries the query, the per-channel candidates and scores, the fusion arithmetic, and the reason each returned memory made the cut. A ranking that cannot be explained is not shippable, and an evaluation corpus (040) is the only way a weight changes.\n",
     "title": "Recall: four channels fused into one order, every result explainable, scope in the SQL"
   },
-  "shardHash": "5e30af0876c198b9f1d7143825961423a9d51ee948a20ab3b1c1fd887bb12060",
+  "shardHash": "65d2e0b71dd20173c01586aeff99a09a0d337e8edcd1409b18dede45c499e840",
   "specVersion": "1.9.0"
 }
