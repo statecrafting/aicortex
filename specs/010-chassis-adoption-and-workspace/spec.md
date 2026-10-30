@@ -296,6 +296,38 @@ manifest will eventually declare. The reference deployment (044).
   default feature set and relying solely on callers avoiding that API.
   Refresh tokio to 1.53.2 and uuid to 1.28.0 in the same grouped lockfile
   update, without changing the chassis pins or supply-chain policy.
+- **D-11 (2026-10-29, dependency maintenance, PR 85: D-6 applied to four
+  new advisories).** `cargo deny check` began refusing an unchanged tree on
+  four advisories published after the last green run. Two are fixed in the
+  lockfile: `rustls-webpki` moves 0.103.15 to 0.103.16 (RUSTSEC-2026-0382)
+  and `webpki-root-certs` 1.0.9 to 1.0.11 (RUSTSEC-2026-0383); the
+  resolver also points `tempfile` at the `getrandom` 0.3.4 already in the
+  tree. The other two cannot be fixed here without patching the chassis,
+  which B-2 forbids: `basic-toml` (RUSTSEC-2026-0374, unmaintained) arrives
+  only at build time through `rahi-ops -> age 0.12 -> i18n-embed-fl ->
+  i18n-config`, and `crypto-bigint` 0.5 (RUSTSEC-2026-0387) only through
+  `rahi-ops -> age 0.12 -> p256 -> elliptic-curve 0.13`, whose patched line
+  (0.7) `elliptic-curve` 0.13 cannot take. No P-256 operation runs on
+  secret material here: rahi-ops keys backups with `age::x25519` only
+  (`backup_identity`, `backup_recipient`, and the archive's encryptor and
+  decryptor), and age reaches `p256` only through its tag recipients, which
+  nothing in the tree constructs. Both are ignored by id in
+  `deny.toml` with the path each arrives by, exactly as D-6 handles
+  chassis-only advisories, and come out when rahi moves off `age` 0.12.
+  `unmaintained` stays `all`. Rejected: a workspace `[patch]` of `age` or
+  its dependencies, which forks the chassis.
+
+  The same PR restores the rahi pins to `=0.6.0`. A grouped dependency
+  update (PR 72) had moved seven of the nine to `=0.7.1` and left
+  `rahi-idp` and `rahi-harness` at `=0.6.0`, which breaks B-2 (one exact
+  version for all nine) and spec 058 FR-001 (every rahi package resolves to
+  0.6.0); `tests/cell.rs` refuses it on both counts. A chassis move is its
+  own adoption spec, as 046 and 058 were, so the pins go back to the
+  version 058 approved rather than forward to one no spec has adopted.
+  `action-gate-core` 0.2.0 returns beside the workspace's 0.3.0, the copy
+  `rahi-kernel` 0.6.0 carries, as 058 records. Both advisory paths above
+  hold at 0.6.0: `age` 0.12 arrives through `rahi-ops` 0.6.0, which also
+  keys backups with `age::x25519` only.
 
 ## Status (2026-09-17, complete: the chassis release landed)
 
