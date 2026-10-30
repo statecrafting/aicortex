@@ -76,11 +76,11 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "022-client-adapters": "3cead9f59dfab9378cfe8d175078cc006124bc04b8f8017618f3b82e1585cbae",
+      "022-client-adapters": "9d4d22c56e649c77d92baa6ee10ec3a11b99af78911c8da3dc04850a7a1fe66f",
       "1-purpose": "03696686a843665f3bdd97c36255676f45f7dbbf26fba1b2d6efce9eae50ece7",
       "2-territory": "41b5088baeca1a4ad42c1ad9018402f8720492fbf564be98ab1c623da18fadc2",
-      "3-behavior": "421151f3efbd89c41455c91fada0fce12408aad568e1fb6baeac5d80adb34406",
-      "4-functional-requirements": "477f16efbdfb3e328ac3b872a0ad02bce5001a418a10f7c2dd2e827e72ff3e15",
+      "3-behavior": "955610305e4ed1af291d70dd099784fdc2f7b7c20fb78cb04ae259c82a80a0e7",
+      "4-functional-requirements": "d4e64b56408af2cb67c516bd4ca31cc8fbedb62e2d09e74f788db8f8d3967b6e",
       "5-acceptance-criteria": "44491057a47245cffe05f59b4259c32845aa5ff25fe007abc3a4cb439fbd2e2e",
       "6-out-of-scope": "7cf1f75b904541bfcd1e807a51ffe72c4113af3e984d11369225f32d1a76be4a",
       "7-resolved-decisions": "f597bdc99f85815ecc179091d306baf61c583915959338d68d8dbe63d399601c",
@@ -102,6 +102,6 @@
     "summary": "Connecting is one URL, and everything a client needs beyond that is generated rather than written by hand. This spec owns the capability matrix: which clients support remote MCP, which support OAuth against it, and what each offers for automatic capture, which is the only place they genuinely differ. It ships per-client configuration snippets and the hook or notification payloads that turn a session into captured memories, and a route that serves the correct snippet for a client so setup is a copy rather than a document to follow.\n",
     "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
   },
-  "shardHash": "65a4adcdd3ae7d268978f2c417062b181fa0051faf24b488c377b8c8919f9d01",
+  "shardHash": "1314021304952f1aaa188661da06ae1dbc6489aa7a780c9b608801c4e1de64d2",
   "specVersion": "1.9.0"
 }

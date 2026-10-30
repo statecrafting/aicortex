@@ -92,16 +92,19 @@ contents. No other crate contains a client name.
   capture hook sends only durable classes, each with its 011 B-4 kind: a
   preference (`Preference`), a correction (`Correction`), a decision
   (`Decision`), a commitment someone made (`Task`), or a fact the user
-  wants kept (`Fact`). It never sends runtime state: the progress of the
-  current task, tool output, local file system paths, connection or
-  server settings, credentials, or which plugins, servers, hooks, or
-  skills are active (`gbrain://memory-boundaries`). A durable decision
-  about a setup may be captured as a decision without the setup's
-  settings or credentials. The hook filters by the structure the client
-  exposes (event type, tool name, message role), never by asking a model.
-  The gate remains the backstop for credentials (013 B-3, B-4, D-14); it
-  does not classify the other runtime classes, so this rule lives here.
-  Each client's README states the rule and the off switch.
+  wants kept (`Fact`). It never sends runtime state: the session's own
+  work in progress (steps taken or left in the work at hand), tool output,
+  local file system paths, connection or server settings, credentials, or
+  which plugins, servers, hooks, or skills are active
+  (`gbrain://memory-boundaries`). A `Task` is a commitment to a future
+  action that should outlive the session, never a report of the session's
+  progress. A durable decision about a setup may be captured as a decision
+  without the setup's settings or credentials. The hook filters by the
+  structure the client exposes (event type, tool name, message role),
+  never by asking a model. The gate remains the backstop for credentials
+  (013 B-3, B-4, D-14); it does not classify the other runtime classes, so
+  this rule lives here. Each client's README states the rule and the off
+  switch.
 
 ## 4. Functional requirements
 
@@ -117,7 +120,7 @@ contents. No other crate contains a client name.
 - **FR-005.** For each client, a recorded session fixture that contains
   one item of each durable class B-8 names (a preference, a correction, a
   decision, a commitment, and a fact the user asks to keep) and one item
-  of each runtime class it excludes (a task progress note, tool output, a
+  of each runtime class it excludes (a work-in-progress note, tool output, a
   local path, an MCP server configuration, a credential, and a plugin
   activation) produces exactly five capture payloads, one per durable
   item, each with its B-8 kind, and none for any runtime item.
