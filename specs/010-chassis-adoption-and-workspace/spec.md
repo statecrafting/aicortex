@@ -296,6 +296,22 @@ manifest will eventually declare. The reference deployment (044).
   default feature set and relying solely on callers avoiding that API.
   Refresh tokio to 1.53.2 and uuid to 1.28.0 in the same grouped lockfile
   update, without changing the chassis pins or supply-chain policy.
+- **D-11 (2026-10-29, dependency maintenance, PR 85: D-6 applied to four
+  new advisories).** `cargo deny check` began refusing an unchanged tree on
+  four advisories published after the last green run. Two are fixed in the
+  lockfile: `rustls-webpki` moves 0.103.15 to 0.103.16 (RUSTSEC-2026-0382)
+  and `webpki-root-certs` 1.0.9 to 1.0.11 (RUSTSEC-2026-0383); the
+  resolver also points `tempfile` at the `getrandom` 0.3.4 already in the
+  tree. The other two cannot be fixed here without patching the chassis,
+  which B-2 forbids: `basic-toml` (RUSTSEC-2026-0374, unmaintained) arrives
+  only at build time through `rahi-ops -> age 0.12 -> i18n-embed-fl ->
+  i18n-config`, and `crypto-bigint` 0.5 (RUSTSEC-2026-0387) only through
+  `rahi-ops -> age 0.12 -> p256 -> elliptic-curve 0.13`, whose patched line
+  (0.7) `elliptic-curve` 0.13 cannot take. Both are ignored by id in
+  `deny.toml` with the path each arrives by, exactly as D-6 handles
+  chassis-only advisories, and come out when rahi moves off `age` 0.12.
+  `unmaintained` stays `all` and no pin moves. Rejected: a workspace
+  `[patch]` of `age` or its dependencies, which forks the chassis.
 
 ## Status (2026-09-17, complete: the chassis release landed)
 
