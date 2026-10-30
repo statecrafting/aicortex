@@ -110,9 +110,9 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "031-imports": "f5953044cebcadf722aff210c820fb33ce2081f3a2a25ae58e0fea4082437007",
+      "031-imports": "368650c2c48c3c883fdb159d5b47e062aef0413affd9b8b7f5002212b18609b9",
       "1-purpose": "e91161e052a1a58fcf3cd30631d8a5571f48665ee7f4b3a3e0bb25185931c7be",
-      "2-territory": "5eac5b0df276de0001618918edd8464ec42a5e90f99a2ffe087514ebd997f604",
+      "2-territory": "0a10c2c8ecbb16aebe594238b2ab529ea7a477b60fdfb2849db3461fe6e3f89d",
       "3-behavior": "1369f8a1dd2ad6ec0a7b0360b3987d12bc14798a863ce80e10cdcbc0c3881a22",
       "4-functional-requirements": "a0bf6064138822780d99dac7a32482d2327d500ce6f8f1e94ae03c22a3dbae44",
       "5-acceptance-criteria": "f58c807f92702f226aacd3e4c8eac42c5f8754df180292315d9cd78fe3c316fd",
@@ -138,6 +138,6 @@
     "summary": "A memory system is worth little on day one and a great deal once it knows what you already said. This spec brings a user's existing history in: chat exports from the major assistants, a note vault on disk, a read-later archive, and mail, each as an adapter over the framework. A conversation is stored as one memory per message, linked by a shared conversation id and a turn number in provenance, so each turn keeps its own author and trust class and can be redacted or forgotten alone. The interesting work is not fetching, it is extracting from those turns the memories worth keeping, and doing it without sending the archive anywhere.\n",
     "title": "Bringing a history in: chat exports, note vaults, and read-later archives"
   },
-  "shardHash": "2a2735b63325a4aa14a9c3d1046350ba0d003886964b395eabdd0983c9f67c12",
+  "shardHash": "ef0196f15aed812670ff9d4fffdf378a93d5856bae7bf74088c5ee0bc0fad658",
   "specVersion": "1.9.0"
 }

@@ -63,7 +63,11 @@ conversation reference, and 012's migrations and provenance repository
 gain its nullable columns, its index, and the scope-predicated read of a
 conversation's turns. Spec 025, if it is built first, adds the same field
 exactly as B-9 defines it (025 section 2); this spec's build then uses it
-rather than adding it again. 025 is deliberately not a `depends_on`
+rather than adding it again. The check is concrete: if `Provenance` in
+`crates/aicortex-types/src/provenance.rs` already has a `conversation`
+field and the store already has `conversation_turns`, this build adds no
+field, column, index, or read, and FR-010 and FR-011 must pass against
+the existing ones; otherwise this build adds them. 025 is deliberately not a `depends_on`
 entry: it is a draft, and a dependency would hold this approved spec back
 until 025 is approved and built, although nothing here needs 025 to
 exist. It is listed under `references`, and FR-010's fixture is the
