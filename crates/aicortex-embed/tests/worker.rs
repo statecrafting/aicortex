@@ -314,87 +314,45 @@ struct Fixture {
 }
 
 impl Fixture {
+    /// A single-voter store with the fixture schema applied.
+    ///
+    /// The open and the schema are one attempt, and a failed attempt is
+    /// retried in a fresh directory on fresh ports, a bounded number of times,
+    /// for two fixture races only: `free_addr` releases its probe listener
+    /// before the node binds, so another test can take the port in between;
+    /// and the node's own client can lose its first connection on a loaded
+    /// runner, which hiqlite reports as an ambiguous `request timed out`.
+    /// Any other failure is the test's.
     async fn migrated() -> Self {
-        let directory = tempfile::tempdir().expect("temporary store directory");
-        let data_dir = directory.path().join("hiqlite");
         let mut last = None;
-        let store = loop {
-            match Store::open(&store_config(data_dir.clone())).await {
-                Ok(store) => break store,
-                Err(error)
-                    if last.as_ref().map_or(0, |attempt: &u8| *attempt) < 4
-                        && error.message().contains("Address already in use") =>
-                {
-                    last = Some(last.map_or(1, |attempt| attempt + 1));
+        for _ in 0..SETUP_ATTEMPTS {
+            let directory = tempfile::tempdir().expect("temporary store directory");
+            let store = match Store::open(&store_config(directory.path().join("hiqlite"))).await {
+                Ok(store) => store,
+                Err(error) if lost_its_port(&error) => {
+                    last = Some(error);
+                    continue;
                 }
                 Err(error) => panic!("single-voter store opens: {error}"),
-            }
-        };
-        let handle = store.handle();
-        handle
-            .migrate_sets(&[], &[coordination_set(), receipt_set()])
-            .await
-            .expect("Rahi work migrations apply");
-        handle
-            .execute(
-                "CREATE TABLE memory (
-                    scope_id TEXT NOT NULL,
-                    id TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    record TEXT NOT NULL,
-                    PRIMARY KEY (scope_id, id)
-                )",
-                vec![],
-            )
-            .await
-            .expect("memory fixture table applies");
-        for statement in [
-            "CREATE TABLE scope_counter (
-                scope_id TEXT NOT NULL,
-                kind TEXT NOT NULL,
-                status TEXT NOT NULL,
-                count INTEGER NOT NULL,
-                PRIMARY KEY (scope_id, kind, status)
-            )",
-            "CREATE TRIGGER memory_counter_insert AFTER INSERT ON memory BEGIN
-                INSERT INTO scope_counter (scope_id, kind, status, count)
-                VALUES (NEW.scope_id, 'observation', NEW.status, 1)
-                ON CONFLICT (scope_id, kind, status)
-                DO UPDATE SET count = scope_counter.count + 1;
-            END",
-            "CREATE TRIGGER memory_counter_update AFTER UPDATE OF status ON memory
-             WHEN OLD.status <> NEW.status BEGIN
-                UPDATE scope_counter SET count = max(0, count - 1)
-                WHERE scope_id = OLD.scope_id AND kind = 'observation'
-                  AND status = OLD.status;
-                INSERT INTO scope_counter (scope_id, kind, status, count)
-                VALUES (NEW.scope_id, 'observation', NEW.status, 1)
-                ON CONFLICT (scope_id, kind, status)
-                DO UPDATE SET count = scope_counter.count + 1;
-            END",
-            "CREATE TRIGGER memory_counter_delete AFTER DELETE ON memory BEGIN
-                UPDATE scope_counter SET count = max(0, count - 1)
-                WHERE scope_id = OLD.scope_id AND kind = 'observation'
-                  AND status = OLD.status;
-            END",
-        ] {
-            handle
-                .execute(statement, vec![])
-                .await
-                .expect("memory counter fixture applies");
-        }
-        for statement in migration().sql.split(';').map(str::trim) {
-            if !statement.is_empty() {
-                handle
-                    .execute(statement.to_owned(), vec![])
-                    .await
-                    .expect("embedding migration statement applies");
+            };
+            match apply_fixture_schema(&store.handle()).await {
+                Ok(()) => {
+                    return Self {
+                        store,
+                        _directory: directory,
+                    };
+                }
+                Err(error) if first_contact_timed_out(&error) => {
+                    let _ = store.shutdown().await;
+                    last = Some(error);
+                }
+                Err(error) => panic!("the fixture schema applies: {error}"),
             }
         }
-        Self {
-            store,
-            _directory: directory,
-        }
+        panic!(
+            "the fixture store is ready after {SETUP_ATTEMPTS} attempts on fresh ports: {}",
+            last.expect("a retried failure was recorded")
+        )
     }
 
     fn handle(&self) -> StoreHandle {
@@ -404,6 +362,77 @@ impl Fixture {
     async fn shutdown(self) {
         self.store.shutdown().await.expect("test store stops");
     }
+}
+
+/// How many times the fixture store is set up before a race fails the test.
+const SETUP_ATTEMPTS: usize = 5;
+
+/// Whether a failed open lost a port `free_addr` chose to another socket.
+fn lost_its_port(error: &Error) -> bool {
+    error.message().contains("Address already in use")
+}
+
+/// Whether a statement on a just-opened node failed because the node's
+/// client lost its connection before the statement was answered.
+fn first_contact_timed_out(error: &Error) -> bool {
+    error.message().contains("request timed out")
+}
+
+/// The fixture's tables, triggers, and the embedding migration.
+async fn apply_fixture_schema(handle: &StoreHandle) -> Result<(), Error> {
+    handle
+        .migrate_sets(&[], &[coordination_set(), receipt_set()])
+        .await?;
+    handle
+        .execute(
+            "CREATE TABLE memory (
+                    scope_id TEXT NOT NULL,
+                    id TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    record TEXT NOT NULL,
+                    PRIMARY KEY (scope_id, id)
+                )",
+            vec![],
+        )
+        .await?;
+    for statement in [
+        "CREATE TABLE scope_counter (
+                scope_id TEXT NOT NULL,
+                kind TEXT NOT NULL,
+                status TEXT NOT NULL,
+                count INTEGER NOT NULL,
+                PRIMARY KEY (scope_id, kind, status)
+            )",
+        "CREATE TRIGGER memory_counter_insert AFTER INSERT ON memory BEGIN
+                INSERT INTO scope_counter (scope_id, kind, status, count)
+                VALUES (NEW.scope_id, 'observation', NEW.status, 1)
+                ON CONFLICT (scope_id, kind, status)
+                DO UPDATE SET count = scope_counter.count + 1;
+            END",
+        "CREATE TRIGGER memory_counter_update AFTER UPDATE OF status ON memory
+             WHEN OLD.status <> NEW.status BEGIN
+                UPDATE scope_counter SET count = max(0, count - 1)
+                WHERE scope_id = OLD.scope_id AND kind = 'observation'
+                  AND status = OLD.status;
+                INSERT INTO scope_counter (scope_id, kind, status, count)
+                VALUES (NEW.scope_id, 'observation', NEW.status, 1)
+                ON CONFLICT (scope_id, kind, status)
+                DO UPDATE SET count = scope_counter.count + 1;
+            END",
+        "CREATE TRIGGER memory_counter_delete AFTER DELETE ON memory BEGIN
+                UPDATE scope_counter SET count = max(0, count - 1)
+                WHERE scope_id = OLD.scope_id AND kind = 'observation'
+                  AND status = OLD.status;
+            END",
+    ] {
+        handle.execute(statement, vec![]).await?;
+    }
+    for statement in migration().sql.split(';').map(str::trim) {
+        if !statement.is_empty() {
+            handle.execute(statement.to_owned(), vec![]).await?;
+        }
+    }
+    Ok(())
 }
 
 fn free_addr() -> SocketAddr {

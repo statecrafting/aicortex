@@ -247,6 +247,20 @@ edges (017), ingest state (030), review queue (023).
   `d9_the_check_refuses_the_statements_it_replaced`, which refuses both old
   texts. Rejected: converting every statement to `?NNN`, which changes 22
   correct statements for no behavioral gain.
+- **D-10 (2026-10-30, test harness).** A store open that loses its port is
+  retried. The fixtures choose ports by binding `127.0.0.1:0` and releasing
+  the listener before hiqlite binds, so under a parallel run another socket
+  can take the port in between and the open fails with `Address already in
+  use`. `tests/common/mod.rs` routes every fresh open (`open`,
+  `migrated_for_cell`, and `recover_snapshot`) through one helper that
+  retries only that error, at most five attempts, each in a fresh directory
+  on fresh ports, with the snapshot bytes placed again for a recovery.
+  `apps/aicortex/tests/migrate.rs` reruns a whole scenario in a fresh data
+  directory on fresh ports, at most five times, when a child or an
+  in-process open reports the collision, because the ports are persisted in
+  the deployment. A reopen of an existing node keeps its persisted
+  addresses and is not retried. No requirement or acceptance criterion
+  changes; rahi takes no port 0, so the fix stays in the test helpers.
 
 ## Verification
 

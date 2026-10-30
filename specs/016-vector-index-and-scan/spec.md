@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "retrieval"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: high
 wave: 1
 depends_on:
@@ -23,8 +23,11 @@ establishes:
   - "crates/aicortex-index/tests/scan.rs"
   - "crates/aicortex-index/tests/text.rs"
   - "crates/aicortex-index/benches/scan.rs"
+  - "crates/aicortex-index/tests/alloc.rs"
+  - "crates/aicortex-index/tests/common/mod.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
 summary: >
   Similarity is computed in this process. Vectors are BLOBs read through
   rahi's paged read, scored by dot product against a normalized query, and
@@ -147,6 +150,58 @@ the need.
   seam. An approximate index adds an index-build lifecycle, a staleness
   question, and a recall cost, none of which are justified before the
   evaluation corpus exists and shows the scan failing its budget.
+- **D-3 (2026-10-29, implementation).** The scan reads spec 015's
+  `embedding` table (B-2's `chunk_embedding`), joined to `chunk` for the
+  chunk id B-4 breaks ties on and to `memory` for the status filter, in one
+  statement through `query_paged`. B-1's "length-prefixed" BLOB is 015
+  B-10's layout: the length is the `dims` column beside the BLOB, never a
+  prefix inside it, and decoding refuses a byte count that disagrees with
+  it. The statement carries 015 D-26's comparability predicate verbatim
+  (revision, model identity, width, and normalization together, as the
+  `Comparable` key) rather than calling `ModelRegistry::vectors`, because
+  that function pages by its own keyset outside `query_paged`, returns no
+  chunk id, and has no status predicate, so B-2 could not be met through
+  it; `aicortex-index` also depends only on the store and types crates.
+  Rejected: a status post-pass over `ModelRegistry::vectors` pages, which
+  B-2 forbids.
+- **D-4 (2026-10-29, implementation).** Paging is keyset paging through
+  `query_paged`: each page asks for the rows after the previous page's
+  last `(memory_id, chunk_ordinal)` with no offset, in that order, which
+  the embedding primary key serves. A page therefore costs its own rows,
+  and a concurrent insert cannot shift a row across a page boundary.
+  Rejected: `Page::next` offsets, whose cost grows with the page number
+  and which skip or repeat rows under concurrent writes.
+- **D-5 (2026-10-29, implementation).** The query vector is always
+  L2-normalized by the scan. A revision whose model does not declare
+  normalized vectors has each decoded row normalized in process, so the
+  metric is cosine either way; a zero row of such a model has no direction
+  and matches nothing. Rejected: refusing non-normalized revisions, which
+  would leave a remote provider's vectors unsearchable.
+- **D-6 (2026-10-29, implementation).** The default budget is 2 s, checked
+  after each full page, so a scan always scores at least one page before it
+  can stop (FR-006). It is a ceiling: an optimized 20000-chunk scan at 384
+  dimensions measures about 60 ms on the development machine, and the
+  margin is for the unoptimized `cargo test` build FR-007 is asserted in on
+  a shared CI runner (about 0.5 s locally). Spec 018 passes its own
+  per-query budget. A last page that is exactly full and exhausts the
+  budget is reported truncated: a false "truncated" is honest, a false
+  "complete" is not (B-8).
+- **D-7 (2026-10-29, implementation).** FR-002 is asserted on the scan
+  over a synthetic `PageSource` in its own test binary, with the
+  `peak_alloc` counting allocator (a dev-dependency: `unsafe` is forbidden
+  workspace-wide and a global allocator is an `unsafe impl`). The bound is
+  the measured footprint of one page plus `k` candidates and a fixed
+  allowance for the query copy and the decode buffer, and the peak at
+  20000 rows must not exceed the peak at one page by more than that. The
+  store's own buffers are bounded by the same page size through
+  `query_paged`. Rejected: measuring through a live node, whose background
+  threads allocate independently of the scan.
+- **D-8 (2026-10-29, implementation).** The benchmark writes its latency
+  table as TOML to `aicortex-index/scan-latency.toml` under the cargo
+  target directory (or `AICORTEX_SCAN_LATENCY_OUT`): the width, page size,
+  `k`, budget, and profile, and per size the run count and p50, p95, and
+  max in milliseconds. Spec 040 reads it from there; this spec writes
+  nothing under `eval/`, which 040 owns.
 
 ## Verification
 

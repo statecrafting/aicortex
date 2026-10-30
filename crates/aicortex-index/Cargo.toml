@@ -1,0 +1,32 @@
+[package]
+name = "aicortex-index"
+version = "0.1.0"
+description = "In-process similarity scan and application-owned text index for Aicortex"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "016-vector-index-and-scan"
+
+[dependencies]
+aicortex-store = { workspace = true }
+aicortex-types = { workspace = true }
+rahi-store = { workspace = true }
+rahi-types = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+peak_alloc = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true }
+
+[[bench]]
+name = "scan"
+harness = false
+
+[lints]
+workspace = true

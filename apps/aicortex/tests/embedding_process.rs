@@ -34,6 +34,38 @@ fn free_port() -> Result<u16, String> {
         .map_err(|err| err.to_string())
 }
 
+/// The deployment's loopback ports: the app, the hiqlite API, hiqlite Raft.
+type Ports = (u16, u16, u16);
+
+/// How many fresh deployments a scenario gets before a port race fails it.
+const ATTEMPTS: usize = 5;
+
+/// What a bind reports when another socket holds the port.
+const LOST_PORT: &str = "Address already in use";
+
+/// Run `scenario` against a fresh data directory on fresh ports.
+///
+/// `free_port` releases its probe listener before the child binds, so under
+/// a parallel run another test can take a port in between; the ports are
+/// then persisted in the deployment, so the whole scenario starts over in a
+/// fresh directory on fresh ports, a bounded number of times. Only an error
+/// naming the collision is retried (`run` turns a lost port into one); any
+/// other outcome is the test's.
+fn on_fresh_ports(scenario: impl Fn(&Path, Ports) -> Outcome) -> Outcome {
+    let mut last = String::new();
+    for _ in 0..ATTEMPTS {
+        let data_dir = tempfile::tempdir().map_err(|err| err.to_string())?;
+        let ports = (free_port()?, free_port()?, free_port()?);
+        match scenario(data_dir.path(), ports) {
+            Err(error) if error.contains(LOST_PORT) => last = error,
+            outcome => return outcome,
+        }
+    }
+    Err(format!(
+        "the scenario lost a port in each of {ATTEMPTS} fresh deployments: {last}"
+    ))
+}
+
 fn run(
     verb: &str,
     data_dir: &Path,
@@ -56,9 +88,16 @@ fn run(
     for (key, value) in extra {
         command.env(key, value);
     }
-    command
+    let output = command
         .output()
-        .map_err(|err| format!("aicortex {verb} did not run: {err}"))
+        .map_err(|err| format!("aicortex {verb} did not run: {err}"))?;
+    // A run that lost one of its ports is an error naming the collision, for
+    // `on_fresh_ports` to retry, rather than an outcome to assert about.
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    if stderr.contains(LOST_PORT) {
+        return Err(format!("aicortex {verb} lost a port: {stderr}"));
+    }
+    Ok(output)
 }
 
 fn prepared(data_dir: &Path, ports: (u16, u16, u16)) -> Outcome {
@@ -93,11 +132,13 @@ fn app_embedding_lines(stdout: &str) -> Vec<&str> {
 
 #[test]
 fn ac2_preflight_prints_the_embedding_report_on_a_migrated_deployment() -> Outcome {
-    let data_dir = tempfile::tempdir().map_err(|err| err.to_string())?;
-    let ports = (free_port()?, free_port()?, free_port()?);
-    prepared(data_dir.path(), ports)?;
+    on_fresh_ports(preflight_prints_the_embedding_report)
+}
 
-    let output = run("preflight", data_dir.path(), ports, &[])?;
+fn preflight_prints_the_embedding_report(data_dir: &Path, ports: Ports) -> Outcome {
+    prepared(data_dir, ports)?;
+
+    let output = run("preflight", data_dir, ports, &[])?;
     let report = String::from_utf8_lossy(&output.stdout);
     let lines = app_embedding_lines(&report);
     assert!(
@@ -121,11 +162,13 @@ fn ac2_preflight_prints_the_embedding_report_on_a_migrated_deployment() -> Outco
 
 #[test]
 fn fr005_preflight_and_serve_refuse_a_remote_provider_absent_from_the_ceiling() -> Outcome {
-    let data_dir = tempfile::tempdir().map_err(|err| err.to_string())?;
-    let ports = (free_port()?, free_port()?, free_port()?);
-    prepared(data_dir.path(), ports)?;
+    on_fresh_ports(preflight_and_serve_refuse_an_undeclared_remote)
+}
 
-    let output = run("preflight", data_dir.path(), ports, &REMOTE)?;
+fn preflight_and_serve_refuse_an_undeclared_remote(data_dir: &Path, ports: Ports) -> Outcome {
+    prepared(data_dir, ports)?;
+
+    let output = run("preflight", data_dir, ports, &REMOTE)?;
     let report = String::from_utf8_lossy(&output.stdout);
     assert_eq!(output.status.code(), Some(1), "report:\n{report}");
     let lines = app_embedding_lines(&report);
@@ -138,7 +181,7 @@ fn fr005_preflight_and_serve_refuse_a_remote_provider_absent_from_the_ceiling() 
         "report:\n{report}"
     );
 
-    let served = run("serve", data_dir.path(), ports, &REMOTE)?;
+    let served = run("serve", data_dir, ports, &REMOTE)?;
     let complaint = String::from_utf8_lossy(&served.stderr);
     assert_ne!(served.status.code(), Some(0), "serve started:\n{complaint}");
     assert!(
