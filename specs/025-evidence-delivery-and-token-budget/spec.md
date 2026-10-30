@@ -191,10 +191,15 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   is the requested unit for that memory's walk down the ladder. "Largest
   unit no larger than the requested one" means the first rung of that
   ladder, at or below the requested unit, that fits. For a conversational
-  memory the rungs are the conversation units of B-1. A turn already
+  memory the rungs are the conversation units of B-1, with one more rung
+  between `Window { radius: 1 }` and `Chunk`: the hit turn alone, as its
+  whole message body, so a turn that fits whole is never cut to a chunk
+  merely because its neighbors do not fit. A turn already
   delivered inside an earlier result's `Window` or `Record` is not
   delivered again: a later result that is such a turn is reported with
-  the reason `covered` and the id of the result that carried it, uses no
+  the reason `covered` and the memory id of the result that carried it
+  (each result in the fused order is one memory, so that id names exactly
+  one earlier result), uses no
   budget, and keeps its place in the prefix. A covered result is not
   expanded in its own right: turns its own `Window` would have reached
   beyond the carrying unit are not delivered for it, because a second,
@@ -264,7 +269,8 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
     `Window` or `Record` over turns (B-1), whether requested directly or
     resolved from `Auto`;
   - `reduced`: the result is delivered at a lower rung of the ladder than
-    the unit requested for it (B-6);
+    the unit requested for it (B-6), including a conversational memory
+    delivered as its hit turn alone;
   - `fit`: the result is delivered at the unit requested for it.
   A conversational memory delivered as a smaller conversation unit than
   requested (a `Window` for a requested `Record`, or a narrower `Window`)
