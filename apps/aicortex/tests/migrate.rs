@@ -70,6 +70,38 @@ fn free_port() -> Result<u16, String> {
         .map_err(|err| err.to_string())
 }
 
+/// The deployment's loopback ports: the app, the hiqlite API, hiqlite Raft.
+type Ports = (u16, u16, u16);
+
+/// How many fresh deployments a scenario gets before a port race fails it.
+const ATTEMPTS: usize = 5;
+
+/// What a bind reports when another socket holds the port.
+const LOST_PORT: &str = "Address already in use";
+
+/// Run `scenario` against a fresh data directory on fresh ports.
+///
+/// `free_port` releases its probe listener before the child binds, so under
+/// a parallel run another test can take a port in between; the ports are
+/// then persisted in the deployment, so the whole scenario starts over in a
+/// fresh directory on fresh ports, a bounded number of times. Only an error
+/// naming the collision is retried: `aicortex`, `open_store`, and `serve`
+/// turn a lost port into one, and any other outcome is the test's.
+fn on_fresh_ports(scenario: impl Fn(&Path, Ports) -> Outcome) -> Outcome {
+    let mut last = String::new();
+    for _ in 0..ATTEMPTS {
+        let data_dir = tempfile::tempdir().map_err(|err| err.to_string())?;
+        let ports = (free_port()?, free_port()?, free_port()?);
+        match scenario(data_dir.path(), ports) {
+            Err(error) if error.contains(LOST_PORT) => last = error,
+            outcome => return outcome,
+        }
+    }
+    Err(format!(
+        "the scenario lost a port in each of {ATTEMPTS} fresh deployments: {last}"
+    ))
+}
+
 /// Every `RAHI_*` the cell needs for `data_dir` on `ports`.
 fn cell_env(data_dir: &Path, ports: (u16, u16, u16)) -> Vec<(&'static str, String)> {
     let (app, hiqlite_api, hiqlite_raft) = ports;
@@ -97,10 +129,19 @@ fn command(verb: &str, data_dir: &Path, ports: (u16, u16, u16)) -> Command {
 }
 
 /// Run a verb against `data_dir` with every `RAHI_*` the cell needs.
+///
+/// A run that lost one of its ports to another socket is an error naming
+/// the collision, for `on_fresh_ports` to retry, rather than an exit code
+/// for the test to assert about.
 fn aicortex(verb: &str, data_dir: &Path, ports: (u16, u16, u16)) -> Result<Output, String> {
-    command(verb, data_dir, ports)
+    let output = command(verb, data_dir, ports)
         .output()
-        .map_err(|err| format!("aicortex {verb} did not run: {err}"))
+        .map_err(|err| format!("aicortex {verb} did not run: {err}"))?;
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    if stderr.contains(LOST_PORT) {
+        return Err(format!("aicortex {verb} lost a port: {stderr}"));
+    }
+    Ok(output)
 }
 
 /// Open the deployment's store in-process, as the binary opens it: the same
@@ -185,13 +226,14 @@ impl Drop for Serving {
 
 #[test]
 fn ac2_migrate_reaches_the_expected_version_and_serve_refuses_a_stale_store() -> Outcome {
-    let data_dir = tempfile::tempdir().map_err(|err| err.to_string())?;
-    let ports = (free_port()?, free_port()?, free_port()?);
+    on_fresh_ports(migrate_then_serve_refuses_a_stale_store)
+}
 
+fn migrate_then_serve_refuses_a_stale_store(data_dir: &Path, ports: Ports) -> Outcome {
     // `migrate` and `serve` both need the key set, which is `first-boot`'s
     // job and not this spec's. Its output carries the bootstrap credentials,
     // so only its exit code is read.
-    let first_boot = aicortex("first-boot", data_dir.path(), ports)?;
+    let first_boot = aicortex("first-boot", data_dir, ports)?;
     assert_eq!(
         first_boot.status.code(),
         Some(0),
@@ -201,7 +243,7 @@ fn ac2_migrate_reaches_the_expected_version_and_serve_refuses_a_stale_store() ->
     // AC-2, second half: behind the migrations, `serve` refuses. Exit 2 is
     // `rahi_types::error::EXIT_STALE`; the chassis owns the code and this
     // asserts the cell inherits it.
-    let stale = aicortex("serve", data_dir.path(), ports)?;
+    let stale = aicortex("serve", data_dir, ports)?;
     let complaint = String::from_utf8_lossy(&stale.stderr);
     assert_eq!(
         stale.status.code(),
@@ -219,7 +261,7 @@ fn ac2_migrate_reaches_the_expected_version_and_serve_refuses_a_stale_store() ->
     );
 
     // AC-2, first half: from empty to the version the cell declares.
-    let migrated = aicortex("migrate", data_dir.path(), ports)?;
+    let migrated = aicortex("migrate", data_dir, ports)?;
     let report = String::from_utf8_lossy(&migrated.stdout);
     assert_eq!(
         migrated.status.code(),
@@ -243,7 +285,7 @@ fn ac2_migrate_reaches_the_expected_version_and_serve_refuses_a_stale_store() ->
     );
 
     // B-1: running it twice is a no-op.
-    let again = aicortex("migrate", data_dir.path(), ports)?;
+    let again = aicortex("migrate", data_dir, ports)?;
     let report = String::from_utf8_lossy(&again.stdout);
     assert_eq!(again.status.code(), Some(0));
     assert!(
@@ -255,17 +297,19 @@ fn ac2_migrate_reaches_the_expected_version_and_serve_refuses_a_stale_store() ->
 
 #[test]
 fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_versions() -> Outcome {
-    let data_dir = tempfile::tempdir().map_err(|err| err.to_string())?;
-    let ports = (free_port()?, free_port()?, free_port()?);
+    on_fresh_ports(serve_crosses_only_additive_versions)
+}
+
+fn serve_crosses_only_additive_versions(data_dir: &Path, ports: Ports) -> Outcome {
     let runtime = tokio::runtime::Builder::new_multi_thread()
         .worker_threads(2)
         .enable_all()
         .build()
         .map_err(|err| err.to_string())?;
 
-    let first_boot = aicortex("first-boot", data_dir.path(), ports)?;
+    let first_boot = aicortex("first-boot", data_dir, ports)?;
     assert_eq!(first_boot.status.code(), Some(0), "first-boot failed");
-    let migrated = aicortex("migrate", data_dir.path(), ports)?;
+    let migrated = aicortex("migrate", data_dir, ports)?;
     assert_eq!(
         migrated.status.code(),
         Some(0),
@@ -279,7 +323,7 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
     // 015's embedding migration, whose erasure behavior older binaries do
     // not implement.
     let recorded = runtime.block_on(async {
-        let store = open_store(data_dir.path(), ports).await?;
+        let store = open_store(data_dir, ports).await?;
         let rows = store.handle().recorded_migrations().await;
         store.shutdown().await.map_err(|err| err.to_string())?;
         rows.map_err(|err| err.to_string())
@@ -322,11 +366,12 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
         "CREATE TABLE IF NOT EXISTS fr003_additive (x INTEGER)",
     )
     .additive();
-    runtime.block_on(migrate_ahead(data_dir.path(), ports, additive))?;
+    runtime.block_on(migrate_ahead(data_dir, ports, additive))?;
+    let serve_log = tempfile::NamedTempFile::new().map_err(|err| err.to_string())?;
     let mut serving = Serving(
-        command("serve", data_dir.path(), ports)
+        command("serve", data_dir, ports)
             .stdout(Stdio::null())
-            .stderr(Stdio::null())
+            .stderr(serve_log.reopen().map_err(|err| err.to_string())?)
             .spawn()
             .map_err(|err| format!("serve did not start: {err}"))?,
     );
@@ -336,8 +381,9 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
             break;
         }
         if let Some(status) = serving.0.try_wait().map_err(|err| err.to_string())? {
+            let stderr = std::fs::read_to_string(serve_log.path()).unwrap_or_default();
             return Err(format!(
-                "serve exited {status} against a store one additive migration ahead"
+                "serve exited {status} against a store one additive migration ahead:\n{stderr}"
             ));
         }
         if Instant::now() > deadline {
@@ -355,8 +401,8 @@ fn fr002_fr003_migrate_records_the_contract_and_serve_crosses_only_additive_vers
         "fr003 non-additive ahead",
         "CREATE TABLE IF NOT EXISTS fr003_breaking (x INTEGER)",
     );
-    runtime.block_on(migrate_ahead(data_dir.path(), ports, breaking))?;
-    let refused = aicortex("serve", data_dir.path(), ports)?;
+    runtime.block_on(migrate_ahead(data_dir, ports, breaking))?;
+    let refused = aicortex("serve", data_dir, ports)?;
     let complaint = String::from_utf8_lossy(&refused.stderr);
     assert_eq!(
         refused.status.code(),
