@@ -42,7 +42,7 @@ summary: >
   finite total cost cap, which admission enforces batch by batch.
 ---
 
-# 049: Re-embedding preview and cost cap
+# 049: Reembedding preview and cost cap
 
 ## 1. Purpose
 
@@ -111,7 +111,13 @@ behavior for the local provider is unchanged.
   batch's ceiling is settled at the reported amount rather than hidden: the
   overrun is recorded as an anomaly naming the batch, the ceiling, and the
   reported usage, and when the settled total reaches or passes the cap the
-  pass pauses at `cap_reached` and admits no further batch.
+  pass pauses at `cap_reached` and admits no further batch. The cap is
+  therefore a hard bound on what admission authorizes at ceiling prices,
+  not on what a provider may bill: a provider that bills above its declared
+  maximum price can push settled spend past the cap by the overrun of the
+  batches already dispatched, and by nothing more. That exposure is stated
+  in the preview and in the status of B-7, and the recorded anomaly names
+  its amount.
 - **B-6 (the cap is a total).** An authorization covers one `(scope,
   target revision)`. Raising it records a new Decision for a larger total;
   it never resets the amount already spent. The raise is committed in the
