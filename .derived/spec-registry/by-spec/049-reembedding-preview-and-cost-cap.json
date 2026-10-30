@@ -103,11 +103,11 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "049-re-embedding-preview-and-cost-cap": "cfbba3fc4d6dafa44668dbd11a97682c1e4d537763ba1a2ad84da52e8ad71663",
+      "049-re-embedding-preview-and-cost-cap": "e1c9e2e6d969b8661dd1a76284accd092e57ac4efa58d831fb16ae910b0a1a56",
       "1-purpose": "00a688005ffb094ed113f310eda40bb5828ed158426bcd8d1a46c4d86e21c023",
       "2-territory": "e0293d61437b3acd45c73d407529e681a8cb5c2f5c329ef8576943b1e8ff86bb",
-      "3-behavior": "508a89983fba029c5cfa1661cca8c1af03e2f0be0352fbf79653715cb8580ea2",
-      "4-functional-requirements": "8f721f2eae8570253a505512b540d78fd0abfb2a17f804bb3b6a1ca7adcce18e",
+      "3-behavior": "11866bf006438608700ea36de6b35a0ea90ebcad421339682ca473376d9304d5",
+      "4-functional-requirements": "51df4cbedc0019b5b212295b1cd817927d58793943525b567d823a6756192185",
       "5-acceptance-criteria": "65033283505ff386e28ce16b131aa34593361a2203d81e5eb75df81bd2b2c23c",
       "6-out-of-scope": "49cfb82743e4a65c455ffdc42a6cdfa632ed6421cf4071bb01b6be58a972dc07",
       "7-resolved-decisions": "8e995cc278ce37ed5ad5963e36a25ce5d9347ed3122c9e1736277544a4c09884",
@@ -129,6 +129,6 @@
     "summary": "Spec 015 B-9 makes a model change a migration: a new revision is marked active and a re-embed pass runs over the scope. With the local provider that pass costs CPU time. With a remote provider it sends every chunk of a scope out and is billed per token, and nothing in 015 tells the operator how much before it starts or stops it at an amount they chose. This spec amends 015 B-9: every re-embed pass can be previewed with no provider call, reporting the work and its estimated cost, and a pass that would call a remote provider is refused until an operator approves a finite total cost cap, which admission enforces batch by batch.\n",
     "title": "Re-embedding: a dry run that reports counts and cost, and an approved total cap before any remote call"
   },
-  "shardHash": "5bc66cce5c53885deeddc01f2c7496878a2d35c1e74be9db00921bec56b75e18",
+  "shardHash": "acc17b0929ab2963f2eab60215140064f0e7b089120f547c33a189350516fe90",
   "specVersion": "1.9.0"
 }

@@ -91,7 +91,7 @@ behavior for the local provider is unchanged.
   of zero and needs no cap. Its pass runs as 015 B-9 describes.
 - **B-4 (the cap is required for remote work).** A re-embed pass that
   would call a remote provider is refused before any call unless the
-  request carries a finite, non-negative total cost cap approved by an
+  request carries a finite, positive total cost cap approved by an
   authenticated operator. Unknown pricing refuses the pass. The
   authorization is recorded as a ledger Decision naming the operator
   subject, the scope, the target revision, the cap, and the preview it was
@@ -105,10 +105,16 @@ behavior for the local provider is unchanged.
   remaining amounts, and leaves its outbox rows pending, so no memory is
   lost (constitution XI). After a batch completes, the debit is settled to
   the provider's reported usage where it reports one, and never below
-  zero.
+  zero. Settlement records what was actually billed, so a report above the
+  batch's ceiling is settled at the reported amount rather than hidden: the
+  overrun is recorded as an anomaly naming the batch, the ceiling, and the
+  reported usage, and when the settled total reaches or passes the cap the
+  pass pauses at `cap_reached` and admits no further batch.
 - **B-6 (the cap is a total).** An authorization covers one `(scope,
   target revision)`. Raising it records a new Decision for a larger total;
-  it never resets the amount already spent. Spent amounts survive restarts
+  it never resets the amount already spent. A new authorization whose cap
+  does not exceed the current authorized total is refused, naming the
+  authorized and spent amounts, and records no Decision. Spent amounts survive restarts
   and leader changes because they live in the store.
 - **B-7 (visible).** `GET /operator/embedding/status` and `preflight`
   report, per scope with a remote pass, the authorized total, the spent
@@ -121,9 +127,9 @@ behavior for the local provider is unchanged.
 
 - **FR-001.** A dry run over a fixture scope reports the recorded counts
   and estimate, and a fake remote provider records zero calls.
-- **FR-002.** A remote re-embed request without a cap, with a negative or
-  non-finite cap, or with unknown pricing is refused, and the fake provider
-  records zero calls.
+- **FR-002.** A remote re-embed request without a cap, with a zero,
+  negative, or non-finite cap, or with unknown pricing is refused, and the
+  fake provider records zero calls.
 - **FR-003.** With a cap that covers two of three batches, exactly two
   batches are dispatched, the pass reports `cap_reached`, and the third
   batch's outbox rows remain pending.
@@ -133,7 +139,11 @@ behavior for the local provider is unchanged.
 - **FR-005.** A local provider's re-embed pass runs with no cap, exactly as
   015's tests describe.
 - **FR-006.** Each authorization and each raise appears in the ledger once,
-  naming the operator subject.
+  naming the operator subject; a raise to a cap equal to or below the
+  current total is refused and appears nowhere in the ledger.
+- **FR-007.** A fake provider that reports usage above a batch's ceiling
+  is settled at the reported amount, the anomaly is recorded, and once the
+  settled total reaches the cap no further batch is dispatched.
 
 ## 5. Acceptance criteria
 
