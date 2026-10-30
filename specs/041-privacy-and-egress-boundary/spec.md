@@ -1,7 +1,7 @@
 ---
 id: "041-privacy-and-egress-boundary"
 title: "The privacy boundary: what leaves the container, proved by the manifest rather than promised"
-status: draft
+status: approved
 kind: "constraint"
 domain: "ops"
 created: "2026-09-03"
@@ -165,6 +165,9 @@ which the product does not perform.
   because B-4 and D-1 hold only if no code path can transmit usage data.
   The amendment adds behavior to an approved spec that no human has
   reviewed, so this spec returns to `status: draft` (constitution V).
+
+- **D-3 (2026-10-30, owner approval).** The owner reviewed the D-2
+  amendment and approved this spec; it returns to `status: approved`.
 
 ## Verification
 
