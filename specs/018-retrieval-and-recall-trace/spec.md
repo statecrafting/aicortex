@@ -190,7 +190,8 @@ expansion, likewise.
   last successful sync time, the strongest staleness signal, which belongs
   to the source adapter framework (030); 030 may add it to this block
   through an `extends` edge. The evidence unit and token budget observed
-  alongside this one are spec 025's, not this spec's: B-4 governs ranking,
+  alongside this one are outside this spec (proposed separately as spec
+  025 in pull request #76, not yet merged): B-4 governs ranking,
   and what text is delivered under a token budget is a packing stage over
   019's framing that section 6 already places outside this spec.
 
