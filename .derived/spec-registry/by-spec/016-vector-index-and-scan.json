@@ -68,7 +68,7 @@
       "wave": 1
     },
     "id": "016-vector-index-and-scan",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "kernel",
     "risk": "high",
     "sectionDigests": {
@@ -98,6 +98,6 @@
     "summary": "Similarity is computed in this process. Vectors are BLOBs read through rahi's paged read, scored by dot product against a normalized query, and reduced by a bounded top-k heap, with the scope predicate in the SQL so a scan never leaves its scope. The text channel is an application-owned inverted index rather than FTS5, because FTS5 is not compiled into hiqlite's SQLite build and a loadable extension is refused by the chassis. A trait boundary exists so an approximate index can replace the scan when the evaluation corpus says it must, and not before.\n",
     "title": "The index: a paged cosine scan, an application-owned text index, and no SQLite extension"
   },
-  "shardHash": "6b2c974290318f41c3326f8cf3d17be75950f8802be055c63131b5cf81a1608d",
+  "shardHash": "d865ed670c6114bcf1b3d69217d58ab75825701399c6f945584a27c716779916",
   "specVersion": "1.9.0"
 }
