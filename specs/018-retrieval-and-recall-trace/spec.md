@@ -154,7 +154,9 @@ against the memory tables.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `cargo test -p aicortex-recall --locked` passes.
+- **AC-1.** `cargo test -p aicortex-recall --locked` passes, and it
+  contains a test for each of FR-001 to FR-009, the freshness
+  requirements FR-008 and FR-009 included.
 - **AC-2.** The evaluation corpus (040) runs against this implementation
   and records a baseline for recall at 5, 10, and 20.
 
@@ -190,8 +192,7 @@ expansion, likewise.
   last successful sync time, the strongest staleness signal, which belongs
   to the source adapter framework (030); 030 may add it to this block
   through an `extends` edge. The evidence unit and token budget observed
-  alongside this one are outside this spec (proposed separately as spec
-  025 in pull request #76, not yet merged): B-4 governs ranking,
+  alongside this one are spec 025's, not this spec's: B-4 governs ranking,
   and what text is delivered under a token budget is a packing stage over
   019's framing that section 6 already places outside this spec.
 
