@@ -85,7 +85,9 @@ extends 018's public surface to export the stage, 019's envelope module so
 an envelope can carry part of a body with its byte range and a cut marker,
 020's search handler and DTOs with the delivery parameters, and 021's
 `search` tool with the same parameters. It adds no table, no worker, no
-route, and no tool.
+route, and no tool. Its only possible schema change is the one described
+next: if it is built before 031, its migration adds 031's nullable
+conversation columns and their index to the existing provenance table.
 
 The conversation units (B-1, B-2) read the conversation reference that
 031 B-9 adds to provenance, through 031 B-11's `conversation_turns` read.
