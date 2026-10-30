@@ -152,10 +152,13 @@ outside the gate, through governed egress, under 041.
   that preregistration. The outcome is appended to the preregistration,
   including a fail, and the append is committed to the default branch,
   whose history is protected (merge queue only, no force push). A run
-  record is that commit: `confirm` reads the preregistration's commit time
-  and its earliest run record from the default branch's history, never
+  record is that commit. "Committed after" is decided by ancestry on the
+  default branch's first-parent history, never by an author or committer
+  timestamp: the preregistration must be reachable from the commit before
+  the earliest run record. `confirm` reads both from that history, never
   from the working copy, so a later commit that deletes or rewrites the
-  record does not erase it. Once a set has been run it is unsealed and may only be
+  record does not erase it. Once a set has been run it is unsealed and may
+  only be
   used as development data afterwards. The rationale is
   `gbrain://sealed-confirmation-set`: a gain on development data that a
   sealed set does not confirm is a hypothesis, and a set whose baseline is
