@@ -192,9 +192,11 @@ adds no table, no migration, no worker, and no MCP tool.
   route writes nothing and opens no outbound network connection (the
   in-process store is the only thing it reads), and that the sentinel appears
   in no captured log line or span, no trace, and no stored row.
-- **FR-007.** For each client with `read_pointer` enabled, the hook
-  returns success and adds nothing when the server answers 503 or exceeds
-  the deadline.
+- **FR-007.** For each client with `read_pointer` enabled, the clients
+  test runs that client's pointer hook as a subprocess, as 022 FR-004 does
+  for capture, against a test server that answers 503 and against one
+  that stalls past the deadline; the hook exits with success and adds
+  nothing to its output in both cases.
 - **FR-008.** Every matrix row has a `read_pointer` entry that is either
   `none`, verified with a date and a fixture, or `verified = false`, and
   no pointer hook snippet is generated for a row that is `none` or
