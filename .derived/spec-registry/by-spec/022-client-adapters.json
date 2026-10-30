@@ -76,14 +76,14 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "022-client-adapters": "9d4d22c56e649c77d92baa6ee10ec3a11b99af78911c8da3dc04850a7a1fe66f",
+      "022-client-adapters": "0a8d6acc1debdabc55c2a150394723d1998c2fe320e64e94dc64729daff6473d",
       "1-purpose": "03696686a843665f3bdd97c36255676f45f7dbbf26fba1b2d6efce9eae50ece7",
       "2-territory": "41b5088baeca1a4ad42c1ad9018402f8720492fbf564be98ab1c623da18fadc2",
-      "3-behavior": "955610305e4ed1af291d70dd099784fdc2f7b7c20fb78cb04ae259c82a80a0e7",
+      "3-behavior": "1ad28a93548c7f2c3906d6320ea1d9e3c39f3d278bd4ffb3d111fe260177ee9f",
       "4-functional-requirements": "d4e64b56408af2cb67c516bd4ca31cc8fbedb62e2d09e74f788db8f8d3967b6e",
       "5-acceptance-criteria": "44491057a47245cffe05f59b4259c32845aa5ff25fe007abc3a4cb439fbd2e2e",
       "6-out-of-scope": "7cf1f75b904541bfcd1e807a51ffe72c4113af3e984d11369225f32d1a76be4a",
-      "7-resolved-decisions": "f597bdc99f85815ecc179091d306baf61c583915959338d68d8dbe63d399601c",
+      "7-resolved-decisions": "85508ec2bcf1a2a1f9623c96d04a40575f78cf01d22716a10410f94565304542",
       "verification": "0a29d40d64c2142b535a92d3cfdd53d69ef52a01c1603d5c6e70ae447cbdc0cf"
     },
     "sectionHeadings": [
@@ -102,6 +102,6 @@
     "summary": "Connecting is one URL, and everything a client needs beyond that is generated rather than written by hand. This spec owns the capability matrix: which clients support remote MCP, which support OAuth against it, and what each offers for automatic capture, which is the only place they genuinely differ. It ships per-client configuration snippets and the hook or notification payloads that turn a session into captured memories, and a route that serves the correct snippet for a client so setup is a copy rather than a document to follow.\n",
     "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
   },
-  "shardHash": "1314021304952f1aaa188661da06ae1dbc6489aa7a780c9b608801c4e1de64d2",
+  "shardHash": "c9a5e21760f72195061bf44c361761a848f69fd63c404a50702640873393f81d",
   "specVersion": "1.9.0"
 }

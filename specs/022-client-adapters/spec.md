@@ -70,11 +70,11 @@ contents. No other crate contains a client name.
   the matrix and the deployment's public URL by
   `GET /api/v1/clients/{name}` so a user copies a filled-in snippet rather
   than editing a placeholder.
-- **B-4 (automatic capture).** A capture hook sends a candidate to
-  `POST /capture` with the client as the source and the session as the
-  external reference. It never sends file contents wholesale: it sends the
-  decision, the correction, or the summary the session produced, which is
-  what is worth remembering. Failures are silent to the user and visible
+- **B-4 (automatic capture; amended 2026-10-25, D-2).** A capture hook
+  sends a candidate to `POST /capture` with the client as the source and
+  the session as the external reference. It never sends file contents
+  wholesale: it sends the durable items the session produced, in the
+  classes B-8 names, which is what is worth remembering. Failures are silent to the user and visible
   in the client's own log; a memory service that breaks a coding session
   when it is down will be uninstalled.
 - **B-5 (per-client identity).** Each client registers as its own OAuth
@@ -145,22 +145,22 @@ server.
   document cannot know it.
 
 - **D-2 (2026-10-25, amendment, pending owner review).** Added B-8 and
-  FR-005: capture hooks send durable classes only and never runtime state.
-  The observation is `gbrain://memory-boundaries`
-  (`docs/design/00-lineage.md`). The rule sits here rather than in the
-  gate because a hook sees the session's structure (which event, which
-  tool, which role) and the gate sees only text; 013 D-14 records the
-  gate's side of the same decision. B-4 already said a hook sends "the
-  decision, the correction, or the summary"; B-8 widens the sent classes
-  to the durable kinds of 011 B-4 by adding preferences (`Preference`),
-  commitments (`Task`), and facts the user wants kept (`Fact`), and makes
-  the excluded runtime classes explicit; FR-005 tests both sides. The read-side pointer hook observed
-  alongside this is outside this amendment: it is proposed separately as
-  spec 026 (pull request #77, not yet merged), which would reach this
-  spec's matrix and client directories through `extends` edges rather
-  than through this amendment. The amendment adds behavior
-  to an approved spec that no human has reviewed, so this spec returns to
-  `status: draft` (constitution V).
+  FR-005, and amended B-4 to defer to B-8: capture hooks send durable
+  classes only and never runtime state. The observation is
+  `gbrain://memory-boundaries` (`docs/design/00-lineage.md`). The rule
+  sits here rather than in the gate because a hook sees the session's
+  structure (which event, which tool, which role) and the gate sees only
+  text; 013 D-14 records the gate's side of the same decision. B-4 used to
+  say a hook sends "the decision, the correction, or the summary"; B-8
+  widens the sent classes to the durable kinds of 011 B-4 by adding
+  preferences (`Preference`), commitments (`Task`), and facts the user
+  wants kept (`Fact`), drops the session summary, which is not one of
+  those kinds, and makes the excluded runtime classes explicit; FR-005
+  tests both sides. B-4 now names B-8 as the one list of what is sent, so
+  the two rules cannot drift. The read-side pointer hook observed
+  alongside this is outside this amendment and is not specified here. The
+  amendment adds behavior to an approved spec that no human has reviewed,
+  so this spec returns to `status: draft` (constitution V).
 
 ## Verification
 
