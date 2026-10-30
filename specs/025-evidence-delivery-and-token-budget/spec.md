@@ -117,7 +117,8 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
     on each side (1 to 3, default 1), merged where windows of the same
     memory overlap. For a conversational memory, the whole hit message
     plus the turns of its conversation numbered within `radius` of the
-    hit's turn on each side, each as a whole message: 031 B-11's
+    hit's turn on each side, each as a whole message, with the same
+    `radius` range (1 to 3, default 1) as above: 031 B-11's
     `conversation_turns` with `Between { first: turn - radius, last: turn
     + radius }`, with `first` clamped at turn 1. No upper clamp is needed:
     `Between` selects by turn number and returns only the turns that
@@ -255,8 +256,12 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   - `reduced`: the result is delivered at a lower rung of the ladder than
     the unit requested for it (B-6);
   - `fit`: the result is delivered at the unit requested for it.
-  A conversation unit delivered below the requested rung reports
-  `conversation`, and its delivered unit shows the reduction.
+  A conversational memory delivered as a smaller conversation unit than
+  requested (a `Window` for a requested `Record`, or a narrower `Window`)
+  reports `conversation`, and its delivered unit shows the reduction. One
+  reduced all the way to its chunk is no longer delivered as a
+  conversation unit, so it reports `reduced`, or `cut` if the chunk was
+  cut.
 - **B-12 (determinism).** For a fixed corpus, query, filter, weights,
   clock, unit, and budget, the payload is byte-identical across runs
   (018 B-8). The stage reads nothing but the fused order, the store under
