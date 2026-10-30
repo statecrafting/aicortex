@@ -1,0 +1,118 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-10-29",
+    "dependsOn": [
+      "058-rahi-0-6-0-adoption"
+    ],
+    "domain": "chassis",
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "deny.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/cell.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "059-rahi-0-7-1-adoption",
+    "implementation": "pending",
+    "kind": "tooling",
+    "obligations": [
+      {
+        "anchor": "3-behavior",
+        "id": "I-1",
+        "kind": "invariant",
+        "text": "All rahi crates in the resolved tree resolve to one exact version, 0.7.1."
+      },
+      {
+        "anchor": "3-behavior",
+        "id": "I-2",
+        "kind": "invariant",
+        "text": "One copy of action-gate-core resolves, at 0.3.0."
+      },
+      {
+        "anchor": "3-behavior",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Every chassis-only waiver in deny.toml is re-checked against the 0.7.1 tree: removed when it no longer matches, and kept with its reason updated to name 0.7.1 when it still does."
+      }
+    ],
+    "references": [
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/010-chassis-adoption-and-workspace/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/046-rahi-0-2-0-adoption/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/058-rahi-0-6-0-adoption/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "059-rahi-0-7-1-adoption": "d5521fae4adb47239fb4c900e216fd3a4e290e6f5e05791e8ddad9bc9bcec26e",
+      "1-purpose": "4b92a3797f8be22e07bdaabbe8adcc1f4cc7d1aa565e933f066ad48e1f896ce7",
+      "2-territory": "27af248ffd3236e8aa5e56c8676383dd7cae080e1f22d2939c439834ffd96496",
+      "3-behavior": "78ab7c347c671433ba733945ac4b6e378d63ee4fd59dd05cd1d9660fdf394585",
+      "4-functional-requirements": "99360bc16d7f05ab39fd03a79056ec4bf311b300ccf6ddb1dae19d907e0d46b9",
+      "5-acceptance-criteria": "69df3e7bcff257d8dcea508fc8b00825daeeab61c2e594b388da1d88796db23b",
+      "6-out-of-scope": "b4ce07482826ea5dc1e41a62dd7a113ad7e4365b0d2b07416ac98e4f55d845c0",
+      "7-resolved-decisions": "c92894747a79d13a7c1580912db3f11f79dba299c1c94dfeca92830112f05fa0",
+      "8-open-questions": "4b40f6effecc1732dd1624f8149893c4e105c50c955fe8003d23dfe27c50ddfd",
+      "verification": "874e427717d5586c4c3dbabdf3940b34d6ab4e5f432696e2305a7f3ee0de797b"
+    },
+    "sectionHeadings": [
+      "059: rahi 0.7.1 adoption",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "8. Open questions",
+      "Verification"
+    ],
+    "specPath": "specs/059-rahi-0-7-1-adoption/spec.md",
+    "status": "draft",
+    "summary": "The nine rahi crates are pinned at `=0.6.0` (spec 058). rahi 0.7.1 (crates.io) is the patch on 0.7.0, which adds deployment epochs, remote identity, and the split N=3 overlay, all behind items and environment variables this cell does not use, so a cell that calls only `rahi_cli::run` needs no code change. 0.7.0 also moves `rahi-kernel` to action-gate-core `=0.3.0`, which removes the second action-gate-core copy spec 058 D-3 recorded. This spec moves all nine pins in one change, keeps the exact-pin rule, re-runs the supply-chain revisit spec 010 requires at a chassis bump, and replaces the partial bump dependabot proposed in #72, which moved seven of the nine crates and broke spec 046's one-version invariant on main.\n",
+    "title": "Move every chassis pin to rahi 0.7.1 together, and drop the second action-gate-core"
+  },
+  "shardHash": "a6607e41d259166c3470f6b4dad10fde7648593312591de4635b0105d63885af",
+  "specVersion": "1.9.0"
+}

@@ -5,6 +5,10 @@
     ],
     "created": "2026-09-03",
     "dependsOn": [
+      "012-store-schema-and-repositories",
+      "014-memory-lifecycle-and-erasure",
+      "018-retrieval-and-recall-trace",
+      "020-http-api-and-scopes",
       "035-agent-coordination"
     ],
     "domain": "ops",
@@ -52,6 +56,50 @@
       {
         "kind": "file",
         "path": "eval/baselines/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/external.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/prereg.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/judge.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/contradictions.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/tests/external.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/tests/prereg.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/tests/contradictions.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/query_capture.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/query_capture.rs"
+      },
+      {
+        "kind": "file",
+        "path": "eval/external/"
+      },
+      {
+        "kind": "file",
+        "path": "eval/prereg/"
       }
     ],
     "extends": [
@@ -62,6 +110,38 @@
           "kind": "file",
           "path": "crates/aicortex-recall/src/lib.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/search.rs"
+        }
       }
     ],
     "extraFrontmatter": {
@@ -70,16 +150,47 @@
     "id": "040-retrieval-evaluation",
     "implementation": "pending",
     "kind": "kernel",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-privacy-and-egress-boundary/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/020-http-api-and-scopes/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/052-bitemporal-claim-history-and-projection/spec.md"
+        }
+      }
+    ],
     "risk": "critical",
     "sectionDigests": {
-      "040-evaluation": "07ddbfa85afc29e0ad9421c609c985b7b0142f92d5e5a46b250cf2127900d236",
+      "040-evaluation": "7bfcaf1ee3263a3128e9e676b2e4230d4065f8262ca4d34de6648913ca3db2de",
       "1-purpose": "167d8c6e6afd1f32c0253beaa993a57e96427c498823dc96654346f8ec879aaa",
-      "2-territory": "9dcfa153f6ad76acbe9cc525afd953bbdf937f40b2cfc23faa1ac144a647ee56",
-      "3-behavior": "ff318dc2c9e36e7e1a0540b96bc77de6ef04d2a12696c0bbd24410beb290edd7",
-      "4-functional-requirements": "bcf23aafc52407cfa42b97e3a036239ecf82966223da41a51cf0f44f495d7523",
+      "2-territory": "176d7d52f9cba780f571c0b215d9436d84719cd3f6d9b5f053c17755d213e9bc",
+      "3-behavior": "e83a68d08dcdcf4591c3d3ef370b5fc77172b2ec75a75cfc993a48be43d81420",
+      "4-functional-requirements": "693fe40bd436d7e2b9ab326791fb61e5c815c4c56e708135c6d93951f7b246bb",
       "5-acceptance-criteria": "bff08249ada83c827e9aefe82d8eee8bde0fdc389351218a30ac190ba5b78c3a",
-      "6-out-of-scope": "cdb3a4bb5d01e0f2756699b12788d64a8abd317512bb6ffda35292cbb329a33b",
-      "7-resolved-decisions": "9784db3f08475cb42371fb8354d31b68f88694e0e83b901ae99537fefb15d018",
+      "6-out-of-scope": "33f2f03fc366e22654b44c1b85d7a1f2ba4047517de079be45f8818b496befe6",
+      "7-resolved-decisions": "4c290ff945b70b4ccded0a392e3a0b37dc8e73539e277ee38446e937dfa8319a",
+      "method-additions-2026-10-25-d-3": "261e838fa233b14c72f5a96ed61ae49abea7ac3566127927fe19406521619e3d",
       "verification": "6d81704f3d575fb29f01c3d51cc1bc61de1857fb3cebd2b896e2a137241f0f29"
     },
     "sectionHeadings": [
@@ -87,6 +198,7 @@
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
+      "Method additions (2026-10-25, D-3)",
       "4. Functional requirements",
       "5. Acceptance criteria",
       "6. Out of scope",
@@ -94,10 +206,10 @@
       "Verification"
     ],
     "specPath": "specs/040-retrieval-evaluation/spec.md",
-    "status": "approved",
+    "status": "draft",
     "summary": "Retrieval quality is the product, and it degrades invisibly. This spec builds the instrument: a committed golden corpus of memories and queries with judged relevance, a runner that loads it into a temporary instance and executes every query, metrics that are the standard ones rather than invented, a baseline file per configuration, and a gate that fails a change which moves a metric down by more than its tolerance without an explicit, justified baseline update. Constitution XIV becomes a command with an exit code.\n",
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
-  "shardHash": "a93780402b250a49947ea7fd46f6b4206f0000332864c1692f0c5f8f76fc9018",
+  "shardHash": "eed2afb11176f341a7bc5230bca5b163d886eb0e35d8e780810ed815c1dbe422",
   "specVersion": "1.9.0"
 }

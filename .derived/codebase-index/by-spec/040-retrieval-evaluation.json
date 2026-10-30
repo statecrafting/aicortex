@@ -56,16 +56,92 @@
         "code": "W-001",
         "message": "spec '040-retrieval-evaluation' file unit 'eval/baselines/' does not exist",
         "path": "eval/baselines/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/external.rs' does not exist",
+        "path": "crates/aicortex-eval/src/external.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/prereg.rs' does not exist",
+        "path": "crates/aicortex-eval/src/prereg.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/judge.rs' does not exist",
+        "path": "crates/aicortex-eval/src/judge.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/src/contradictions.rs' does not exist",
+        "path": "crates/aicortex-eval/src/contradictions.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/tests/external.rs' does not exist",
+        "path": "crates/aicortex-eval/tests/external.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/tests/prereg.rs' does not exist",
+        "path": "crates/aicortex-eval/tests/prereg.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-eval/tests/contradictions.rs' does not exist",
+        "path": "crates/aicortex-eval/tests/contradictions.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-store/src/query_capture.rs' does not exist",
+        "path": "crates/aicortex-store/src/query_capture.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-store/tests/query_capture.rs' does not exist",
+        "path": "crates/aicortex-store/tests/query_capture.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'eval/external/' does not exist",
+        "path": "eval/external/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'eval/prereg/' does not exist",
+        "path": "eval/prereg/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '040-retrieval-evaluation' file unit 'crates/aicortex-api/src/search.rs' does not exist",
+        "path": "crates/aicortex-api/src/search.rs"
       }
     ]
   },
   "mapping": {
     "dependsOn": [
+      "012-store-schema-and-repositories",
+      "014-memory-lifecycle-and-erasure",
+      "018-retrieval-and-recall-trace",
+      "020-http-api-and-scopes",
       "035-agent-coordination"
     ],
     "implementingPaths": [
       {
         "path": "crates/aicortex-recall/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/erasure.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
       }
     ],
@@ -85,7 +161,34 @@
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-eval/src/contradictions.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-eval/src/corpus.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/src/external.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/src/judge.rs"
         }
       },
       {
@@ -121,6 +224,15 @@
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-eval/src/prereg.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-eval/src/report.rs"
         }
       },
@@ -139,7 +251,52 @@
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-eval/tests/contradictions.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/tests/external.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-eval/tests/metrics.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-eval/tests/prereg.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/query_capture.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/query_capture.rs"
         }
       },
       {
@@ -166,7 +323,34 @@
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
+          "path": "eval/external/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
           "path": "eval/golden/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "eval/prereg/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/search.rs"
         }
       },
       {
@@ -181,11 +365,102 @@
           "kind": "file",
           "path": "crates/aicortex-recall/src/lib.rs"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/erasure.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/020-http-api-and-scopes/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/020-http-api-and-scopes/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/041-privacy-and-egress-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-privacy-and-egress-boundary/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/052-bitemporal-claim-history-and-projection/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/052-bitemporal-claim-history-and-projection/spec.md"
+        }
       }
     ],
     "specId": "040-retrieval-evaluation",
-    "specStatus": "approved"
+    "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "a93780402b250a49947ea7fd46f6b4206f0000332864c1692f0c5f8f76fc9018"
+  "shardHash": "eed2afb11176f341a7bc5230bca5b163d886eb0e35d8e780810ed815c1dbe422"
 }
