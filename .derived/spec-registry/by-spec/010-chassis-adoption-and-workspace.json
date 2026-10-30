@@ -60,14 +60,14 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "010-the-cell": "16fdfb320c79d7a9db62fd33f66d593903db8fd50da70c15c96991f2f265dc4c",
+      "010-the-cell": "d79f15e8edbf2396568835749d222f00ed023bf52f9c157f8a0a457487149db6",
       "1-purpose": "dfc3e51d5387ffde1506e3fcc6c35e99dfcf3a59540e390a1de4c44430d2b4ea",
       "2-territory": "dfefe36b5a48c048ad91f848e333cf8eb3045f3a05bb525e3da084d2d372111b",
       "3-behavior": "eb24afa04571676df05d45823d0d8a4c6e49f6f496d8cadbaf8a9b36ef1085b0",
       "4-functional-requirements": "beb707d66846f14fdcb3b2e52c9c80413a963b2423d2b8e53a008b24c2fc4756",
       "5-acceptance-criteria": "40cb9ce0f88088b6034237ace7c8dd06ff72d3ab1349313f3b330fdc177ce461",
       "6-out-of-scope": "3c8496aef8b69184969800ee792f4d425913b11a946378f680918843b4ff6f03",
-      "7-resolved-decisions": "601b7ca7b7ac381cfd3801f002822b7757804c54198a48b956998fd44ad9a6bf",
+      "7-resolved-decisions": "bef8a1458b627fc08b330e642e095e7dbf6ddd36fa70f877d7cce4534ab5e7a0",
       "status-2026-09-17-complete-the-chassis-release-landed": "53a7b66cf22f9644eeffe4f5980bdd04e6eedf834a1da59773b129001bb8b3f2",
       "verification": "a16f76da0500f5060306b5f8b4d7b84606f4ca49b358b3abd1f9b339a5e8c305"
     },
@@ -88,6 +88,6 @@
     "summary": "The workspace and the seam to the chassis. rahi crates are pinned to one exact version in the workspace manifest and are never vendored or patched. The application is a `Cell`: it returns a manifest, a migration list, a router, and an operator router, and `main` hands it to rahi's runner, which owns argument parsing, boot, the verbs, and the exit codes. The manifest is the capability ceiling, and it starts closed: no egress host is declared until a spec needs one.\n",
     "title": "The cell: a Cargo workspace, pinned rahi crates, a declared manifest, and one line of main"
   },
-  "shardHash": "28f31c672b58a6607edcdcc7769d58c9a51fef7d9d7211152116416125da2a34",
+  "shardHash": "41e6e1eaf369d6a7c18933fcd3c6ef4fd07a1e549b24359202aade39e27adb50",
   "specVersion": "1.9.0"
 }

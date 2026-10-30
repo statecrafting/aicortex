@@ -314,8 +314,20 @@ manifest will eventually declare. The reference deployment (044).
   nothing in the tree constructs. Both are ignored by id in
   `deny.toml` with the path each arrives by, exactly as D-6 handles
   chassis-only advisories, and come out when rahi moves off `age` 0.12.
-  `unmaintained` stays `all` and no pin moves. Rejected: a workspace
-  `[patch]` of `age` or its dependencies, which forks the chassis.
+  `unmaintained` stays `all`. Rejected: a workspace `[patch]` of `age` or
+  its dependencies, which forks the chassis.
+
+  The same PR restores the rahi pins to `=0.6.0`. A grouped dependency
+  update (PR 72) had moved seven of the nine to `=0.7.1` and left
+  `rahi-idp` and `rahi-harness` at `=0.6.0`, which breaks B-2 (one exact
+  version for all nine) and spec 058 FR-001 (every rahi package resolves to
+  0.6.0); `tests/cell.rs` refuses it on both counts. A chassis move is its
+  own adoption spec, as 046 and 058 were, so the pins go back to the
+  version 058 approved rather than forward to one no spec has adopted.
+  `action-gate-core` 0.2.0 returns beside the workspace's 0.3.0, the copy
+  `rahi-kernel` 0.6.0 carries, as 058 records. Both advisory paths above
+  hold at 0.6.0: `age` 0.12 arrives through `rahi-ops` 0.6.0, which also
+  keys backups with `age::x25519` only.
 
 ## Status (2026-09-17, complete: the chassis release landed)
 
