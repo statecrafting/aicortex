@@ -266,7 +266,7 @@ fn memory_row(scope_id: &ScopeId, memory: MemoryId, status: Status) -> Statement
         "INSERT INTO memory
          (id, scope_id, status, kind, trust, fingerprint, schema_version, body_bytes,
           created, updated, record)
-         VALUES ($1, $2, $3, 'note', 'first_party', $1, 1, 1, 1700000000, 1700000000, '{}')
+         VALUES (?1, ?2, ?3, 'note', 'first_party', ?1, 1, 1, 1700000000, 1700000000, '{}')
          ON CONFLICT (id) DO NOTHING",
         vec![
             Value::from(memory.to_string()),
