@@ -34,13 +34,18 @@
       },
       {
         "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/search.rs' does not exist",
+        "path": "crates/aicortex-api/src/search.rs"
       },
       {
         "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
         "path": "crates/aicortex-api/src/dto.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/tools.rs"
       },
       {
         "code": "W-001",
@@ -59,28 +64,13 @@
       },
       {
         "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/claude-code/' does not exist",
-        "path": "clients/claude-code/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/codex/' does not exist",
-        "path": "clients/codex/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/cursor/' does not exist",
-        "path": "clients/cursor/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/antigravity/' does not exist",
-        "path": "clients/antigravity/"
-      },
-      {
-        "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/tests/clients.rs' does not exist",
         "path": "crates/aicortex-api/tests/clients.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-recall/src/delivery.rs' does not exist",
+        "path": "crates/aicortex-recall/src/delivery.rs"
       }
     ]
   },
@@ -90,7 +80,8 @@
       "019-untrusted-content-boundary",
       "020-http-api-and-scopes",
       "021-mcp-server",
-      "022-client-adapters"
+      "022-client-adapters",
+      "025-evidence-delivery-and-token-budget"
     ],
     "implementingPaths": [],
     "resolvedUnits": [
@@ -154,42 +145,6 @@
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "clients/antigravity/"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "clients/claude-code/"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "clients/codex/"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "clients/cursor/"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
           "path": "clients/matrix.toml"
         }
       },
@@ -208,7 +163,7 @@
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-api/src/router.rs"
+          "path": "crates/aicortex-api/src/search.rs"
         }
       },
       {
@@ -235,7 +190,25 @@
         "sourceField": "extends",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/delivery.rs"
         }
       },
       {
@@ -269,5 +242,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "4cee0287596a5183ff391b5ce7694209f7ad0fb0c3e130d12604a4bbdd8da724"
+  "shardHash": "9c34a341c9310e1d27c4c316de759bad565b3a323ab47cb8924dd7026d2504fa"
 }

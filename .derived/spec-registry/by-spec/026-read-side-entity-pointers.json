@@ -9,7 +9,8 @@
       "019-untrusted-content-boundary",
       "020-http-api-and-scopes",
       "021-mcp-server",
-      "022-client-adapters"
+      "022-client-adapters",
+      "025-evidence-delivery-and-token-budget"
     ],
     "domain": "clients",
     "establishes": [
@@ -48,7 +49,7 @@
         "spec": "020-http-api-and-scopes",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-api/src/router.rs"
+          "path": "crates/aicortex-api/src/search.rs"
         }
       },
       {
@@ -57,6 +58,14 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
         }
       },
       {
@@ -88,39 +97,15 @@
         "spec": "022-client-adapters",
         "unit": {
           "kind": "file",
-          "path": "clients/claude-code/"
-        }
-      },
-      {
-        "nature": "additive",
-        "spec": "022-client-adapters",
-        "unit": {
-          "kind": "file",
-          "path": "clients/codex/"
-        }
-      },
-      {
-        "nature": "additive",
-        "spec": "022-client-adapters",
-        "unit": {
-          "kind": "file",
-          "path": "clients/cursor/"
-        }
-      },
-      {
-        "nature": "additive",
-        "spec": "022-client-adapters",
-        "unit": {
-          "kind": "file",
-          "path": "clients/antigravity/"
-        }
-      },
-      {
-        "nature": "additive",
-        "spec": "022-client-adapters",
-        "unit": {
-          "kind": "file",
           "path": "crates/aicortex-api/tests/clients.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "025-evidence-delivery-and-token-budget",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/delivery.rs"
         }
       }
     ],
@@ -148,17 +133,18 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "026-read-side-entity-pointers": "0ca4f3a69ff127db95758bc6dec1b51907ed27e55ae171de7ccfe5f356dfa055",
-      "1-purpose": "48e45cd5346d3cc3de6af84b520ca38960270f1874e39a284dcb0295650e8087",
-      "2-territory": "45c333b46d6982a3ec0147f95103b4de8edcf925297d1765e9efc1969e4132c8",
-      "3-1-resolution": "72dd6ab257ec8a270c598574732c44bba574ea104af8a242c40ee6a468c58ddd",
-      "3-2-the-pointer": "4cdc4e00780c89659159a5e6f6c024f6ab39b28b4d59967ac65501e1d7f79894",
-      "3-3-the-client-side": "86a78a9764a0c2a448cce453fd812a2769497471944909aae4d6521d674dee2d",
-      "3-behavior": "9b25dcb282ece298891d24792fefc3bdb51687aa97dac7dedc4ba8d99558d5dd",
-      "4-functional-requirements": "5ca74087acaea8a79752464a3ed7187646525fe8da166d8359892bace2d8ce29",
-      "5-acceptance-criteria": "1fca613bbff1e128425aa42da48ddaf9dcace2e9da2bfe04e2761e3933f9d28d",
-      "6-out-of-scope": "543a8a96f08dd2c43cf8e33d9c91c9437993aceb1ece0c458d04f7a851841593",
-      "7-resolved-decisions": "b314cb68d188bab0063f6a586d7907feef2adc9ed7e74029937fc75824d1c6ad",
+      "026-read-side-entity-pointers": "515ea26d6e9f9b6ce3269a952372fc8eca5c94a0dcde1e6ee601a245d8eb2428",
+      "1-purpose": "a0b98e4fe07c6844356963ee74fff9345cc9318faa56f502da1358f4e973422a",
+      "2-territory": "f4abbce643162f42ccb6a4564de3c4f88494b23ad803ccfde4df7af84ac583de",
+      "3-1-resolution": "46c98bf9276c5384d34f4d174f491396a4cdbe83c6fd9a2c9c373f21b752f5a0",
+      "3-2-the-pointer": "8f98022f085ea26f508c540897df033760f474e07c6616fcceddab2dd25227fa",
+      "3-3-delivery": "0beb2a7bc01a47951536a5aceea7ae8fbaaac78e081f971780e116d26e8f17a6",
+      "3-4-the-client-side": "e976b14c7eab04b3b43c3e8b26e20b411b113f98d60afe6e1b71aadf35c22f72",
+      "3-behavior": "fe3240315865808c45a60d48efe4bd045afeb232599a46abb183b3ad0d729319",
+      "4-functional-requirements": "254f271705a31a90bcc58d894a1f6dc26974bfd0102e0f4e5c49a3535c659cd8",
+      "5-acceptance-criteria": "c721980fd4f752c62dc2c9fc3a47633fa12dfb6c0ab068c16c87b4cbd2ae6db0",
+      "6-out-of-scope": "203926956d4aa7ba5f13da35a3ed44bc5ea2ecff9da411d0fb341eeba841395a",
+      "7-resolved-decisions": "1af1032b40ea4114e18adb42f95ba084041c00245bb0b6498b3ab39a79009dd4",
       "verification": "ec25e21eaa57326e8bd6e7dc3e9bdcee8b0d85a4a2334bfd62481949d7d5f66f"
     },
     "sectionHeadings": [
@@ -168,7 +154,8 @@
       "3. Behavior",
       "3.1 Resolution",
       "3.2 The pointer",
-      "3.3 The client side",
+      "3.3 Delivery",
+      "3.4 The client side",
       "4. Functional requirements",
       "5. Acceptance criteria",
       "6. Out of scope",
@@ -177,9 +164,9 @@
     ],
     "specPath": "specs/026-read-side-entity-pointers/spec.md",
     "status": "draft",
-    "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project the user just named, so the agent answers generically about facts the store knew. This spec adds a per-turn pointer: a client hook sends the user's message to one read-only route, which resolves entity names by exact and normalized alias match in the caller's scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times. The block is untrusted data under 019, bounded in size, scoped by the caller's token, opt-in per client, and the hook does nothing when it fails.\n",
-    "title": "Read-side entity pointers: tell the agent each turn that memory about a named entity exists"
+    "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project it just asked about, so the agent answers generically about facts the store knew. This spec adds entity pointers to the existing recall result: when a search asks for them, the server resolves entity names in the query by exact and normalized alias match in the searched scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times beside the evidence. The block is untrusted data under 019, bounded in size, counted inside any delivery budget, and opt-in per request. No client hook carries pointers: every client's hook output starts as \"not a data position\", and the MCP surface stays at seven tools.\n",
+    "title": "Read-side entity pointers: tell the agent, inside its recall results, that memory about a named entity exists"
   },
-  "shardHash": "4cee0287596a5183ff391b5ce7694209f7ad0fb0c3e130d12604a4bbdd8da724",
+  "shardHash": "9c34a341c9310e1d27c4c316de759bad565b3a323ab47cb8924dd7026d2504fa",
   "specVersion": "1.9.0"
 }
