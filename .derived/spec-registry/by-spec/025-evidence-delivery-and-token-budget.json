@@ -81,6 +81,30 @@
           "kind": "file",
           "path": "crates/aicortex-mcp/tests/tools.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/provenance_repo.rs"
+        }
       }
     ],
     "extraFrontmatter": {
@@ -103,22 +127,29 @@
           "kind": "file",
           "path": "specs/019-untrusted-content-boundary/spec.md"
         }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/031-conversation-and-archive-imports/spec.md"
+        }
       }
     ],
     "risk": "high",
     "sectionDigests": {
-      "025-evidence-delivery-and-the-token-budget": "33bfe7f01e73e1effa909bab95eadb542e28e717010faf3caded5b86a2bbea4c",
+      "025-evidence-delivery-and-the-token-budget": "d2b6522121b722ebebf76a3455b1ce88bab8a7ab03bb862df86bdda0c4c34743",
       "1-purpose": "e6e544cdc3c25b11a419c9dcc3203e7ebf0814a51c5035ce5f65caab8b94dd17",
-      "2-territory": "5d212bb7ce9be87322df70e6f4480009bd866534535efcf5aaab8e5acc4c0d34",
-      "3-1-the-unit": "6ecfc4355b59cdb019f11f683af746a5feb38957e84b60b79888f7945b94fc14",
-      "3-2-the-budget": "53b72070c7662da86de9316cc35f9fee7e0e7914d23b42cd094c5096200e84f6",
-      "3-3-safety-and-determinism": "01ec99bf51bf637da2f774ae86e1bffb882cf2f2688c5976585327a214da03a8",
+      "2-territory": "ae62107594f7a9da5e06aa3bbf9a76c199d68ec61f218b4d35e93ebd94d5e757",
+      "3-1-the-unit": "f3d992b19ad8963a8995e3e03fe65cce44944f2dbd3cec45125efd8e8d4c27c3",
+      "3-2-the-budget": "51e33227b4a7aac6b4ef1c6703130e62279b7549962d7f6adc32ccd157d486d0",
+      "3-3-safety-and-determinism": "6118f0fd6f816a67c3212564c95355f572d76bae51a96b8e190a977df32e2cf5",
       "3-4-surfaces": "60312117277b5916332826328e4cfcc395871fd50222142de7484c1dcd37cf14",
-      "3-behavior": "21c31bb103c79bc6c47b2917008c0b8369feab7076a4af8a3450f60a96c1221e",
-      "4-functional-requirements": "b3889af292349a82d32eba97207bb32313180ae6de61ab61c43b3afb6e63ae00",
+      "3-behavior": "3fd8509a04e4e705cb31b2dc264fcc7ccdb7ed0b8f29fcfd4ae5ee84b2bdb7d0",
+      "4-functional-requirements": "9abca8ced428d2a051e5cb0164fee0ec12af55ef5a6fbfc9a468561efe0bfba7",
       "5-acceptance-criteria": "bb00d0819ba69979f5dc50c79b1364a4a4c94e14ccb6cc8e5e1af8d1d9811587",
-      "6-out-of-scope": "0f3b816104fe261f10ee4c91169c99c1aba06eb602938c779e6addd2a03456a2",
-      "7-resolved-decisions": "3509f9db9b1cae447962091250758223963d91a45b1e2259a8e5a30d6f0eba20",
+      "6-out-of-scope": "f653f7c806c913453bdd7ec3e1555ca1eb0cf0858cb89d191d2cdeab8c84146d",
+      "7-resolved-decisions": "b23ca80e3f5d8ba4aaeea95ceba9794e2d6c39503d7e3b80eee7b5efc34fa1f8",
       "verification": "1e1da10a1a380518d200c5ab4adc7998f8bff1d6f1b3a720275bbe36fd237d50"
     },
     "sectionHeadings": [
@@ -138,9 +169,9 @@
     ],
     "specPath": "specs/025-evidence-delivery-and-token-budget/spec.md",
     "status": "draft",
-    "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
+    "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap, in the declared counter's units, over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. For a turn of an imported conversation, stored one memory per message under 031, the window is the turns around the hit and the record is the whole conversation. The default counter is a fixed formula over UTF-8 bytes, named in every response. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
     "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
   },
-  "shardHash": "bd2a897e6f51decc24088e0e2f16a3db7c9c7b3c659309ab54104e2009574ba1",
+  "shardHash": "930d1415ebdea376a3bae5abc67167fc1b456550f8a2ad846d98021d1f3dcea8",
   "specVersion": "1.9.0"
 }

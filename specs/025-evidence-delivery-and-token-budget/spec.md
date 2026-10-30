@@ -26,9 +26,13 @@ extends:
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/tests/api.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
+  - { spec: "011-memory-model", unit: "crates/aicortex-types/src/provenance.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/provenance_repo.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
+  - { unit: { kind: file, path: "specs/031-conversation-and-archive-imports/spec.md" }, role: constraint }
 summary: >
   Recall ranks memories and reduces each to its best chunk (018 B-4). For a
   question whose answer depends on a whole conversation, that chunk is too
@@ -36,11 +40,15 @@ summary: >
   call with no budget at all. This spec adds a delivery stage after
   ranking: the caller selects an evidence unit (chunk, neighbor window,
   whole record, or auto), and the stage packs the ranked results into a
-  token budget that is a hard cap over everything the model reads,
-  including 019's framing statement, every envelope delimiter and label,
-  and every cut marker. Packing is deterministic. The default unit stays
-  the chunk until the evaluation corpus (040) shows that another one is
-  better.
+  token budget that is a hard cap, in the declared counter's units, over
+  everything the model reads, including 019's framing statement, every
+  envelope delimiter and label, and every cut marker. For a turn of an
+  imported conversation, stored one memory per message under 031, the
+  window is the turns around the hit and the record is the whole
+  conversation. The default counter is a fixed formula over UTF-8 bytes,
+  named in every response. Packing is deterministic. The default unit
+  stays the chunk until the evaluation corpus (040) shows that another one
+  is better.
 ---
 
 # 025: Evidence delivery and the token budget
@@ -76,12 +84,26 @@ A `delivery` module in `aicortex-recall` with its tests and fixtures. It
 extends 018's public surface to export the stage, 019's envelope module so
 an envelope can carry part of a body with its byte range and a cut marker,
 020's search handler and DTOs with the delivery parameters, and 021's
-`search` tool with the same parameters. It adds no table, no migration, no
-worker, no route, and no tool.
+`search` tool with the same parameters. It adds no table, no worker, no
+route, and no tool.
+
+The conversation units (B-1, B-2) read the conversation reference that
+031 B-9 adds to provenance, through 031 B-11's `conversation_turns` read.
+031 is approved and this spec is a draft, so either may be built first.
+If this spec is built first, its build adds that field, its nullable
+columns and index, and that read exactly as 031 B-9 and B-11 define them,
+including B-9's wire form and B-11's `TurnRange`, through the `extends`
+edges on 011's `provenance.rs` and 012's migrations and provenance
+repository, and 031's build then uses them rather than adding them again;
+031 FR-010's fixture then fails 031's build if the two definitions
+diverge. Until a memory carries a conversation reference, the
+conversation units are unreachable and every memory is delivered on its
+own.
 
 The stage runs after 018 has produced its fused order. It never changes
-that order, never re-ranks, and never adds a memory that ranking did not
-return.
+that order and never re-ranks. The only memories it delivers that ranking
+did not return are the other turns of a returned memory's conversation,
+inside that memory's `Window` or `Record` (B-1), read under B-9.
 
 ## 3. Behavior
 
@@ -90,19 +112,25 @@ return.
 - **B-1 (units).** `EvidenceUnit` is a closed enum:
   - `Chunk`: the winning chunk of 018 B-4, with its byte range. This is
     today's behavior.
-  - `Window { radius }`: the winning chunk plus `radius` neighboring chunks
-    of the same memory on each side (1 to 3, default 1), merged where
-    windows of the same memory overlap.
-  - `Record`: the whole memory body, which 013 B-6 bounds at 64 KiB.
-  - `Auto`: `Record` for a memory whose provenance marks it as part of a
-    conversation (B-2), and `Chunk` for every other memory.
-- **B-2 (conversation is declared, not inferred).** Whether a memory is
-  conversational is read from the provenance fields 011 defines (source
-  kind and external reference), against a closed list of source kinds held
-  in this module. It is never inferred from the text. The list starts with
-  the conversational source kinds that exist when this spec is built; a
-  later spec that introduces one (031's chat imports, for example) adds its
-  kind to the list through an `extends` edge on this module.
+  - `Window { radius }`: for a memory that is not conversational (B-2),
+    the winning chunk plus `radius` neighboring chunks of the same memory
+    on each side (1 to 3, default 1), merged where windows of the same
+    memory overlap. For a conversational memory, the whole hit message
+    plus the `radius` nearest turns of its conversation on each side, by
+    turn number, each as a whole message.
+  - `Record`: for a memory that is not conversational, the whole memory
+    body, which 013 B-6 bounds at 64 KiB. For a conversational memory, the
+    whole conversation, rebuilt from the shared conversation id: every
+    turn 031 B-11's `conversation_turns` returns, in turn order.
+  - `Auto`: `Record` for a conversational memory, and `Chunk` for every
+    other memory.
+- **B-2 (conversation is declared, not inferred).** A memory is
+  conversational exactly when its provenance carries a conversation
+  reference (031 B-9). It is never inferred from the text. Its
+  conversation is the set of memories that share its scope, source system,
+  and conversation id (031 B-9); an imported conversation is stored one
+  memory per message (031 D-2), so a conversation unit gathers several
+  memories, and each keeps its own envelope (B-10).
 - **B-3 (default unit).** A request that asks for delivery carries a
   `unit`, a `window_radius`, or a `token_budget`. A request that carries
   none of them does not run this stage at all, and no budget, default or
@@ -113,21 +141,36 @@ return.
 
 ### 3.2 The budget
 
-- **B-4 (what is counted).** `TokenBudget` is a hard cap on the
-  model-facing payload: 019's framing statement and its version line, every
+- **B-4 (what is counted).** `TokenBudget` is a hard cap, in the declared
+  counter's units (B-5), on the model-facing payload: 019's framing statement and its version line, every
   envelope's opening and closing delimiters and labels, every delivered
   body text, and every cut and omission marker. Nothing the model reads in
   that payload is uncounted. The trace summary that 020 and 021 attach as
   metadata is not part of the payload; it is bounded by 018 B-5's summary
   form instead.
-- **B-5 (the counter).** Tokens are counted by one named, versioned,
-  in-process counter, whose identifier travels in the response. It makes
-  no outbound call. A counter that cannot run falls back to counting one
-  token per UTF-8 byte, which never under-counts a subword tokenizer
-  because every such token covers at least one byte, and the response
-  names the fallback. The cap holds exactly under the named
-  counter; against a client model with a different tokenizer the count is
-  an estimate, and the response says which counter produced it.
+- **B-5 (the counter).** Tokens are counted by one declared, in-process
+  counter that makes no outbound call. Its identifier and version travel
+  in every response that carries delivery and in the persisted trace
+  (018 B-6), so a reader can tell which units a budget was enforced in.
+  - The default counter is `utf8-bytes-div3`, version 1: a text of `n`
+    UTF-8 bytes counts as `ceil(n / 3)` tokens. It needs no vocabulary
+    file, works offline, and gives the same answer on every machine. For
+    ordinary prose it overestimates the tokens of common subword
+    tokenizers; for text whose tokens average under three bytes (dense
+    punctuation, some code, some scripts) it can underestimate them.
+  - `utf8-bytes`, version 1, counts one token per UTF-8 byte. It never
+    under-counts a byte-level or byte-fallback subword tokenizer, because
+    every such token covers at least one byte, at the cost of delivering
+    about a third of the text the default does for the same budget.
+  - An operator who wants the count of a specific model configures that
+    model's tokenizer as the counter, by identifier and version, with its
+    vocabulary held locally. If a configured counter cannot run (its
+    vocabulary is missing or fails to load), the stage counts with
+    `utf8-bytes` and the response names that fallback.
+  The budget is a hard cap in the declared counter's units. It is an
+  exact token count only for a model whose own tokenizer is the declared
+  counter; against any other model it is an estimate, and the response
+  names the counter so the client can tell which.
 - **B-6 (packing).** Packing walks the fused order once and is
   deterministic. Every reduction, for every rank, follows one ladder from
   the requested unit downwards: `Record`, then `Window { radius }` for
@@ -136,7 +179,12 @@ return.
   memory under B-1 and B-2 to `Record` or `Chunk`, and that resolved unit
   is the requested unit for that memory's walk down the ladder. "Largest
   unit no larger than the requested one" means the first rung of that
-  ladder, at or below the requested unit, that fits.
+  ladder, at or below the requested unit, that fits. For a conversational
+  memory the rungs are the conversation units of B-1. A turn already
+  delivered inside an earlier result's `Window` or `Record` is not
+  delivered again: a later result that is such a turn is reported with
+  the reason `covered` and the id of the result that carried it, uses no
+  budget, and keeps its place in the prefix.
   1. The rank-one result is reserved first. If its requested unit does not
      fit, it is reduced along the ladder; if its chunk alone does not fit, it is cut at a sentence or line boundary and
      ends with a cut marker. It is never dropped.
@@ -166,20 +214,30 @@ return.
 
 ### 3.3 Safety and determinism
 
-- **B-9 (re-read under the caller's scope).** Neighbor chunks and whole
-  bodies are read under the same scope and status predicates as 018 B-7,
-  in the caller's scope only. A window never crosses into another memory,
-  so a quarantined or erased memory can never reach the payload by being
-  adjacent to a returned one.
+- **B-9 (re-read under the caller's scope).** Neighbor chunks, whole
+  bodies, and conversation turns are read under the same scope and status
+  predicates as 018 B-7, in the caller's scope only. A window over chunks
+  never crosses into another memory. A conversation unit crosses only into
+  the other turns of the same conversation (B-2), read through 031 B-11's
+  `conversation_turns`, which applies those predicates, so a quarantined,
+  expired, or erased turn never reaches the payload by being adjacent to a
+  returned one. A missing turn is skipped, not marked, and turn numbers
+  are never renumbered.
 - **B-10 (inside the envelope).** Every delivered text, whatever its unit,
   is emitted by 019's envelope function, with the memory id, trust class,
-  origin, and the delivered byte ranges in the label. A cut marker is part
+  origin, and the delivered byte ranges in the label. In a conversation
+  unit each turn is its own memory and gets its own envelope, labelled
+  with its own trust class and actor and with its conversation id and
+  turn, so an assistant turn and a user turn delivered together keep
+  their separate trust classes (031 B-10). A cut marker is part
   of the envelope's contents and cannot be confused with a delimiter
   (019 B-7).
 - **B-11 (reported per result).** Each delivered result reports the unit
   requested, the unit delivered, the reason (`fit`, `reduced`, `cut`,
-  `conversation`), its byte ranges, and its token count. The response
-  reports the budget, the tokens used, the counter, and the dropped ids.
+  `conversation`, `covered`), its byte ranges, the ids and turns of any
+  conversation turns it carries, and its token count. The response
+  reports the budget, the tokens used, the counter's identifier and
+  version (and the fallback when B-5's applies), and the dropped ids.
 - **B-12 (determinism).** For a fixed corpus, query, filter, weights,
   clock, unit, and budget, the payload is byte-identical across runs
   (018 B-8). The stage reads nothing but the fused order, the store under
@@ -217,6 +275,24 @@ return.
   parameter is byte-identical to the response of a build without the stage,
   even under a tight configured default budget.
 - **FR-007.** A test asserts the stage opens no socket and writes nothing.
+- **FR-008.** Over a committed fixture conversation stored one memory per
+  message (031 B-9), with user and assistant turns, one quarantined turn,
+  one erased turn, and a same-id conversation in another scope: `Record`
+  on a hit delivers every `Active` turn of the conversation in turn order,
+  each in its own envelope with its own trust class, conversation id, and
+  turn; `Window { radius: 1 }` delivers the hit and its nearest turn on
+  each side; and neither the quarantined nor the erased turn, nor any
+  turn from the other scope, appears in any payload.
+- **FR-009.** When two results of one query are turns of the same
+  conversation, the second is reported `covered` by the first, appears in
+  the payload once, uses no budget, and the delivered set is still a
+  prefix of the fused order.
+- **FR-010.** The default counter counts committed fixtures of known UTF-8
+  byte lengths as `ceil(bytes / 3)`; every delivery response and every
+  persisted trace names the counter's identifier and version; and with a
+  configured counter whose vocabulary is missing, the response names the
+  `utf8-bytes` fallback and the recounted payload is within the budget in
+  that fallback's units.
 
 ## 5. Acceptance criteria
 
@@ -235,9 +311,10 @@ return.
 Ranking, which is 018's and is not changed here. Reranking, query
 expansion, and excerpt selection by a model, which would be egress. Lexical
 excerpt selection inside a record, which gbrain measured as worse than the
-whole record and which this spec does not carry. Grouping several memories
-of one conversation into one delivered unit, which depends on how 031
-stores a conversation (Q-1).
+whole record and which this spec does not carry. Grouping memories into a
+delivered unit by anything other than a declared conversation reference
+(031 B-9), such as topic or time proximity. Shipping any model's
+tokenizer as the default counter (D-6).
 
 ## 7. Resolved decisions
 
@@ -265,14 +342,43 @@ stores a conversation (Q-1).
   did not confirm it. Constitution XIV requires this corpus's evaluation to
   show it before a default changes.
 
-Open for the owner before approval:
-
-- **Q-1.** Whether 031 stores an imported conversation as one memory or as
-  one memory per message. If the latter, `Auto` needs a conversation unit
-  that gathers sibling memories by their external reference, which this
-  spec does not yet define.
-- **Q-2.** Which counter is the default: a pinned tokenizer of a widely
-  used model family, or the byte-derived upper bound alone.
+- **D-5 (2026-10-30, owner decision, resolves Q-1).** Q-1 asked whether
+  031 stores an imported conversation as one memory or one memory per
+  message. The owner answered on 2026-10-30: "store one memory per
+  message. Link the messages with a shared conversation id and a turn
+  number in their provenance", and placed the decision in 031, where it is
+  recorded as 031 D-2. This spec refers to it: B-2 reads 031's
+  conversation reference instead of a list of source kinds, `Window` over
+  a conversational memory returns the turns around the hit, and `Record`
+  rebuilds the whole conversation from the shared id (B-1). Each turn
+  keeps its own envelope and trust class (B-10), and a turn delivered with
+  an earlier result is reported `covered` rather than delivered twice
+  (B-6). Rejected: Q-1's earlier sketch of a separate conversation unit
+  that gathers siblings by external reference, which the shared id makes
+  unnecessary.
+- **D-6 (2026-10-30, owner decision, resolves Q-2).** Q-2 asked which
+  counter is the default. The owner answered on 2026-10-30: "default to a
+  simple byte-based estimate, and name the counter in every response."
+  Claude's tokenizer is not public and clients run many models, so no
+  single exact counter fits all of them, and a hard cap can only be hard
+  in the units of the counter it declares. The default is
+  `utf8-bytes-div3`, `ceil(bytes / 3)`, the formula the owner proposed;
+  the counter's identifier and version go in the response and the trace,
+  and an operator may plug in a model's tokenizer (B-5). Reconciled with
+  the earlier text, whose only counter was one token per UTF-8 byte: that
+  counter is kept as `utf8-bytes`, a selectable conservative counter and
+  the fallback when a configured counter cannot run, and it is not the
+  default. The default is the divided form because a per-byte cap delivers
+  about a third of the text the same budget would deliver under a subword
+  tokenizer, starving the model of evidence, while the divided form
+  overestimates for ordinary text, which is the owner's stated
+  requirement. The cost, stated in B-5, is that the default can
+  underestimate text whose tokens average under three bytes. The fallback
+  for a failed configured counter is `utf8-bytes` rather than the default
+  because an operator who configured a model's tokenizer asked for a cap
+  that holds against that model, and only the per-byte count cannot
+  under-count it. Rejected: a pinned tokenizer of one model family as the
+  default, which needs vocabulary files and is exact for one family only.
 
 ## Verification
 
