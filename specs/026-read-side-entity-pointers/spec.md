@@ -135,8 +135,10 @@ migration, no worker, no route, no MCP tool, and no client hook.
 - **B-6 (bounded).** A set holds at most a configured number of pointers
   (default 5) and at most a configured token size, including the fixed
   sentence and every envelope label (default 400). Tokens are counted by
-  the declared counter of 025 B-5, the same counter the response names,
-  so the bound is a hard cap in that counter's units. The set is ordered
+  the deployment's declared counter of 025 B-5, so the bound is a hard cap
+  in that counter's units. The block names the counter's identifier and
+  version itself, because a search that asks for pointers without asking
+  for delivery carries no other counter field (025 B-3). The set is ordered
   by first match position in the text, then mention count descending, then
   entity id, and cut from the end, with the block marked truncated. The
   text resolved over is bounded (default 8 KiB); a longer query is cut at
@@ -168,9 +170,11 @@ migration, no worker, no route, no MCP tool, and no client hook.
   payload (025 B-4). 025 packs the evidence first, exactly as it would
   without pointers; the pointer block is then fitted into what the
   evidence leaves, cut from the end as B-6 cuts it, down to no pointers at
-  all, and marked truncated. Pointers therefore never reduce, cut, or drop
-  a delivered result. The recount of 025 B-6 covers the whole payload,
-  pointers included, and the reported `used` includes them.
+  all, and marked truncated. The final recount of 025 B-6 step 5 covers
+  the whole payload, pointers included; if it exceeds the budget,
+  pointers are cut from the end first, and only once none remain may that
+  step cut or drop a result. Pointers therefore never reduce, cut, or drop
+  a delivered result, and the reported `used` includes them.
 - **B-10 (no instruction, no promotion).** A pointer grants no trust and
   changes no state. Appearing in a pointer does not make an entity or a
   memory instruction grade (019 B-4).
