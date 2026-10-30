@@ -23,15 +23,15 @@ authors = ["Bartek Kus"]
 # all-nine-together adoption; spec 014 moves them to released rahi v0.4.0.
 # A chassis bump is a single change to
 # these nine lines that revisits deny.toml with it (D-8).
-rahi-types = "=0.7.1"
-rahi-store = "=0.7.1"
-rahi-ledger = "=0.7.1"
-rahi-kernel = "=0.7.1"
+rahi-types = "=0.6.0"
+rahi-store = "=0.6.0"
+rahi-ledger = "=0.6.0"
+rahi-kernel = "=0.6.0"
 rahi-idp = "=0.6.0"
-rahi-edge = "=0.7.1"
-rahi-ops = "=0.7.1"
+rahi-edge = "=0.6.0"
+rahi-ops = "=0.6.0"
 rahi-harness = "=0.6.0"
-rahi-cli = "=0.7.1"
+rahi-cli = "=0.6.0"
 
 # The router type the Cell returns (B-3). The chassis's edge is built on it,
 # and this is the version rahi locks, so the workspace adds no second copy

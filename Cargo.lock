@@ -4,6 +4,21 @@ version = 4
 
 [[package]]
 name = "action-gate-core"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b4b846b3434c5a7a218a3ab7048e0c38f9f9375b3f512e74a242d39cf0aa590a"
+dependencies = [
+ "action-gate-types",
+ "canonical-keysort-json",
+ "hex",
+ "regex",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+]
+
+[[package]]
+name = "action-gate-core"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "462261da44651a95c079c2e4a9f5f777eaa1bb22f76157bf70bc04b8e9a6e2b3"
@@ -11,7 +26,6 @@ dependencies = [
  "action-gate-types",
  "canonical-keysort-json",
  "hex",
- "regex",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -213,7 +227,7 @@ dependencies = [
 name = "aicortex-gate"
 version = "0.1.0"
 dependencies = [
- "action-gate-core",
+ "action-gate-core 0.3.0",
  "aicortex-claims",
  "aicortex-embed",
  "aicortex-store",
@@ -501,9 +515,9 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "attest-ledger-core"
-version = "0.2.0"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fe378fabe203deac490a6890c8f26a8005492f34df0fd9e8a25a1c30537f6ab"
+checksum = "cdf835c5e3680ddaf4dd9c4da525a8762ce5803e1f3245889a7393f3ccd5f183"
 dependencies = [
  "attest-ledger-types",
  "base64 0.22.1",
@@ -518,9 +532,9 @@ dependencies = [
 
 [[package]]
 name = "attest-ledger-types"
-version = "0.2.0"
+version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "58eb12ca1faf38bf59ce8fd387cb9de77773288a99b738def9a7c61ec90dbf1f"
+checksum = "16b5cb6e21a7f0342be61b4cf42bfdad81360f2efdf4eeec4dc33c32734691d7"
 dependencies = [
  "serde",
  "serde_json",
@@ -1520,7 +1534,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "39cab71617ae0d63f51a36d69f866391735b51691dbda63cf6f96d042b63efeb"
 dependencies = [
  "libc",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -2842,7 +2856,7 @@ version = "0.50.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7957b9740744892f114936ab4a57b3f487491bbeafaf8083688b16841a4240e5"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3434,7 +3448,7 @@ dependencies = [
  "once_cell",
  "socket2",
  "tracing",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -3460,9 +3474,9 @@ checksum = "f8dcc9c7d52a811697d2151c701e0d08956f92b0e24136cf4cf27b57a6a0d9bf"
 
 [[package]]
 name = "rahi-cli"
-version = "0.7.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e32d2091b147d57fa42a3fe9714e44a7b184e7bf66e41be840dae26c41f7aec1"
+checksum = "08a30cf6611305726c92e0fe99727817c4206afa36f2a6df6c44eba98c57ad2b"
 dependencies = [
  "axum",
  "rahi-edge",
@@ -3478,9 +3492,9 @@ dependencies = [
 
 [[package]]
 name = "rahi-edge"
-version = "0.7.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "acee9024724be2c85a9ceef384a679b7d1019a27bd77aa3ea06c418baaa547a3"
+checksum = "2edbed23154a71baa8a5c1a9d2e0760bc9de0987e159cc2943b34264fd2f4223"
 dependencies = [
  "axum",
  "base64 0.23.1",
@@ -3496,7 +3510,6 @@ dependencies = [
  "rahi-types",
  "serde_json",
  "tokio",
- "tower",
  "tower-http 0.7.1",
  "tracing",
  "tracing-opentelemetry",
@@ -3505,9 +3518,9 @@ dependencies = [
 
 [[package]]
 name = "rahi-idp"
-version = "0.7.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "334a357478bf0df782c266a159bfab9a951f81cecda1e8af5f34cea7a29a2d7e"
+checksum = "6da9001235082404dee8276faa2016b4497c6efec03f4e181df59619ad4537dd"
 dependencies = [
  "axum",
  "base64 0.23.1",
@@ -3525,11 +3538,11 @@ dependencies = [
 
 [[package]]
 name = "rahi-kernel"
-version = "0.7.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d05d871e34e816e264b4ad997114ab62ad5f8e572a86efeaf9e4a5311fb09629"
+checksum = "e7e577ae62583b41c36a86ac92c841facb52694d589a593d84c073f4c25e2599"
 dependencies = [
- "action-gate-core",
+ "action-gate-core 0.2.0",
  "action-gate-types",
  "canonical-keysort-json",
  "rahi-ledger",
@@ -3544,9 +3557,9 @@ dependencies = [
 
 [[package]]
 name = "rahi-ledger"
-version = "0.7.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "377726d2b67c03fbc339c85f792d7619f26f4e238f75bfa6d66887a9081a3fab"
+checksum = "952f5bfbcf713c8b9f4febad833b531000868ef7153daeb1a3f6cab5c98ca8a7"
 dependencies = [
  "async-trait",
  "attest-ledger-core",
@@ -3566,9 +3579,9 @@ dependencies = [
 
 [[package]]
 name = "rahi-ops"
-version = "0.7.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64771babfafec9e4b2fd1db954f3259c849162dacc384d74fb010975bf4ccf22"
+checksum = "8de9c6e4cb24926ac56f86cffeb2d0719dc043bccf1c127db83b36b593804627"
 dependencies = [
  "age",
  "base64 0.23.1",
@@ -3593,9 +3606,9 @@ dependencies = [
 
 [[package]]
 name = "rahi-store"
-version = "0.7.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5ffe41f10c2c64e60c807d1a6c555bf1e72d5d650c6d24dc6c4ddf666b353403"
+checksum = "59f167d26959c4d7d5807fea2ea82328dcb693c50135f5e0ac58a0161c3db6a4"
 dependencies = [
  "attest-ledger-core",
  "futures-core",
@@ -3608,9 +3621,9 @@ dependencies = [
 
 [[package]]
 name = "rahi-types"
-version = "0.7.1"
+version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3ed2f5ea421d3b2f6a9bf486a1af859f54b7b161d797aedab60782643b66f5bb"
+checksum = "d08efc5b7a805d4610d7bfa90e7a585b6f3a70eaeebdab14a8655aad96ec7d3c"
 dependencies = [
  "serde",
 ]
@@ -3965,7 +3978,7 @@ dependencies = [
  "errno",
  "libc",
  "linux-raw-sys 0.12.1",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4024,7 +4037,7 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "webpki-root-certs",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -4035,9 +4048,9 @@ checksum = "f87165f0995f63a9fbeea62b64d10b4d9d8e78ec6d7d51fb2125fda7bb36788f"
 
 [[package]]
 name = "rustls-webpki"
-version = "0.103.15"
+version = "0.103.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3c3cf1d8b1e7d4927e2d154c3fcb02979afb9939629c62cd9048d4f07b60ac2"
+checksum = "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281"
 dependencies = [
  "aws-lc-rs",
  "ring",
@@ -4533,10 +4546,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32497e9a4c7b38532efcdebeef879707aa9f794296a4f0244f6f69e9bc8574bd"
 dependencies = [
  "fastrand",
- "getrandom 0.4.3",
+ "getrandom 0.3.4",
  "once_cell",
  "rustix 1.1.5",
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
@@ -5315,9 +5328,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-root-certs"
-version = "1.0.9"
+version = "1.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b96554aa2acc8ccdb7e1c9a58a7a68dd5d13bccc69cd124cb09406db612a1c9b"
+checksum = "e49d0e65abc00c142e8f9428da991da9f1a250c39be97459901eb12b9b49f62a"
 dependencies = [
  "rustls-pki-types",
 ]
@@ -5328,7 +5341,7 @@ version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
- "windows-sys 0.61.2",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]
