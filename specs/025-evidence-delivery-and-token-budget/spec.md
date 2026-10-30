@@ -119,8 +119,11 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
     plus the turns of its conversation numbered within `radius` of the
     hit's turn on each side, each as a whole message: 031 B-11's
     `conversation_turns` with `Between { first: turn - radius, last: turn
-    + radius }`, clamped at turn 1, so a gap left by a skipped or absent
-    turn narrows the window rather than reaching further.
+    + radius }`, with `first` clamped at turn 1. No upper clamp is needed:
+    `Between` selects by turn number and returns only the turns that
+    exist (031 B-11), so a range past the conversation's last turn, like a
+    gap left by a skipped or absent turn, narrows the window rather than
+    reaching further.
   - `Record`: for a memory that is not conversational, the whole memory
     body, which 013 B-6 bounds at 64 KiB. For a conversational memory, the
     whole conversation, rebuilt from the shared conversation id: every
@@ -237,11 +240,23 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   of the envelope's contents and cannot be confused with a delimiter
   (019 B-7).
 - **B-11 (reported per result).** Each delivered result reports the unit
-  requested, the unit delivered, the reason (`fit`, `reduced`, `cut`,
-  `conversation`, `covered`), its byte ranges, the ids and turns of any
+  requested, the unit delivered, the reason, its byte ranges, the ids and turns of any
   conversation turns it carries, and its token count. The response
   reports the budget, the tokens used, the counter's identifier and
-  version (and the fallback when B-5's applies), and the dropped ids.
+  version (and the fallback when B-5's applies), and the dropped ids. The
+  reasons are, in order of precedence:
+  - `covered`: the result is a turn already delivered inside an earlier
+    result's conversation unit (B-6);
+  - `cut`: the result is delivered as a cut chunk with a cut marker
+    (B-6 step 1 or 5);
+  - `conversation`: the result is delivered as a conversation unit, a
+    `Window` or `Record` over turns (B-1), whether requested directly or
+    resolved from `Auto`;
+  - `reduced`: the result is delivered at a lower rung of the ladder than
+    the unit requested for it (B-6);
+  - `fit`: the result is delivered at the unit requested for it.
+  A conversation unit delivered below the requested rung reports
+  `conversation`, and its delivered unit shows the reduction.
 - **B-12 (determinism).** For a fixed corpus, query, filter, weights,
   clock, unit, and budget, the payload is byte-identical across runs
   (018 B-8). The stage reads nothing but the fused order, the store under
