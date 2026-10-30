@@ -147,8 +147,10 @@ server.
   gate's side of the same decision. B-4 already said a hook sends "the
   decision, the correction, or the summary"; B-8 makes the excluded
   classes explicit and testable. The read-side pointer hook observed
-  alongside this is spec 026's, which reaches this spec's matrix and
-  client directories through `extends` edges. The amendment adds behavior
+  alongside this is outside this amendment: it is proposed separately as
+  spec 026 (pull request #77, not yet merged), which would reach this
+  spec's matrix and client directories through `extends` edges rather
+  than through this amendment. The amendment adds behavior
   to an approved spec that no human has reviewed, so this spec returns to
   `status: draft` (constitution V).
 
