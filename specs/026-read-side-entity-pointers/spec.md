@@ -131,7 +131,10 @@ adds no table, no migration, no worker, and no MCP tool.
   and resolves only in scopes the caller's token can read. An entity in
   another scope never produces a pointer, and a request naming a scope the
   caller cannot read answers as an empty set, indistinguishable from a
-  scope with no matches (020's non-disclosing rule).
+  scope with no matches (020's non-disclosing rule). The scope check runs
+  before any lookup, and an unreadable scope is answered without reading
+  its entities at all, so neither the content nor the work done (and hence
+  the latency) depends on what that scope holds.
 
 ### 3.3 The client side
 
