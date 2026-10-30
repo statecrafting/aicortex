@@ -131,7 +131,8 @@ adds no table, no migration, no worker, and no MCP tool.
   ordered by first match position in the text, then mention count
   descending, then entity id, and cut from the end, with the response
   marked truncated. The text a hook may send is bounded (default 8 KiB);
-  longer text is resolved over its first bound only.
+  longer text is resolved over its first bound only, and the response
+  marks the text as truncated, separately from a truncated pointer set.
 - **B-7 (scoped by the caller's token).** The route requires `memory.read`
   and resolves only in scopes the caller's token can read. An entity in
   another scope never produces a pointer, and a request naming a scope the
@@ -200,7 +201,8 @@ adds no table, no migration, no worker, and no MCP tool.
   `verified = false`.
 - **FR-009.** A message longer than the text bound (8 KiB by default) is
   answered with success, not a client error, resolves names in its first
-  bound only, and a name lying wholly past the bound produces no pointer.
+  bound only, marks the text as truncated, and a name lying wholly past
+  the bound produces no pointer.
 - **FR-010.** A test in `aicortex-mcp`'s tool tests, which may depend on
   `aicortex-api` because the dependency points downward, asserts that
   every tool name in B-5's fixed sentence is a read tool in 021's tool
