@@ -77,7 +77,7 @@
       "wave": 2
     },
     "id": "020-http-api-and-scopes",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "kernel",
     "references": [
       {
@@ -116,6 +116,6 @@
     "summary": "The product's own HTTP surface, mounted by the cell into rahi's edge. Every route is authorized by a rauthy-issued bearer token or a browser session, both resolved to the same principal, and gated by an OAuth scope that names what it permits. Scopes are coarse enough to be understandable and fine enough to be useful: read, write, delete, admin, a separate scope for promotion, which no agent client is ever granted, and a read and a write scope for coordination, which no memory scope implies. Long operations report progress over server-sent events through the chassis's declared streaming routes. Every response carrying content obeys the untrusted content boundary.\n",
     "title": "The HTTP API: bearer-authorized, scope-gated, streaming where it earns it"
   },
-  "shardHash": "821b2da66b8625c8cebb272c42ac1634fbfa30f48bafc5fdeba25cbc26373565",
+  "shardHash": "ddca47667888c7fd026867a560da010598575b94e2ca86f8f5b110654104ea5f",
   "specVersion": "1.9.0"
 }
