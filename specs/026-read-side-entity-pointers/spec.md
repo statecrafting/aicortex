@@ -187,7 +187,8 @@ adds no table, no migration, no worker, and no MCP tool.
 - **FR-006.** A test drives the fully assembled router, with every layer
   it mounts in production, under a capturing tracing subscriber at the
   most verbose level, and sends a unique sentinel string. It asserts the
-  route writes nothing and opens no socket, and that the sentinel appears
+  route writes nothing and opens no outbound network connection (the
+  in-process store is the only thing it reads), and that the sentinel appears
   in no captured log line or span, no trace, and no stored row.
 - **FR-007.** For each client with `read_pointer` enabled, the hook
   returns success and adds nothing when the server answers 503 or exceeds
