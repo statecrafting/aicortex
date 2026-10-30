@@ -85,7 +85,7 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "059-rahi-0-7-1-adoption": "394f4415abe553bc633e0e5d9e120c96bda6d66b27c92dd50f1fee5ba1185de6",
+      "059-rahi-0-7-1-adoption": "d5521fae4adb47239fb4c900e216fd3a4e290e6f5e05791e8ddad9bc9bcec26e",
       "1-purpose": "4b92a3797f8be22e07bdaabbe8adcc1f4cc7d1aa565e933f066ad48e1f896ce7",
       "2-territory": "27af248ffd3236e8aa5e56c8676383dd7cae080e1f22d2939c439834ffd96496",
       "3-behavior": "78ab7c347c671433ba733945ac4b6e378d63ee4fd59dd05cd1d9660fdf394585",
@@ -94,7 +94,7 @@
       "6-out-of-scope": "b4ce07482826ea5dc1e41a62dd7a113ad7e4365b0d2b07416ac98e4f55d845c0",
       "7-resolved-decisions": "c92894747a79d13a7c1580912db3f11f79dba299c1c94dfeca92830112f05fa0",
       "8-open-questions": "4b40f6effecc1732dd1624f8149893c4e105c50c955fe8003d23dfe27c50ddfd",
-      "verification": "59fde41089588b2c06e1db632a7820219d92faa4c92f3362a306372748a5566a"
+      "verification": "874e427717d5586c4c3dbabdf3940b34d6ab4e5f432696e2305a7f3ee0de797b"
     },
     "sectionHeadings": [
       "059: rahi 0.7.1 adoption",
@@ -113,6 +113,6 @@
     "summary": "The nine rahi crates are pinned at `=0.6.0` (spec 058). rahi 0.7.1 (crates.io) is the patch on 0.7.0, which adds deployment epochs, remote identity, and the split N=3 overlay, all behind items and environment variables this cell does not use, so a cell that calls only `rahi_cli::run` needs no code change. 0.7.0 also moves `rahi-kernel` to action-gate-core `=0.3.0`, which removes the second action-gate-core copy spec 058 D-3 recorded. This spec moves all nine pins in one change, keeps the exact-pin rule, re-runs the supply-chain revisit spec 010 requires at a chassis bump, and replaces the partial bump dependabot proposed in #72, which moved seven of the nine crates and broke spec 046's one-version invariant on main.\n",
     "title": "Move every chassis pin to rahi 0.7.1 together, and drop the second action-gate-core"
   },
-  "shardHash": "e99c0a98e29043162bb2f9fa64b3e41a380034f51af263a90950457f98c80e8c",
+  "shardHash": "a6607e41d259166c3470f6b4dad10fde7648593312591de4635b0105d63885af",
   "specVersion": "1.9.0"
 }

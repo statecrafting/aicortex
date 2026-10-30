@@ -155,5 +155,6 @@ cargo tree --workspace --locked -i rahi-store@0.7.1
 cargo tree --workspace --locked -i action-gate-core@0.3.0
 cargo test -p aicortex --locked --test cell
 cargo test -p aicortex-gate --locked
+cargo test --workspace --locked
 cargo deny check
 ```
