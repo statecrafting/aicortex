@@ -74,12 +74,7 @@ impl Fixture {
 
     /// A migrated node at the application path the released cell CLI opens.
     pub async fn migrated_for_cell() -> Self {
-        let dir = tempfile::tempdir().expect("a temporary directory");
-        let cfg = config(&dir.path().join("app-store"));
-        let store = Store::open(&cfg)
-            .await
-            .expect("a single-voter cell store opens");
-        let fixture = Self { store, dir };
+        let fixture = open_at("app-store", "a single-voter cell store opens", |_| {}).await;
         fixture
             .handle()
             .migrate(aicortex_store::migrations())
@@ -145,24 +140,45 @@ async fn activate_test_model(store: &rahi_store::StoreHandle) {
 }
 
 /// Open a single-voter node on free ports.
+pub async fn open() -> Fixture {
+    open_at("hiqlite", "a single-voter node opens", |_| {}).await
+}
+
+/// How many times a store open is attempted before a port collision fails
+/// the test.
+const OPEN_ATTEMPTS: usize = 5;
+
+/// Whether a failed open lost a port `free_addr` chose to another socket.
+///
+/// `free_addr` releases its probe listener before the node binds, so under a
+/// parallel run another test can take the port in between. That is a race
+/// in the fixture, not a property of the code under test.
+fn lost_its_port(error: &rahi_types::Error) -> bool {
+    error.message().contains("Address already in use")
+}
+
+/// Open a single-voter node at `leaf` inside a fresh temporary directory,
+/// after `place` has laid down whatever the node must find there; `what`
+/// names the open in a failure.
 ///
 /// A port taken between `free_addr` and the bind is retried, each attempt in
-/// a fresh directory: a half-opened node must not leave Raft or SQLite state
-/// behind for the node that replaces it.
-pub async fn open() -> Fixture {
+/// a fresh directory with fresh ports, and `place` runs again for each one: a
+/// half-opened node must not leave Raft or SQLite state behind for the node
+/// that replaces it, and a recovery must boot from the snapshot alone.
+async fn open_at(leaf: &str, what: &str, place: impl Fn(&Path)) -> Fixture {
     let mut last = None;
-    for _ in 0..5 {
+    for _ in 0..OPEN_ATTEMPTS {
         let dir = tempfile::tempdir().expect("a temporary directory");
-        match Store::open(&config(&dir.path().join("hiqlite"))).await {
+        let data_dir = dir.path().join(leaf);
+        place(&data_dir);
+        match Store::open(&config(&data_dir)).await {
             Ok(store) => return Fixture { store, dir },
-            Err(error) if error.message().contains("Address already in use") => {
-                last = Some(error);
-            }
-            Err(error) => panic!("a single-voter node opens: {error}"),
+            Err(error) if lost_its_port(&error) => last = Some(error),
+            Err(error) => panic!("{what}: {error}"),
         }
     }
     panic!(
-        "a single-voter node opens after bounded port retries: {}",
+        "{what} after {OPEN_ATTEMPTS} attempts on fresh ports: {}",
         last.expect("a port collision was recorded")
     )
 }
@@ -308,14 +324,12 @@ pub async fn node() -> Node {
 /// on-disk placement as rahi-ops 0.1.0's restore. This tests database recovery,
 /// not the operator archive, identity-store restore, or production deployment.
 pub async fn recover_snapshot(bytes: &[u8]) -> Node {
-    let dir = tempfile::tempdir().expect("a recovery directory");
-    let data_dir = dir.path().join("hiqlite");
-    let db_dir = data_dir.join("state_machine/db");
-    std::fs::create_dir_all(&db_dir).expect("the database directory");
-    std::fs::write(db_dir.join("hiqlite.db"), bytes).expect("the snapshot is placed");
-    let store = Store::open(&config(&data_dir))
-        .await
-        .expect("the snapshot boots");
+    let Fixture { store, dir } = open_at("hiqlite", "the snapshot boots", |data_dir| {
+        let db_dir = data_dir.join("state_machine/db");
+        std::fs::create_dir_all(&db_dir).expect("the database directory");
+        std::fs::write(db_dir.join("hiqlite.db"), bytes).expect("the snapshot is placed");
+    })
+    .await;
     let ledger = Ledger::open(
         store.handle(),
         LedgerSigner::from_seed([7u8; 32]),

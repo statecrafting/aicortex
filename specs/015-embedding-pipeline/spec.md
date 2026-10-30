@@ -482,6 +482,19 @@ configuration with a pinned digest rather than a spec-level commitment.
   this spec, so keeping that form here would leave 015 open with nothing
   able to close it. This spec keeps the embedding-path probe and the
   manifest assertion.
+- **D-34 (2026-10-30, test harness).** The embedding tests' store fixtures
+  retry two setup races. `crates/aicortex-embed/tests/worker.rs`,
+  `apps/aicortex/tests/embedding.rs`, and `apps/aicortex/tests/embedding_fetch.rs`
+  treat the open and the fixture schema as one attempt, at most five, each in
+  a fresh directory on fresh ports, retried only when the open fails with
+  `Address already in use` (the free-port probe releases its listener before
+  hiqlite binds) or a setup statement fails with hiqlite's ambiguous
+  `request timed out` (the node's own client lost its first connection).
+  `apps/aicortex/tests/embedding_process.rs` reruns a scenario in a fresh
+  deployment on fresh ports, at most five times, when a child reports the
+  collision. Any other failure still fails the test. The shared store
+  fixture this spec extends follows 012 D-10. No requirement or acceptance
+  criterion changes.
 
 ## Status (2026-10-10, complete)
 

@@ -54,6 +54,87 @@ fn free_addr() -> SocketAddr {
     listener.local_addr().expect("bound address")
 }
 
+/// How many times the fixture store is set up before a race fails the test.
+const SETUP_ATTEMPTS: usize = 5;
+
+/// Whether a failed open lost a port `free_addr` chose to another socket:
+/// the probe listener is released before the node binds, so under a parallel
+/// run another test can take the port in between.
+fn lost_its_port(error: &Error) -> bool {
+    error.message().contains("Address already in use")
+}
+
+/// Whether a statement on a just-opened node failed because the node's own
+/// client lost its first connection, which hiqlite reports as an ambiguous
+/// `request timed out`.
+fn first_contact_timed_out(error: &Error) -> bool {
+    error.message().contains("request timed out")
+}
+
+/// A single-voter node with the cell's migrations and the chassis sets.
+///
+/// The open and the migrations are one attempt, retried in a fresh directory
+/// on fresh ports a bounded number of times for the fixture's two races. Any
+/// other failure is the test's.
+async fn migrated_store() -> (Store, tempfile::TempDir) {
+    let mut last = None;
+    for _ in 0..SETUP_ATTEMPTS {
+        let directory = tempfile::tempdir().expect("temporary store directory");
+        let store = match Store::open(&store_config(directory.path().join("hiqlite"))).await {
+            Ok(store) => store,
+            Err(error) if lost_its_port(&error) => {
+                last = Some(error);
+                continue;
+            }
+            Err(error) => panic!("single-voter store: {error}"),
+        };
+        match migrate(&store.handle()).await {
+            Ok(()) => return (store, directory),
+            Err(error) if first_contact_timed_out(&error) => {
+                let _ = store.shutdown().await;
+                last = Some(error);
+            }
+            Err(error) => panic!("the cell's migrations and the chassis sets apply: {error}"),
+        }
+    }
+    panic!(
+        "the fixture store is ready after {SETUP_ATTEMPTS} attempts on fresh ports: {}",
+        last.expect("a retried failure was recorded")
+    )
+}
+
+/// The cell's migrations and the chassis sets.
+async fn migrate(handle: &StoreHandle) -> Result<(), Error> {
+    handle.migrate(Aicortex::migrations()).await?;
+    handle
+        .migrate_sets(&[], &Aicortex::migration_sets())
+        .await?;
+    Ok(())
+}
+
+fn store_config(data_dir: PathBuf) -> StoreConfig {
+    StoreConfig {
+        node_id: 1,
+        nodes: Vec::new(),
+        data_dir,
+        raft_addr: free_addr(),
+        api_addr: free_addr(),
+        secrets: StoreSecrets {
+            secret_raft: "raft-secret-for-fetch-tests".to_owned(),
+            secret_api: "api-secret-for-fetch-tests".to_owned(),
+            enc_keys: EncKeys {
+                active: "test".to_owned(),
+                keys: vec![EncKey {
+                    id: "test".to_owned(),
+                    key: vec![29_u8; 32],
+                }],
+            },
+        },
+        backup_keep_days: 1,
+        s3: None,
+    }
+}
+
 fn sha(bytes: &[u8]) -> String {
     digest(&SHA256, bytes)
         .as_ref()
@@ -219,37 +300,8 @@ struct Booted {
 
 impl Booted {
     async fn boot(manifest: Manifest) -> Self {
-        let directory = tempfile::tempdir().expect("temporary store directory");
-        let config = StoreConfig {
-            node_id: 1,
-            nodes: Vec::new(),
-            data_dir: directory.path().join("hiqlite"),
-            raft_addr: free_addr(),
-            api_addr: free_addr(),
-            secrets: StoreSecrets {
-                secret_raft: "raft-secret-for-fetch-tests".to_owned(),
-                secret_api: "api-secret-for-fetch-tests".to_owned(),
-                enc_keys: EncKeys {
-                    active: "test".to_owned(),
-                    keys: vec![EncKey {
-                        id: "test".to_owned(),
-                        key: vec![29_u8; 32],
-                    }],
-                },
-            },
-            backup_keep_days: 1,
-            s3: None,
-        };
-        let store = Store::open(&config).await.expect("single-voter store");
+        let (store, directory) = migrated_store().await;
         let handle = store.handle();
-        handle
-            .migrate(Aicortex::migrations())
-            .await
-            .expect("the cell's migrations apply");
-        handle
-            .migrate_sets(&[], &Aicortex::migration_sets())
-            .await
-            .expect("the chassis sets apply");
         let ledger = Ledger::open(
             handle.clone(),
             LedgerSigner::from_seed([5_u8; 32]),
