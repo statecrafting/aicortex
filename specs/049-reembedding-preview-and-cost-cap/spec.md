@@ -103,8 +103,10 @@ behavior for the local provider is unchanged.
   what remains of the authorization. A batch that would cross the cap is
   not dispatched; the pass pauses, reports `cap_reached` with the spent and
   remaining amounts, and leaves its outbox rows pending, so no memory is
-  lost (constitution XI). After a batch completes, the debit is settled to
-  the provider's reported usage where it reports one, and never below
+  lost (constitution XI). After a batch completes, its debit is settled:
+  the batch's ceiling debit is replaced by the provider's reported usage
+  where it reports one (spent = spent - ceiling + reported), and is kept
+  at the ceiling where it reports none. A settled debit is never below
   zero. Settlement records what was actually billed, so a report above the
   batch's ceiling is settled at the reported amount rather than hidden: the
   overrun is recorded as an anomaly naming the batch, the ceiling, and the
@@ -112,7 +114,12 @@ behavior for the local provider is unchanged.
   pass pauses at `cap_reached` and admits no further batch.
 - **B-6 (the cap is a total).** An authorization covers one `(scope,
   target revision)`. Raising it records a new Decision for a larger total;
-  it never resets the amount already spent. A new authorization whose cap
+  it never resets the amount already spent. The raise is committed in the
+  same transaction that clears the pass's `cap_reached` state, and the
+  worker's admission reads the current authorized total from the store
+  before every batch, so a paused pass resumes on the worker's next
+  admission check from its still-pending outbox rows, with no separate
+  trigger. A new authorization whose cap
   does not exceed the current authorized total is refused, naming the
   authorized and spent amounts, and records no Decision. Spent amounts survive restarts
   and leader changes because they live in the store.
