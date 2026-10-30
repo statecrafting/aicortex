@@ -6,6 +6,6 @@
     "specRef": "016-vector-index-and-scan",
     "version": "0.1.0"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "7027751f2760d032b9fab31bdd9b4d9e2541409284458e1a1a57d4812b524adb"
 }

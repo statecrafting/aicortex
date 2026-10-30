@@ -299,6 +299,6 @@
     "specId": "012-store-schema-and-repositories",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "f70a8a8c2811c3f97a90f8dd54df4df94b3a191e8434fb6a92b48c53c1a91f76"
 }

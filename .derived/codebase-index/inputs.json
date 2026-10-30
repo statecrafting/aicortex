@@ -1,7 +1,7 @@
 {
   "inputs": {
     ".claude/agents/architect.md": {
-      "contentHash": "35cffbfe3e64d2f988ee8c99a07a1c0e36446e1f64f6f70c30c2510323173963"
+      "contentHash": "8f23c7e696cfa927c67a1ba132005ea7b7afcac9733cbee2af0b38e04a8cf191"
     },
     ".claude/agents/explorer.md": {
       "contentHash": "b8e06ec7caec71fa5b34a9a139562a955f7fdb4aa784d65bf17bfdb9abc42c34"
@@ -73,7 +73,7 @@
       "contentHash": "8011b5157791546859e1ddeaab345fd8f05d05f502f712610908ff303bb3d23c"
     },
     ".github/CODEOWNERS": {
-      "contentHash": "50c797ff1e8ca10a06805f869aa8896937e1b39ab92d81fbff7cb6b68caa3c35"
+      "contentHash": "857e8a9e9a2fb4e615926444fb94e62e8cafcfe4f41b27235ef51557ec6b7bf4"
     },
     ".github/dependabot.yml": {
       "contentHash": "cdb43cdfef72204808a427b3f8d9c52fdf2ab16b549d93059cee4175f6be5f93"
@@ -91,10 +91,10 @@
       "contentHash": "3a3b67e7b6eae71a8f04b0eecd106265298079fb964dfdb74e423c6c829f4a45"
     },
     ".github/workflows/statecraft-ai-review.yml": {
-      "contentHash": "cd73dc1e84948114345d9b50c517d7172053d66e49eaa8c6872ccb11fc0bf57a"
+      "contentHash": "35676b9f4c20fe495fbdf4ef5a2a7944503d2002af96c92da34e0b7a1f2e4150"
     },
     ".github/workflows/statecraft-ci.yml": {
-      "contentHash": "5e4ea2387a2a24ea739bacf1b07a899e47b3814469aa83e6385f3d141f2d12ae"
+      "contentHash": "aae250a5423cf7983fc2e94e1df3ef3c618e0ba7f00be4ea245085e05f4c79cc"
     },
     ".gitignore": {
       "contentHash": "e0d58f7fa7c96a42db6f0bb46bd47b8a219af01c7b23d945d6d9e3d5f70c3d60"
@@ -106,13 +106,16 @@
       "contentHash": "c6543d237a50d94a81935ccdcfc6fc15a162b30f133d7d251c4777ab8ad0f4d2"
     },
     ".statecraft/environment.json": {
-      "contentHash": "27b8301590dc0fc3f5fcc776e599faab1f1689aa882a465d30a8f07278d079a2"
+      "contentHash": "764ed52977211bfec2d9d8e758594b881f31753aaad0c7476029681bcf265407"
     },
     ".statecraft/setup/github-actions-rust.json": {
-      "contentHash": "a11cc6d1e1ca830904f1d8e9788c2e8c5a307d64ff469a687ad2309bee75d880"
+      "contentHash": "46963002a0830cbbec28b7e7f8bf95ea87cf09e1bf6082490b4e3fba43dfa6b3"
+    },
+    ".statecraft/setup/github-actions-rust.remote.json": {
+      "contentHash": "3e98454471a96609e35c8d1de91da4a87b75d8d8331228bd9c7957de32cd0efa"
     },
     "AGENTS.md": {
-      "contentHash": "f14fee545969e5bfc5958f0623fd1fcf8886a73853a48e1c94f4103357cd71eb"
+      "contentHash": "1267c749c1cb01a80fd700e9716cd69a598081a8714849a51c65de4ac8327d6d"
     },
     "CLAUDE.md": {
       "contentHash": "134cf78051ee5d0248c7ec9bd3024c7ea274199af114ae469ce8d1f3acd1c6fa"
@@ -124,7 +127,7 @@
       "contentHash": "ac68f19e9632b269198b44f2d70be1e625f9e4e28c43f1f067f97f0d5e5d2c1e"
     },
     "README.md": {
-      "contentHash": "6b5fe1e0587b71c80acf06ad5f4a0017a1b3378cf0513874cf59f5e177213ee3"
+      "contentHash": "c2080262614e1ea3587d02d90a32ecdcf073eae25f167cf5ea92c4707642fb90"
     },
     "deny.toml": {
       "contentHash": "0ab60dc88a920760841c08caa8981e2b9127320af711166ad428a50e107617d6"
@@ -148,19 +151,19 @@
       "contentHash": "b24026f3b06615dc6a411aa2c90afb44c70626a5bf7848a2ed776d588ad8be69"
     },
     "scripts/statecraft/ai-review.sh": {
-      "contentHash": "431f7224dd1d5b6cc4cb99d7369787c59c5cf1dbd7a9e9eeae1b527ebb67cbc7"
+      "contentHash": "2a76067ca818c15b393fe15208e4d1743ce55acda99af575c28734b415b12976"
     },
     "scripts/statecraft/ci-gate.sh": {
-      "contentHash": "a0ede496b1eced4ea12680baee33dce8dbba636193cfcfd0f36e765693488d53"
+      "contentHash": "89c1b0612b3140f79dfec4a174b96111f14fd040f2b054c693f9f8007a1c92d5"
     },
     "scripts/statecraft/gate.sh": {
-      "contentHash": "e534abbfe525fe7efed1b7d7217835dc07c25a7d8c897012b28cc63d1aae68d4"
+      "contentHash": "99938df26050dc31c56332a7ccddb5d52e0dd5177ee3fb6161194edc8cb3298b"
     },
     "scripts/statecraft/install-spec-spine.sh": {
-      "contentHash": "73a9d668559cfb8e3c9ab8e7fc9e27f513e3053056fb5643deb1e216efd8990c"
+      "contentHash": "87dd98d56ec17251d0cb2ed1152d3b63f816e6e8ae0a9d4df3e7325bc950bbaa"
     },
     "spec-spine.toml": {
-      "contentHash": "20ec275d1023d901f1a9fd7fe724a5255e6c818ab938607bbe09015909f494cf"
+      "contentHash": "c7d8a456927c16cb30f37fc637db298ec4af92957dfbeb1c7a9c25277e1d28dd"
     },
     "standards/spec/constitution.md": {
       "contentHash": "88dcf39d33f7941ae4ac8953d7a3df36cf11e4f735bd1309229f8c63d2270a56"
@@ -175,5 +178,5 @@
       "contentHash": "584931035d629d5f8643148f9dee7b4e0bd8e7d3f86e880b8e0e10ded9b6f60c"
     }
   },
-  "schemaVersion": "1.2.0"
+  "schemaVersion": "1.3.0"
 }

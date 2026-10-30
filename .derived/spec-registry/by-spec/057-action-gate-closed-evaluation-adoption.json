@@ -133,5 +133,5 @@
     "title": "Sequence the write gate and claim admission with action-gate's closed evaluation mode"
   },
   "shardHash": "32bcadd2442084d16a9ccf7501eda88f7b3c96f8323c89f9a31f9f674d094aa6",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }
