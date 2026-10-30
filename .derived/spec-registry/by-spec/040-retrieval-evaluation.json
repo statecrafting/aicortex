@@ -171,15 +171,15 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "040-evaluation": "8a9dcb5e46ac7881aec49f2d52980cc55009c682f71fbe6222044e068261c6b9",
+      "040-evaluation": "f2b1a2fdb71106a0345ed039f99a12daf27e09be1744b731aba93ba476b4ab6e",
       "1-purpose": "167d8c6e6afd1f32c0253beaa993a57e96427c498823dc96654346f8ec879aaa",
       "2-territory": "9dcfa153f6ad76acbe9cc525afd953bbdf937f40b2cfc23faa1ac144a647ee56",
-      "3-behavior": "1a199ae1b0f1ddea3e232ef929c561587990574b065d02ebc608477ed6748c9e",
+      "3-behavior": "f26fcb7c3f8b53076d7961e8cbb54d5457ea02acc92d68d398f1d7f3f3d8cefb",
       "4-functional-requirements": "693fe40bd436d7e2b9ab326791fb61e5c815c4c56e708135c6d93951f7b246bb",
       "5-acceptance-criteria": "bff08249ada83c827e9aefe82d8eee8bde0fdc389351218a30ac190ba5b78c3a",
       "6-out-of-scope": "33f2f03fc366e22654b44c1b85d7a1f2ba4047517de079be45f8818b496befe6",
       "7-resolved-decisions": "4c290ff945b70b4ccded0a392e3a0b37dc8e73539e277ee38446e937dfa8319a",
-      "method-additions-2026-10-25-d-3": "299ca91531cf11f093234b47ef0b1ed78a5ac72942b1f734b8238e867484454f",
+      "method-additions-2026-10-25-d-3": "fb1e81bf77701ff828540204eae3a623deb66fc56503c2956faa8ea5445ac128",
       "verification": "6d81704f3d575fb29f01c3d51cc1bc61de1857fb3cebd2b896e2a137241f0f29"
     },
     "sectionHeadings": [
@@ -199,6 +199,6 @@
     "summary": "Retrieval quality is the product, and it degrades invisibly. This spec builds the instrument: a committed golden corpus of memories and queries with judged relevance, a runner that loads it into a temporary instance and executes every query, metrics that are the standard ones rather than invented, a baseline file per configuration, and a gate that fails a change which moves a metric down by more than its tolerance without an explicit, justified baseline update. Constitution XIV becomes a command with an exit code.\n",
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
-  "shardHash": "85d50700d4fb43273ed5f079138db216d92f85cc692c9a6c9290b2407c5d67de",
+  "shardHash": "adc0062a0093d47474229d741b90c9f399055704f92268e503613d6c1944daea",
   "specVersion": "1.9.0"
 }

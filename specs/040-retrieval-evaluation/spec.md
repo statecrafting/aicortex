@@ -150,7 +150,12 @@ outside the gate, through governed egress, under 041.
   the preregistration was committed after the set's first recorded run,
   when the digest does not match, or when the set has already been run for
   that preregistration. The outcome is appended to the preregistration,
-  including a fail. Once a set has been run it is unsealed and may only be
+  including a fail, and the append is committed to the default branch,
+  whose history is protected (merge queue only, no force push). A run
+  record is that commit: `confirm` reads the preregistration's commit time
+  and its earliest run record from the default branch's history, never
+  from the working copy, so a later commit that deletes or rewrites the
+  record does not erase it. Once a set has been run it is unsealed and may only be
   used as development data afterwards. The rationale is
   `gbrain://sealed-confirmation-set`: a gain on development data that a
   sealed set does not confirm is a hypothesis, and a set whose baseline is
@@ -166,9 +171,13 @@ outside the gate, through governed egress, under 041.
   credential is not captured at all. Scrubbing is pattern-based and is
   not general redaction: personal names, booking or order references,
   identity-document numbers, and other free-form identifiers can survive
-  it. Enabling capture therefore states that captured text may still hold
+  it. An operator may declare additional scrub patterns in configuration
+  for identifiers specific to a deployment's domain; they apply in
+  addition to the defaults and never replace them. Enabling capture therefore states that captured text may still hold
   personal data of the owner and of third parties, and the retention
-  window is configurable down to one day. Captured rows live in their own
+  window is configurable down to one day. Capture never extends what the
+  scope already holds to anyone new: the rows stay in the owner's own scope,
+  under the same access and erasure as the owner's memories. Captured rows live in their own
   table in the scope's store, are never mixed with `eval/golden/`, are
   bounded by a retention window (default 30 days), and are erased with the scope
   (014). A captured query enters the judged corpus only by a human adding
