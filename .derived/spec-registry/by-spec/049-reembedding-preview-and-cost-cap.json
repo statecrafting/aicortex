@@ -1,0 +1,134 @@
+{
+  "record": {
+    "amends": [
+      "015-embedding-pipeline"
+    ],
+    "amendsSections": [
+      "3-behavior"
+    ],
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-10-25",
+    "dependsOn": [
+      "015-embedding-pipeline",
+      "041-privacy-and-egress-boundary"
+    ],
+    "domain": "memory",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/preview.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/src/spend.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-embed/tests/preview.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/operator.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/activation.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/worker.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/config.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "015-embedding-pipeline",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/migrations.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "049-reembedding-preview-and-cost-cap",
+    "implementation": "pending",
+    "kind": "feature",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-privacy-and-egress-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "049-reembedding-preview-and-cost-cap": "55e4d86b0656b5dc051711560aa841f32da5972a59f51bf84af4d3cc3f7ad735",
+      "1-purpose": "670f6a628b950e9ff8730a5af836429246a2bb5f5e6fe87897a944927eb60c94",
+      "2-territory": "e0293d61437b3acd45c73d407529e681a8cb5c2f5c329ef8576943b1e8ff86bb",
+      "3-behavior": "a885b0cba96460897134c8fd6d72c9b0cbb5fb76669b2164a07d46f2ed387468",
+      "4-functional-requirements": "a2838305a3375d9b9cce8ae215ca986955b35c071654dd86c4fbdefc3b0281b4",
+      "5-acceptance-criteria": "65033283505ff386e28ce16b131aa34593361a2203d81e5eb75df81bd2b2c23c",
+      "6-out-of-scope": "49cfb82743e4a65c455ffdc42a6cdfa632ed6421cf4071bb01b6be58a972dc07",
+      "7-resolved-decisions": "8e995cc278ce37ed5ad5963e36a25ce5d9347ed3122c9e1736277544a4c09884",
+      "verification": "504096bbeacf89a24c4bf2eb04ec4aed58cf427c14cf961499055da5d7c95905"
+    },
+    "sectionHeadings": [
+      "049: Reembedding preview and cost cap",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/049-reembedding-preview-and-cost-cap/spec.md",
+    "status": "draft",
+    "summary": "Spec 015 B-9 makes a model change a migration: a new revision is marked active and a re-embed pass runs over the scope. With the local provider that pass costs CPU time. With a remote provider it sends every chunk of a scope out and is billed per token, and nothing in 015 tells the operator how much before it starts or stops it at an amount they chose. This spec amends 015 B-9: every re-embed pass can be previewed with no provider call, reporting the work and its estimated cost, and a pass that would call a remote provider is refused until an operator approves a finite total cost cap, which admission enforces batch by batch.\n",
+    "title": "Re-embedding: a dry run that reports counts and cost, and an approved total cap before any remote call"
+  },
+  "shardHash": "70344c6b83e2b5bc95e3e99a07e78993b757c9a61ccf22c0c25cf116f510ebb0",
+  "specVersion": "1.9.0"
+}

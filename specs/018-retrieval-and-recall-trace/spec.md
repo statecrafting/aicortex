@@ -103,6 +103,25 @@ against the memory tables.
 - **B-10 (weights change only with evidence).** The default weights are
   recorded here. A change to them, to the rank constant, or to the recency
   half-life requires an evaluation run (040) reported in the pull request.
+- **B-11 (freshness signals; added 2026-10-25, D-3).** Every result set
+  carries a `Freshness` block in its response metadata, so a client can
+  tell the user that the store holds nothing recent about a subject
+  without the server writing that sentence (`gbrain://gap-note`). It holds
+  two lists. Per entity resolved from the query by the graph channel (017
+  B-9): the entity id, the capture time of the newest `Active` memory that
+  mentions it, and the count of such memories. Per source among the
+  returned results and any source named in the filter: the source kind and
+  reference as 011 records them, the capture time of the newest `Active`
+  memory from that source, and the count. Both lists are computed in the
+  caller's scope with the same status predicates as B-7, so an erased or
+  quarantined memory never moves a newest time, and they ignore the
+  query's time-range filter, because a gap is only visible against the
+  whole scope. The block holds ids, kinds, times, and counts only: no memory
+  body, entity name, alias, or generated sentence, which keeps it outside
+  019's envelope (019 B-6) and inside the trace rule of B-6. Each list is
+  bounded (default 16 entries) in a fixed order, newest time descending
+  then id, and is marked truncated when cut. The newest times are read at
+  the injected clock, so B-8 holds. The block is copied into the trace.
 
 ## 4. Functional requirements
 
@@ -122,10 +141,22 @@ against the memory tables.
   non-empty truncated result rather than an error.
 - **FR-007.** A persisted trace contains no memory body, asserted by
   searching the serialized trace for a distinctive fixture token.
+- **FR-008.** For a fixture entity that the graph channel resolves from
+  the query text (B-11), whose newest mentioning memory ranks outside the
+  top `k`, the `Freshness` block still reports that memory's capture time
+  and the full count; erasing that memory moves the newest time back to
+  the next one. A fixture entity that appears only in results and is not
+  resolved from the query is absent from the per-entity list.
+- **FR-009.** The serialized `Freshness` block of a fixture query contains
+  no memory body, entity name, or alias, asserted by searching it for
+  distinctive fixture tokens, and the block is byte-identical across runs
+  at a fixed clock.
 
 ## 5. Acceptance criteria
 
-- **AC-1.** `cargo test -p aicortex-recall --locked` passes.
+- **AC-1.** `cargo test -p aicortex-recall --locked` passes, and it
+  contains a test for each of FR-001 to FR-009, the freshness
+  requirements FR-008 and FR-009 included.
 - **AC-2.** The evaluation corpus (040) runs against this implementation
   and records a baseline for recall at 5, 10, and 20.
 
@@ -146,6 +177,27 @@ expansion, likewise.
   `explain` controls only its verbosity. A trace computed only on demand
   is a different code path from the one that produced the result, which is
   precisely when explanations start to lie.
+
+- **D-3 (2026-10-25, amendment, pending owner review).** Added B-11 and
+  FR-008 to FR-009: freshness signals in the response metadata. The
+  observation is `gbrain://gap-note` (`docs/design/00-lineage.md`): the
+  answer feature users valued most was a note that the store holds nothing
+  about a subject since a given date. The server returns the newest
+  capture time per resolved entity and per source, with counts, and leaves
+  the sentence to the client, because a server-written sentence would be
+  derived content needing an envelope (019 B-5) and a language decision
+  this crate does not own. The amendment adds behavior to an approved spec
+  that no human has reviewed, so this spec returns to `status: draft`
+  (constitution V) until the owner approves it. Not carried: an adapter's
+  last successful sync time, the strongest staleness signal, which belongs
+  to the source adapter framework (030); 030 may add it to this block
+  through an `extends` edge. The evidence unit and token budget observed
+  alongside this one are spec 025's, not this spec's: B-4 governs ranking,
+  and what text is delivered under a token budget is a packing stage over
+  019's framing that section 6 already places outside this spec.
+
+- **D-4 (2026-10-30, owner approval).** The owner reviewed the D-3
+  amendment and approved this spec; it returns to `status: approved`.
 
 ## Verification
 
