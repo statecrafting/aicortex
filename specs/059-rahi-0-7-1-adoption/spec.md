@@ -156,10 +156,13 @@ grouping.
 - **D-5 (2026-10-30, build record).** All nine pins moved to `=0.7.1`
   and `cargo update` ran on the eight chassis crates the tree resolves
   (`rahi-harness` is declared but no member depends on it, so it does not
-  resolve). The lockfile moved exactly as D-2's trial did: the eight
+  resolve). The package set moved exactly as D-2's trial did: the eight
   `rahi-*` packages to 0.7.1, action-gate-core 0.2.0 removed,
-  attest-ledger-core and attest-ledger-types 0.1.0 to 0.2.0, and nothing
-  else. No workspace source changed. FR-003's test
+  attest-ledger-core and attest-ledger-types 0.1.0 to 0.2.0, and no other
+  package added, removed, or moved. One dependency edge moved with the
+  re-resolution: `tempfile` now takes the getrandom 0.4.3 already in the
+  tree instead of 0.3.4, and all three getrandom copies (0.2.17, 0.3.4,
+  0.4.3) remain. No workspace source changed. FR-003's test
   (`fr003_059_action_gate_core_resolves_once`) shares the
   `cargo metadata --locked` read with FR-001's. The B-4 re-check, with
   `cargo deny check` reporting no unmatched ignore or skip: every
