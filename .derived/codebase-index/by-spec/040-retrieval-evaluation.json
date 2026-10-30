@@ -121,6 +121,7 @@
   },
   "mapping": {
     "dependsOn": [
+      "018-retrieval-and-recall-trace",
       "035-agent-coordination"
     ],
     "implementingPaths": [
@@ -458,5 +459,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "97987704c55cf1505a78cc3003743614004b837c8afdcd46b45b410620b583ff"
+  "shardHash": "089a8e21ec561a8ca6a27d1ca42271d8d6539bc89890ad2b82d68974abb6f207"
 }

@@ -10,6 +10,7 @@ implementation: pending
 risk: critical
 wave: 4
 depends_on:
+  - "018-retrieval-and-recall-trace"
   - "035-agent-coordination"
 establishes:
   - "crates/aicortex-eval/Cargo.toml"
@@ -81,8 +82,9 @@ B-11's capture adds a `query_capture` module and its tests to
 erasure (capture rows erased with the scope), 018's recall root (the
 observation point), and 020's search handler (the HTTP recall path). Each of those files is claimed in its
 owner's `establishes`; where the owner is still `implementation:
-pending`, the file exists before this spec is built, because ordinal
-order builds 012, 014, 018, and 020 first.
+pending`, the file exists before this spec is built: each owner is in
+this spec's `depends_on` closure (018 directly, 012, 014, and 020 through
+035), which `scripts/spec-dag.sh` enforces.
 
 ## 3. Behavior
 
