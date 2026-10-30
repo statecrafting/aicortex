@@ -334,10 +334,6 @@ contradiction the probe finds, which is review (023) or curation (034).
   Rejected: committing a sample of real entries as the fixture, which
   would make FR-006 depend on the licence and on keeping its notice.
 
-Status: this spec remains `status: draft`. D-4 answers the licence
-question only; the D-3 amendment as a whole still awaits the owner's
-approval, which is a separate human act (constitution V).
-
 ## Verification
 
 ```verify:cli

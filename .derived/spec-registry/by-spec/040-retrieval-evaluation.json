@@ -182,14 +182,14 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "040-evaluation": "2f4d72be52859770eee0b76d0023c91493c3081b9f421639a70c612835e21fc1",
+      "040-evaluation": "d74e2f9e35c478a0b3c029843ec1aa102506ba5d792611706841d2e77b650665",
       "1-purpose": "167d8c6e6afd1f32c0253beaa993a57e96427c498823dc96654346f8ec879aaa",
       "2-territory": "176d7d52f9cba780f571c0b215d9436d84719cd3f6d9b5f053c17755d213e9bc",
       "3-behavior": "34fd0d7bc208c6508faadfe8f5b697dc87af8bdd1e69e613f7d24ff4fad6aaf5",
       "4-functional-requirements": "b1777c57c7e07602bc01f48d4a591f32bf2b12c6398ec4d1791c2071785f159c",
       "5-acceptance-criteria": "bff08249ada83c827e9aefe82d8eee8bde0fdc389351218a30ac190ba5b78c3a",
       "6-out-of-scope": "33f2f03fc366e22654b44c1b85d7a1f2ba4047517de079be45f8818b496befe6",
-      "7-resolved-decisions": "b792cbecc243ccd9aa3d89e4b3d6881e21a0b17449ee3660f4e03d95bb21fd85",
+      "7-resolved-decisions": "9ee406c9e96b6a32bffe45b358b36d612c38c61f2d6ba1dba98c218ef690879a",
       "method-additions-2026-10-25-d-3": "40da5b6c087eb20a06b86fe4a3de6a0d32a61857bbddf5c8c1ea6ecaf1599d5a",
       "verification": "6d81704f3d575fb29f01c3d51cc1bc61de1857fb3cebd2b896e2a137241f0f29"
     },
@@ -210,6 +210,6 @@
     "summary": "Retrieval quality is the product, and it degrades invisibly. This spec builds the instrument: a committed golden corpus of memories and queries with judged relevance, a runner that loads it into a temporary instance and executes every query, metrics that are the standard ones rather than invented, a baseline file per configuration, and a gate that fails a change which moves a metric down by more than its tolerance without an explicit, justified baseline update. Constitution XIV becomes a command with an exit code.\n",
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
-  "shardHash": "73e5df7f88d4c5611022afd758af6f142a349c00dc5e7730deec3c94cff010ae",
+  "shardHash": "93db0ba39e6932d40e9fb03bff35fafe474ac27549aa89f2ea87c58bf039580a",
   "specVersion": "1.9.0"
 }
