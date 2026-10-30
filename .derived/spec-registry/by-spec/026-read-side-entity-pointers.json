@@ -1,0 +1,185 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-10-25",
+    "dependsOn": [
+      "017-entities-and-typed-edges",
+      "019-untrusted-content-boundary",
+      "020-http-api-and-scopes",
+      "021-mcp-server",
+      "022-client-adapters"
+    ],
+    "domain": "clients",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/pointer.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/tests/pointer.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/testdata/pointers/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/pointers.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/tests/pointers.rs"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "017-entities-and-typed-edges",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-graph/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-client-adapters",
+        "unit": {
+          "kind": "file",
+          "path": "clients/matrix.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-client-adapters",
+        "unit": {
+          "kind": "file",
+          "path": "clients/README.md"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-client-adapters",
+        "unit": {
+          "kind": "file",
+          "path": "clients/claude-code/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-client-adapters",
+        "unit": {
+          "kind": "file",
+          "path": "clients/codex/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-client-adapters",
+        "unit": {
+          "kind": "file",
+          "path": "clients/cursor/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-client-adapters",
+        "unit": {
+          "kind": "file",
+          "path": "clients/antigravity/"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "022-client-adapters",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/clients.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 2
+    },
+    "id": "026-read-side-entity-pointers",
+    "implementation": "pending",
+    "kind": "feature",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "026-read-side-entity-pointers": "0ca4f3a69ff127db95758bc6dec1b51907ed27e55ae171de7ccfe5f356dfa055",
+      "1-purpose": "48e45cd5346d3cc3de6af84b520ca38960270f1874e39a284dcb0295650e8087",
+      "2-territory": "45c333b46d6982a3ec0147f95103b4de8edcf925297d1765e9efc1969e4132c8",
+      "3-1-resolution": "72dd6ab257ec8a270c598574732c44bba574ea104af8a242c40ee6a468c58ddd",
+      "3-2-the-pointer": "4cdc4e00780c89659159a5e6f6c024f6ab39b28b4d59967ac65501e1d7f79894",
+      "3-3-the-client-side": "86a78a9764a0c2a448cce453fd812a2769497471944909aae4d6521d674dee2d",
+      "3-behavior": "9b25dcb282ece298891d24792fefc3bdb51687aa97dac7dedc4ba8d99558d5dd",
+      "4-functional-requirements": "5ca74087acaea8a79752464a3ed7187646525fe8da166d8359892bace2d8ce29",
+      "5-acceptance-criteria": "1fca613bbff1e128425aa42da48ddaf9dcace2e9da2bfe04e2761e3933f9d28d",
+      "6-out-of-scope": "543a8a96f08dd2c43cf8e33d9c91c9437993aceb1ece0c458d04f7a851841593",
+      "7-resolved-decisions": "b314cb68d188bab0063f6a586d7907feef2adc9ed7e74029937fc75824d1c6ad",
+      "verification": "ec25e21eaa57326e8bd6e7dc3e9bdcee8b0d85a4a2334bfd62481949d7d5f66f"
+    },
+    "sectionHeadings": [
+      "026: Read-side entity pointers",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "3.1 Resolution",
+      "3.2 The pointer",
+      "3.3 The client side",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/026-read-side-entity-pointers/spec.md",
+    "status": "draft",
+    "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project the user just named, so the agent answers generically about facts the store knew. This spec adds a per-turn pointer: a client hook sends the user's message to one read-only route, which resolves entity names by exact and normalized alias match in the caller's scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times. The block is untrusted data under 019, bounded in size, scoped by the caller's token, opt-in per client, and the hook does nothing when it fails.\n",
+    "title": "Read-side entity pointers: tell the agent each turn that memory about a named entity exists"
+  },
+  "shardHash": "4cee0287596a5183ff391b5ce7694209f7ad0fb0c3e130d12604a4bbdd8da724",
+  "specVersion": "1.9.0"
+}
