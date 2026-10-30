@@ -43,6 +43,7 @@ extends:
 references:
   - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
   - { unit: { kind: file, path: "specs/041-privacy-and-egress-boundary/spec.md" }, role: constraint }
+  - { unit: { kind: file, path: "specs/020-http-api-and-scopes/spec.md" }, role: context }
   - { unit: { kind: file, path: "specs/052-bitemporal-claim-history-and-projection/spec.md" }, role: context }
 summary: >
   Retrieval quality is the product, and it degrades invisibly. This spec
@@ -73,6 +74,15 @@ model diagnostics for exactly this reason, after the fact and per fork
 
 The `aicortex-eval` crate and the `eval/` tree. The corpus is committed
 data, not generated at run time.
+
+B-11's capture adds a `query_capture` module and its tests to
+`aicortex-store`, and reaches units other specs own only through
+`extends` edges: 012's store root and migrations (the table), 014's
+erasure (capture rows erased with the scope), 018's recall root (the
+observation point), and 020's search handler (the HTTP recall path). Each of those files is claimed in its
+owner's `establishes`; where the owner is still `implementation:
+pending`, the file exists before this spec is built, because ordinal
+order builds 012, 014, 018, and 020 first.
 
 ## 3. Behavior
 

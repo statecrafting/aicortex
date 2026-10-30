@@ -165,15 +165,22 @@
         "role": "context",
         "unit": {
           "kind": "file",
+          "path": "specs/020-http-api-and-scopes/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
           "path": "specs/052-bitemporal-claim-history-and-projection/spec.md"
         }
       }
     ],
     "risk": "critical",
     "sectionDigests": {
-      "040-evaluation": "50d7d0a1d68fcdf9b49f6bda921d3f4ef1217589e169f809227a9e0633346fd6",
+      "040-evaluation": "f5a1def74b6f1b47444efb25220a8c998c15f56b13480ee5e6c0ced95ecd67be",
       "1-purpose": "167d8c6e6afd1f32c0253beaa993a57e96427c498823dc96654346f8ec879aaa",
-      "2-territory": "9dcfa153f6ad76acbe9cc525afd953bbdf937f40b2cfc23faa1ac144a647ee56",
+      "2-territory": "6f80b95ba2ad289702d2e65a5750af65c2d5c488729160f31476ad1817d3d76b",
       "3-behavior": "e83a68d08dcdcf4591c3d3ef370b5fc77172b2ec75a75cfc993a48be43d81420",
       "4-functional-requirements": "693fe40bd436d7e2b9ab326791fb61e5c815c4c56e708135c6d93951f7b246bb",
       "5-acceptance-criteria": "bff08249ada83c827e9aefe82d8eee8bde0fdc389351218a30ac190ba5b78c3a",
@@ -199,6 +206,6 @@
     "summary": "Retrieval quality is the product, and it degrades invisibly. This spec builds the instrument: a committed golden corpus of memories and queries with judged relevance, a runner that loads it into a temporary instance and executes every query, metrics that are the standard ones rather than invented, a baseline file per configuration, and a gate that fails a change which moves a metric down by more than its tolerance without an explicit, justified baseline update. Constitution XIV becomes a command with an exit code.\n",
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
-  "shardHash": "85f5e11f746c5acddd628779e5f6da3361c542f17f372e4953089cab509b9283",
+  "shardHash": "97987704c55cf1505a78cc3003743614004b837c8afdcd46b45b410620b583ff",
   "specVersion": "1.9.0"
 }
