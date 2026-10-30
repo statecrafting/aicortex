@@ -135,6 +135,10 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
     order.
   - `Auto`: `Record` for a conversational memory, and `Chunk` for every
     other memory.
+  - `Turn`: reported as a delivered unit only, never accepted in a
+    request: the hit turn of a conversational memory as its whole message
+    body, the rung B-6 places between `Window { radius: 1 }` and `Chunk`.
+    A request that names it is refused as an unknown unit.
 - **B-2 (conversation is declared, not inferred).** A memory is
   conversational exactly when its provenance carries a conversation
   reference (031 B-9). It is never inferred from the text. Its
@@ -192,8 +196,8 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   unit no larger than the requested one" means the first rung of that
   ladder, at or below the requested unit, that fits. For a conversational
   memory the rungs are the conversation units of B-1, with one more rung
-  between `Window { radius: 1 }` and `Chunk`: the hit turn alone, as its
-  whole message body, so a turn that fits whole is never cut to a chunk
+  between `Window { radius: 1 }` and `Chunk`: `Turn` (B-1), the hit turn
+  alone as its whole message body, so a turn that fits whole is never cut to a chunk
   merely because its neighbors do not fit. A turn already
   delivered inside an earlier result's `Window` or `Record` is not
   delivered again: a later result that is such a turn is reported with
@@ -270,7 +274,7 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
     resolved from `Auto`;
   - `reduced`: the result is delivered at a lower rung of the ladder than
     the unit requested for it (B-6), including a conversational memory
-    delivered as its hit turn alone;
+    delivered as `Turn`;
   - `fit`: the result is delivered at the unit requested for it.
   A conversational memory delivered as a smaller conversation unit than
   requested (a `Window` for a requested `Record`, or a narrower `Window`)
