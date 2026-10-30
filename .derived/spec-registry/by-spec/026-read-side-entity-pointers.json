@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-10-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "017-entities-and-typed-edges",
       "019-untrusted-content-boundary",
@@ -168,5 +169,5 @@
     "title": "Read-side entity pointers: tell the agent, inside its recall results, that memory about a named entity exists"
   },
   "shardHash": "5a64df4c4ec97482ad3b327bb6ed745fc65908843fde31d2dee77501cb02b0c8",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

@@ -22,6 +22,7 @@
       }
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "015-embedding-pipeline"
     ],
@@ -133,5 +134,5 @@
     "title": "Recalled content is data: delimited, labelled, never in an instruction position"
   },
   "shardHash": "48d569e1437d2795a9400a0ad8598aecdf5c9405351884dd0c55bfb8c4fb7c3a",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

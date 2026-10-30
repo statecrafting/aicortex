@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "002-memory-thesis"
     ],
@@ -89,5 +90,5 @@
     "title": "The cell: a Cargo workspace, pinned rahi crates, a declared manifest, and one line of main"
   },
   "shardHash": "41e6e1eaf369d6a7c18933fcd3c6ef4fd07a1e549b24359202aade39e27adb50",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

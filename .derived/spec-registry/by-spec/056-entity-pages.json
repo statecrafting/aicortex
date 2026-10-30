@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-27",
+    "declaresAcceptance": true,
     "dependsOn": [
       "017-entities-and-typed-edges",
       "019-untrusted-content-boundary",
@@ -166,5 +167,5 @@
     "title": "Entity pages: one cited, computed view of what the store holds about an entity, with no generated prose"
   },
   "shardHash": "6ff73759b2ded59290730a273adab3854acb08676c92f654cc134aa63506b124",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

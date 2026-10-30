@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "032-capture-sources-and-webhooks"
     ],
@@ -80,5 +81,5 @@
     "title": "Machine intake: session decisions from the orchestrator and memories written by agents"
   },
   "shardHash": "a4d06ad6cc634b7acfd15a8ca2d33e2bb0133e1a0955ea86da7cb7f754d95f86",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

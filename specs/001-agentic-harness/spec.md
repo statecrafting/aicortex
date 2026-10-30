@@ -560,6 +560,17 @@ consumes this repository as a registered target.
   `check` or `lint` to pass at `--fail-on-warn`. A branch cut before this
   entry regenerates its shards with 0.31.0 when it next merges main.
 
+- **D-19 (2026-10-30, owner decision, exact pin at 0.32.0).** The pin moves
+  from 0.31.0 to spec-spine 0.32.0, together with the Statecraft profile move
+  to revision 22 that spec 061 authorizes: revision 22's producer links
+  spec-spine-core 0.32.0 and refuses any other pin. `spec-spine.toml [meta]
+  required_version` becomes `=0.32.0`, and `AGENTS.md`, `README.md`, the
+  architect agent and the profile's recorded engine pin move with it. Every
+  registry shard is regenerated with 0.32.0: each gains `declaresAcceptance`
+  and the registry schema moves from 1.10.0 to 1.11.0, and `check` and `lint`
+  pass at `--fail-on-warn` with no corpus edit. A branch cut before this entry
+  regenerates its shards with 0.32.0 when it next merges main.
+
 ## Verification
 
 ```verify:cli
@@ -602,3 +613,14 @@ spec DAG checks retain their existing acceptance, and the derived directory
 stays at `.derived/`. Spec 060 records the concrete renderer, producer and
 reviewed plan identities. The revision 14 record above remains the history of
 that adoption.
+
+## Revision 22 implementation record (2026-10-30)
+
+The scoped migration approved in spec 061 regenerates this spec's managed
+authority files with the revision 22 producer and moves the exact engine pin
+to 0.32.0 (D-19). Revision 22 renders its own required `supply-chain` job, so
+the project's extra job of that name is retired from the setup parameters
+and the profile's job carries the supply chain check; ordinary Rust code,
+corpus attestation and spec DAG keep their acceptance, and the derived
+directory stays at `.derived/`. Spec 061 records the renderer, producer and
+reviewed plan identities.

@@ -10,6 +10,7 @@
       "Bartek Kus"
     ],
     "created": "2026-10-25",
+    "declaresAcceptance": true,
     "dependsOn": [
       "015-embedding-pipeline",
       "041-privacy-and-egress-boundary"
@@ -130,5 +131,5 @@
     "title": "Re-embedding: a dry run that reports counts and cost, and an approved total cap before any remote call"
   },
   "shardHash": "70344c6b83e2b5bc95e3e99a07e78993b757c9a61ccf22c0c25cf116f510ebb0",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

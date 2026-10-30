@@ -22,6 +22,7 @@
       }
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "013-write-gate-and-redaction"
     ],
@@ -174,5 +175,5 @@
     "title": "Lifecycle: supersession, correction, expiry, deduplication, and erasure that reaches the vectors"
   },
   "shardHash": "08ff50e29ffe2a8cedfc682d6eb13d63909ef6ec487f748cee7558b2bb3529ff",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }

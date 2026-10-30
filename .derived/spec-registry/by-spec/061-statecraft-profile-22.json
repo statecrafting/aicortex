@@ -1,0 +1,62 @@
+{
+  "record": {
+    "amends": [
+      "001-agentic-harness"
+    ],
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-10-30",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "001-agentic-harness",
+      "060-statecraft-profile-21"
+    ],
+    "domain": "governance",
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "061-statecraft-profile-22",
+    "implementation": "complete",
+    "kind": "tooling",
+    "obligations": [
+      {
+        "anchor": "3-migration-contract",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Profile revision 22 replaces revision 21 while the exact spec-spine pin is =0.32.0, the ordinary Rust code gate, corpus attestation and spec DAG remain required, the supply chain check is carried by the profile's required supply-chain job, and the derived directory stays at .derived/."
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "061-statecraft-profile-revision-22": "71949d6327d3f59e2225941e862a663e8f82231295a50a29da1c59590accf7b4",
+      "1-purpose": "6bc971ed7d9069235c13184669b2af71099ded8759a921e7526a4e412afc9167",
+      "2-territory": "e486c8fa84b03838dc11865bc5affdddfe6c3903881b18bf8d12c5ffbe6a6ccb",
+      "3-migration-contract": "6ed9ca5a941cd6719d78428436744fdceb36688418392f8b1a7550de155e6709",
+      "4-acceptance-criteria": "006c119c331e34f0585ede11820212aad86f81223c9f9eccfcb30e801380616f",
+      "5-out-of-scope": "1c694d8377c0fb1b5b7fa6ea7ab0f39b6c4bc7d25bd227fab7374688c3e9385a",
+      "6-resolved-decisions": "2fe9b0f12c89ad31c2e747090cb72034c4d06e38afcbe19169020e7ef19eb485",
+      "7-approval-basis": "9eadde101e8a00b51c162c06468ce16ef26bb943adb74a402427abc65e50f0b6",
+      "8-implementation-record": "cc1179c3471bb7fbba93ed814511649f56cdf118ecab9b2ae7f7b7494f265b1b",
+      "verification": "fa6cf76ca701513ebeb4bcd799e04a113391174156e13dc2f0a910c9bad24995"
+    },
+    "sectionHeadings": [
+      "061: Statecraft profile revision 22",
+      "1. Purpose",
+      "2. Territory",
+      "3. Migration contract",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "7. Approval basis",
+      "8. Implementation record",
+      "Verification"
+    ],
+    "specPath": "specs/061-statecraft-profile-22/spec.md",
+    "status": "approved",
+    "summary": "Authorizes the migration from Statecraft github-actions-rust revision 21 to revision 22 together with the exact spec-spine pin move from 0.31.0 to 0.32.0. Revision 22's producer links spec-spine-core 0.32.0 and refuses any other pin, so the two moves land together. Revision 22 adds four required jobs (supply chain, workflow lint, ast-grep scan, secret scan); its supply chain job replaces the project's extra job of the same name. Aicortex keeps its ordinary Rust code gate and the corpus attestation and spec DAG jobs.\n",
+    "title": "Adopt Statecraft profile revision 22 with spec-spine pinned at 0.32.0"
+  },
+  "shardHash": "2c16d30de2cbd2902290f3b4dc3c6cb548b19a591962a848936887733c4644c4",
+  "specVersion": "1.11.0"
+}

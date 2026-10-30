@@ -1,4 +1,4 @@
-# Rendered by Statecraft from profile github-actions-rust revision 21,
+# Rendered by Statecraft from profile github-actions-rust revision 22,
 # because this repository had no CODEOWNERS. Branch protection should require
 # code-owner review, so a change to the gate that judges pull requests needs
 # a review its author cannot give (decision S-3).
@@ -8,6 +8,8 @@
 /scripts/statecraft/gate.sh @bartekus
 /scripts/statecraft/ci-gate.sh @bartekus
 /scripts/statecraft/ai-review.sh @bartekus
+/scripts/statecraft/guard-policy-files.sh @bartekus
+/scripts/statecraft/verify-action-pins.sh @bartekus
 /Makefile @bartekus
 /.statecraft/setup/github-actions-rust.json @bartekus
 /.statecraft/setup/github-actions-rust.remote.json @bartekus

@@ -4,6 +4,7 @@
       "Bartek Kus"
     ],
     "created": "2026-09-03",
+    "declaresAcceptance": true,
     "dependsOn": [
       "041-privacy-and-egress-boundary"
     ],
@@ -87,5 +88,5 @@
     "title": "Portability: a documented export anyone can read, and an import path off the system this replaces"
   },
   "shardHash": "3c74968e38d3b442bbd25d1ab35dcc580bffcac48cbd8f3caee6c337a682ed47",
-  "specVersion": "1.10.0"
+  "specVersion": "1.11.0"
 }
