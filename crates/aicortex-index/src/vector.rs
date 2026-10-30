@@ -92,16 +92,10 @@ pub fn decode_into(bytes: &[u8], dims: u16, out: &mut Vec<f32>) -> Result<(), Ve
     }
     out.clear();
     out.reserve(usize::from(dims));
-    for chunk in bytes.chunks_exact(4) {
-        let value = match chunk {
-            [a, b, c, d] => f32::from_le_bytes([*a, *b, *c, *d]),
-            _ => {
-                return Err(VectorError::Length {
-                    dims,
-                    bytes: bytes.len(),
-                });
-            }
-        };
+    // The length check above leaves no remainder.
+    let (words, _) = bytes.as_chunks::<4>();
+    for word in words {
+        let value = f32::from_le_bytes(*word);
         if !value.is_finite() {
             return Err(VectorError::NonFinite);
         }
@@ -131,12 +125,18 @@ pub fn normalize(values: &mut [f32]) -> Result<(), VectorError> {
     if values.iter().any(|value| !value.is_finite()) {
         return Err(VectorError::NonFinite);
     }
-    let norm = dot_scalar(values, values).sqrt();
-    if norm == 0.0 || !norm.is_finite() {
+    // Squares are summed in `f64`, where no finite `f32` input can overflow,
+    // so the only way to fail here is a vector with no length at all.
+    let norm = values
+        .iter()
+        .map(|value| f64::from(*value) * f64::from(*value))
+        .sum::<f64>()
+        .sqrt();
+    if norm == 0.0 {
         return Err(VectorError::ZeroNorm);
     }
     for value in values.iter_mut() {
-        *value /= norm;
+        *value = (f64::from(*value) / norm) as f32;
     }
     Ok(())
 }
@@ -230,8 +230,11 @@ mod tests {
     }
 
     #[test]
-    fn normalizing_refuses_a_zero_vector() {
+    fn normalizing_refuses_a_zero_vector_and_survives_huge_values() {
         assert_eq!(normalize(&mut [0.0, 0.0]), Err(VectorError::ZeroNorm));
+        let mut huge = [f32::MAX, f32::MAX];
+        normalize(&mut huge).unwrap();
+        assert!((huge[0] - std::f32::consts::FRAC_1_SQRT_2).abs() < 1e-6);
         let mut v = [3.0, 4.0];
         normalize(&mut v).unwrap();
         assert!((v[0] - 0.6).abs() < 1e-7 && (v[1] - 0.8).abs() < 1e-7);

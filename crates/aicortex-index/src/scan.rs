@@ -199,9 +199,9 @@ const SELECT: &str = "SELECT c.chunk_id AS chunk_id, e.memory_id AS memory_id,
     JOIN chunk c ON c.scope_id = e.scope_id AND c.memory_id = e.memory_id
         AND c.model_revision = e.model_revision AND c.ordinal = e.chunk_ordinal
     JOIN memory m ON m.id = e.memory_id AND m.scope_id = e.scope_id
-    WHERE e.scope_id = $1 AND e.model_revision = $2 AND e.model_id = $3
-        AND e.dims = $4 AND e.normalized = $5
-        AND (e.memory_id > $6 OR (e.memory_id = $6 AND e.chunk_ordinal > $7))";
+    WHERE e.scope_id = ?1 AND e.model_revision = ?2 AND e.model_id = ?3
+        AND e.dims = ?4 AND e.normalized = ?5
+        AND (e.memory_id > ?6 OR (e.memory_id = ?6 AND e.chunk_ordinal > ?7))";
 
 /// The first parameter number the status list takes.
 const FIRST_STATUS_PARAM: usize = 8;
@@ -212,7 +212,7 @@ impl<'a> StoreRows<'a> {
     pub fn new(store: &'a StoreHandle, query: &ScanQuery<'_>) -> Self {
         let labels = query.filter.labels();
         let placeholders = (0..labels.len())
-            .map(|offset| format!("${}", FIRST_STATUS_PARAM + offset))
+            .map(|offset| format!("?{}", FIRST_STATUS_PARAM + offset))
             .collect::<Vec<_>>()
             .join(", ");
         let sql = format!(
@@ -233,7 +233,7 @@ impl<'a> StoreRows<'a> {
     }
 }
 
-/// Index of the keyset parameters `$6` and `$7` within `params`.
+/// Index of the keyset parameters `?6` and `?7` within `params`.
 const AFTER_MEMORY: usize = 5;
 const AFTER_ORDINAL: usize = 6;
 
