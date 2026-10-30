@@ -98,7 +98,11 @@ including B-9's wire form and B-11's `TurnRange`, through the `extends`
 edges on 011's `provenance.rs` and 012's migrations and provenance
 repository, and 031's build then uses them rather than adding them again;
 031 FR-010's fixture then fails 031's build if the two definitions
-diverge. Until a memory carries a conversation reference, the
+diverge. If 031 is built first, the check is the one 031 section 2 names
+in reverse: `Provenance` already has a `conversation` field and the store
+already has `conversation_turns`, so this build adds no field, migration,
+column, index, or read, and writes no migration step at all, rather than
+one guarded to do nothing. Until a memory carries a conversation reference, the
 conversation units are unreachable and every memory is delivered on its
 own.
 

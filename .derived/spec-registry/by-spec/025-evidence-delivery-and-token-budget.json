@@ -138,9 +138,9 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "025-evidence-delivery-and-the-token-budget": "4279ab24523b73fd5a1afe5522f8f77af94142263360104b15a17be05e0c2c3c",
+      "025-evidence-delivery-and-the-token-budget": "db97a5d2adb368fb1e5c8c66c5f097acbab9ff8b35994e16db904386fe7b016a",
       "1-purpose": "e6e544cdc3c25b11a419c9dcc3203e7ebf0814a51c5035ce5f65caab8b94dd17",
-      "2-territory": "6c4b39bdfc85bc85d1a9a110f4f01af9e98a02b8a3489f86a78937cd518f472a",
+      "2-territory": "0f40c914bd23b7957adb9ffc47768661a2dbbba8d7fdf247d0f0a329be9574af",
       "3-1-the-unit": "8a8f50cbd8a87b013e22b7f341840f7734750d1c2403276b2670075ddfa6fdef",
       "3-2-the-budget": "d86868462d52e43e20b179a1a04d3e93dd0c73fca1091d9f4cabd986033f04b9",
       "3-3-safety-and-determinism": "e5c607e55f213bc8ca85ba6f54ee1ba0c13c2e33a1f6e8f98c6b1b18e77f6e5a",
@@ -172,6 +172,6 @@
     "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap, in the declared counter's units, over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. For a turn of an imported conversation, stored one memory per message under 031, the window is the turns around the hit and the record is the whole conversation. The default counter is a fixed formula over UTF-8 bytes, named in every response. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
     "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
   },
-  "shardHash": "b41d82350f5a8e6a2f4c06cf850b296ce3a8296c5bcb9f3326143399fc7bea50",
+  "shardHash": "4f213c56b126a13e4ac2fd42a22a73c772e9302bec15b1d74faa49732b075b7a",
   "specVersion": "1.9.0"
 }
