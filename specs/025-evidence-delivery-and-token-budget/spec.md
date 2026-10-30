@@ -210,7 +210,12 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   overlapping unit of the same conversation would spend budget on a lower
   rank to repeat context the model already has. Its report lists the
   turns the carrying unit actually delivered, so the client can see how
-  much context surrounds it.
+  much context surrounds it. More generally, every turn appears in a
+  payload at most once: when a later result's conversation unit overlaps
+  turns an earlier unit already delivered, those turns are left out of
+  the later unit, which delivers and is charged for only the turns it
+  adds, and its report lists both the turns it added and the turns it
+  shares with the earlier unit.
   1. The rank-one result is reserved first. If its requested unit does not
      fit, it is reduced along the ladder; if its chunk alone does not fit, it is cut at a sentence or line boundary and
      ends with a cut marker. It is never dropped.
@@ -329,9 +334,12 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   where they are `Active`; and neither the quarantined nor the erased
   turn, nor any turn from the other scope, appears in any payload.
 - **FR-009.** When two results of one query are turns of the same
-  conversation, the second is reported `covered` by the first, appears in
-  the payload once, uses no budget, and the delivered set is still a
-  prefix of the fused order.
+  conversation and the second lies inside the first's unit, the second is
+  reported `covered` by the first, appears in the payload once, uses no
+  budget, and the delivered set is still a prefix of the fused order.
+  When the second lies outside the first's unit but their windows
+  overlap, every overlapping turn appears in the payload once, inside the
+  first unit, and is counted once in `used`.
 - **FR-010.** The default counter counts committed fixtures of known UTF-8
   byte lengths as `ceil(bytes / 3)`; every delivery response and every
   persisted trace names the counter's identifier and version; and with a
