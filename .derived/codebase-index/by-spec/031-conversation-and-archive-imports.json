@@ -56,6 +56,8 @@
   },
   "mapping": {
     "dependsOn": [
+      "011-memory-model",
+      "012-store-schema-and-repositories",
       "030-source-adapter-framework"
     ],
     "implementingPaths": [
@@ -214,11 +216,24 @@
           "kind": "file",
           "path": "specs/019-untrusted-content-boundary/spec.md"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/025-evidence-delivery-and-token-budget/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/025-evidence-delivery-and-token-budget/spec.md"
+        }
       }
     ],
     "specId": "031-conversation-and-archive-imports",
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "24ce22416aede1b242e42a81ff2efe6508e3e2a7a3315ed360274424f3f05d90"
+  "shardHash": "e68db3cb0ea8798c095380e41bd8d71605f8ab3ccefbac310a89cbda2d4d7bff"
 }

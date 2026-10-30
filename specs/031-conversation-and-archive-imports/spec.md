@@ -10,6 +10,8 @@ implementation: pending
 risk: medium
 wave: 3
 depends_on:
+  - "011-memory-model"
+  - "012-store-schema-and-repositories"
   - "030-source-adapter-framework"
 establishes:
   - "crates/aicortex-ingest/src/sources/mod.rs"
@@ -28,6 +30,7 @@ extends:
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
+  - { unit: { kind: file, path: "specs/025-evidence-delivery-and-token-budget/spec.md" }, role: context }
 summary: >
   A memory system is worth little on day one and a great deal once it knows
   what you already said. This spec brings a user's existing history in: chat
@@ -60,7 +63,10 @@ conversation reference, and 012's migrations and provenance repository
 gain its nullable columns, its index, and the scope-predicated read of a
 conversation's turns. Spec 025, if it is built first, adds the same field
 exactly as B-9 defines it (025 section 2); this spec's build then uses it
-rather than adding it again.
+rather than adding it again. 025 cannot be a `depends_on` entry, because
+every dependency points to a lower-numbered spec (`scripts/spec-dag.sh`);
+it is listed under `references`, and FR-010's fixture is the mechanical
+check that the two definitions agree.
 
 ## 3. Behavior
 
@@ -117,8 +123,10 @@ rather than adding it again.
   the export has none, a derived id: the string `d:` followed by the
   lowercase hexadecimal SHA-256 of the UTF-8 bytes of the parser's
   identifier, the conversation's creation time as the export states it
-  (or, if it states none, the first message's timestamp) in RFC 3339 UTC,
-  and the first message's text, joined by a single NUL byte. Those inputs
+  (or, if it states none, the timestamp of the first message that has
+  text) in RFC 3339 UTC, and the text of the first message that has text,
+  joined by a single NUL byte. A conversation with no message that has
+  text stores nothing and needs no id. Those inputs
   are fixed by the export, so the id is the same on every re-import of
   the same export and on a later export that still holds the
   conversation. Two conversations of one export that derive the same id
