@@ -1,7 +1,7 @@
 ---
 id: "018-retrieval-and-recall-trace"
 title: "Recall: four channels fused into one order, every result explainable, scope in the SQL"
-status: draft
+status: approved
 kind: "kernel"
 domain: "retrieval"
 created: "2026-09-03"
@@ -195,6 +195,9 @@ expansion, likewise.
   alongside this one are spec 025's, not this spec's: B-4 governs ranking,
   and what text is delivered under a token budget is a packing stage over
   019's framing that section 6 already places outside this spec.
+
+- **D-4 (2026-10-30, owner approval).** The owner reviewed the D-3
+  amendment and approved this spec; it returns to `status: approved`.
 
 ## Verification
 
