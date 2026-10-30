@@ -74,8 +74,9 @@ variants reach nothing here.
 
 No new file. The nine `rahi-*` lines of the workspace manifest (spec 010),
 `deny.toml` for the revisit spec 010 D-6 and D-8 require at every chassis
-bump, and the version constant of the binary test that asserts the resolved
-chassis version (`apps/aicortex/tests/cell.rs`, spec 046 FR-001).
+bump, and the binary test that asserts the resolved chassis version
+(`apps/aicortex/tests/cell.rs`, spec 046 FR-001): its version constant
+moves, and it gains the FR-003 assertion on action-gate-core.
 `Cargo.lock` moves with the manifest.
 
 ## 3. Behavior
@@ -105,8 +106,11 @@ chassis version (`apps/aicortex/tests/cell.rs`, spec 046 FR-001).
   asserts `0.7.1` for every resolved `rahi-*` package.
 - **FR-002.** `b2_the_workspace_pins_nine_rahi_crates_to_one_exact_version`
   passes with all nine at `=0.7.1`.
-- **FR-003.** `cargo tree --locked -i action-gate-core@0.2.0` finds no
-  package.
+- **FR-003.** A test in `apps/aicortex/tests/cell.rs` reads `cargo
+  metadata --locked` and asserts that `action-gate-core` resolves exactly
+  once, at `0.3.0`, so a second copy fails `cargo test` rather than
+  passing unnoticed. `cargo tree --locked -i action-gate-core@0.2.0`
+  finds no package.
 - **FR-004.** Spec 047's golden-vector parity test passes unchanged.
 
 ## 5. Acceptance criteria
