@@ -63,10 +63,12 @@ conversation reference, and 012's migrations and provenance repository
 gain its nullable columns, its index, and the scope-predicated read of a
 conversation's turns. Spec 025, if it is built first, adds the same field
 exactly as B-9 defines it (025 section 2); this spec's build then uses it
-rather than adding it again. 025 cannot be a `depends_on` entry, because
-every dependency points to a lower-numbered spec (`scripts/spec-dag.sh`);
-it is listed under `references`, and FR-010's fixture is the mechanical
-check that the two definitions agree.
+rather than adding it again. 025 is deliberately not a `depends_on`
+entry: it is a draft, and a dependency would hold this approved spec back
+until 025 is approved and built, although nothing here needs 025 to
+exist. It is listed under `references`, and FR-010's fixture is the
+mechanical check that the two definitions agree in whichever order they
+are built.
 
 ## 3. Behavior
 
