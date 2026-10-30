@@ -53,6 +53,30 @@
       },
       {
         "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/provenance_repo.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "020-http-api-and-scopes",
         "unit": {
           "kind": "file",
@@ -77,21 +101,23 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "031-imports": "b41f3e1305f1901a655879fac8b50240203100bf01b2d7b6486d2548579321ef",
+      "031-imports": "86bba25bc8252dd212cbadb350e944ea558d225ee05dce44dae03b26fa1df0fe",
       "1-purpose": "e91161e052a1a58fcf3cd30631d8a5571f48665ee7f4b3a3e0bb25185931c7be",
-      "2-territory": "7148ffb41bb0599de379a335e4d4d7ee6d1ea1fa4289f4f6e5f1e65bc1caf26c",
-      "3-behavior": "8fd55a656c3737cde5a6909b0bc6c6a75e55b1d1016fc3853da8ed612cf671b1",
-      "4-functional-requirements": "b5f8c437e7ae6c663d2b251a58af12dfd4676b27edf6b775a6ceccdccf2efb77",
-      "5-acceptance-criteria": "4a54c0fa987d575a2d79dc5df89d924b919d1e860e0ab1e174985f5b26ffc8a2",
+      "2-territory": "fa4fb51f2cbba4009ad97e196d702cb99e966ac689d4e224670bfd85a9090465",
+      "3-behavior": "5af715f95ee12b83973d77e4b288b64ecb104afa50e1a81492e95b0f8e32cd17",
+      "4-functional-requirements": "ae4791f7ecda38f1e803c58030a9816079c497d91dc1ea0162ee448d942b9781",
+      "5-acceptance-criteria": "f58c807f92702f226aacd3e4c8eac42c5f8754df180292315d9cd78fe3c316fd",
       "6-out-of-scope": "1c0c1eb27f6db6ff7f3dc86714f9bdc8612725a7ea93c54a2e5d0a5e6ca72699",
-      "7-resolved-decisions": "b777bed80f3ffcd72163f4a90117a64cde79deec3d6f4dc08777588e4ccd06ac",
-      "verification": "df6125ee090ecdd98d616700d00eba8c04fc2bec05326575e72a8dc740890389"
+      "7-resolved-decisions": "ee95b0a02a483e9a66de82f904b6e151fdcc7580427e72c3edb83a789065b1e2",
+      "conversations-as-messages-amended-2026-10-30-d-2": "ebe864f9b3194a33d6e43e9577bd82d464885b3f55a001f7863169038f592638",
+      "verification": "350469a6a7ebd41a03803dde9d7e0b3da2d7f1ee7ad0bb7cd27befafbf422193"
     },
     "sectionHeadings": [
       "031: Imports",
       "1. Purpose",
       "2. Territory",
       "3. Behavior",
+      "Conversations as messages (amended 2026-10-30, D-2)",
       "4. Functional requirements",
       "5. Acceptance criteria",
       "6. Out of scope",
@@ -100,9 +126,9 @@
     ],
     "specPath": "specs/031-conversation-and-archive-imports/spec.md",
     "status": "approved",
-    "summary": "A memory system is worth little on day one and a great deal once it knows what you already said. This spec brings a user's existing history in: chat exports from the major assistants, a note vault on disk, a read-later archive, and mail, each as an adapter over the framework. The interesting work is not fetching, it is turning a transcript into memories worth keeping rather than a wall of every message, and doing it without sending the archive anywhere.\n",
+    "summary": "A memory system is worth little on day one and a great deal once it knows what you already said. This spec brings a user's existing history in: chat exports from the major assistants, a note vault on disk, a read-later archive, and mail, each as an adapter over the framework. A conversation is stored as one memory per message, linked by a shared conversation id and a turn number in provenance, so each turn keeps its own author and trust class and can be redacted or forgotten alone. The interesting work is not fetching, it is extracting from those turns the memories worth keeping, and doing it without sending the archive anywhere.\n",
     "title": "Bringing a history in: chat exports, note vaults, and read-later archives"
   },
-  "shardHash": "b58b56afad56b8357bf8e89f4340be84c25ccee498b210a0d9f65410c90989fa",
+  "shardHash": "900c73f8f576358dd2a4f6107a9fce4edc1c848e28f96b243000ea511ebe01b6",
   "specVersion": "1.9.0"
 }

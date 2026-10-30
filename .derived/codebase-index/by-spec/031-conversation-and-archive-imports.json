@@ -58,7 +58,20 @@
     "dependsOn": [
       "030-source-adapter-framework"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/provenance_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/provenance.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -153,6 +166,45 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/provenance_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/provenance_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/provenance.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "specs/019-untrusted-content-boundary/spec.md"
           }
         ],
@@ -168,5 +220,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "b58b56afad56b8357bf8e89f4340be84c25ccee498b210a0d9f65410c90989fa"
+  "shardHash": "900c73f8f576358dd2a4f6107a9fce4edc1c848e28f96b243000ea511ebe01b6"
 }
