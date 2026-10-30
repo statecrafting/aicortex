@@ -163,9 +163,14 @@ outside the gate, through governed egress, under 041.
   (018 B-6), never a memory body. Scrubbing is on by default and removes
   email addresses, telephone numbers, payment card numbers, and the
   shapes 013's secret detectors recognize; a query containing a detected
-  credential is not captured at all. Captured rows live in their own table
-  in the scope's store, are never mixed with `eval/golden/`, are bounded
-  by a retention window (default 30 days), and are erased with the scope
+  credential is not captured at all. Scrubbing is pattern-based and is
+  not general redaction: personal names, booking or order references,
+  identity-document numbers, and other free-form identifiers can survive
+  it. Enabling capture therefore states that captured text may still hold
+  personal data of the owner and of third parties, and the retention
+  window is configurable down to one day. Captured rows live in their own
+  table in the scope's store, are never mixed with `eval/golden/`, are
+  bounded by a retention window (default 30 days), and are erased with the scope
   (014). A captured query enters the judged corpus only by a human adding
   it with a judgment under B-8, after review of the scrubbed text. A
   capture failure is counted and never fails the recall it observed.
@@ -209,8 +214,10 @@ outside the gate, through governed egress, under 041.
 - **FR-005.** The no-answer query returns an empty result, and returning
   anything scores zero for it.
 - **FR-006.** The external adapter refuses a dataset whose digest does not
-  match the pinned one, and over a committed miniature fixture in the
-  LongMemEval layout reports the recorded retrieval metrics with no network.
+  match the pinned one, and over a committed miniature synthetic fixture in
+  the LongMemEval layout (written for this repository, containing no
+  LongMemEval content) reports the recorded retrieval metrics with no
+  network.
 - **FR-007.** `confirm` refuses a preregistration committed after the
   set's first run, a set whose digest differs, and a second run of the same
   preregistration.
@@ -260,9 +267,12 @@ contradiction the probe finds, which is review (023) or curation (034).
   capture path that leaves the instance. The amendment adds behavior to an
   approved spec that no human has reviewed, so this spec returns to
   `status: draft` (constitution V). 041 is amended in the same series for
-  the egress and retention terms. Open for the owner: whether
-  LongMemEval's licence allows the digest and the miniature fixture of
-  FR-006 to be committed; the dataset itself is never committed.
+  the egress and retention terms. The miniature fixture of FR-006 is
+  synthetic, authored here in the benchmark's file layout and holding none
+  of its content, so FR-006 does not depend on the dataset's licence; the
+  dataset itself is never committed. Open for the owner: whether
+  LongMemEval's licence allows its digest to be committed and results over
+  it to be reported.
 
 ## Verification
 

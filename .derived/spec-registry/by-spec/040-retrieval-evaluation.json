@@ -171,15 +171,15 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "040-evaluation": "550b463f6df97798e239eadf6d3e5632e09a6be3a30dff3623964fb2c8a46ed8",
+      "040-evaluation": "8a9dcb5e46ac7881aec49f2d52980cc55009c682f71fbe6222044e068261c6b9",
       "1-purpose": "167d8c6e6afd1f32c0253beaa993a57e96427c498823dc96654346f8ec879aaa",
       "2-territory": "9dcfa153f6ad76acbe9cc525afd953bbdf937f40b2cfc23faa1ac144a647ee56",
-      "3-behavior": "8535d01572b996fd07aacac60e38a04174e6cfe45ddfde8a6c13fe642bed197b",
-      "4-functional-requirements": "f10e96ed4da85e838e54e9cc2380dc8ae87ee526964270e39971e5d714d4f0b1",
+      "3-behavior": "1a199ae1b0f1ddea3e232ef929c561587990574b065d02ebc608477ed6748c9e",
+      "4-functional-requirements": "693fe40bd436d7e2b9ab326791fb61e5c815c4c56e708135c6d93951f7b246bb",
       "5-acceptance-criteria": "bff08249ada83c827e9aefe82d8eee8bde0fdc389351218a30ac190ba5b78c3a",
       "6-out-of-scope": "33f2f03fc366e22654b44c1b85d7a1f2ba4047517de079be45f8818b496befe6",
-      "7-resolved-decisions": "9da0f09ede0813162f2b123fd9746e92d8ee766c195ee68f340f62911637877a",
-      "method-additions-2026-10-25-d-3": "b2e777af757a3a28a34dabdce48e749eacf6b56d79315d5feb2db56756bb76be",
+      "7-resolved-decisions": "4c290ff945b70b4ccded0a392e3a0b37dc8e73539e277ee38446e937dfa8319a",
+      "method-additions-2026-10-25-d-3": "299ca91531cf11f093234b47ef0b1ed78a5ac72942b1f734b8238e867484454f",
       "verification": "6d81704f3d575fb29f01c3d51cc1bc61de1857fb3cebd2b896e2a137241f0f29"
     },
     "sectionHeadings": [
@@ -199,6 +199,6 @@
     "summary": "Retrieval quality is the product, and it degrades invisibly. This spec builds the instrument: a committed golden corpus of memories and queries with judged relevance, a runner that loads it into a temporary instance and executes every query, metrics that are the standard ones rather than invented, a baseline file per configuration, and a gate that fails a change which moves a metric down by more than its tolerance without an explicit, justified baseline update. Constitution XIV becomes a command with an exit code.\n",
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
-  "shardHash": "c9ede757146b8ae6864995301683e3afeb08fd9778129578239c1892329e96ff",
+  "shardHash": "85d50700d4fb43273ed5f079138db216d92f85cc692c9a6c9290b2407c5d67de",
   "specVersion": "1.9.0"
 }
