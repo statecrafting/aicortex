@@ -303,13 +303,14 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   even under a tight configured default budget.
 - **FR-007.** A test asserts the stage opens no socket and writes nothing.
 - **FR-008.** Over a committed fixture conversation stored one memory per
-  message (031 B-9), with user and assistant turns, one quarantined turn,
-  one erased turn, and a same-id conversation in another scope: `Record`
-  on a hit delivers every `Active` turn of the conversation in turn order,
-  each in its own envelope with its own trust class, conversation id, and
-  turn; `Window { radius: 1 }` delivers the hit and the turns numbered one
-  above and one below it, where they are `Active`; and neither the quarantined nor the erased turn, nor any
-  turn from the other scope, appears in any payload.
+  message (031 B-9, which carries the decision of 031 D-2), with user and
+  assistant turns, one quarantined turn, one erased turn, and a same-id
+  conversation in another scope: `Record` on a hit delivers every `Active`
+  turn of the conversation in turn order, each in its own envelope with
+  its own trust class, conversation id, and turn; `Window { radius: 1 }`
+  delivers the hit and the turns numbered one above and one below it,
+  where they are `Active`; and neither the quarantined nor the erased
+  turn, nor any turn from the other scope, appears in any payload.
 - **FR-009.** When two results of one query are turns of the same
   conversation, the second is reported `covered` by the first, appears in
   the payload once, uses no budget, and the delivered set is still a
