@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "retrieval"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: high
 wave: 1
 depends_on:
@@ -25,9 +25,19 @@ establishes:
   - "crates/aicortex-index/benches/scan.rs"
   - "crates/aicortex-index/tests/alloc.rs"
   - "crates/aicortex-index/tests/common/mod.rs"
+  - "crates/aicortex-store/src/text_postings.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/erasure.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/Cargo.toml", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/src/worker.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/src/registry.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/tests/worker.rs", nature: additive }
 summary: >
   Similarity is computed in this process. Vectors are BLOBs read through
   rahi's paged read, scored by dot product against a normalized query, and
@@ -202,6 +212,59 @@ the need.
   `k`, budget, and profile, and per size the run count and p50, p95, and
   max in milliseconds. Spec 040 reads it from there; this spec writes
   nothing under `eval/`, which 040 owns.
+- **D-9 (2026-10-29, implementation).** The text tables carry more than
+  B-5 lists: `chunk_token(chunk_id, scope_id, memory_id, model_revision,
+  token, tf)` and `token_df(scope_id, model_revision, token, df, cf)`.
+  `scope_id` and `memory_id` are the columns spec 014's erasure sweep
+  deletes by (014 `PLANNED`); scope and revision key the frequencies
+  because chunks exist per revision and BM25's statistics must not cross a
+  scope (a global `df` would let one scope's content move another's
+  scores). The reserved empty token gives every chunk a posting whose `tf`
+  is its length, so its `token_df` row is the chunk count (`df`) and total
+  length (`cf`) BM25 needs without a third table. The idf is the
+  non-negative `ln(1 + (N - df + 0.5) / (df + 0.5))`, with `k1 = 1.2` and
+  `b = 0.75`, and repeated query tokens count once. Rejected: a global
+  `token_df(token, df)`, which leaks across scopes.
+- **D-10 (2026-10-29, implementation).** The tables and the statements
+  that release postings live in `aicortex-store` (`text_postings.rs`, a
+  migration at version 10), for the reason spec 015's do: erasure is in
+  that crate and the crate graph points downward. Every path that removes a
+  chunk releases its postings in the same transaction, `token_df` first
+  while the postings still exist: the embedding worker before it replaces a
+  memory's chunks, `drop_revision` with its chunks, and the erasure sweep,
+  where `chunk_token` moves from 014's `PLANNED` into `DERIVATIVES`. A
+  frequency row that reaches zero is deleted, so erasure forgets a token
+  only the erased memory held. The migration is not additive, as 015's
+  version 9 is not (015 D-11): an older binary would not release postings.
+  SQLite triggers would have kept `token_df` in step automatically, but
+  rahi's migration splitter does not support statements containing `;`.
+- **D-11 (2026-10-29, implementation).** The embedding worker writes a
+  chunk's postings itself, through `aicortex_index::text::stage_chunk`, in
+  the transaction that writes the chunk (B-5), so `aicortex-embed` depends
+  on `aicortex-index` and not the reverse; the two sit on the same tier of
+  spec 002's crate graph. A chunk's postings travel as one JSON object
+  expanded by SQLite's built-in `json_each`, so each chunk adds two bounded
+  statements to the replicated entry whatever its vocabulary. `json_each`
+  is part of the engine every node runs, not a registered function, so B-9
+  is unaffected. Postings use the default tokenizer configuration
+  (English, light stemming, 64 characters); making the language an operator
+  setting is a migration of every posting and is left to a later spec.
+  Rejected: a derivative hook the host wires into the worker, which a host
+  could forget, leaving chunks with no postings.
+- **D-12 (2026-10-29, implementation).** Tokenization (B-6): NFKC, then
+  words as runs of letters, digits, and combining marks; an apostrophe
+  between letters is dropped and a trailing possessive removed; every other
+  character separates, so hyphenated compounds and `snake_case` split. Han
+  ideographs and kana are one token per character, as UAX #29 segments
+  ideographs; Hangul and other spaced scripts keep their words. A word with
+  camel-case boundaries is emitted whole and then by part. Lowercasing is
+  Unicode-aware without diacritic folding. English stop words and an
+  `s`/`es`/`ies` plural stemmer apply for `Language::English`; tokens over
+  64 characters are dropped. `TOKENIZER_VERSION` is 1. Text search pages
+  postings in `(token, chunk_id)` order and accumulates each chunk's terms
+  in that order, so its sums are deterministic (B-4), and it honours the
+  same budget as the scan (B-8). Rejected: dictionary segmentation for CJK,
+  which would need a data dependency and is spec 040's to justify.
 
 ## Verification
 
