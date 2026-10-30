@@ -113,7 +113,8 @@ adds no table, no migration, no worker, and no MCP tool.
   content, so the set is returned under 019: the framing statement first,
   and each pointer inside an envelope labelled as a derived value with the
   entity's provenance (019 B-6). The only other text in the response is a
-  fixed sentence authored in this crate that names the read tools (`fetch`,
+  fixed sentence, a public constant of `aicortex-api`'s `pointers` module,
+  that names the read tools (`fetch`,
   `relate`, `search`, as 021 B-5 names them) able to retrieve the entity. It never interpolates
   stored content and never tells the agent it must act.
 - **B-6 (bounded).** A set holds at most a configured number of pointers
@@ -205,10 +206,11 @@ adds no table, no migration, no worker, and no MCP tool.
   answered with success, not a client error, resolves names in its first
   bound only, marks the text as truncated, and a name lying wholly past
   the bound produces no pointer.
-- **FR-010.** A test in `aicortex-mcp`'s tool tests, which may depend on
-  `aicortex-api` because the dependency points downward, asserts that
-  every tool name in B-5's fixed sentence is a read tool in 021's tool
-  list, so a rename there fails here.
+- **FR-010.** A test in `aicortex-mcp`'s tool tests reads B-5's constant
+  from `aicortex-api` and asserts that every tool name in it is a read
+  tool in 021's tool list, so a rename there fails here. `aicortex-mcp`
+  already depends on `aicortex-api` (021 maps every tool to an API
+  handler), and the workspace layering forbids the reverse edge.
 
 ## 5. Acceptance criteria
 
