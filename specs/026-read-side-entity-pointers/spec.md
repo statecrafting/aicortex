@@ -116,8 +116,9 @@ adds no table, no migration, no worker, and no MCP tool.
   (default 5) and at most a configured token size including the framing
   and every envelope label (default 400). Tokens are counted by one named,
   versioned, in-process counter that makes no outbound call, whose
-  identifier travels in the response; it is the counter 025 B-5 names when
-  that spec is built. Where no counter is configured, size is counted in
+  identifier travels in the response; the deployment configures which
+  counter it is, and this spec takes no dependency on any other spec's
+  counter. Where no counter is configured, size is counted in
   UTF-8 bytes, one token per byte, which never under-counts a subword
   tokenizer, and the response names that fallback. The bound is exact
   under the named counter and an estimate against a client model with a
