@@ -371,5 +371,5 @@
     "title": "Embeddings: a local default, a governed provider trait, an outbox worker that cannot lose a memory"
   },
   "shardHash": "5d287d5834b5b6d329562ee8d42a30f3cf56c15cfa9c10d7a2fae7eed46ee7b6",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

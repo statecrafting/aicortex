@@ -114,5 +114,5 @@
     "title": "Move every chassis pin to rahi 0.7.1 together, and drop the second action-gate-core"
   },
   "shardHash": "fffe6b5bbb5067af0b483285b3b7c43111e4f4ca4c874af3adf69c340cd06fcf",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

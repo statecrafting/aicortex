@@ -184,6 +184,6 @@
     "specId": "034-curation-workers",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "5edbf7b45bab4231a28c2def69fcb01e7c5c74b9786d1ffa8909f0350c805253"
 }

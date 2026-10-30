@@ -168,5 +168,5 @@
     "title": "Read-side entity pointers: tell the agent, inside its recall results, that memory about a named entity exists"
   },
   "shardHash": "766a6225d42bda3b33530bba5199fc77838b4a2d25f466e6338c546cda92021c",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

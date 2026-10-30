@@ -213,6 +213,6 @@
     "specId": "021-mcp-server",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "b52529a66bbc1890c17b939ec1597fd1ff267e99ec326d6ebb616e1a599718ff"
 }
