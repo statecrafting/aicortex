@@ -392,6 +392,33 @@ the chassis's (`rahi://020`, `rahi://025`). Promotion out of quarantine
   binds, so a parallel test can take the port in between; CI failed on that
   race with "Address already in use". Any other open failure still fails the
   test. The store crate's own fixture already retries this way.
+- **D-14 (2026-10-25, decision, no change to behavior).** Where the gate
+  stands on durable memory versus runtime state. The observation is
+  `gbrain://memory-boundaries` (`docs/design/00-lineage.md`): preferences,
+  corrections, decisions, commitments, and facts belong in shared memory;
+  task progress, tool output, local paths, enabled plugins, connection
+  settings, credentials, and activation state do not. The gate's answer
+  per class, with nothing in B-1 to B-10 changed:
+  - **Refused:** credentials, and connection settings that carry one (a
+    URL with embedded credentials, a token, a key, a connection string with
+    a password). B-3 and B-4 already refuse these; no new rule is needed.
+  - **Quarantined:** nothing new. B-7 quarantines by origin, and a runtime
+    class says nothing about origin.
+  - **Documented only:** task progress, tool output, local paths, which
+    plugins, servers, or hooks are active, and connection settings that
+    carry no secret. Spec 022 keeps them out at the capture side, where the
+    session's structure is known.
+  The gate does not classify these because it is a pure structural
+  function (B-10), and recognizing "task progress" or "tool output" in
+  free text is a semantic judgment that a rule table would get wrong in
+  both directions, which is the same reason 019 D-1 rejects injection
+  detection. 011 B-4's kinds already carry the durable classes:
+  `Preference`, `Correction`, `Decision`, `Fact`, and `Task` for a
+  commitment. A `Task` memory states what someone committed to, never how
+  far a session got. A remembered preference never installs, authorizes,
+  or activates anything, which 019 B-4 already guarantees. This entry
+  records a choice the spec was silent on; it changes no requirement, so
+  the spec stays approved and complete.
 ## Verification
 
 ```verify:cli
