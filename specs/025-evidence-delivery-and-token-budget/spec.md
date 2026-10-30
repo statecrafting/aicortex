@@ -274,8 +274,9 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   version (and the fallback when B-5's applies), and the dropped ids. The
   reasons are, in order of precedence:
   - `covered`: the result is a turn already delivered inside an earlier
-    result's conversation unit (B-6); it reports a token count of zero
-    and no byte ranges of its own;
+    result's conversation unit (B-6); it reports the memory id of the
+    carrying result, the ids and turns that carrying unit delivered, a
+    token count of zero, and no byte ranges of its own;
   - `cut`: the result is delivered as a cut chunk with a cut marker
     (B-6 step 1 or 5);
   - `conversation`: the result is delivered as a conversation unit, a
