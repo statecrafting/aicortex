@@ -64,7 +64,7 @@ per-client hook mechanism (022), but 022 is capture only. This spec adds
 the read-side half under the product's own rules: the pointer is
 untrusted data (constitution X, 019), it reveals nothing outside the
 caller's scope (constitution VII), and it contains no generated prose
-(017 B-6, 056 B-1), so gbrain's one-line page summary is replaced by
+(017 B-6), so gbrain's one-line page summary is replaced by
 structured fields.
 
 ## 2. Territory
@@ -202,7 +202,7 @@ policy text that teaches the agent when to retrieve, which gbrain ships as
 an installable skill; a client's own instructions are the user's to write,
 and this repository does not author directive text for a client. Fuzzy or
 embedding-based name resolution, which would need a model call per turn.
-Entity summaries in prose, which 017 B-6 and 056 B-1 forbid.
+Entity summaries in prose, which 017 B-6 forbids.
 
 ## 7. Resolved decisions
 
