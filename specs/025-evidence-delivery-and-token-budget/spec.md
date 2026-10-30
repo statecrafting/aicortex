@@ -116,12 +116,16 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
     the winning chunk plus `radius` neighboring chunks of the same memory
     on each side (1 to 3, default 1), merged where windows of the same
     memory overlap. For a conversational memory, the whole hit message
-    plus the `radius` nearest turns of its conversation on each side, by
-    turn number, each as a whole message.
+    plus the turns of its conversation numbered within `radius` of the
+    hit's turn on each side, each as a whole message: 031 B-11's
+    `conversation_turns` with `Between { first: turn - radius, last: turn
+    + radius }`, clamped at turn 1, so a gap left by a skipped or absent
+    turn narrows the window rather than reaching further.
   - `Record`: for a memory that is not conversational, the whole memory
     body, which 013 B-6 bounds at 64 KiB. For a conversational memory, the
     whole conversation, rebuilt from the shared conversation id: every
-    turn 031 B-11's `conversation_turns` returns, in turn order.
+    turn 031 B-11's `conversation_turns` returns with `All`, in turn
+    order.
   - `Auto`: `Record` for a conversational memory, and `Chunk` for every
     other memory.
 - **B-2 (conversation is declared, not inferred).** A memory is
@@ -280,8 +284,8 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   one erased turn, and a same-id conversation in another scope: `Record`
   on a hit delivers every `Active` turn of the conversation in turn order,
   each in its own envelope with its own trust class, conversation id, and
-  turn; `Window { radius: 1 }` delivers the hit and its nearest turn on
-  each side; and neither the quarantined nor the erased turn, nor any
+  turn; `Window { radius: 1 }` delivers the hit and the turns numbered one
+  above and one below it, where they are `Active`; and neither the quarantined nor the erased turn, nor any
   turn from the other scope, appears in any payload.
 - **FR-009.** When two results of one query are turns of the same
   conversation, the second is reported `covered` by the first, appears in
