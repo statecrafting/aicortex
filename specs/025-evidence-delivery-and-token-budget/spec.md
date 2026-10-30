@@ -207,8 +207,10 @@ return.
   appears only inside an envelope, preceded by the framing statement, and
   a body containing the delimiter sequence is escaped.
 - **FR-006.** Two runs of the committed delivery fixtures produce
-  byte-identical payloads, and a request with no unit is byte-identical to
-  the `Chunk` payload.
+  byte-identical payloads; a request that asks for delivery without a unit
+  is byte-identical to one naming `Chunk`; and a request with no delivery
+  parameter is byte-identical to the response of a build without the stage,
+  even under a tight configured default budget.
 - **FR-007.** A test asserts the stage opens no socket and writes nothing.
 
 ## 5. Acceptance criteria

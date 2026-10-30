@@ -107,7 +107,7 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "025-evidence-delivery-and-the-token-budget": "820291e1acc288cba10634374ef2489cacb58e16ee187e522d5230e042623ac1",
+      "025-evidence-delivery-and-the-token-budget": "33442a8a808d06a53338f9a80360b94a7ee41033349be04cf1264dfdcee2e449",
       "1-purpose": "e6e544cdc3c25b11a419c9dcc3203e7ebf0814a51c5035ce5f65caab8b94dd17",
       "2-territory": "5d212bb7ce9be87322df70e6f4480009bd866534535efcf5aaab8e5acc4c0d34",
       "3-1-the-unit": "6ecfc4355b59cdb019f11f683af746a5feb38957e84b60b79888f7945b94fc14",
@@ -115,7 +115,7 @@
       "3-3-safety-and-determinism": "01ec99bf51bf637da2f774ae86e1bffb882cf2f2688c5976585327a214da03a8",
       "3-4-surfaces": "60312117277b5916332826328e4cfcc395871fd50222142de7484c1dcd37cf14",
       "3-behavior": "5099e916f0d4d5e7b5ecd400d69e53513667f253544e6a45da28729d07625966",
-      "4-functional-requirements": "1ce18e0b0ac09fb47320d77c05b73f34ae950b7a5b2744c5d9119c3b5124b7b8",
+      "4-functional-requirements": "b3889af292349a82d32eba97207bb32313180ae6de61ab61c43b3afb6e63ae00",
       "5-acceptance-criteria": "bb00d0819ba69979f5dc50c79b1364a4a4c94e14ccb6cc8e5e1af8d1d9811587",
       "6-out-of-scope": "0f3b816104fe261f10ee4c91169c99c1aba06eb602938c779e6addd2a03456a2",
       "7-resolved-decisions": "3509f9db9b1cae447962091250758223963d91a45b1e2259a8e5a30d6f0eba20",
@@ -141,6 +141,6 @@
     "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
     "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
   },
-  "shardHash": "a71077b2eb6e293d8f1fb585224b553b866ebf564ce44b33a3fad32b4e63900e",
+  "shardHash": "63f4a8d215f7dfce209fef0c2d0b45ef7c603a330aad6a157e882c5c83d8168e",
   "specVersion": "1.9.0"
 }
