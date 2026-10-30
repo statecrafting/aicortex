@@ -122,9 +122,10 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
     `conversation_turns` with `Between { first: turn - radius, last: turn
     + radius }`, with `first` clamped at turn 1. No upper clamp is needed:
     `Between` selects by turn number and returns only the turns that
-    exist (031 B-11), so a range past the conversation's last turn, like a
-    gap left by a skipped or absent turn, narrows the window rather than
-    reaching further.
+    exist (031 B-11). A range past the conversation's last turn returns
+    the turns up to the last one. A skipped or absent turn inside the range
+    leaves a hole in what is returned; the range keeps its bounds and is
+    never widened to make up the missing turn.
   - `Record`: for a memory that is not conversational, the whole memory
     body, which 013 B-6 bounds at 64 KiB. For a conversational memory, the
     whole conversation, rebuilt from the shared conversation id: every
