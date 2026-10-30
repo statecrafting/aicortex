@@ -261,6 +261,6 @@
     "specId": "011-memory-model",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "70aac453e9b956c73126fa0e26631ec1aeb5b056fc51ca4b71b34a8841f51267"
 }

@@ -945,6 +945,6 @@
     "specId": "015-embedding-pipeline",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "0f5af8371add8105c0dcbd8553809d69b4559db86f7806ed0fcd845605c4c196"
 }

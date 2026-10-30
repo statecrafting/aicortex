@@ -254,6 +254,6 @@
     "specId": "025-evidence-delivery-and-token-budget",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "b6d7d84a8d575ff2559d35cbc82ea77e05a87386db4085cd165017afec772396"
 }

@@ -181,5 +181,5 @@
     "title": "Read-side entity pointers: tell the agent each turn that memory about a named entity exists"
   },
   "shardHash": "4cee0287596a5183ff391b5ce7694209f7ad0fb0c3e130d12604a4bbdd8da724",
-  "specVersion": "1.9.0"
+  "specVersion": "1.10.0"
 }

@@ -6,12 +6,14 @@
 
 [meta]
 # The exact binary this repository is governed by, checked by the CLI itself
-# before any verb runs (spec-spine spec 062). 0.29.0 is the exact pin this corpus
+# before any verb runs (spec-spine spec 062). 0.31.0 is the exact pin this corpus
 # is written for: below it the read documents carry a different shape and the
 # committed shards do not match what an older binary compiles, so `check`
-# calls a correct tree stale (spec 001 D-10, D-11, D-12). Bump this together with
+# calls a correct tree stale (spec 001 D-10, D-11, D-12, D-18). Statecraft
+# profile revision 21 links spec-spine-core 0.31.0 and refuses any other pin
+# (spec 060). Bump this together with
 # AGENTS.md, README.md and govern.yml.
-required_version = "=0.29.0"
+required_version = "=0.31.0"
 
 [manifest]
 # Cargo `[package.metadata.spec-spine].spec` names each crate's founding spec.
@@ -61,8 +63,8 @@ standalone_npm_packages = []
 [index]
 extra_hashed_inputs = [
   # The root manifest, file-claimed by spec 010 and extended by the specs
-  # that add workspace members or dependencies. spec-spine 0.29.0 (its spec
-  # 192) folds it as its cargo input projection, so a version-only bump
+  # that add workspace members or dependencies. spec-spine 0.29.0 and later
+  # (its spec 192) folds it as its cargo input projection, so a version-only bump
   # leaves every shard fresh (spec 001 D-16).
   "Cargo.toml",
   "standards/**/*",
