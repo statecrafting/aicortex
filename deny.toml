@@ -24,6 +24,16 @@ ignore = [
   # only XML in this tree is the listing of the operator's own backup bucket.
   { id = "RUSTSEC-2026-0194", reason = "quick-xml duplicate-attribute check; parses only the operator's own S3 listing, through the chassis" },
   { id = "RUSTSEC-2026-0195", reason = "quick-xml NsReader allocation; parses only the operator's own S3 listing, through the chassis" },
+  # basic-toml and crypto-bigint 0.5 under rahi-ops -> age 0.12, the
+  # chassis's backup encryption. The patched crypto-bigint is the 0.7 line,
+  # which the elliptic-curve 0.13 that age pins cannot take. rahi-ops keys
+  # backups with age::x25519 only (backup_identity, backup_recipient), so no
+  # P-256 operation runs on a backup key: age reaches p256 only through its
+  # tag recipients, which nothing here constructs. Both ignores come out
+  # when rahi leaves age 0.12, checked at every chassis bump (spec 010 D-6,
+  # D-11).
+  { id = "RUSTSEC-2026-0374", reason = "basic-toml is unmaintained; reached only through the chassis's age -> i18n-embed-fl, at build time" },
+  { id = "RUSTSEC-2026-0387", reason = "crypto-bigint 0.5 timing; reached only through the chassis's age -> p256 tag recipients, unused: backups are keyed with x25519" },
 ]
 
 [licenses]
