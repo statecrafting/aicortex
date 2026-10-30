@@ -7,6 +7,7 @@
     "dependsOn": [
       "018-retrieval-and-recall-trace",
       "019-untrusted-content-boundary",
+      "020-http-api-and-scopes",
       "021-mcp-server"
     ],
     "domain": "retrieval",
@@ -140,6 +141,6 @@
     "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
     "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
   },
-  "shardHash": "0032009e16136a09697b0595d1ad3ebc5f39062c58dd34d23e4edc209997848f",
+  "shardHash": "cb541fc0bc32a0d62d8ba721c9b67b07ce9996838e6901f83aee8418a85d25d0",
   "specVersion": "1.9.0"
 }

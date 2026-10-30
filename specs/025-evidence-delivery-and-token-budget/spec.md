@@ -12,6 +12,7 @@ wave: 2
 depends_on:
   - "018-retrieval-and-recall-trace"
   - "019-untrusted-content-boundary"
+  - "020-http-api-and-scopes"
   - "021-mcp-server"
 establishes:
   - "crates/aicortex-recall/src/delivery.rs"

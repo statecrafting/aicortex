@@ -48,6 +48,7 @@
     "dependsOn": [
       "018-retrieval-and-recall-trace",
       "019-untrusted-content-boundary",
+      "020-http-api-and-scopes",
       "021-mcp-server"
     ],
     "implementingPaths": [
@@ -190,5 +191,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "0032009e16136a09697b0595d1ad3ebc5f39062c58dd34d23e4edc209997848f"
+  "shardHash": "cb541fc0bc32a0d62d8ba721c9b67b07ce9996838e6901f83aee8418a85d25d0"
 }
