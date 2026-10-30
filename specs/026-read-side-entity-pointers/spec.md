@@ -132,9 +132,12 @@ adds no table, no migration, no worker, and no MCP tool.
   another scope never produces a pointer, and a request naming a scope the
   caller cannot read answers as an empty set, indistinguishable from a
   scope with no matches (020's non-disclosing rule). The scope check runs
-  before any lookup, and an unreadable scope is answered without reading
-  its entities at all, so neither the content nor the work done (and hence
-  the latency) depends on what that scope holds.
+  before any lookup and yields the entity set to resolve against: an
+  unreadable scope yields the empty set, which then goes through the same
+  resolution path as a readable scope that holds no entities. Neither the
+  content nor the work done (and hence the latency) separates an
+  unreadable scope from a readable empty one, and nothing about an
+  unreadable scope's contents is read.
 
 ### 3.3 The client side
 
@@ -187,6 +190,9 @@ adds no table, no migration, no worker, and no MCP tool.
   `none`, verified with a date and a fixture, or `verified = false`, and
   no pointer hook snippet is generated for a row that is `none` or
   `verified = false`.
+- **FR-009.** A message longer than the text bound (8 KiB by default) is
+  answered with success, not a client error, resolves names in its first
+  bound only, and a name lying wholly past the bound produces no pointer.
 
 ## 5. Acceptance criteria
 
