@@ -13,6 +13,7 @@ depends_on:
   - "017-entities-and-typed-edges"
   - "019-untrusted-content-boundary"
   - "020-http-api-and-scopes"
+  - "021-mcp-server"
   - "022-client-adapters"
 establishes:
   - "crates/aicortex-graph/src/pointer.rs"
@@ -24,6 +25,7 @@ extends:
   - { spec: "017-entities-and-typed-edges", unit: "crates/aicortex-graph/src/lib.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/dto.rs", nature: additive }
+  - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
   - { spec: "022-client-adapters", unit: "clients/matrix.toml", nature: additive }
   - { spec: "022-client-adapters", unit: "clients/README.md", nature: additive }
   - { spec: "022-client-adapters", unit: "clients/claude-code/", nature: additive }
@@ -91,7 +93,9 @@ adds no table, no migration, no worker, and no MCP tool.
   resolution and discarded. It is not persisted, not embedded, not logged,
   and not placed in a trace. The route is excluded from every request or
   response body logging layer the router mounts, so the body is not logged
-  before the handler runs either. A pointer request is not a capture and
+  before the handler runs either. FR-006 tests this against the fully
+  assembled router, so a layer added later that logged the body would fail
+  that test. A pointer request is not a capture and
   does not pass through the write gate, because it writes nothing.
 - **B-3 (live sources only).** An entity is pointed at only if at least
   one `Active` memory in the scope mentions it. Its mention count and last
@@ -110,7 +114,7 @@ adds no table, no migration, no worker, and no MCP tool.
   and each pointer inside an envelope labelled as a derived value with the
   entity's provenance (019 B-6). The only other text in the response is a
   fixed sentence authored in this crate that names the read tools (`fetch`,
-  `relate`, `search`) able to retrieve the entity. It never interpolates
+  `relate`, `search`, as 021 B-5 names them) able to retrieve the entity. It never interpolates
   stored content and never tells the agent it must act.
 - **B-6 (bounded).** A set holds at most a configured number of pointers
   (default 5) and at most a configured token size including the framing
@@ -194,6 +198,10 @@ adds no table, no migration, no worker, and no MCP tool.
 - **FR-009.** A message longer than the text bound (8 KiB by default) is
   answered with success, not a client error, resolves names in its first
   bound only, and a name lying wholly past the bound produces no pointer.
+- **FR-010.** A test in `aicortex-mcp`'s tool tests, which may depend on
+  `aicortex-api` because the dependency points downward, asserts that
+  every tool name in B-5's fixed sentence is a read tool in 021's tool
+  list, so a rename there fails here.
 
 ## 5. Acceptance criteria
 
@@ -201,6 +209,8 @@ adds no table, no migration, no worker, and no MCP tool.
 - **AC-2.** `cargo test -p aicortex-api --locked --test pointers` passes.
 - **AC-3.** `cargo test -p aicortex-api --locked --test clients` passes with
   the `read_pointer` rows and hook fixtures.
+- **AC-4.** `cargo test -p aicortex-mcp --locked --test tools` passes with
+  FR-010's tool-name check.
 
 ## 6. Out of scope
 
@@ -246,4 +256,5 @@ Open for the owner before approval:
 cargo test -p aicortex-graph --locked --test pointer
 cargo test -p aicortex-api --locked --test pointers
 cargo test -p aicortex-api --locked --test clients
+cargo test -p aicortex-mcp --locked --test tools
 ```

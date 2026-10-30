@@ -44,6 +44,11 @@
       },
       {
         "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-mcp/tests/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/tests/tools.rs"
+      },
+      {
+        "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'clients/matrix.toml' does not exist",
         "path": "clients/matrix.toml"
       },
@@ -84,6 +89,7 @@
       "017-entities-and-typed-edges",
       "019-untrusted-content-boundary",
       "020-http-api-and-scopes",
+      "021-mcp-server",
       "022-client-adapters"
     ],
     "implementingPaths": [],
@@ -224,6 +230,15 @@
         }
       },
       {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
+      {
         "locations": [
           {
             "file": "docs/design/00-lineage.md"
@@ -254,5 +269,5 @@
     "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "7d5554aedd41185099b638f9c86fc32326cf68734638868ca5f93a44808ed7ed"
+  "shardHash": "11f8a86eae15c513159c89d99c6c5ef20ee0d1342a99faa21393d948a72c7187"
 }
