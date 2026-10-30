@@ -125,13 +125,17 @@ return.
   counter; against a client model with a different tokenizer the count is
   an estimate, and the response says which counter produced it.
 - **B-6 (packing).** Packing walks the fused order once and is
-  deterministic:
+  deterministic. Every reduction, for every rank, follows one ladder from
+  the requested unit downwards: `Record`, then `Window { radius }` for
+  each radius from the request's `window_radius` (default 1) down to 1,
+  then `Chunk`. "Largest unit no larger than the requested one" means the
+  first rung of that ladder, at or below the requested unit, that fits.
   1. The rank-one result is reserved first. If its requested unit does not
-     fit, it is reduced along `Record`, then `Window`, then `Chunk`; if its
-     chunk alone does not fit, it is cut at a sentence or line boundary and
+     fit, it is reduced along the ladder; if its chunk alone does not fit, it is cut at a sentence or line boundary and
      ends with a cut marker. It is never dropped.
   2. Each later result, in fused order, is delivered at the largest unit
-     no larger than the requested one that fits in what is left.
+     no larger than the requested one that fits in what is left, along the
+     same ladder.
   3. The first result that does not fit even as its chunk is dropped, and
      so is every result after it, so the delivered set is always a prefix
      of the fused order. Dropped results are listed by id with the reason
