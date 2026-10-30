@@ -111,7 +111,9 @@ rather than adding it again.
   run report. `Provenance` gains `conversation: Option<ConversationRef>`,
   serialized only when present, so every existing 011 fixture round-trips
   byte-identically (011 FR-001). `ConversationRef { id: ConversationId,
-  turn: u32 }`: `id` is the export's own conversation identifier, or, when
+  turn: u32 }`, whose wire form is the provenance key `conversation`
+  holding an object with exactly the keys `id` (a string) and `turn` (an
+  unsigned integer): `id` is the export's own conversation identifier, or, when
   the export has none, a digest of the export's identity for that
   conversation that is stable across re-imports of the same export; `turn`
   is the message's 1-based position in the export's message order,
@@ -138,7 +140,12 @@ rather than adding it again.
   exposes one read, `conversation_turns(scope, source, id, turns)`, that
   returns a conversation's message memories in turn order under the same
   scope and status predicates as every other read (012, 018 B-7), so a
-  quarantined, expired, or erased turn is absent from it. This is the seam
+  quarantined, expired, or erased turn is absent from it. `turns` is a
+  `TurnRange`: either `All`, or `Between { first, last }`, an inclusive
+  range of turn numbers with `first <= last` (a reversed range is a typed
+  error, not an empty answer). It selects by turn number, not by count, so
+  a range over a gap returns fewer memories than its width; it never
+  substitutes a turn from outside the range to fill one. This is the seam
   wider reads use: 025's `Window` returns the turns around a hit and its
   `Record` rebuilds the whole conversation from the shared id. This spec
   adds no route and no tool for it.
@@ -172,6 +179,17 @@ rather than adding it again.
 - **FR-009.** Every memory fixture of 011 round-trips byte-identically
   after `conversation` is added to `Provenance`: 011's own round-trip test
   (011 FR-001) passes unchanged.
+- **FR-010.** A committed fixture pins `ConversationRef`'s wire form
+  (B-9): a provenance carrying a conversation reference serializes to that
+  fixture byte for byte and deserializes from it, and a provenance with an
+  extra, missing, or renamed key under `conversation` is refused with a
+  typed error. Whichever of this spec and 025 is built second runs this
+  test against the field the first one added, so a divergent definition
+  fails the build rather than passing silently.
+- **FR-011.** `conversation_turns` with `All` returns every `Active` turn
+  in order; with `Between` over a range containing an erased turn returns
+  the others in the range and nothing outside it; and with a reversed
+  range returns the typed error.
 
 ## 5. Acceptance criteria
 
