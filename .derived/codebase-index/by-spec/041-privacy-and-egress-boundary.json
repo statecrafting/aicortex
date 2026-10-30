@@ -55,8 +55,8 @@
       }
     ],
     "specId": "041-privacy-and-egress-boundary",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "4305d4579fa9c324339d00c45ace0ae0ef700de903aaab751d78f2be280081a6"
+  "shardHash": "d3e93c207c3b7b0e590e93dccc3282d7dede0998ef51240f8b51a0ef9310232f"
 }

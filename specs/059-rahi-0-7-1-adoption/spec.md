@@ -1,12 +1,12 @@
 ---
 id: "059-rahi-0-7-1-adoption"
 title: "Move every chassis pin to rahi 0.7.1 together, and drop the second action-gate-core"
-status: draft
+status: approved
 kind: "tooling"
 domain: "chassis"
 created: "2026-10-29"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: complete
 risk: high
 wave: 4
 depends_on:
@@ -143,6 +143,38 @@ grouping.
   `rahi-ops`, so RUSTSEC-2026-0374 and RUSTSEC-2026-0387 still match. The
   trial did not compile or test the workspace. AC-1 and the waiver
   re-check in B-4 are the build's to record.
+
+- **D-3 (2026-10-30, owner approval).** The owner approved this spec.
+
+- **D-4 (2026-10-30, owner decision on the `age` advisories).** No rahi
+  change is requested for RUSTSEC-2026-0387. The ignore stays until an
+  `age` release that takes p256 0.14 (and with it a patched crypto-bigint)
+  reaches the chassis; the chassis bump that carries it removes the ignore
+  under B-4. RUSTSEC-2026-0374 follows the same `age` release if it drops
+  basic-toml, and is otherwise re-checked at that bump.
+
+- **D-5 (2026-10-30, build record).** All nine pins moved to `=0.7.1`
+  and `cargo update` ran on the eight chassis crates the tree resolves
+  (`rahi-harness` is declared but no member depends on it, so it does not
+  resolve). The package set moved exactly as D-2's trial did: the eight
+  `rahi-*` packages to 0.7.1, action-gate-core 0.2.0 removed,
+  attest-ledger-core and attest-ledger-types 0.1.0 to 0.2.0, and no other
+  package added, removed, or moved. One dependency edge moved with the
+  re-resolution: `tempfile` now takes the getrandom 0.4.3 already in the
+  tree instead of 0.3.4, and all three getrandom copies (0.2.17, 0.3.4,
+  0.4.3) remain. No workspace source changed. FR-003's test
+  (`fr003_059_action_gate_core_resolves_once`) shares the
+  `cargo metadata --locked` read with FR-001's. The B-4 re-check, with
+  `cargo deny check` reporting no unmatched ignore or skip: every
+  chassis-only waiver still matches, so none is removed and each reason
+  now names 0.7.1. RUSTSEC-2025-0141 (bincode 2 under hiqlite-patched
+  0.15 and its cryptr 0.10), RUSTSEC-2026-0194 and RUSTSEC-2026-0195
+  (quick-xml 0.39 under s3-simple 0.8, from cryptr and rahi-ledger),
+  RUSTSEC-2026-0374 and RUSTSEC-2026-0387 (`age` 0.12.1 under
+  `rahi-ops`, kept per D-4), and the `tower-http@0.6.11` skip (reqwest
+  0.13 still carries 0.6.11 while `rahi-edge` takes 0.7.1). The
+  `CDLA-Permissive-2.0` licence allowance still matches
+  webpki-root-certs and is unchanged. No waiver was added.
 
 ## 8. Open questions
 

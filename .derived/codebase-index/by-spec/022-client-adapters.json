@@ -135,11 +135,37 @@
           "kind": "file",
           "path": "crates/aicortex-api/src/router.rs"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "docs/design/00-lineage.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/013-write-gate-and-redaction/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
+        }
       }
     ],
     "specId": "022-client-adapters",
-    "specStatus": "approved"
+    "specStatus": "draft"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "c449d7a965408c8feeba051613fd2a61d28f568f3102f79e9e99057eb486704c"
+  "shardHash": "9ed923618cb361233b840d329f05a21b6f7321e126fbf5e6040d21d78088a893"
 }

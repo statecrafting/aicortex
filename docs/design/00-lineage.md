@@ -40,6 +40,30 @@ instead.
 | `openbrain://no-schema-management` | The schema was SQL pasted from a guide, with no migrations and no versions | Spec 012 |
 | `openbrain://valued-capabilities` | What users actually built on it: importers from every chat and read-later product, digests, consolidation, atomization, entity wikis, typed edges, provenance chains, per-agent identity and work claims | Specs 017, 030 to 035 |
 
+## Carried from gbrain as observation
+
+gbrain is a third party's MIT-licensed TypeScript memory system. Its licence
+would permit more, but this corpus treats it exactly as it treats Open Brain:
+no source, SQL, prompt text, or prose is copied, in whole or in paraphrase.
+What is carried is observed behavior and measured results from its
+published documentation, cited as `gbrain://<topic>`. Where a gbrain
+behavior conflicts with the constitution, the observation is recorded and
+the behavior is not carried; the specs that cite these rows say which.
+
+| Citation | Observation | Where it lands |
+|---|---|---|
+| `gbrain://evidence-unit-auto` | Returning the whole conversation when a hit is part of a chat, and the ranked chunk otherwise, answered 445 of 500 LongMemEval-S development questions against 312 for chunks only and 457 for whole records, at about 15.1K against 3.5K reader tokens per question. An earlier run had neighbor windows well below whole sessions. A preregistered sealed set of 150 questions showed no benefit and no harm because its chats were short | Spec 025 |
+| `gbrain://token-budget-cap` | An explicit evidence budget is a hard cap: the best-ranked hit is reserved first and cut with a marker rather than dropped, lower-ranked hits are kept as a rank prefix, and nothing spills past the cap. gbrain counts titles and evidence text but not the surrounding metadata | Spec 025 |
+| `gbrain://retrieval-reflex` | Without a per-turn pointer, agents discuss an entity for several messages without retrieving its record. A compact pointer per resolvable entity in the user's message, built with no model call and doing nothing when it fails, closes the gap | Spec 026 |
+| `gbrain://gap-note` | The answer feature users valued most was the gap note: nothing about a subject since a date, so the source may be stale | Spec 018 |
+| `gbrain://external-benchmark` | Reporting on a public benchmark (LongMemEval) made results comparable outside the project | Spec 040 |
+| `gbrain://sealed-confirmation-set` | A confirmation set whose design was fixed before results were seen caught a development-data gain that did not generalize, and showed that a set at its ceiling cannot discriminate | Spec 040 |
+| `gbrain://eval-capture` | Capture of real queries for evaluation is off by default, scrubs personal data by default, records its own failures, and is kept apart from the judged fixtures | Specs 040, 041 |
+| `gbrain://contradiction-probe` | An LLM judge over sampled retrieval results measures how often retrieved items contradict each other, distinguishes change over time from contradiction, reports a rate with a confidence interval as data, and never mutates the store | Spec 040 |
+| `gbrain://embedding-migration-consent` | Re-embedding is previewed first (counts and estimated cost, no provider call) and then requires an operator-approved finite total cost cap; consent to run is not a substitute for the cap, and raising the cap authorizes a larger total rather than resetting what was spent | Spec 049 |
+| `gbrain://retirement-valve` | A derived-content writer is held, writing nothing, when one run window would retire more than a capped number of items, and an empty result is held unless the source is proven empty | Spec 034 |
+| `gbrain://memory-boundaries` | Durable knowledge (preferences, corrections, decisions, commitments, facts) belongs in shared memory; runtime state (task progress, tool output, local paths, enabled plugins, connection settings, credentials, activation state) does not, and a remembered preference installs or authorizes nothing | Specs 013, 022 |
+
 ## Carried from sibling repositories as design
 
 - **rahi** supplies the chassis and is consumed as published crates. The
