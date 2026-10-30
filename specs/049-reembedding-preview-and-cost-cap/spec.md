@@ -47,8 +47,11 @@ summary: >
 ## 1. Purpose
 
 A re-embedding pass is the most expensive operation this product can start
-with one call: it touches every chunk of a scope. gbrain's migration path
-treats it accordingly (`gbrain://embedding-migration-consent`): a preview
+with one call: it touches every chunk of a scope. gbrain, a prior memory
+system whose observed behavior this corpus cites as context through the
+lineage table in `docs/design/00-lineage.md` (never its code, and never as
+an authority over this spec), treats its migration path accordingly
+(`gbrain://embedding-migration-consent`): a preview
 that reports counts and estimated cost with no provider call, then an
 operator-approved finite total cost cap, where consent to run is not a
 substitute for the cap and raising the cap authorizes a larger total
