@@ -252,7 +252,9 @@ Entity summaries in prose, which 017 B-6 forbids.
   rather than of any one spec, and this one sends the user's message to
   the server on every turn.
 
-Open for the owner before approval:
+Not yet resolved, open for the owner before approval (listed here, as
+the corpus does for a draft spec, so the decision lands beside the D-n
+entries once taken):
 
 - **Q-1.** Which current client hook outputs are data positions under
   019 B-3. A hook that adds context to the next model turn may be treated
