@@ -123,8 +123,9 @@ adds no table, no migration, no worker, and no MCP tool.
   identifier travels in the response; the deployment configures which
   counter it is, and this spec takes no dependency on any other spec's
   counter. Where no counter is configured, size is counted in
-  UTF-8 bytes, one token per byte, which never under-counts a subword
-  tokenizer, and the response names that fallback. The bound is exact
+  UTF-8 bytes, one token per byte, which never under-counts a byte-level
+  or byte-fallback subword tokenizer, because each of its tokens covers at
+  least one byte of the text, and the response names that fallback. The bound is exact
   under the named counter and an estimate against a client model with a
   different tokenizer. The set is
   ordered by first match position in the text, then mention count

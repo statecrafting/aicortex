@@ -148,13 +148,13 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "026-read-side-entity-pointers": "d12f8275d55968c8409fbe53f28ae42fab491ec9edf95f7fda494999e892b5a5",
+      "026-read-side-entity-pointers": "623ecce12f92011563ceff22b576a9f84ae3a0b25d291bc72cd4c1cc14548765",
       "1-purpose": "48e45cd5346d3cc3de6af84b520ca38960270f1874e39a284dcb0295650e8087",
       "2-territory": "45c333b46d6982a3ec0147f95103b4de8edcf925297d1765e9efc1969e4132c8",
       "3-1-resolution": "72dd6ab257ec8a270c598574732c44bba574ea104af8a242c40ee6a468c58ddd",
-      "3-2-the-pointer": "3c5147e0aae9fca39376ba2a5f763836b397d8415044dfd90c4b6ce27754da24",
+      "3-2-the-pointer": "20667d033e4b067f6bfd01d92b7f6fdd41eaace26b163fb84b9d1a0a38a1daaf",
       "3-3-the-client-side": "86a78a9764a0c2a448cce453fd812a2769497471944909aae4d6521d674dee2d",
-      "3-behavior": "63b7d206b7fc562a0004367c9ff215c6796e47dc795cc853a30e37c1c2949d2b",
+      "3-behavior": "99073bf06c60c8627015f1f7eb49ee3dcb52835635983441b2cd51ba895bb4ae",
       "4-functional-requirements": "aea44c520e31f78a45cf3a864d5df31c9f815fc382976aefa2960641dcbdf56c",
       "5-acceptance-criteria": "1fca613bbff1e128425aa42da48ddaf9dcace2e9da2bfe04e2761e3933f9d28d",
       "6-out-of-scope": "543a8a96f08dd2c43cf8e33d9c91c9437993aceb1ece0c458d04f7a851841593",
@@ -180,6 +180,6 @@
     "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project the user just named, so the agent answers generically about facts the store knew. This spec adds a per-turn pointer: a client hook sends the user's message to one read-only route, which resolves entity names by exact and normalized alias match in the caller's scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times. The block is untrusted data under 019, bounded in size, scoped by the caller's token, opt-in per client, and the hook does nothing when it fails.\n",
     "title": "Read-side entity pointers: tell the agent each turn that memory about a named entity exists"
   },
-  "shardHash": "436519686f970419231496fff079a1286d57bd752b747bc4171141829fbd363e",
+  "shardHash": "aa8179667d699ec6ba885e8f6faba298f0f6fa1f533faa0670590c0306007a35",
   "specVersion": "1.9.0"
 }
