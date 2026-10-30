@@ -22,7 +22,7 @@ references:
 obligations:
   - { id: "I-1", kind: invariant, text: "All rahi crates in the resolved tree resolve to one exact version, 0.7.1.", anchor: "3-behavior" }
   - { id: "I-2", kind: invariant, text: "One copy of action-gate-core resolves, at 0.3.0.", anchor: "3-behavior" }
-  - { id: "R-1", kind: requirement, text: "Every chassis-only waiver in deny.toml is re-checked against the 0.7.1 tree and removed when it no longer matches.", anchor: "3-behavior" }
+  - { id: "R-1", kind: requirement, text: "Every chassis-only waiver in deny.toml is re-checked against the 0.7.1 tree: removed when it no longer matches, and kept with its reason updated to name 0.7.1 when it still does.", anchor: "3-behavior" }
 summary: >
   The nine rahi crates are pinned at `=0.6.0` (spec 058). rahi 0.7.1
   (crates.io) is the patch on 0.7.0, which adds deployment epochs, remote
