@@ -32,16 +32,25 @@
     "id": "041-privacy-and-egress-boundary",
     "implementation": "pending",
     "kind": "constraint",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      }
+    ],
     "risk": "critical",
     "sectionDigests": {
-      "041-the-privacy-boundary": "7609bfd40f4fab9bc176461aaade070cd4d5717e3c1d0e2b5cea72f8a0be2cad",
+      "041-the-privacy-boundary": "8c7867d22e8c5a5591941bd22b81085761e8094af7ae0a16a832df2d68901d4c",
       "1-purpose": "42ccb8dc4065d358cccbc4cb3abddb555fa4e633e555f480a4a22da313deadf0",
       "2-territory": "582e13bd5eb30e84ff2e55b182cccec848270a987805655f4190238cfff23f9e",
-      "3-behavior": "74f0c4ed5dd13b9c16ed9eab83e0acdae1201e5312ceb038e7af69bb0e882bf7",
-      "4-functional-requirements": "76aedc172f9560c6a3f28ad08e25b383ea02bbd60a7645c4347dc79d62ed1301",
+      "3-behavior": "83873ff728663f064cf95fd5e7c0257c0b11e98b0029cd0aaf41c8f5f489b10c",
+      "4-functional-requirements": "1193bcd90a18d2655c12dcb7a8ccaa71ce8fa5522849342c93ba1e6d5d3d1020",
       "5-acceptance-criteria": "40d3d4b173fb184205d8ef6a47bb92b58119a68f1cd129fe1994c961e649d30a",
       "6-out-of-scope": "6b1a4916703b43fe2ab5b01a4516608673ccc7573c0ffae3e2deafef853cd7a6",
-      "7-resolved-decisions": "6a6b23f5fbe3483a15c3bbdc7728a5e4b8b3e2bcd5d23f1da0b1ccb1fe92c054",
+      "7-resolved-decisions": "29937f93a4cc0642deb82c165c142c1cf002f108cd4ec8c4e6fa56f02149b5b9",
       "verification": "cb0205e15dd70e1f58d16dfda3d4424e7e5904c9453156996c9ef72168d0dae9"
     },
     "sectionHeadings": [
@@ -56,10 +65,10 @@
       "Verification"
     ],
     "specPath": "specs/041-privacy-and-egress-boundary/spec.md",
-    "status": "approved",
+    "status": "draft",
     "summary": "The product's claim is that the user's memory stays theirs. This spec turns that from a sentence in a README into a checkable property. In the default configuration the manifest declares no egress host at all, so the process can make no outbound call and a test proves it. Every feature that would need one names it, justifies it, and is off by default. Telemetry does not exist. Backups go where the operator configured and nowhere else. The boundary is stated once here and inherited by every spec that could cross it.\n",
     "title": "The privacy boundary: what leaves the container, proved by the manifest rather than promised"
   },
-  "shardHash": "c1d150b4631d3e98ea345b3f2621bb96dfb7e1596de5ff4c01cf73949c465011",
+  "shardHash": "4305d4579fa9c324339d00c45ace0ae0ef700de903aaab751d78f2be280081a6",
   "specVersion": "1.9.0"
 }
