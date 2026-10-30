@@ -6,7 +6,7 @@ kind: "tooling"
 domain: "chassis"
 created: "2026-10-29"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: high
 wave: 4
 depends_on:
@@ -152,6 +152,26 @@ grouping.
   reaches the chassis; the chassis bump that carries it removes the ignore
   under B-4. RUSTSEC-2026-0374 follows the same `age` release if it drops
   basic-toml, and is otherwise re-checked at that bump.
+
+- **D-5 (2026-10-30, build record).** All nine pins moved to `=0.7.1`
+  and `cargo update` ran on the eight chassis crates the tree resolves
+  (`rahi-harness` is declared but no member depends on it, so it does not
+  resolve). The lockfile moved exactly as D-2's trial did: the eight
+  `rahi-*` packages to 0.7.1, action-gate-core 0.2.0 removed,
+  attest-ledger-core and attest-ledger-types 0.1.0 to 0.2.0, and nothing
+  else. No workspace source changed. FR-003's test
+  (`fr003_059_action_gate_core_resolves_once`) shares the
+  `cargo metadata --locked` read with FR-001's. The B-4 re-check, with
+  `cargo deny check` reporting no unmatched ignore or skip: every
+  chassis-only waiver still matches, so none is removed and each reason
+  now names 0.7.1. RUSTSEC-2025-0141 (bincode 2 under hiqlite-patched
+  0.15 and its cryptr 0.10), RUSTSEC-2026-0194 and RUSTSEC-2026-0195
+  (quick-xml 0.39 under s3-simple 0.8, from cryptr and rahi-ledger),
+  RUSTSEC-2026-0374 and RUSTSEC-2026-0387 (`age` 0.12.1 under
+  `rahi-ops`, kept per D-4), and the `tower-http@0.6.11` skip (reqwest
+  0.13 still carries 0.6.11 while `rahi-edge` takes 0.7.1). The
+  `CDLA-Permissive-2.0` licence allowance still matches
+  webpki-root-certs and is unchanged. No waiver was added.
 
 ## 8. Open questions
 

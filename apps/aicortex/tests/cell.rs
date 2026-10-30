@@ -8,6 +8,8 @@
 //! - FR-003, AC-3: preflight's report on an empty data directory.
 //! - B-8, FR-004: nothing reimplements the router, the store, or the
 //!   egress client.
+//! - Spec 046 FR-001 and spec 059 FR-003: every rahi package resolves to one
+//!   version, and action-gate-core resolves exactly once.
 //!
 //! The pin and grep checks are functions over text, so each refusal is
 //! tested as well as each pass: every check runs once over this repository
@@ -215,13 +217,17 @@ fn b2_the_workspace_pins_nine_rahi_crates_to_one_exact_version() -> Outcome {
     Ok(())
 }
 
-/// Spec 046 FR-001, at the version spec 058 FR-001 sets: the version every
+/// Spec 046 FR-001, at the version spec 059 FR-001 sets: the version every
 /// rahi package resolves to. The exact pin of B-2 is a requirement; this is
 /// what `cargo metadata --locked` says the requirement produced.
-const RAHI_VERSION: &str = "0.6.0";
+const RAHI_VERSION: &str = "0.7.1";
 
-#[test]
-fn fr001_046_every_rahi_package_resolves_to_one_version() -> Outcome {
+/// Spec 059 FR-003: the one action-gate-core the resolved tree may carry,
+/// the copy the workspace pins (spec 058 B-2) and rahi 0.7.1's kernel takes.
+const ACTION_GATE_CORE_VERSION: &str = "0.3.0";
+
+/// Every package `cargo metadata --locked` resolves, as (name, version).
+fn resolved_packages() -> Result<Vec<(String, String)>, String> {
     let output = Command::new(env!("CARGO"))
         .args(["metadata", "--locked", "--format-version", "1"])
         .current_dir(workspace_root())
@@ -242,12 +248,19 @@ fn fr001_046_every_rahi_package_resolves_to_one_version() -> Outcome {
     for package in packages {
         let name = package.get("name").and_then(serde_json::Value::as_str);
         let version = package.get("version").and_then(serde_json::Value::as_str);
-        if let (Some(name), Some(version)) = (name, version)
-            && name.starts_with("rahi-")
-        {
+        if let (Some(name), Some(version)) = (name, version) {
             resolved.push((name.to_owned(), version.to_owned()));
         }
     }
+    Ok(resolved)
+}
+
+#[test]
+fn fr001_046_every_rahi_package_resolves_to_one_version() -> Outcome {
+    let resolved: Vec<_> = resolved_packages()?
+        .into_iter()
+        .filter(|(name, _)| name.starts_with("rahi-"))
+        .collect();
     assert!(!resolved.is_empty(), "no rahi package resolved");
     let stray: Vec<_> = resolved
         .iter()
@@ -256,6 +269,21 @@ fn fr001_046_every_rahi_package_resolves_to_one_version() -> Outcome {
     assert!(
         stray.is_empty(),
         "rahi packages off {RAHI_VERSION}: {stray:?}"
+    );
+    Ok(())
+}
+
+#[test]
+fn fr003_059_action_gate_core_resolves_once() -> Outcome {
+    let copies: Vec<String> = resolved_packages()?
+        .into_iter()
+        .filter(|(name, _)| name == "action-gate-core")
+        .map(|(_, version)| version)
+        .collect();
+    assert_eq!(
+        copies,
+        [ACTION_GATE_CORE_VERSION],
+        "action-gate-core must resolve exactly once, at {ACTION_GATE_CORE_VERSION}"
     );
     Ok(())
 }
