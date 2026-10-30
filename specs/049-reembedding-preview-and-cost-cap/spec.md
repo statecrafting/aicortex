@@ -100,7 +100,11 @@ behavior for the local provider is unchanged.
 - **B-5 (admission per batch).** Before each remote batch the worker
   debits a conservative ceiling for that batch (its token count at the
   provider's maximum price, with the declared request overhead) against
-  what remains of the authorization. A batch that would cross the cap is
+  what remains of the authorization. The debit is one atomic
+  compare-and-debit in a single store transaction: it reads the authorized
+  total and the spent amount and records the debit only if the result stays
+  within the cap, so concurrent workers or leaders can never both be
+  admitted against the same remainder. A batch that would cross the cap is
   not dispatched; the pass pauses, reports `cap_reached` with the spent and
   remaining amounts, and leaves its outbox rows pending, so no memory is
   lost (constitution XI). After a batch completes, its debit is settled:
@@ -157,6 +161,8 @@ behavior for the local provider is unchanged.
 - **FR-007.** A fake provider that reports usage above a batch's ceiling
   is settled at the reported amount, the anomaly is recorded, and once the
   settled total reaches the cap no further batch is dispatched.
+- **FR-008.** Two workers admitting batches concurrently against a cap
+  that covers only one of them dispatch exactly one batch.
 
 ## 5. Acceptance criteria
 
