@@ -150,8 +150,8 @@
       }
     ],
     "specId": "018-retrieval-and-recall-trace",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "65d2e0b71dd20173c01586aeff99a09a0d337e8edcd1409b18dede45c499e840"
+  "shardHash": "f5118b08a95447b7e6731cf8db0365e74e78e573cb33ac9b971791c65921c795"
 }
