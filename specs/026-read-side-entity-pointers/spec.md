@@ -136,7 +136,8 @@ adds no table, no migration, no worker, and no MCP tool.
   another scope never produces a pointer, and a request naming a scope the
   caller cannot read answers as an empty set, indistinguishable from a
   scope with no matches (020's non-disclosing rule). The scope check runs
-  before any lookup and yields the entity set to resolve against: an
+  before any lookup, is the same single check whether its answer is yes or
+  no (and whether or not the named scope exists), and yields the entity set to resolve against: an
   unreadable scope yields the empty set, which then goes through the same
   resolution path as a readable scope that holds no entities. The
   guarantee is structural: the response and the code path are those of a
