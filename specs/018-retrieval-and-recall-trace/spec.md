@@ -141,10 +141,12 @@ against the memory tables.
   non-empty truncated result rather than an error.
 - **FR-007.** A persisted trace contains no memory body, asserted by
   searching the serialized trace for a distinctive fixture token.
-- **FR-008.** For a fixture entity whose newest mentioning memory ranks
-  outside the top `k`, the `Freshness` block still reports that memory's
-  capture time and the full count; erasing that memory moves the newest
-  time back to the next one.
+- **FR-008.** For a fixture entity that the graph channel resolves from
+  the query text (B-11), whose newest mentioning memory ranks outside the
+  top `k`, the `Freshness` block still reports that memory's capture time
+  and the full count; erasing that memory moves the newest time back to
+  the next one. A fixture entity that appears only in results and is not
+  resolved from the query is absent from the per-entity list.
 - **FR-009.** The serialized `Freshness` block of a fixture query contains
   no memory body, entity name, or alias, asserted by searching it for
   distinctive fixture tokens, and the block is byte-identical across runs

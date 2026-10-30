@@ -58,11 +58,11 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "018-recall": "22d9c44bedb7ce39edc3a436b4bf2b5d0c6457c32eb8d56e72aa2231b7b532cc",
+      "018-recall": "75542a3c501a119d9060690d9737115bdd4f74a6d6f90bcc4d86f36de1279b21",
       "1-purpose": "12eb79601c5277b1eaed13d354120dc5bc73aa78045db6e5227c103c01473fa1",
       "2-territory": "4445ce5a0d5cad27112cd1567995258302a3accfb185d41e791bcf981caf169c",
       "3-behavior": "ad1e5fa7c10be9541fea86cc72cc5995a86eb0a32b657e93c61a3a07b9b84479",
-      "4-functional-requirements": "2cd45ed99d955c50a7c5a94597604b2d0e8a993a72ef77201e7abe25346686c0",
+      "4-functional-requirements": "26dc1fca38a83c58188e946870d13ca8171164bf517a2d1809217a5cdcd3e9bf",
       "5-acceptance-criteria": "66e055fe0774b80a89708acd0d1089753b0c71e44abebbfcb986f4eb0df2246b",
       "6-out-of-scope": "5a532b1ce244419b5b6f0278a72981af0774f61c5eb2c1f1fa7ce29fb967b204",
       "7-resolved-decisions": "34065289220ce7b18ca2ab85de53ad6ccd4663794cbb4bc2aaf90abad2116763",
@@ -84,6 +84,6 @@
     "summary": "One query, four candidate channels (vector, text, recency, graph), one fused order, and a trace that explains it. Fusion is reciprocal rank with declared weights and an importance prior, chosen because it needs no score calibration between channels that do not share a scale. Every result set carries the query, the per-channel candidates and scores, the fusion arithmetic, and the reason each returned memory made the cut. A ranking that cannot be explained is not shippable, and an evaluation corpus (040) is the only way a weight changes.\n",
     "title": "Recall: four channels fused into one order, every result explainable, scope in the SQL"
   },
-  "shardHash": "c892d72a184d46b7c083aad03a1c9e978b5c318954374eaf53f1be1d26455b95",
+  "shardHash": "e9ac88e0666cca0cebf904ef443c8c464e0f70d471458db76f06c9a55da9c78a",
   "specVersion": "1.9.0"
 }
