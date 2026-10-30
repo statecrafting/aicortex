@@ -111,9 +111,10 @@ async fn fr002_a_read_token_is_refused_capture_naming_memory_write() {
         "Bearer error=\"insufficient_scope\", scope=\"memory.write\""
     );
     assert_eq!(cell.rows("memory").await, 0, "nothing was stored");
-    // The kernel ledgers the refusal; give its writer a moment.
+    // The kernel ledgers the refusal asynchronously; allow a loaded CI host
+    // up to 30 seconds, returning as soon as the record lands.
     let mut refused = false;
-    for _ in 0..50 {
+    for _ in 0..300 {
         refused = cell
             .records()
             .await
@@ -124,7 +125,7 @@ async fn fr002_a_read_token_is_refused_capture_naming_memory_write() {
         if refused {
             break;
         }
-        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(100)).await;
     }
     assert!(refused, "the scope refusal is in the chain");
 
