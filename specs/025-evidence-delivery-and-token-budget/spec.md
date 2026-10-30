@@ -148,7 +148,9 @@ return.
      cap as a smaller unit appended at the end.
   5. The final payload is serialized through 019's framing and recounted.
      If the recount exceeds the budget, the last delivered result is cut or
-     dropped until it does not. The reported `used` is that recount.
+     dropped until it does not, except that the rank-one result is only
+     ever cut, never dropped; B-7's minimum guarantees that its cut form
+     fits. The reported `used` is that recount.
 - **B-7 (minimum budget).** A budget smaller than the framing statement,
   one envelope's delimiters and labels, a cut marker, and one token of body
   is refused with a typed error naming the minimum, rather than returning an
