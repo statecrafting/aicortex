@@ -279,7 +279,7 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   A conversational memory delivered as a smaller conversation unit than
   requested (a `Window` for a requested `Record`, or a narrower `Window`)
   reports `conversation`, and its delivered unit shows the reduction. One
-  reduced all the way to its chunk is no longer delivered as a
+  reduced to `Turn` or to its chunk is no longer delivered as a
   conversation unit, so it reports `reduced`, or `cut` if the chunk was
   cut.
 - **B-12 (determinism).** For a fixed corpus, query, filter, weights,
