@@ -296,6 +296,6 @@
     "specId": "051-claim-admission-and-authority",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "3cbb14dc8794908d3c666cd2f6396e49eafb99ad076905610d2dafbc435c60a2"
 }

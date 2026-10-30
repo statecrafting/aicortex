@@ -188,6 +188,6 @@
     "specId": "056-entity-pages",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "6ff73759b2ded59290730a273adab3854acb08676c92f654cc134aa63506b124"
 }

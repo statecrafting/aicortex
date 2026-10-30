@@ -34,6 +34,16 @@
       },
       {
         "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/search.rs' does not exist",
+        "path": "crates/aicortex-api/src/search.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
+        "path": "crates/aicortex-mcp/src/tools.rs"
+      },
+      {
+        "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-mcp/tests/tools.rs' does not exist",
         "path": "crates/aicortex-mcp/tests/tools.rs"
       },
@@ -49,28 +59,13 @@
       },
       {
         "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/claude-code/' does not exist",
-        "path": "clients/claude-code/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/codex/' does not exist",
-        "path": "clients/codex/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/cursor/' does not exist",
-        "path": "clients/cursor/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/antigravity/' does not exist",
-        "path": "clients/antigravity/"
-      },
-      {
-        "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/tests/clients.rs' does not exist",
         "path": "crates/aicortex-api/tests/clients.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-recall/src/delivery.rs' does not exist",
+        "path": "crates/aicortex-recall/src/delivery.rs"
       }
     ]
   },
@@ -80,15 +75,12 @@
       "019-untrusted-content-boundary",
       "020-http-api-and-scopes",
       "021-mcp-server",
-      "022-client-adapters"
+      "022-client-adapters",
+      "025-evidence-delivery-and-token-budget"
     ],
     "implementingPaths": [
       {
         "path": "crates/aicortex-api/src/dto.rs",
-        "source": "spec-edge"
-      },
-      {
-        "path": "crates/aicortex-api/src/router.rs",
         "source": "spec-edge"
       }
     ],
@@ -153,42 +145,6 @@
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "clients/antigravity/"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "clients/claude-code/"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "clients/codex/"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
-          "path": "clients/cursor/"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "extends",
-        "unit": {
-          "kind": "file",
           "path": "clients/matrix.toml"
         }
       },
@@ -206,16 +162,12 @@
         }
       },
       {
-        "locations": [
-          {
-            "file": "crates/aicortex-api/src/router.rs"
-          }
-        ],
+        "locations": [],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-api/src/router.rs"
+          "path": "crates/aicortex-api/src/search.rs"
         }
       },
       {
@@ -242,7 +194,25 @@
         "sourceField": "extends",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/delivery.rs"
         }
       },
       {
@@ -275,6 +245,6 @@
     "specId": "026-read-side-entity-pointers",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.2.0",
-  "shardHash": "4cee0287596a5183ff391b5ce7694209f7ad0fb0c3e130d12604a4bbdd8da724"
+  "schemaVersion": "1.3.0",
+  "shardHash": "766a6225d42bda3b33530bba5199fc77838b4a2d25f466e6338c546cda92021c"
 }

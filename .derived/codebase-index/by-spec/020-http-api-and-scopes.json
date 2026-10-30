@@ -313,6 +313,6 @@
     "specId": "020-http-api-and-scopes",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "d24cd3eb671808f2452e187e6bf160d41232c6fe90f28df7c6e29b238c9daf30"
 }

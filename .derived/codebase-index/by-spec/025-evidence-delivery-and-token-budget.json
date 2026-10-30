@@ -57,6 +57,18 @@
       {
         "path": "crates/aicortex-recall/src/lib.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/provenance_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/provenance.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
@@ -169,6 +181,45 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/provenance_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/provenance_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/provenance.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/00-lineage.md"
           }
         ],
@@ -191,11 +242,24 @@
           "kind": "file",
           "path": "specs/019-untrusted-content-boundary/spec.md"
         }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/031-conversation-and-archive-imports/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/031-conversation-and-archive-imports/spec.md"
+        }
       }
     ],
     "specId": "025-evidence-delivery-and-token-budget",
     "specStatus": "draft"
   },
-  "schemaVersion": "1.2.0",
-  "shardHash": "bd2a897e6f51decc24088e0e2f16a3db7c9c7b3c659309ab54104e2009574ba1"
+  "schemaVersion": "1.3.0",
+  "shardHash": "b6d7d84a8d575ff2559d35cbc82ea77e05a87386db4085cd165017afec772396"
 }
