@@ -15,25 +15,28 @@ ignore = [
   # Each of these reaches aicortex only through the pinned chassis, whose
   # tree this workspace may not patch (constitution VI); the fix lands in
   # rahi or upstream of it, and each entry goes when that release does
-  # (spec 010 D-6).
+  # (spec 010 D-6). Each was re-checked against the rahi 0.7.1 tree and
+  # still matches (spec 059 B-4).
   #
-  # bincode 2 under rahi-store -> hiqlite 0.14 -> cryptr 0.10.
-  { id = "RUSTSEC-2025-0141", reason = "bincode is unmaintained; reached only through the chassis's hiqlite -> cryptr" },
+  # bincode 2 under rahi-store -> hiqlite-patched 0.15, directly and through
+  # cryptr 0.10.
+  { id = "RUSTSEC-2025-0141", reason = "rahi 0.7.1: bincode is unmaintained; reached only through the chassis's hiqlite and its cryptr" },
   # quick-xml 0.39 under s3-simple 0.8, reached from hiqlite -> cryptr and
   # from rahi-ledger. Both are denial of service while parsing XML, and the
   # only XML in this tree is the listing of the operator's own backup bucket.
-  { id = "RUSTSEC-2026-0194", reason = "quick-xml duplicate-attribute check; parses only the operator's own S3 listing, through the chassis" },
-  { id = "RUSTSEC-2026-0195", reason = "quick-xml NsReader allocation; parses only the operator's own S3 listing, through the chassis" },
+  { id = "RUSTSEC-2026-0194", reason = "rahi 0.7.1: quick-xml duplicate-attribute check; parses only the operator's own S3 listing, through the chassis" },
+  { id = "RUSTSEC-2026-0195", reason = "rahi 0.7.1: quick-xml NsReader allocation; parses only the operator's own S3 listing, through the chassis" },
   # basic-toml and crypto-bigint 0.5 under rahi-ops -> age 0.12, the
   # chassis's backup encryption. The patched crypto-bigint is the 0.7 line,
   # which the elliptic-curve 0.13 that age pins cannot take. rahi-ops keys
   # backups with age::x25519 only (backup_identity, backup_recipient), so no
   # P-256 operation runs on a backup key: age reaches p256 only through its
   # tag recipients, which nothing here constructs. Both ignores come out
-  # when rahi leaves age 0.12, checked at every chassis bump (spec 010 D-6,
-  # D-11).
-  { id = "RUSTSEC-2026-0374", reason = "basic-toml is unmaintained; reached only through the chassis's age -> i18n-embed-fl, at build time" },
-  { id = "RUSTSEC-2026-0387", reason = "crypto-bigint 0.5 timing; reached only through the chassis's age -> p256 tag recipients, unused: backups are keyed with x25519" },
+  # when the chassis takes an age release that drops them (spec 059 D-4),
+  # checked at every chassis bump (spec 010 D-6, D-11). rahi 0.7.1 still
+  # carries age 0.12.1.
+  { id = "RUSTSEC-2026-0374", reason = "rahi 0.7.1: basic-toml is unmaintained; reached only through the chassis's age -> i18n-embed-fl, at build time" },
+  { id = "RUSTSEC-2026-0387", reason = "rahi 0.7.1: crypto-bigint 0.5 timing; reached only through the chassis's age -> p256 tag recipients, unused: backups are keyed with x25519" },
 ]
 
 [licenses]
@@ -81,10 +84,11 @@ deny = [
 ]
 # A duplicate the chassis forces into a refused stack is skipped by exact
 # version, never by crate, so the waiver lapses when rahi converges it
-# (spec 058 B-5, D-3). rahi 0.6.0's edge takes tower-http 0.7 for its static
-# slot, a minor ahead of the 0.6 copy reqwest carries under hiqlite's cryptr.
+# (spec 058 B-5, D-3). rahi 0.7.1's edge still takes tower-http 0.7 for its
+# static slot, a minor ahead of the 0.6 copy reqwest carries under hiqlite's
+# cryptr (re-checked in spec 059 B-4).
 skip = [
-  { crate = "tower-http@0.6.11", reason = "rahi 0.6.0: reqwest 0.13 under hiqlite carries 0.6, rahi-edge takes 0.7 (spec 058 D-3)" },
+  { crate = "tower-http@0.6.11", reason = "rahi 0.7.1: reqwest 0.13 under hiqlite carries 0.6, rahi-edge takes 0.7 (spec 058 D-3, spec 059 B-4)" },
 ]
 # Not refused, and so still reported as warnings: at the published rahi
 # 0.1.0 the chassis carries two copies of aws-lc-sys (0.39.1 under s3-simple,

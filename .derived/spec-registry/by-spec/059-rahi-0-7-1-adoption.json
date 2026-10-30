@@ -38,7 +38,7 @@
       "wave": 4
     },
     "id": "059-rahi-0-7-1-adoption",
-    "implementation": "pending",
+    "implementation": "complete",
     "kind": "tooling",
     "obligations": [
       {
@@ -85,14 +85,14 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "059-rahi-0-7-1-adoption": "b879405e2db717853bd153330b11c523d2220440063762ec200b78a15f41b7fa",
+      "059-rahi-0-7-1-adoption": "8f58d5077a823825aeb6585fa7447bde388f424f83d3e1194b38f92e83256a41",
       "1-purpose": "4b92a3797f8be22e07bdaabbe8adcc1f4cc7d1aa565e933f066ad48e1f896ce7",
       "2-territory": "27af248ffd3236e8aa5e56c8676383dd7cae080e1f22d2939c439834ffd96496",
       "3-behavior": "78ab7c347c671433ba733945ac4b6e378d63ee4fd59dd05cd1d9660fdf394585",
       "4-functional-requirements": "99360bc16d7f05ab39fd03a79056ec4bf311b300ccf6ddb1dae19d907e0d46b9",
       "5-acceptance-criteria": "69df3e7bcff257d8dcea508fc8b00825daeeab61c2e594b388da1d88796db23b",
       "6-out-of-scope": "b4ce07482826ea5dc1e41a62dd7a113ad7e4365b0d2b07416ac98e4f55d845c0",
-      "7-resolved-decisions": "284279a617c84d56817de6b522ec5bc0f307aea555c676e81ef0e6be8b383189",
+      "7-resolved-decisions": "814220e335c9fdc4d2334310844940c87438f3eee148f48f489d00562162eed8",
       "8-open-questions": "4b40f6effecc1732dd1624f8149893c4e105c50c955fe8003d23dfe27c50ddfd",
       "verification": "874e427717d5586c4c3dbabdf3940b34d6ab4e5f432696e2305a7f3ee0de797b"
     },
@@ -113,6 +113,6 @@
     "summary": "The nine rahi crates are pinned at `=0.6.0` (spec 058). rahi 0.7.1 (crates.io) is the patch on 0.7.0, which adds deployment epochs, remote identity, and the split N=3 overlay, all behind items and environment variables this cell does not use, so a cell that calls only `rahi_cli::run` needs no code change. 0.7.0 also moves `rahi-kernel` to action-gate-core `=0.3.0`, which removes the second action-gate-core copy spec 058 D-3 recorded. This spec moves all nine pins in one change, keeps the exact-pin rule, re-runs the supply-chain revisit spec 010 requires at a chassis bump, and replaces the partial bump dependabot proposed in #72, which moved seven of the nine crates and broke spec 046's one-version invariant on main.\n",
     "title": "Move every chassis pin to rahi 0.7.1 together, and drop the second action-gate-core"
   },
-  "shardHash": "fa769ee7f118318e2d7f29c069e19bc04bed19ed715c7085d51c6b22688dc06d",
+  "shardHash": "fffe6b5bbb5067af0b483285b3b7c43111e4f4ca4c874af3adf69c340cd06fcf",
   "specVersion": "1.9.0"
 }
