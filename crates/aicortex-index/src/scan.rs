@@ -331,11 +331,14 @@ pub async fn scan_rows<S: PageSource>(
                 Error::Integrity(format!("stored vector width {} is outside u16", row.dims))
             })?;
             if row_dims != dims {
-                return Err(VectorError::Width {
-                    expected: dims,
-                    actual: usize::from(row_dims),
-                }
-                .into());
+                // The statement selects only rows of the query's width, so a
+                // row of another width is a store inconsistency, not a bad
+                // request.
+                return Err(Error::Integrity(format!(
+                    "stored vector of chunk {} has {row_dims} dimensions where its \
+                     revision records {dims}",
+                    row.chunk_id
+                )));
             }
             decode_into(row.vector.as_slice(), row_dims, &mut buffer)?;
             if !query.model.normalized && normalize(&mut buffer).is_err() {
@@ -418,5 +421,72 @@ impl VectorIndex for ScanIndex {
         query: &ScanQuery<'_>,
     ) -> impl Future<Output = Result<ScanOutcome, Error>> + Send {
         scan(&self.store, query, self.config)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    #![allow(clippy::unwrap_used, clippy::expect_used)]
+
+    use super::*;
+    use aicortex_types::Scope;
+    use rahi_types::Sub;
+
+    /// One page of rows of the given widths.
+    struct Rows(Vec<u16>);
+
+    impl PageSource for Rows {
+        fn page(
+            &mut self,
+            _after: Option<(&str, i64)>,
+            _size: u32,
+        ) -> impl Future<Output = Result<Vec<VectorRow>, Error>> + Send {
+            let rows = std::mem::take(&mut self.0)
+                .into_iter()
+                .enumerate()
+                .map(|(n, dims)| VectorRow {
+                    chunk_id: format!("chunk-{n}"),
+                    memory_id: format!("00000000-0000-7000-8000-{n:012x}"),
+                    chunk_ordinal: 0,
+                    dims: i64::from(dims),
+                    vector: Blob::new(vec![0; usize::from(dims) * 4]).unwrap(),
+                })
+                .collect();
+            std::future::ready(Ok(rows))
+        }
+    }
+
+    #[test]
+    fn a_stored_row_of_another_width_is_an_integrity_error() {
+        let scope = ScopeId::of(&Scope::personal(Sub::new("width")));
+        let filter = Filter::retrievable();
+        let needle = [1.0_f32, 0.0];
+        let query = ScanQuery {
+            scope: &scope,
+            model: Comparable {
+                model_id: "m",
+                revision: 1,
+                dims: 2,
+                normalized: true,
+            },
+            vector: &needle,
+            k: 1,
+            filter: &filter,
+        };
+        let runtime = tokio::runtime::Builder::new_current_thread()
+            .build()
+            .unwrap();
+        let error = runtime
+            .block_on(scan_rows(&mut Rows(vec![3]), &query, ScanConfig::default()))
+            .unwrap_err();
+        assert!(matches!(error, Error::Integrity(_)), "{error:?}");
+        let short = ScanQuery {
+            vector: &[1.0],
+            ..query
+        };
+        let error = runtime
+            .block_on(scan_rows(&mut Rows(vec![2]), &short, ScanConfig::default()))
+            .unwrap_err();
+        assert!(matches!(error, Error::Validation(_)), "{error:?}");
     }
 }
