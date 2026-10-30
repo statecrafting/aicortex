@@ -29,16 +29,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '056-entity-pages' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
-        "path": "crates/aicortex-api/src/dto.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '056-entity-pages' file unit 'crates/aicortex-api/tests/api.rs' does not exist",
-        "path": "crates/aicortex-api/tests/api.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '056-entity-pages' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
         "path": "crates/aicortex-mcp/src/tools.rs"
       },
@@ -55,7 +45,16 @@
       "019-untrusted-content-boundary",
       "021-mcp-server"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/dto.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/api.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -85,7 +84,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/dto.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -103,7 +106,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/api.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

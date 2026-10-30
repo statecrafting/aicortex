@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-api",
+    "path": "crates/aicortex-api",
+    "specRef": "020-http-api-and-scopes",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.2.0",
+  "shardHash": "e60361c5a66dac2b1e64034ae8d8696df67c7a2017aae73e6f0557bebc99a5d3"
+}

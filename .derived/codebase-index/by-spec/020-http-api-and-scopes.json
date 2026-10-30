@@ -4,31 +4,6 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/Cargo.toml' does not exist",
-        "path": "crates/aicortex-api/Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/lib.rs' does not exist",
-        "path": "crates/aicortex-api/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/scopes.rs' does not exist",
-        "path": "crates/aicortex-api/src/scopes.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/capture.rs' does not exist",
-        "path": "crates/aicortex-api/src/capture.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/search.rs' does not exist",
         "path": "crates/aicortex-api/src/search.rs"
       },
@@ -41,31 +16,6 @@
         "code": "W-001",
         "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/entities.rs' does not exist",
         "path": "crates/aicortex-api/src/entities.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/events.rs' does not exist",
-        "path": "crates/aicortex-api/src/events.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
-        "path": "crates/aicortex-api/src/dto.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/error.rs' does not exist",
-        "path": "crates/aicortex-api/src/error.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/tests/api.rs' does not exist",
-        "path": "crates/aicortex-api/tests/api.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/tests/authz.rs' does not exist",
-        "path": "crates/aicortex-api/tests/authz.rs"
       }
     ]
   },
@@ -76,13 +26,73 @@
     ],
     "implementingPaths": [
       {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/aicortex-api/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/capture.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/dto.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/error.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/events.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/scopes.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/api.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/authz.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/common/mod.rs",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -91,7 +101,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/capture.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -100,7 +114,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/dto.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -118,7 +136,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/error.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -127,7 +149,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/events.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -136,7 +162,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -154,7 +184,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -163,7 +197,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/scopes.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -181,7 +219,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/api.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -190,12 +232,55 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/authz.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/tests/authz.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/common/mod.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/common/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/Cargo.toml"
         }
       },
       {
@@ -229,5 +314,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.2.0",
-  "shardHash": "ddca47667888c7fd026867a560da010598575b94e2ca86f8f5b110654104ea5f"
+  "shardHash": "d24cd3eb671808f2452e187e6bf160d41232c6fe90f28df7c6e29b238c9daf30"
 }

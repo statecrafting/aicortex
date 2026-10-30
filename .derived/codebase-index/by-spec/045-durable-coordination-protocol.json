@@ -64,31 +64,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/lib.rs' does not exist",
-        "path": "crates/aicortex-api/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/scopes.rs' does not exist",
-        "path": "crates/aicortex-api/src/scopes.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/events.rs' does not exist",
-        "path": "crates/aicortex-api/src/events.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-api/src/error.rs' does not exist",
-        "path": "crates/aicortex-api/src/error.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '045-durable-coordination-protocol' file unit 'crates/aicortex-ingest/src/lib.rs' does not exist",
         "path": "crates/aicortex-ingest/src/lib.rs"
       },
@@ -120,6 +95,26 @@
       "042-portability-and-migration"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/error.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/events.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/scopes.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/erasure.rs",
         "source": "spec-edge"
@@ -281,7 +276,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/error.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -290,7 +289,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/events.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -299,7 +302,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -308,7 +315,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -317,7 +328,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/scopes.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

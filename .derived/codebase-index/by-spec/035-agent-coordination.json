@@ -21,11 +21,6 @@
         "code": "W-001",
         "message": "spec '035-agent-coordination' file unit 'crates/aicortex-api/tests/claims.rs' does not exist",
         "path": "crates/aicortex-api/tests/claims.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '035-agent-coordination' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
       }
     ]
   },
@@ -34,6 +29,10 @@
       "034-curation-workers"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
@@ -77,7 +76,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

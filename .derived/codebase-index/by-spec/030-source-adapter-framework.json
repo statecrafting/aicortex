@@ -51,11 +51,6 @@
         "code": "W-001",
         "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-ingest/tests/run.rs' does not exist",
         "path": "crates/aicortex-ingest/tests/run.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '030-source-adapter-framework' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
       }
     ]
   },
@@ -64,6 +59,10 @@
       "024-decision-and-audit-references"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
@@ -161,7 +160,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

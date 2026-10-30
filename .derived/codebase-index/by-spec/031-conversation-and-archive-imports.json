@@ -46,11 +46,6 @@
         "code": "W-001",
         "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
         "path": "crates/aicortex-ingest/src/registry.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
       }
     ]
   },
@@ -61,6 +56,10 @@
       "030-source-adapter-framework"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
@@ -148,7 +147,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

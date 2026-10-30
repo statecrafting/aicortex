@@ -22,10 +22,12 @@ name = "aicortex"
 path = "src/main.rs"
 
 [dependencies]
+aicortex-api = { workspace = true }
 aicortex-embed = { workspace = true }
 aicortex-store = { workspace = true }
 rahi-cli = { workspace = true }
 rahi-edge = { workspace = true }
+rahi-idp = { workspace = true }
 rahi-kernel = { workspace = true }
 rahi-store = { workspace = true }
 rahi-types = { workspace = true }

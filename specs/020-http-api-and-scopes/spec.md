@@ -26,8 +26,11 @@ establishes:
   - "crates/aicortex-api/src/error.rs"
   - "crates/aicortex-api/tests/api.rs"
   - "crates/aicortex-api/tests/authz.rs"
+  - "crates/aicortex-api/tests/common/mod.rs"
 extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
 summary: >
@@ -202,6 +205,78 @@ documents.
     every FR. FR-005 binds on every content-returning route that exists.
     FR-009, added after this entry by 015 D-33, adds a test and changes
     no route.
+
+- **D-4 (2026-10-29, this spec, build).** The spec does not say how a
+  request names a scope. A scope is named by `kind` plus its `project` or
+  `share` key, in the body of a write and in the query string of a read,
+  and its `owner` defaults to the caller. No grant table exists yet (012
+  B-9 makes it a future spec with its own predicate), so the scopes "explicitly
+  granted" by B-2 are none today and a scope is reachable exactly when the
+  caller owns it. An unreachable scope is a 404 decided before any store
+  read, with one fixed document for every case, which is what keeps FR-004's
+  body and timing free of a row-existence signal. Rejected: a scope path
+  segment (`/scopes/{scope}/memories`), which B-4's route list does not have.
+- **D-5 (2026-10-29, this spec, build).** The cell declares `/api/v1` a
+  service-callable bearer route and `/api/v1/promote` a person-only one,
+  so importers and the orchestrator holding a client credentials token reach
+  capture and the listing, and the chassis's longest-prefix rule refuses
+  that token on promotion before the handler runs (FR-003, 025 B-4). The
+  handler refuses it again. Rejected: a person-only `/api/v1`, which would
+  shut the machine consumers of section 1 out of the whole surface.
+- **D-6 (2026-10-29, this spec, build).** `memory.admin` and the two
+  coordination scopes are enumerated (FR-008) and gate no route of this
+  build: no admin route is in B-4, and the coordination routes are 035's and
+  045's. Only a scope some mounted route requires is published in
+  `scopes_supported`, because a gate publishes its scope when it is built.
+- **D-7 (2026-10-29, this spec, build).** The idempotency record of B-8 lives
+  in the chassis's replicated cache for 24 hours, keyed by a digest of the
+  subject, the client, and the key, and bound to a digest of the request
+  body: the same key with a different body is a 422
+  `idempotency_key_reused`. A server failure is not remembered, so a retry
+  tries again. The cache is derived state; losing a record costs only the
+  replay, because the retried capture merges by fingerprint (014 B-2) and
+  creates no second row. Rejected: a new table, which would put SQL and a
+  migration in a crate whose territory has none.
+- **D-8 (2026-10-29, this spec, build).** `GET /events` is fed by a node-local
+  bus. The store's notify is a single-reader hint stream (`rahi://012` B-3)
+  and cannot fan out to many subscribers. This build publishes capture
+  verdicts, and the memory routes add state changes (superseded, erased),
+  filtered to the caller's own scopes, as ids, codes, and states. A lagging subscriber gets
+  a `lagged` event with no count, because the count would describe other
+  subjects' traffic.
+- **D-9 (2026-10-29, this spec, build).** A capture of one candidate that
+  the gate refuses is the 422 problem of B-7. A batch answers 200 with one
+  outcome per candidate, because each candidate is its own transaction and
+  its neighbours may have been stored; a refused outcome carries its reason
+  code and the problem `type` of B-7. No answer echoes refused content.
+- **D-10 (2026-10-29, this spec, build).** Two chassis behaviours at rahi
+  0.7.1 bound what B-2 and FR-001 can mean here, and this build consumes
+  rather than works around them. First, `RequireScope` reads only a bearer
+  token's scopes, so a browser session principal is refused by every scope
+  gate: the session half of B-2 needs a chassis change before a browser
+  surface exists. Second, an unsafe request carrying no credential at all
+  meets the edge's CSRF check before any 401, so FR-001's challenge is
+  answered on a safe request; an unsafe one is refused 403 and stores
+  nothing. Both are recorded for rahi rather than patched here.
+
+## Status
+
+- **2026-10-29.** `implementation: in-progress`. This spec lands in two
+  changes, each under the size the delivery policy sets. The first, this
+  one, founds the crate and mounts it: B-1 to B-3, `POST /capture` with B-7
+  to B-10, `GET /events` (B-6), and FR-001, FR-002, FR-004, FR-006 to
+  FR-008, all under AC-1. Remaining before `complete`:
+  - **The rest of the D-3 routes**, in the second change: `GET /memories`,
+    `GET /memories/{id}`, `PATCH /memories/{id}`, `DELETE /memories/{id}`,
+    `GET /stats`, and `POST /promote/{id}`, with FR-003 and FR-005.
+  - **AC-2** needs a rauthy binary on loopback. None exists on the build
+    host (macOS; rahi pins a Linux image) or in CI, so the end-to-end
+    authorization code with PKCE run has not been performed.
+  - **FR-009** boots `aicortex serve` and captures over HTTP, which needs
+    composed identity: the same rauthy binary, or a discovery stub that
+    `serve` accepts.
+  - **B-6** carries capture verdicts; embedding progress, curator
+    activity, and review-queue changes are not published yet (D-8).
 
 ## Verification
 

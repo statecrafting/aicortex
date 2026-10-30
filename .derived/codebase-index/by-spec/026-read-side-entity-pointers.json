@@ -34,16 +34,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/dto.rs' does not exist",
-        "path": "crates/aicortex-api/src/dto.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-mcp/tests/tools.rs' does not exist",
         "path": "crates/aicortex-mcp/tests/tools.rs"
       },
@@ -92,7 +82,16 @@
       "021-mcp-server",
       "022-client-adapters"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/dto.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -194,7 +193,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/dto.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -203,7 +206,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

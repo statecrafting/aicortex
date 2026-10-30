@@ -41,11 +41,6 @@
         "code": "W-001",
         "message": "spec '022-client-adapters' file unit 'crates/aicortex-api/tests/clients.rs' does not exist",
         "path": "crates/aicortex-api/tests/clients.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'crates/aicortex-api/src/router.rs' does not exist",
-        "path": "crates/aicortex-api/src/router.rs"
       }
     ]
   },
@@ -53,7 +48,12 @@
     "dependsOn": [
       "021-mcp-server"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -128,7 +128,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

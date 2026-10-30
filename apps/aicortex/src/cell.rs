@@ -16,6 +16,7 @@ pub mod embedding_service;
 use axum::Router;
 use rahi_cli::{AppCheck, Cell, ManagedService, ServiceShutdown};
 use rahi_edge::AppState;
+use rahi_idp::BearerRoutes;
 use rahi_store::{Migration, MigrationSet};
 use rahi_types::Result;
 
@@ -52,10 +53,15 @@ impl Cell for Aicortex {
         vec![rahi_store::coordination_set(), rahi_store::receipt_set()]
     }
 
-    /// The merged product router. No product route exists yet.
+    /// The merged product router: spec 020's HTTP API under `/api/v1`.
     fn routes(state: AppState) -> Router {
-        let _ = state;
-        Router::new()
+        aicortex_api::router(state)
+    }
+
+    /// Where a bearer credential is accepted (spec 020 B-3, D-5): the whole
+    /// API, service-callable except the promotion subtree.
+    fn bearer_routes() -> BearerRoutes {
+        aicortex_api::bearer_routes()
     }
 
     /// The operator surface, mounted by the chassis behind the operator
