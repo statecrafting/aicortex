@@ -1,7 +1,7 @@
 ---
 id: "059-rahi-0-7-1-adoption"
 title: "Move every chassis pin to rahi 0.7.1 together, and drop the second action-gate-core"
-status: draft
+status: approved
 kind: "tooling"
 domain: "chassis"
 created: "2026-10-29"
@@ -143,6 +143,15 @@ grouping.
   `rahi-ops`, so RUSTSEC-2026-0374 and RUSTSEC-2026-0387 still match. The
   trial did not compile or test the workspace. AC-1 and the waiver
   re-check in B-4 are the build's to record.
+
+- **D-3 (2026-10-30, owner approval).** The owner approved this spec.
+
+- **D-4 (2026-10-30, owner decision on the `age` advisories).** No rahi
+  change is requested for RUSTSEC-2026-0387. The ignore stays until an
+  `age` release that takes p256 0.14 (and with it a patched crypto-bigint)
+  reaches the chassis; the chassis bump that carries it removes the ignore
+  under B-4. RUSTSEC-2026-0374 follows the same `age` release if it drops
+  basic-toml, and is otherwise re-checked at that bump.
 
 ## 8. Open questions
 
