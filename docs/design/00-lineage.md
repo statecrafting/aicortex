@@ -49,14 +49,12 @@ What is carried is observed behavior and measured results from its
 published documentation, cited as `gbrain://<topic>`. Where a gbrain
 behavior conflicts with the constitution, the observation is recorded and
 the behavior is not carried; the specs that cite these rows say which.
-A row marked proposed names a spec still under review in its own pull
-request; the marker comes off when that spec merges.
 
 | Citation | Observation | Where it lands |
 |---|---|---|
 | `gbrain://evidence-unit-auto` | Returning the whole conversation when a hit is part of a chat, and the ranked chunk otherwise, answered 445 of 500 LongMemEval-S development questions against 312 for chunks only and 457 for whole records, at about 15.1K against 3.5K reader tokens per question. An earlier run had neighbor windows well below whole sessions. A preregistered sealed set of 150 questions showed no benefit and no harm because its chats were short | Spec 025 |
 | `gbrain://token-budget-cap` | An explicit evidence budget is a hard cap: the best-ranked hit is reserved first and cut with a marker rather than dropped, lower-ranked hits are kept as a rank prefix, and nothing spills past the cap. gbrain counts titles and evidence text but not the surrounding metadata | Spec 025 |
-| `gbrain://retrieval-reflex` | Without a per-turn pointer, agents discuss an entity for several messages without retrieving its record. A compact pointer per resolvable entity in the user's message, built with no model call and doing nothing when it fails, closes the gap | Spec 026 (proposed in pull request #77, not yet merged) |
+| `gbrain://retrieval-reflex` | Without a per-turn pointer, agents discuss an entity for several messages without retrieving its record. A compact pointer per resolvable entity in the user's message, built with no model call and doing nothing when it fails, closes the gap | Spec 026 |
 | `gbrain://gap-note` | The answer feature users valued most was the gap note: nothing about a subject since a date, so the source may be stale | Spec 018 |
 | `gbrain://external-benchmark` | Reporting on a public benchmark (LongMemEval) made results comparable outside the project | Spec 040 |
 | `gbrain://sealed-confirmation-set` | A confirmation set whose design was fixed before results were seen caught a development-data gain that did not generalize, and showed that a set at its ceiling cannot discriminate | Spec 040 |
