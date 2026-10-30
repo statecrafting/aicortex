@@ -62,6 +62,7 @@ aicortex-gate = { path = "crates/aicortex-gate", version = "=0.1.0" }
 aicortex-claims = { path = "crates/aicortex-claims", version = "=0.1.0" }
 aicortex-embed = { path = "crates/aicortex-embed", version = "=0.1.0" }
 aicortex-recall = { path = "crates/aicortex-recall", version = "=0.1.0" }
+aicortex-index = { path = "crates/aicortex-index", version = "=0.1.0" }
 
 # The family's secret detector registry (spec 047): aicortex-gate consumes
 # its tables and scan instead of keeping its own. Exact pin, as the chassis
@@ -138,6 +139,12 @@ safetensors = { version = "0.8", default-features = false, features = ["alloc"] 
 # category Mn after NFD and splits on category P, so the exact tables matter.
 unicode-general-category = "1"
 half = { version = "2", default-features = false, features = ["std"] }
+
+# Tests only: the counting allocator spec 016 FR-002 asserts the scan's peak
+# allocation with. `unsafe` is forbidden workspace-wide, and a global
+# allocator is an `unsafe impl`, so the counter is this dependency-free shim
+# rather than one written here. Enabled by aicortex-index's tests alone.
+peak_alloc = "0.3"
 
 [workspace.lints.rust]
 unsafe_code = "forbid"
