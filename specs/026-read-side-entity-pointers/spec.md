@@ -114,8 +114,8 @@ adds no table, no migration, no worker, and no MCP tool.
   and each pointer inside an envelope labelled as a derived value with the
   entity's provenance (019 B-6). The only other text in the response is a
   fixed sentence, a public constant of `aicortex-api`'s `pointers` module,
-  that names the read tools (`fetch`,
-  `relate`, `search`, as 021 B-5 names them) able to retrieve the entity. It never interpolates
+  that names the read tools (`fetch`, `relate`, `search`, as 021 B-5 names
+  them) able to retrieve the entity. It never interpolates
   stored content and never tells the agent it must act.
 - **B-6 (bounded).** A set holds at most a configured number of pointers
   (default 5) and at most a configured token size including the framing
@@ -132,7 +132,9 @@ adds no table, no migration, no worker, and no MCP tool.
   ordered by first match position in the text, then mention count
   descending, then entity id, and cut from the end, with the response
   marked truncated. The text a hook may send is bounded (default 8 KiB);
-  longer text is resolved over its first bound only, and the response
+  longer text is cut at the last UTF-8 character boundary within the
+  bound and resolved over that prefix only, so a name that starts inside
+  the bound and ends past it is not matched, and the response
   marks the text as truncated, separately from a truncated pointer set.
 - **B-7 (scoped by the caller's token).** The route requires `memory.read`
   and resolves only in scopes the caller's token can read. An entity in
@@ -205,7 +207,7 @@ adds no table, no migration, no worker, and no MCP tool.
 - **FR-009.** A message longer than the text bound (8 KiB by default) is
   answered with success, not a client error, resolves names in its first
   bound only, marks the text as truncated, and a name lying wholly past
-  the bound produces no pointer.
+  the bound, or one that straddles it, produces no pointer.
 - **FR-010.** A test in `aicortex-mcp`'s tool tests reads B-5's constant
   from `aicortex-api` and asserts that every tool name in it is a read
   tool in 021's tool list, so a rename there fails here. `aicortex-mcp`

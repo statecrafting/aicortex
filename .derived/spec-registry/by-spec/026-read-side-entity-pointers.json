@@ -148,14 +148,14 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "026-read-side-entity-pointers": "d54aa6e3639727f1405a351f2bc83802a82418ce27686496e9dcdc66dbf09970",
+      "026-read-side-entity-pointers": "b1e5cf56ff228a0c947e797bc98a3df1e923c03753b5d1a21599911baa8918c4",
       "1-purpose": "48e45cd5346d3cc3de6af84b520ca38960270f1874e39a284dcb0295650e8087",
       "2-territory": "45c333b46d6982a3ec0147f95103b4de8edcf925297d1765e9efc1969e4132c8",
       "3-1-resolution": "72dd6ab257ec8a270c598574732c44bba574ea104af8a242c40ee6a468c58ddd",
-      "3-2-the-pointer": "6d6e19cc4ddfb647242230e412d2ff3c5b12fa50bdb3e0972f2ff13b1194a54f",
+      "3-2-the-pointer": "4cdc4e00780c89659159a5e6f6c024f6ab39b28b4d59967ac65501e1d7f79894",
       "3-3-the-client-side": "86a78a9764a0c2a448cce453fd812a2769497471944909aae4d6521d674dee2d",
-      "3-behavior": "743068912800e7edcbd97bcb2a222f99253b6f57989198797d6e4df9fc17825e",
-      "4-functional-requirements": "1c04bbe4d9672721da371b8b0b0d302a1e9692e6d84c01942171fa3be82ddcac",
+      "3-behavior": "9b25dcb282ece298891d24792fefc3bdb51687aa97dac7dedc4ba8d99558d5dd",
+      "4-functional-requirements": "5ca74087acaea8a79752464a3ed7187646525fe8da166d8359892bace2d8ce29",
       "5-acceptance-criteria": "1fca613bbff1e128425aa42da48ddaf9dcace2e9da2bfe04e2761e3933f9d28d",
       "6-out-of-scope": "543a8a96f08dd2c43cf8e33d9c91c9437993aceb1ece0c458d04f7a851841593",
       "7-resolved-decisions": "171547a6af660105d34784bd0c5a37cd01a3368e393f29c07c03aa5130c4e87a",
@@ -180,6 +180,6 @@
     "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project the user just named, so the agent answers generically about facts the store knew. This spec adds a per-turn pointer: a client hook sends the user's message to one read-only route, which resolves entity names by exact and normalized alias match in the caller's scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times. The block is untrusted data under 019, bounded in size, scoped by the caller's token, opt-in per client, and the hook does nothing when it fails.\n",
     "title": "Read-side entity pointers: tell the agent each turn that memory about a named entity exists"
   },
-  "shardHash": "50076681b0b8f744e4841393dd60b96a4ba2d027078e6dd4a678b450d305c6ed",
+  "shardHash": "1ea4de78c20ddc20d24965e306288eab14c1b40c05c125c12ceba508e05c152e",
   "specVersion": "1.9.0"
 }
