@@ -111,6 +111,6 @@
     "specId": "048-one-spec-per-pull-request",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "0c2dad1b0ee4038b00793deaaa2f457d641d7d4cfdeb6d10d9b2a3d60d675bb0"
 }

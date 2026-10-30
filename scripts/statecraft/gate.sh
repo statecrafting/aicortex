@@ -1,5 +1,5 @@
 #!/bin/sh
-# Rendered by Statecraft from profile github-actions-rust revision 14.
+# Rendered by Statecraft from profile github-actions-rust revision 21.
 # The one definition of this repository's gate: `make gate` and `make code`
 # run it locally, and CI runs the same script, so the two cannot drift. Only
 # the repository-local .bin/spec-spine is used; a spec-spine elsewhere
@@ -47,7 +47,7 @@ FAIL_ON_UNRESOLVED=false
 REQUIRE_RATIFIED=true
 
 usage() {
-  echo "usage: gate.sh governance|code|couple|couple-group|base|text|commits|pin" >&2
+  echo "usage: gate.sh governance|preflight|code|couple|couple-group|base|text|commits|pin" >&2
   leave 3
 }
 
@@ -326,6 +326,22 @@ queue_pr() {
   printf '%s' "$1" | sed -n 's|.*/pr-\([0-9][0-9]*\)-[0-9a-f]*$|\1|p'
 }
 
+# A stacked pull request merges into another branch and is never judged
+# against the default branch (revision 4, rule 5). Shared by `base` and, from
+# revision 18, `preflight`.
+judge_base() {
+  if [ "$REQUIRE_DEFAULT_BASE" != true ]; then
+    echo "gate.sh: governance.require_default_base is false; the base is not judged"
+    return 0
+  fi
+  need_env BASE_REF
+  if [ "$BASE_REF" != "$DEFAULT_BRANCH" ]; then
+    echo "gate.sh: this pull request's base is '$BASE_REF', not the default branch $DEFAULT_BRANCH: open it off $DEFAULT_BRANCH, or merge the one below it first" >&2
+    leave 1
+  fi
+  echo "the base is the default branch $DEFAULT_BRANCH"
+}
+
 case "$MODE" in
   governance)
     need_spec_spine
@@ -354,6 +370,26 @@ case "$MODE" in
     else
       echo "gate.sh: no authored-content script is declared (governance.authored_content), so none runs"
     fi
+    ;;
+  preflight)
+    # Revision 18: what fails an expensive job anyway, judged before it
+    # starts. Each check here runs again in governance or code.
+    need_spec_spine
+    need_env EVENT_NAME
+    if [ "$EVENT_NAME" = pull_request ]; then
+      if [ "${STACKED_CI:-false}" = true ] && [ "$REQUIRE_DEFAULT_BASE" = true ] && [ "${BASE_REF:-}" != "$DEFAULT_BRANCH" ]; then
+        echo "statecraft:stacked-ci: the expensive jobs run on this stacked pull request by request; governance still refuses its base"
+      else
+        judge_base
+      fi
+    fi
+    spec_spine check --fail-on-warn
+    if [ -z "$CODE_SCRIPT" ] && [ -f Cargo.toml ] && command -v cargo > /dev/null 2>&1; then
+      cargo_verb fmt --all --check
+    else
+      echo "gate.sh: no Rust code selection here; formatting is judged by code"
+    fi
+    echo "preflight: ok"
     ;;
   code)
     if [ -n "$CODE_SCRIPT" ]; then external_code; exit 0; fi
@@ -394,18 +430,7 @@ case "$MODE" in
     echo "version=$version"
     ;;
   base)
-    # A stacked pull request merges into another branch and is never judged
-    # against the default branch (revision 4, rule 5).
-    if [ "$REQUIRE_DEFAULT_BASE" != true ]; then
-      echo "gate.sh: governance.require_default_base is false; the base is not judged"
-      exit 0
-    fi
-    need_env BASE_REF
-    if [ "$BASE_REF" != "$DEFAULT_BRANCH" ]; then
-      echo "gate.sh: this pull request's base is '$BASE_REF', not the default branch $DEFAULT_BRANCH: open it off $DEFAULT_BRANCH, or merge the one below it first" >&2
-      leave 1
-    fi
-    echo "the base is the default branch $DEFAULT_BRANCH"
+    judge_base
     ;;
   text)
     # The pull request's title and body, which become the merge commit's

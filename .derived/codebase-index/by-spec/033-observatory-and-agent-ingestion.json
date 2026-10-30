@@ -97,6 +97,6 @@
     "specId": "033-observatory-and-agent-ingestion",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "a4d06ad6cc634b7acfd15a8ca2d33e2bb0133e1a0955ea86da7cb7f754d95f86"
 }

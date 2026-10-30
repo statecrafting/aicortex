@@ -234,6 +234,6 @@
     "specId": "031-conversation-and-archive-imports",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "c0b1901e648c663bb6fd68185374361082825c7e7ddc6f42830c65f1d372806d"
 }

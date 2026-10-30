@@ -548,6 +548,18 @@ consumes this repository as a registered target.
   change, or a `git` or `path` source still stales the index. D-15's weekly
   grouping stays, to bound review volume.
 
+- **D-18 (2026-10-30, owner decision, exact pin at 0.31.0).** The pin moves
+  from 0.29.0 to spec-spine 0.31.0, together with the Statecraft profile move
+  to revision 21 that spec 060 authorizes: revision 21's producer links
+  spec-spine-core 0.31.0 and refuses any other pin, so 0.32.0 waits for a
+  statecraft-cli release that links 0.32. `spec-spine.toml [meta]
+  required_version` becomes `=0.31.0`, and `AGENTS.md`, `README.md`, the
+  architect agent and the profile's recorded engine pin move with it. Every
+  registry and codebase-index shard is regenerated with 0.31.0; the only
+  change is each shard's schema version, and no corpus edit was needed for
+  `check` or `lint` to pass at `--fail-on-warn`. A branch cut before this
+  entry regenerates its shards with 0.31.0 when it next merges main.
+
 ## Verification
 
 ```verify:cli
@@ -580,3 +592,13 @@ pin remains 0.28.0; ordinary Rust code, corpus attestation, supply chain and
 spec DAG checks retain their existing acceptance. Spec 054 records the
 concrete producer, renderer and reviewed plan identities. The bridge and
 engine upgrade records above remain the history of revision 13 adoption.
+
+## Revision 21 implementation record (2026-10-30)
+
+The scoped migration approved in spec 060 regenerates this spec's managed
+authority files with the revision 21 producer and moves the exact engine pin
+to 0.31.0 (D-18). Ordinary Rust code, corpus attestation, supply chain and
+spec DAG checks retain their existing acceptance, and the derived directory
+stays at `.derived/`. Spec 060 records the concrete renderer, producer and
+reviewed plan identities. The revision 14 record above remains the history of
+that adoption.

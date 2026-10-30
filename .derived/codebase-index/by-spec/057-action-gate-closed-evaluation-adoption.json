@@ -137,6 +137,6 @@
     "specId": "057-action-gate-closed-evaluation-adoption",
     "specStatus": "approved"
   },
-  "schemaVersion": "1.2.0",
+  "schemaVersion": "1.3.0",
   "shardHash": "32bcadd2442084d16a9ccf7501eda88f7b3c96f8323c89f9a31f9f674d094aa6"
 }
