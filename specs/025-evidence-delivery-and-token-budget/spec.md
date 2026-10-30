@@ -338,6 +338,11 @@ inside that memory's `Window` or `Record` (B-1), read under B-9.
   configured counter whose vocabulary is missing, the response names the
   `utf8-bytes` fallback and the recounted payload is within the budget in
   that fallback's units.
+- **FR-011.** At a budget where a conversational hit's `Window { radius:
+  1 }` does not fit but its whole turn does, the hit is delivered as
+  `Turn` with the reason `reduced`, never cut to a chunk; and a request
+  that names `Turn` as its unit is refused as an unknown unit, over both
+  `POST /search` and the MCP `search` tool.
 
 ## 5. Acceptance criteria
 
