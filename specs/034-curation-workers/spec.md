@@ -1,7 +1,7 @@
 ---
 id: "034-curation-workers"
 title: "Curation: atomize, enrich, consolidate, expire, digest, all bounded and reversible"
-status: approved
+status: draft
 kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
@@ -25,6 +25,7 @@ extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
+  - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
 summary: >
   Without curation a memory store becomes a landfill: long notes that match
   nothing, near-duplicates from three sources, facts that stopped being
@@ -102,6 +103,36 @@ Five worker modules, the scheduler, and their fixtures inside
 - **B-10 (cost).** Workers run within a configured budget per scope per
   period, and a scope that exhausts its budget stops and says so rather
   than running unbounded work over a large store.
+- **B-11 (retirement valve; added 2026-10-25, D-3).** A retirement is any
+  transition a curator makes that removes a memory, an edge, or a derived
+  item from active recall: supersede, expire, or quarantine. Each
+  `(scope, worker)` has a valve: at most a configured number of
+  retirements per window (default 100 per 24 hours), and, above a small
+  floor (default 25), at most a configured share of the worker's own live
+  outputs in the scope (default 20 percent). A run whose plan would cross
+  either limit is held before it commits anything: it writes nothing,
+  retires nothing, leaves the previous state live, records the held plan's
+  counts, raises a review item (023), and emits an event. A held run is
+  released only by an operator decision recorded in the ledger, which
+  admits that one plan and does not raise the valve. The valve counts
+  across runs in the window, so splitting a large retirement into many
+  small runs does not pass it. It sits beside B-7's undo: the undo
+  repairs a bad run after the fact, and the valve keeps a bad run from
+  becoming large (`gbrain://retirement-valve`).
+- **B-12 (an empty result is held without proof; added 2026-10-25,
+  D-3).** When a worker recomputes what it derives from a source (a
+  memory it atomized or enriched, or the inputs of a digest) and the new
+  result is empty where the live result is not, the run is held exactly
+  as in B-11, unless the source is proven empty. Proven empty means a fact
+  in the store, not the absence of output: the source memory is no longer
+  `Active`, or its body is normalized-empty, or a source adapter (030)
+  recorded an explicit empty listing with its checkpoint. An extractor
+  that failed, timed out, or returned nothing is never proof.
+- **B-13 (a partial result retires nothing; added 2026-10-25, D-3).** A
+  batch cut short by B-10's budget, by a lease loss, or by an input bound
+  is partial. A partial result is applied additively: it creates what it
+  produced and retires nothing, because a missing item in a partial result
+  says nothing about the source.
 
 ## 4. Functional requirements
 
@@ -119,6 +150,16 @@ Five worker modules, the scheduler, and their fixtures inside
   completed units.
 - **FR-007.** No curator path can construct an `Instruction` trust class
   (compile-fail test).
+- **FR-008.** A fixture run planning one more retirement than the valve
+  allows writes nothing, leaves every prior status unchanged, and raises
+  one review item; two runs in one window whose sum crosses the valve are
+  treated the same way on the second run; an operator release admits that
+  plan once.
+- **FR-009.** An enrichment re-run whose extractor returns no entities for
+  a memory that still has live edges is held; the same re-run after the
+  memory is superseded retires the edges.
+- **FR-010.** A batch interrupted by budget exhaustion creates its outputs
+  and retires nothing.
 
 ## 5. Acceptance criteria
 
@@ -142,6 +183,20 @@ isolation (012 B-9).
 - **D-2 (2026-09-03, this spec).** Digests are pulled, not mailed. Adding
   outbound mail would add an egress host, a template surface, and a
   deliverability problem to a product whose value is local.
+
+- **D-3 (2026-10-25, amendment, pending owner review).** Added B-11 to
+  B-13 and FR-008 to FR-010: a retirement valve per worker and window, a
+  hold on empty results without proof that the source is empty, and an
+  additive rule for partial results. The observation is
+  `gbrain://retirement-valve` (`docs/design/00-lineage.md`): a derived
+  writer that is held, writing nothing, when one window would retire too
+  much, and that never treats an empty result as proof of an empty source.
+  B-7's undo already makes a bad run reversible; these rules bound how much
+  damage a run can do before a human sees it, which matters most for the
+  failure B-7 cannot see, an extractor that silently returns nothing. The
+  defaults are guesses to be measured, not tuned values. The amendment adds
+  behavior to an approved spec that no human has reviewed, so this spec
+  returns to `status: draft` (constitution V).
 
 ## Verification
 
