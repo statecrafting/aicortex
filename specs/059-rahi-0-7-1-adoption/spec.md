@@ -6,7 +6,7 @@ kind: "tooling"
 domain: "chassis"
 created: "2026-10-29"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: high
 wave: 4
 depends_on:
