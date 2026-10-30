@@ -258,8 +258,8 @@
       }
     ],
     "specId": "025-evidence-delivery-and-token-budget",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "b6d7d84a8d575ff2559d35cbc82ea77e05a87386db4085cd165017afec772396"
+  "shardHash": "ed7e436dca934f3fb183be22fa244f32a96ca0c994b8f973c2c82115286984fd"
 }

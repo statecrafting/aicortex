@@ -243,8 +243,8 @@
       }
     ],
     "specId": "026-read-side-entity-pointers",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "766a6225d42bda3b33530bba5199fc77838b4a2d25f466e6338c546cda92021c"
+  "shardHash": "5a64df4c4ec97482ad3b327bb6ed745fc65908843fde31d2dee77501cb02b0c8"
 }

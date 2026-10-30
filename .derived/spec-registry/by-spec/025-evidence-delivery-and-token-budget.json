@@ -168,10 +168,10 @@
       "Verification"
     ],
     "specPath": "specs/025-evidence-delivery-and-token-budget/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Recall ranks memories and reduces each to its best chunk (018 B-4). For a question whose answer depends on a whole conversation, that chunk is too little, and a client that wants more must fetch each record in a second call with no budget at all. This spec adds a delivery stage after ranking: the caller selects an evidence unit (chunk, neighbor window, whole record, or auto), and the stage packs the ranked results into a token budget that is a hard cap, in the declared counter's units, over everything the model reads, including 019's framing statement, every envelope delimiter and label, and every cut marker. For a turn of an imported conversation, stored one memory per message under 031, the window is the turns around the hit and the record is the whole conversation. The default counter is a fixed formula over UTF-8 bytes, named in every response. Packing is deterministic. The default unit stays the chunk until the evaluation corpus (040) shows that another one is better.\n",
     "title": "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
   },
-  "shardHash": "b6d7d84a8d575ff2559d35cbc82ea77e05a87386db4085cd165017afec772396",
+  "shardHash": "ed7e436dca934f3fb183be22fa244f32a96ca0c994b8f973c2c82115286984fd",
   "specVersion": "1.10.0"
 }

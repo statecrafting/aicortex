@@ -98,10 +98,10 @@
       "Verification"
     ],
     "specPath": "specs/022-client-adapters/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Connecting is one URL, and everything a client needs beyond that is generated rather than written by hand. This spec owns the capability matrix: which clients support remote MCP, which support OAuth against it, and what each offers for automatic capture, which is the only place they genuinely differ. It ships per-client configuration snippets and the hook or notification payloads that turn a session into captured memories, and a route that serves the correct snippet for a client so setup is a copy rather than a document to follow.\n",
     "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
   },
-  "shardHash": "9ed923618cb361233b840d329f05a21b6f7321e126fbf5e6040d21d78088a893",
+  "shardHash": "e1c47a9bbd6c0f6e14f70b2b5a7771c7e7a7f0f255c494955d64071a52f99130",
   "specVersion": "1.10.0"
 }

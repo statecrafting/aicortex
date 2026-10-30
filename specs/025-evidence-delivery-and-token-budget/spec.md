@@ -1,7 +1,7 @@
 ---
 id: "025-evidence-delivery-and-token-budget"
 title: "Evidence delivery: a selectable evidence unit under a token budget that counts the framing"
-status: draft
+status: approved
 kind: "feature"
 domain: "retrieval"
 created: "2026-10-25"
