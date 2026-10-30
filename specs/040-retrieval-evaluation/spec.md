@@ -149,9 +149,13 @@ outside the gate, through governed egress, under 041.
   5, 10, and 20, and the B-3 metrics where they apply). Answer accuracy,
   which needs a reader model and a judge model, is an optional second
   stage under B-12's rules. The dataset is never committed: the operator
-  supplies it, the adapter verifies it against a digest pinned in
+  supplies it, the adapter verifies it against a SHA-256 digest pinned in
   `eval/external/<suite>/`, and the report names the suite, its version,
-  the digest, the configuration, and the commit. External results are
+  the digest, the configuration, and the commit. For a suite, the
+  repository holds only that digest, the suite's name, version, source
+  URL, and licence identifier, and FR-006's fixture, which is written by
+  hand for this repository in the suite's file layout and copies no entry
+  of the suite (D-4). External results are
   never part of `check` and never update a baseline. A suite runs only on
   the temporary instance, never against a user's scope.
 - **B-10 (preregistered sealed confirmation set).** Before any run of a
@@ -242,9 +246,9 @@ outside the gate, through governed egress, under 041.
   anything scores zero for it.
 - **FR-006.** The external adapter refuses a dataset whose digest does not
   match the pinned one, and over a committed miniature synthetic fixture in
-  the LongMemEval layout (written for this repository, containing no
-  LongMemEval content) reports the recorded retrieval metrics with no
-  network.
+  the LongMemEval layout (written by hand for this repository, copying no
+  LongMemEval entry, question, answer, or session) reports the recorded
+  retrieval metrics with no network.
 - **FR-007.** `confirm` refuses a preregistration committed after the
   set's first run, a set whose digest differs, and a second run of the same
   preregistration.
@@ -299,7 +303,40 @@ contradiction the probe finds, which is review (023) or curation (034).
   of its content, so FR-006 does not depend on the dataset's licence; the
   dataset itself is never committed. Open for the owner: whether
   LongMemEval's licence allows its digest to be committed and results over
-  it to be reported.
+  it to be reported (resolved 2026-10-30, D-4).
+- **D-4 (2026-10-30, owner decision, resolves D-3's open question).** The
+  owner answered on 2026-10-30: "commit only the digest and a fixture we
+  write ourselves." The owner's reasons, which this entry carries: a
+  SHA-256 digest of a file is not a copy of the file, and reporting
+  results on a public benchmark is normal practice; the only real risk is
+  the small FR-006 fixture, which is written by hand in LongMemEval's
+  layout instead of copying any of its entries, so the licence question is
+  off the gate; and the real dataset stays operator-supplied, as B-9
+  already says. B-9 now lists exactly what the repository holds for a
+  suite, and FR-006 says the fixture copies no entry. The owner recalled
+  that LongMemEval's code and dataset are MIT-licensed and asked for the
+  dataset card to be checked before that is relied on. Checked on
+  2026-10-29: the Hugging Face dataset card of the current release,
+  `https://huggingface.co/datasets/xiaowu0162/longmemeval-cleaned`
+  (repository revision `98d7416c24c778c2fee6e6f3006e7a073259d48f`, files
+  `longmemeval_s_cleaned.json`, `longmemeval_m_cleaned.json`, and
+  `longmemeval_oracle.json`), declares the licence tag `mit` and carries
+  no further licence text. The earlier card,
+  `https://huggingface.co/datasets/xiaowu0162/longmemeval`, also declares
+  `mit` and marks itself deprecated in favour of the cleaned release. The
+  code repository, `https://github.com/xiaowu0162/LongMemEval`, carries
+  an MIT `LICENSE` file. The MIT terms would permit committing the data
+  with its notice, but this spec does not rely on that: it commits none of
+  the data, and the digest, the identifiers, and the hand-written fixture
+  need no licence from the benchmark. The licence identifier recorded in
+  `eval/external/longmemeval/` is `MIT`, with the card URL and the date it
+  was read, so a later change to the card is visible against it.
+  Rejected: committing a sample of real entries as the fixture, which
+  would make FR-006 depend on the licence and on keeping its notice.
+
+Status: this spec remains `status: draft`. D-4 answers the licence
+question only; the D-3 amendment as a whole still awaits the owner's
+approval, which is a separate human act (constitution V).
 
 ## Verification
 
