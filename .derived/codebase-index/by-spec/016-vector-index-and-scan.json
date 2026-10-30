@@ -4,31 +4,6 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/Cargo.toml' does not exist",
-        "path": "crates/aicortex-index/Cargo.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/lib.rs' does not exist",
-        "path": "crates/aicortex-index/src/lib.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/vector.rs' does not exist",
-        "path": "crates/aicortex-index/src/vector.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/scan.rs' does not exist",
-        "path": "crates/aicortex-index/src/scan.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/topk.rs' does not exist",
-        "path": "crates/aicortex-index/src/topk.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/src/text.rs' does not exist",
         "path": "crates/aicortex-index/src/text.rs"
       },
@@ -44,18 +19,8 @@
       },
       {
         "code": "W-001",
-        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/tests/scan.rs' does not exist",
-        "path": "crates/aicortex-index/tests/scan.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/tests/text.rs' does not exist",
         "path": "crates/aicortex-index/tests/text.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '016-vector-index-and-scan' file unit 'crates/aicortex-index/benches/scan.rs' does not exist",
-        "path": "crates/aicortex-index/benches/scan.rs"
       }
     ]
   },
@@ -65,13 +30,61 @@
     ],
     "implementingPaths": [
       {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index",
+        "source": "manifest-metadata"
+      },
+      {
+        "path": "crates/aicortex-index/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index/benches/scan.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index/src/scan.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index/src/topk.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index/src/vector.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index/tests/alloc.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index/tests/common/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-index/tests/scan.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-index/Cargo.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -80,7 +93,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-index/benches/scan.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -89,7 +106,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-index/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -107,7 +128,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-index/src/scan.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -134,7 +159,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-index/src/topk.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -143,7 +172,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-index/src/vector.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -152,7 +185,37 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-index/tests/alloc.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/tests/alloc.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-index/tests/common/mod.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/tests/common/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-index/tests/scan.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -167,6 +230,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-index/tests/text.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
         }
       },
       {
@@ -187,5 +263,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "6b2c974290318f41c3326f8cf3d17be75950f8802be055c63131b5cf81a1608d"
+  "shardHash": "eb38ccfb1be72fb2d71222425cbe252db037ea0610159d83bfa651e555409d0f"
 }
