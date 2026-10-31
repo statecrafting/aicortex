@@ -31,7 +31,7 @@
       "contentHash": "ef923ecb44037eadeafcaf8886fc3091acfe3d02cc41003b172459b42a155df8"
     },
     ".claude/settings.json": {
-      "contentHash": "ea72f9be27661ddbc7870d47451a96e3f1341e117902cbdbcb73daaac07a388a"
+      "contentHash": "ff5d10a65064ec18f120f1b7be020222db1e7f004cd08b3f4937df0b1226b956"
     },
     ".claude/skills/build/SKILL.md": {
       "contentHash": "ec0da9456c8324b71207a0b53cb27b2e29bebe60c4aa957ad360491825a0f676"
@@ -64,7 +64,7 @@
       "contentHash": "7bfa43dd22323b9c16ff46916f61b70b33c0e853f11a35996f2c6ec1854a0b33"
     },
     ".gitattributes": {
-      "contentHash": "46979a33e79fb7e756ecb87e0905bacc9c7bf0f177630dbea1bb693b0f556d85"
+      "contentHash": "3dcb140a17fda2a50440fb20693b7b49e98e60310753e43f0d41cb2267b87fe8"
     },
     ".githooks/enable-merge-driver.sh": {
       "contentHash": "c40d9d67fe30a4308c7d293a21a133ccbb602b1a84dc844113caa92cf82d1f97"
@@ -97,7 +97,7 @@
       "contentHash": "b4a00849300af2cf7d3da555b13cae66c0e9848bcfd7370c5615fac5480afea7"
     },
     ".gitignore": {
-      "contentHash": "e0d58f7fa7c96a42db6f0bb46bd47b8a219af01c7b23d945d6d9e3d5f70c3d60"
+      "contentHash": "dd96f32b2c55112ba1186087873013606716d747a2ac590b85f68bee8acda60e"
     },
     ".mcp.json": {
       "contentHash": "267962ad307e5707f2a025ce1fa40b80d52cd0cf3f8c8bdb25d03a6459366a1a"
@@ -124,7 +124,7 @@
       "contentHash": "4a857c736ef49feafc0ad5d27383c5db3f0e48e4941b57f67ea1156542687d71"
     },
     "Makefile": {
-      "contentHash": "ac68f19e9632b269198b44f2d70be1e625f9e4e28c43f1f067f97f0d5e5d2c1e"
+      "contentHash": "7cadeb615fee0f2f88afb13cc2aaa8148c8c6dafd9770d649e3beb366981adb9"
     },
     "README.md": {
       "contentHash": "09da1a0acf1a1123a3a55e7bfbd11bfaff500d777a339683385b8a3a56c2f722"

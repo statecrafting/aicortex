@@ -20,6 +20,8 @@ SPEC_SPINE ?= $(if $(wildcard $(SPEC_SPINE_LOCAL)),$(SPEC_SPINE_LOCAL),spec-spin
 # HEAD, then `main`. An explicit `BASE=` on the command line still wins.
 SPEC_SPINE_DEFAULT_BRANCH ?= $(shell git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
 BASE ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
+# The derived directory, read from spec-spine.toml [layout] (spec 062).
+DERIVED_DIR := $(or $(shell sed -n 's/^derived_dir *= *"\(.*\)"/\1/p' spec-spine.toml),.derived)
 
 .PHONY: gate refresh spine spec-dag ci build test lint fmt deny coverage attest verify help
 
@@ -83,9 +85,9 @@ coverage:
 
 ## attest: the corpus attestation (spec-spine's ledger seal), never committed
 attest:
-	@mkdir -p .derived/attestation
-	$(SPEC_SPINE) attest --with-coupling > .derived/attestation/corpus.json
-	@echo "attestation written to .derived/attestation/corpus.json"
+	@mkdir -p $(DERIVED_DIR)/attestation
+	$(SPEC_SPINE) attest --with-coupling > $(DERIVED_DIR)/attestation/corpus.json
+	@echo "attestation written to $(DERIVED_DIR)/attestation/corpus.json"
 
 ## verify: run one spec's declared acceptance, e.g. make verify SPEC=018-retrieval-and-recall-trace
 verify:
