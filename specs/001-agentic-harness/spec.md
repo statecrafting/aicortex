@@ -616,3 +616,14 @@ spec DAG checks retain their existing acceptance, and the derived directory
 stays at `.derived/`. Spec 060 records the concrete renderer, producer and
 reviewed plan identities. The revision 14 record above remains the history of
 that adoption.
+
+## Revision 22 implementation record (2026-10-30)
+
+The scoped migration approved in spec 061 regenerates this spec's managed
+authority files with the revision 22 producer, over the exact engine pin
+0.32.0 that D-19 moved first. Revision 22 renders its own required
+`supply-chain` job, so the project's extra job of that name is retired from
+the setup parameters and the profile's job carries the supply chain check;
+ordinary Rust code, corpus attestation and spec DAG keep their acceptance,
+and the derived directory stays at `.derived/`. Spec 061 records the
+renderer, producer and reviewed plan identities.

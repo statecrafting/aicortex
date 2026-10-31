@@ -18,8 +18,9 @@ jobs:
       has_cargo: ${{ steps.tree.outputs.has_cargo }}
       has_deny: ${{ steps.tree.outputs.has_deny }}
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
       # `hashFiles` is not allowed in a job-level `if` (GitHub rejects the
       # workflow at startup, so the run reports as "workflow file issue"
@@ -86,10 +87,12 @@ jobs:
     if: needs.spine.outputs.has_cargo == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       # rustup installs the toolchain pinned in rust-toolchain.toml (spec 010).
       - run: rustup show
-      - uses: Swatinem/rust-cache@v2
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
       - run: cargo build --workspace --locked
       - run: cargo test --workspace --locked
       - run: cargo clippy --workspace --all-targets --locked -- -D warnings
@@ -101,16 +104,19 @@ jobs:
     if: needs.spine.outputs.has_deny == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
-      - uses: EmbarkStudios/cargo-deny-action@v2
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25 # v2.1.1
 
   attest:
     name: corpus attestation
     needs: spine
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          persist-credentials: false
           fetch-depth: 0
       - name: Install spec-spine
         run: |
@@ -121,7 +127,7 @@ jobs:
       # (spec-spine spec 023): the repo's own ledger seal, published as a
       # build artifact so a later steward can `verify-attestation --recompute`.
       - run: spec-spine attest --with-coupling > corpus-attestation.json
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: corpus-attestation-${{ github.sha }}
           path: corpus-attestation.json
