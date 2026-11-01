@@ -74,6 +74,7 @@ extra_hashed_inputs = [
   ".statecraft/environment.json",
   ".statecraft/setup/**/*",
   ".gitignore",
+  ".gitleaks.toml",
   ".claude/agents/**/*",
   ".claude/rules/**/*",
   ".claude/skills/**/*",
@@ -113,6 +114,7 @@ governance = [
   ".statecraft/environment.json",
   ".statecraft/setup/**/*",
   ".gitignore",
+  ".gitleaks.toml",
   ".githooks/**/*",
 ]
 deployment = ["docker/**/*", "deploy/**/*"]
