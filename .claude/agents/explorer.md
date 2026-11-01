@@ -32,7 +32,7 @@ mutation: read-only
 | Rust workspace | `crates/aicortex-*/`, `apps/aicortex/` | types, store, gate, embed, index, graph, recall, api, mcp, ingest, curate, eval; dependencies point downward only |
 | Standard | `standards/spec/` | Constitution, contract, templates |
 | Design | `docs/design/` | The analysis and the rendered build order |
-| Derived | `.derived/` | Compiler output (read only through `spec-spine`) |
+| Derived | `.statecraft/derived/` | Compiler output (read only through `spec-spine`) |
 
 Before spec 010 lands there is no `Cargo.toml`; an absent crate directory is expected until its founding spec ships. `spec-spine registry show <id> --json` reports `implementation` per spec.
 

@@ -173,7 +173,7 @@ case "${1:-}" in
     in_repo
     while IFS= read -r -d '' file; do
       case "$file" in
-        .derived/*|.statecraft/derived/*|*.png|*.jpg|*.jpeg|*.gif|*.ico|*.pdf|*.node) continue ;;
+        .statecraft/derived/*|*.png|*.jpg|*.jpeg|*.gif|*.ico|*.pdf|*.node) continue ;;
       esac
       [ -f "$file" ] && files+=("$file")
     done < <(git ls-files -z --cached --others --exclude-standard) || exit 4
@@ -214,7 +214,7 @@ case "${1:-}" in
       mode=range
       while IFS= read -r -d '' file; do
         case "$file" in
-          .derived/*|.statecraft/derived/*|*.png|*.jpg|*.jpeg|*.gif|*.ico|*.pdf|*.node) continue ;;
+          .statecraft/derived/*|*.png|*.jpg|*.jpeg|*.gif|*.ico|*.pdf|*.node) continue ;;
         esac
         [ -f "$file" ] && files+=("$file")
       done < <(git diff --name-only -z "$2...$3" --) || exit 4

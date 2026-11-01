@@ -24,7 +24,7 @@ order (spec 048).
 
 Governance is `spec-spine` **0.32.0** on your `PATH` (CI pins the same
 version, and `spec-spine.toml [meta] required_version` makes the CLI refuse
-to run below it). All governed reads of `.derived/` go through its CLI.
+to run below it). All governed reads of `.statecraft/derived/` go through its CLI.
 
 ## New Sessions
 
@@ -66,7 +66,7 @@ to derive its plan; anything added here is picked up on the next init.
    from `/next` if cheap), freshness verdicts, recent activity, and a
    ready-to-help line.
 
-**Read discipline:** never parse `.derived/**/*.json` directly (no `jq`,
+**Read discipline:** never parse `.statecraft/derived/**/*.json` directly (no `jq`,
 `python`, `awk`, `sed`); all structural and lifecycle data comes from
 `spec-spine` subcommands.
 
@@ -122,7 +122,7 @@ each on its own branch from the latest default branch (spec 048). Specs `000`, `
 2. **Branch and flip.** Work on a feature branch named after the spec id
    (`012-store-schema-and-repositories`). Flip the spec to `implementation: in-progress`,
    run `make refresh` (`spec-spine compile && spec-spine index`), and commit
-   the flip with the regenerated `.derived/` shards before writing code.
+   the flip with the regenerated `.statecraft/derived/` shards before writing code.
    Never commit to `main`.
 3. **Re-read the spec in full before coding.** The design truth precedes
    the code. If the design is imprecise, record the choice you make as a
@@ -137,7 +137,7 @@ each on its own branch from the latest default branch (spec 048). Specs `000`, `
    file). When you add a third-party dependency, add it to the workspace
    manifest's `[workspace.dependencies]` and declare the `extends` edge on
    spec 010's `Cargo.toml` section. Touching a file another spec owns
-   requires an `extends` edge on that spec's unit. Do not edit `.derived/`
+   requires an `extends` edge on that spec's unit. Do not edit `.statecraft/derived/`
    by hand.
 5. **Hold the memory invariants.** `.claude/rules/memory-invariants.md` is
    the checklist: capture is one transaction, every memory carries
@@ -147,7 +147,7 @@ each on its own branch from the latest default branch (spec 048). Specs `000`, `
    change that needs one of these relaxed is a human decision: stop and
    report.
 6. **Run the gate before every commit.** `make spine`, then `make ci`. All
-   must exit 0. Commit the regenerated `.derived/` shards with the code they
+   must exit 0. Commit the regenerated `.statecraft/derived/` shards with the code they
    describe.
 
    `make spine` is `make refresh` followed by `make gate`:
@@ -250,7 +250,7 @@ profile, never by hand.
 - Responsibility is `domain`, role is `kind`, build wave is `wave`; all
   three are in every spec's frontmatter and validated on compile.
 - `data/` is the orchestrator's state root for this project; never commit
-  it. `.derived/` shards are committed; `build-meta.json` is not.
+  it. `.statecraft/derived/` shards are committed; `build-meta.json` is not.
 - No em dash anywhere in authored text (a hook enforces file writes).
 - Conventional commits, spec id as scope; no AI attribution; no session
   links in anything that lands in git or on GitHub.

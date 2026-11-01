@@ -103,7 +103,7 @@ touch the app, the image (043), or any deployment (044).
   `cargo package --locked` for each B-2 crate, confirm every file a crate
   reads at compile time (migration SQL, `include_str!` inputs, test-free
   fixtures it embeds) is inside its package, and refuse a package that
-  would carry a path to `fixtures/`, `data/`, or `.derived/`.
+  would carry a path to `fixtures/`, `data/`, or `.statecraft/derived/`.
 - **B-6 (registry-only consumer).** The check MUST build a throwaway
   consumer outside the workspace that depends on the packaged crates
   through a local registry overlay only, with no path, git, or `[patch]`

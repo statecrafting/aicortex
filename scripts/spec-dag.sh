@@ -2,7 +2,7 @@
 # spec-dag.sh: the DAG check the coupling gate does not do (spec 001 FR-001).
 #
 # Reads `spec-spine registry list --json` (a typed CLI read, never the
-# .derived/ shards) and refuses:
+# .statecraft/derived/ shards) and refuses:
 #   - a depends_on target that is not in the corpus,
 #   - a depends_on target with a higher or equal ordinal (build order is the
 #     ordinal; claude-observatory schedules lowest-numbered-ready),

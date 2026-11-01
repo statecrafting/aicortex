@@ -20,7 +20,7 @@ no authored YAML documents, no generated prose committed as if authored.
 ## II. Compiler-owned JSON machine truth
 
 Machine-consumable truth about the corpus is emitted only by `spec-spine`
-into `.derived/`. Both shard trees are committed; neither is hand-edited.
+into `.statecraft/derived/`. Both shard trees are committed; neither is hand-edited.
 
 ## III. Spec-first development
 

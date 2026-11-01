@@ -36,6 +36,7 @@ establishes:
   - ".githooks/"
   - ".gitattributes"
   - ".gitignore"
+  - ".gitleaks.toml"
   - "scripts/check-authored-content.sh"
   - "scripts/statecraft/"
   - "scripts/spec-dag.sh"
@@ -88,7 +89,7 @@ constitution is 000's; this spec owns the operational summary of it.
   load on touch (`memory-invariants` for the admission, understanding,
   recall, and MCP crates; `build-commands` for anything under `crates/`,
   `apps/`, `eval/`, `docker/`, or `deploy/`;
-  `derived-artifacts-are-compiler-output` for `.derived/**`). A scoped rule
+  `derived-artifacts-are-compiler-output` for `.statecraft/derived/**`). A scoped rule
   reinforces a standing one where the work is; it never replaces it.
 - **B-4 (agents).** `architect`, `explorer`, `implementer`, and `reviewer`,
   all self-contained, with the read-only ones actually read-only.
@@ -638,3 +639,14 @@ the setup parameters and the profile's job carries the supply chain check;
 ordinary Rust code, corpus attestation and spec DAG keep their acceptance,
 and the derived directory stays at `.derived/`. Spec 061 records the
 renderer, producer and reviewed plan identities.
+
+## Derived directory move record (2026-10-31)
+
+The move D-20 records, authorized by spec 062, landed in four pull requests:
+the tooling that read either location (#105), the secret-scan allowlist
+`.gitleaks.toml` (#108, spec 062 D-2), `spec-spine.toml` pointing
+`derived_dir` at `.statecraft/derived` with the regenerated shards under the
+owner-approved coupling waiver (#106), and the cleanup that deletes
+`.derived/`, moves every live reference, and claims `.gitleaks.toml` in this
+spec's `establishes`. The dated entries above that name `.derived/` record
+what was true when they were written.

@@ -21,8 +21,6 @@ target
 #.idea/
 
 # spec-spine: only the wall-clock build metadata is derived-and-ignored
-.derived/**/build-meta.json
-.derived/attestation/
 .statecraft/derived/attestation/
 # claude-observatory state root for this project
 data/

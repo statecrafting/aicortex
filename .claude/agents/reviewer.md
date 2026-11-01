@@ -31,7 +31,7 @@ memory: project
 | Spec corpus | `specs/NNN-slug/spec.md` | Frontmatter valid, `establishes` covers every new file, D-n recorded, status flips honest |
 | Rust workspace | `crates/aicortex-*/` | Correctness, error variants and exit codes, dependency direction, no unsafe |
 | Admission, understanding, recall | `aicortex-store`, `aicortex-gate`, `aicortex-embed`, `aicortex-index`, `aicortex-recall` | The memory invariants (`.claude/rules/memory-invariants.md`) |
-| Derived | `.derived/` | Regenerated, committed, never hand-edited |
+| Derived | `.statecraft/derived/` | Regenerated, committed, never hand-edited |
 
 ## Process
 
