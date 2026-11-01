@@ -574,6 +574,17 @@ consumes this repository as a registered target.
   pass at `--fail-on-warn` with no corpus edit. A branch cut before this entry
   regenerates its shards with 0.32.0 when it next merges main.
 
+- **D-20 (2026-10-31, owner decision, the derived directory).** The committed
+  derived directory moves from `.derived/` to `.statecraft/derived/`, as spec
+  062 authorizes, so revision 22's policy guard treats the shards as
+  generated and a pin move can regenerate them in its own pull request. The
+  move lands in three pull requests (spec 062 section 3): tooling that reads
+  either location, then `spec-spine.toml` with the regenerated shards alone
+  under an owner-approved coupling waiver, then the removal of `.derived/`
+  and the documents that name it. A branch cut before the configuration pull
+  request regenerates its shards under `.statecraft/derived/` when it next
+  merges main.
+
 ## Verification
 
 ```verify:cli

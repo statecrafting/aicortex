@@ -1,0 +1,60 @@
+{
+  "record": {
+    "amends": [
+      "001-agentic-harness"
+    ],
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-10-31",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "001-agentic-harness",
+      "061-statecraft-profile-22"
+    ],
+    "domain": "governance",
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "062-statecraft-derived-directory",
+    "implementation": "in-progress",
+    "kind": "tooling",
+    "obligations": [
+      {
+        "anchor": "3-migration-contract",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "spec-spine.toml [layout] derived_dir is .statecraft/derived, every committed registry and codebase-index shard lives under .statecraft/derived/ and is fresh, no file remains under .derived/, and every tool, hook and document that names the derived directory names .statecraft/derived/."
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "062-the-derived-directory-moves-to-statecraft-derived": "473ea131d51efb12e3eec89b7d893656ceb5da525aa78ac6f6cb0a237df5aab3",
+      "1-purpose": "0a449aca3af151331d5b4c48ed78ba49e605cb3b29f42311807af6338b31a92c",
+      "2-territory": "e54656e757c8c10e6dfd7791ee6a8eb23873f18f4f08e04ceb3346cc13ed3c3d",
+      "3-migration-contract": "0d44cd13df45164842fe7d81b7de74c365c56b13adaf04f7a3e3ac6df230599e",
+      "4-acceptance-criteria": "64a46c3ace2b5f620a2daaf3815a4453f0255287909eb60ed6ab36cd80fc14b3",
+      "5-out-of-scope": "1c63f96141e5bf304b41762eac83f169b79b1379c3c7bb4877a3e2babf3b30c5",
+      "6-resolved-decisions": "7d7503c4106b59b230496036669e2bdd900137df57c453b8041855ba2009bbe2",
+      "7-approval-basis": "f1fd6af779dd4c543d3470fb0d6d69727e6f890d91d19a77f02999c83c7fe6b3",
+      "verification": "79b4ba8975abd1e5e9462b1e1f2e1f384d8f33583e90c60e64db65dd0280feca"
+    },
+    "sectionHeadings": [
+      "062: The derived directory moves to .statecraft/derived/",
+      "1. Purpose",
+      "2. Territory",
+      "3. Migration contract",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "7. Approval basis",
+      "Verification"
+    ],
+    "specPath": "specs/062-statecraft-derived-directory/spec.md",
+    "status": "approved",
+    "summary": "Authorizes moving spec-spine's committed derived directory from .derived/ to .statecraft/derived/, the path Statecraft profile revision 22 treats as generated. Revision 22's policy guard ignores .statecraft/derived/ but not .derived/, so while the shards live at .derived/ a spec-spine pin move cannot regenerate them in its own pull request (spec 061 D-4). The move lands as three pull requests because the guard keeps spec-spine.toml apart from every other non-generated path.\n",
+    "title": "Move the committed derived directory to .statecraft/derived/"
+  },
+  "shardHash": "168ebbb806ed9bf1fd16c79014d4d6ac2365b5936f8ec49b2d1fcb06d52766c9",
+  "specVersion": "1.11.0"
+}
