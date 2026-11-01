@@ -99,6 +99,9 @@
     ".gitignore": {
       "contentHash": "dd96f32b2c55112ba1186087873013606716d747a2ac590b85f68bee8acda60e"
     },
+    ".gitleaks.toml": {
+      "contentHash": "03cc7100c8bb8a2a9d9656a31a7c659793a42421aab95382f1711f031a63628b"
+    },
     ".mcp.json": {
       "contentHash": "267962ad307e5707f2a025ce1fa40b80d52cd0cf3f8c8bdb25d03a6459366a1a"
     },

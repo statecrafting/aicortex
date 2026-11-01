@@ -101,6 +101,21 @@ pin, and any remote setting.
   and `lint --fail-on-warn`, and failed coupling only. The owner approved a
   `Spec-Drift-Waiver` for the configuration pull request alone; this spec and
   spec 001 D-20, landed before it, are the spec edits the waiver points to.
+- **D-2 (2026-10-31, implementation, the secret scan allowlist).** The first
+  configuration candidate failed revision 22's `secret-scan` job: gitleaks'
+  `generic-api-key` rule matched three registry shards
+  (`020-http-api-and-scopes`, `025-evidence-delivery-and-token-budget`,
+  `045-durable-coordination-protocol`), where a section anchor maps to the
+  SHA-256 digest of the section. The same lines had passed at `.derived/`
+  only because the job scans the pull request's own commits. The profile
+  leaves the allowlist to the project, so a committed `.gitleaks.toml`,
+  landed ahead of the configuration pull request, keeps the default rules and
+  allows only a value of exactly 64 lowercase hex digits in a path under
+  `.statecraft/derived/`. A claimed file must sit in a content hash (lint
+  L-008), and that list lives in `spec-spine.toml`, which the policy guard
+  keeps apart from the new file. So the file lands unclaimed, the
+  configuration pull request adds it to `[index] extra_hashed_inputs`, and the
+  cleanup pull request claims it in spec 001's `establishes`.
 
 ## 7. Approval basis
 
