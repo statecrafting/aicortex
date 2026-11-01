@@ -1,0 +1,216 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "012-store-schema-and-repositories",
+      "014-memory-lifecycle-and-erasure",
+      "018-retrieval-and-recall-trace",
+      "020-http-api-and-scopes",
+      "035-agent-coordination"
+    ],
+    "domain": "ops",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/Cargo.toml"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/lib.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/corpus.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/metrics.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/runner.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/report.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/main.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/tests/metrics.rs"
+      },
+      {
+        "kind": "file",
+        "path": "eval/README.md"
+      },
+      {
+        "kind": "file",
+        "path": "eval/golden/"
+      },
+      {
+        "kind": "file",
+        "path": "eval/baselines/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/external.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/prereg.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/judge.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/src/contradictions.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/tests/external.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/tests/prereg.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-eval/tests/contradictions.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/query_capture.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/query_capture.rs"
+      },
+      {
+        "kind": "file",
+        "path": "eval/external/"
+      },
+      {
+        "kind": "file",
+        "path": "eval/prereg/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "018-retrieval-and-recall-trace",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/search.rs"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "040-retrieval-evaluation",
+    "implementation": "pending",
+    "kind": "kernel",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/041-privacy-and-egress-boundary/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/020-http-api-and-scopes/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/052-bitemporal-claim-history-and-projection/spec.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionDigests": {
+      "040-evaluation": "d74e2f9e35c478a0b3c029843ec1aa102506ba5d792611706841d2e77b650665",
+      "1-purpose": "167d8c6e6afd1f32c0253beaa993a57e96427c498823dc96654346f8ec879aaa",
+      "2-territory": "176d7d52f9cba780f571c0b215d9436d84719cd3f6d9b5f053c17755d213e9bc",
+      "3-behavior": "34fd0d7bc208c6508faadfe8f5b697dc87af8bdd1e69e613f7d24ff4fad6aaf5",
+      "4-functional-requirements": "b1777c57c7e07602bc01f48d4a591f32bf2b12c6398ec4d1791c2071785f159c",
+      "5-acceptance-criteria": "bff08249ada83c827e9aefe82d8eee8bde0fdc389351218a30ac190ba5b78c3a",
+      "6-out-of-scope": "33f2f03fc366e22654b44c1b85d7a1f2ba4047517de079be45f8818b496befe6",
+      "7-resolved-decisions": "9ee406c9e96b6a32bffe45b358b36d612c38c61f2d6ba1dba98c218ef690879a",
+      "method-additions-2026-10-25-d-3": "40da5b6c087eb20a06b86fe4a3de6a0d32a61857bbddf5c8c1ea6ecaf1599d5a",
+      "verification": "6d81704f3d575fb29f01c3d51cc1bc61de1857fb3cebd2b896e2a137241f0f29"
+    },
+    "sectionHeadings": [
+      "040: Evaluation",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "Method additions (2026-10-25, D-3)",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/040-retrieval-evaluation/spec.md",
+    "status": "draft",
+    "summary": "Retrieval quality is the product, and it degrades invisibly. This spec builds the instrument: a committed golden corpus of memories and queries with judged relevance, a runner that loads it into a temporary instance and executes every query, metrics that are the standard ones rather than invented, a baseline file per configuration, and a gate that fails a change which moves a metric down by more than its tolerance without an explicit, justified baseline update. Constitution XIV becomes a command with an exit code.\n",
+    "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
+  },
+  "shardHash": "93db0ba39e6932d40e9fb03bff35fafe474ac27549aa89f2ea87c58bf039580a",
+  "specVersion": "1.11.0"
+}

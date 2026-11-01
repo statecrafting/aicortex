@@ -1,0 +1,151 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-curate/Cargo.toml' does not exist",
+        "path": "crates/aicortex-curate/Cargo.toml"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-curate/src/lib.rs' does not exist",
+        "path": "crates/aicortex-curate/src/lib.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-curate/src/review.rs' does not exist",
+        "path": "crates/aicortex-curate/src/review.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-curate/src/promotion.rs' does not exist",
+        "path": "crates/aicortex-curate/src/promotion.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-curate/src/migrations.rs' does not exist",
+        "path": "crates/aicortex-curate/src/migrations.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '023-review-and-promotion' file unit 'crates/aicortex-curate/tests/review.rs' does not exist",
+        "path": "crates/aicortex-curate/tests/review.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "022-client-adapters"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/Cargo.toml"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/lib.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/promotion.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/review.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/tests/review.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      }
+    ],
+    "specId": "023-review-and-promotion",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "6d0a94bd780ba6d8a4677fa4de9aac2a3f257929dc40e14c2468bb07b2df83ff"
+}

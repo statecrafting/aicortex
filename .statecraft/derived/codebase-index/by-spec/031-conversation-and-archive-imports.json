@@ -1,0 +1,242 @@
+{
+  "diagnostics": {
+    "errors": [],
+    "warnings": [
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/mod.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/mod.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/chat_export.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/chat_export.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/vault.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/vault.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/readlater.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/readlater.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/mail.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/sources/mail.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/upload.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/upload.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/tests/sources.rs' does not exist",
+        "path": "crates/aicortex-ingest/tests/sources.rs"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/testdata/exports/' does not exist",
+        "path": "crates/aicortex-ingest/testdata/exports/"
+      },
+      {
+        "code": "W-001",
+        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
+        "path": "crates/aicortex-ingest/src/registry.rs"
+      }
+    ]
+  },
+  "mapping": {
+    "dependsOn": [
+      "011-memory-model",
+      "012-store-schema-and-repositories",
+      "030-source-adapter-framework"
+    ],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/migrations.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/provenance_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/provenance.rs",
+        "source": "spec-edge"
+      }
+    ],
+    "resolvedUnits": [
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/chat_export.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/mail.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/mod.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/readlater.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/sources/vault.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/upload.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/testdata/exports/"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/tests/sources.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/migrations.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/provenance_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/provenance_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/provenance.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/provenance.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/019-untrusted-content-boundary/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "specs/025-evidence-delivery-and-token-budget/spec.md"
+          }
+        ],
+        "ownership": false,
+        "sourceField": "references",
+        "unit": {
+          "kind": "file",
+          "path": "specs/025-evidence-delivery-and-token-budget/spec.md"
+        }
+      }
+    ],
+    "specId": "031-conversation-and-archive-imports",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "c0b1901e648c663bb6fd68185374361082825c7e7ddc6f42830c65f1d372806d"
+}

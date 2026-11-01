@@ -51,7 +51,7 @@ allowed = [
 
 [layout]
 specs_dir     = "specs"
-derived_dir   = ".derived"
+derived_dir   = ".statecraft/derived"
 standards_dir = "standards/spec"
 schemas_dir   = "standards/schemas"
 cargo_workspace = "Cargo.toml"
@@ -74,6 +74,7 @@ extra_hashed_inputs = [
   ".statecraft/environment.json",
   ".statecraft/setup/**/*",
   ".gitignore",
+  ".gitleaks.toml",
   ".claude/agents/**/*",
   ".claude/rules/**/*",
   ".claude/skills/**/*",
@@ -96,7 +97,7 @@ extra_hashed_inputs = [
   "deploy/**/*",
   "eval/**/*",
 ]
-resolver_exclusions = ["target", "node_modules", ".derived", "dist", "build", "data"]
+resolver_exclusions = ["target", "node_modules", ".statecraft/derived", "dist", "build", "data"]
 
 [index.slices]
 governance = [
@@ -113,6 +114,7 @@ governance = [
   ".statecraft/environment.json",
   ".statecraft/setup/**/*",
   ".gitignore",
+  ".gitleaks.toml",
   ".githooks/**/*",
 ]
 deployment = ["docker/**/*", "deploy/**/*"]
