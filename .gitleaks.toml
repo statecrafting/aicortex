@@ -1,0 +1,17 @@
+# Spec 062 D-2: the secret-scan job's allowlist (Statecraft profile revision 22
+# adds none of its own). gitleaks' default rules stay in force everywhere.
+#
+# The committed spec-spine shards under .statecraft/derived/ map section
+# anchors to SHA-256 content digests of this repository's own files, and the
+# generic-api-key rule reads an anchor followed by 64 hex digits as a key. Only
+# that shape is allowed, and only in those generated files.
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "spec-spine shard digests: 64 hex digits under .statecraft/derived/"
+condition = "AND"
+paths = ['''^\.statecraft/derived/''']
+regexTarget = "secret"
+regexes = ['''^[0-9a-f]{64}$''']
