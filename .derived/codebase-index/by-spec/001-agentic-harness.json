@@ -65,10 +65,6 @@
         "source": "spec-edge"
       },
       {
-        "path": ".gitleaks.toml",
-        "source": "spec-edge"
-      },
-      {
         "path": ".mcp.json",
         "source": "spec-edge"
       },
@@ -316,19 +312,6 @@
       {
         "locations": [
           {
-            "file": ".gitleaks.toml"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": ".gitleaks.toml"
-        }
-      },
-      {
-        "locations": [
-          {
             "file": ".mcp.json"
           }
         ],
@@ -500,5 +483,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "39bfdbff72783c581a1bb9125619e0b64cbd93081fa986d73c037c90d97c6717"
+  "shardHash": "8b2232976f63014bbddb7ba33df17ed5028f800bf3db2a335274f9c059d8cee4"
 }

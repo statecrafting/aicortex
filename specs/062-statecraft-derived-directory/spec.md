@@ -108,10 +108,14 @@ pin, and any remote setting.
   `045-durable-coordination-protocol`), where a section anchor maps to the
   SHA-256 digest of the section. The same lines had passed at `.derived/`
   only because the job scans the pull request's own commits. The profile
-  leaves the allowlist to the project, so a committed `.gitleaks.toml`, owned
-  by spec 001 and landed ahead of the configuration pull request, keeps the
-  default rules and allows only a value of exactly 64 lowercase hex digits in
-  a path under `.statecraft/derived/`.
+  leaves the allowlist to the project, so a committed `.gitleaks.toml`,
+  landed ahead of the configuration pull request, keeps the default rules and
+  allows only a value of exactly 64 lowercase hex digits in a path under
+  `.statecraft/derived/`. A claimed file must sit in a content hash (lint
+  L-008), and that list lives in `spec-spine.toml`, which the policy guard
+  keeps apart from the new file. So the file lands unclaimed, the
+  configuration pull request adds it to `[index] extra_hashed_inputs`, and the
+  cleanup pull request claims it in spec 001's `establishes`.
 
 ## 7. Approval basis
 
