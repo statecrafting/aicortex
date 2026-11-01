@@ -51,7 +51,7 @@ allowed = [
 
 [layout]
 specs_dir     = "specs"
-derived_dir   = ".derived"
+derived_dir   = ".statecraft/derived"
 standards_dir = "standards/spec"
 schemas_dir   = "standards/schemas"
 cargo_workspace = "Cargo.toml"
@@ -96,7 +96,7 @@ extra_hashed_inputs = [
   "deploy/**/*",
   "eval/**/*",
 ]
-resolver_exclusions = ["target", "node_modules", ".derived", "dist", "build", "data"]
+resolver_exclusions = ["target", "node_modules", ".statecraft/derived", "dist", "build", "data"]
 
 [index.slices]
 governance = [

@@ -1,0 +1,91 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "constrains": [
+      {
+        "kind": "sequencing-plan",
+        "target_specs": [
+          "010-chassis-adoption-and-workspace",
+          "011-memory-model",
+          "012-store-schema-and-repositories",
+          "013-write-gate-and-redaction",
+          "014-memory-lifecycle-and-erasure",
+          "015-embedding-pipeline",
+          "016-vector-index-and-scan",
+          "017-entities-and-typed-edges",
+          "018-retrieval-and-recall-trace",
+          "019-untrusted-content-boundary",
+          "020-http-api-and-scopes",
+          "021-mcp-server",
+          "022-client-adapters",
+          "023-review-and-promotion",
+          "024-decision-and-audit-references",
+          "030-source-adapter-framework",
+          "031-conversation-and-archive-imports",
+          "032-capture-sources-and-webhooks",
+          "033-observatory-and-agent-ingestion",
+          "034-curation-workers",
+          "035-agent-coordination",
+          "040-retrieval-evaluation",
+          "041-privacy-and-egress-boundary",
+          "042-portability-and-migration",
+          "043-packaging-and-operations",
+          "044-reference-deployment",
+          "045-durable-coordination-protocol"
+        ]
+      }
+    ],
+    "created": "2026-09-03",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "000-aicortex-bootstrap"
+    ],
+    "domain": "governance",
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "002-memory-thesis",
+    "implementation": "n-a",
+    "kind": "thesis",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionDigests": {
+      "002-memory-thesis": "261f5b5b4e76156f3b296a3fe35231809a1c787884999fc741110575eac3722d",
+      "1-what-it-is": "8a666001dfe2b334e7dfd401aef081bbdddbbff8cf5c7167a1383103c09b64f9",
+      "2-the-nine-responsibilities": "4cceaa2de180230a2b3cfe265aae47ae5de8990ee10f730506521009f110cf19",
+      "3-provider-agnostic-by-protocol-not-by-adapter": "2bf36bc5c6bff62ff2f5b7085675b27f96ce7266057058e6ace81b737073f1fd",
+      "4-crate-topology": "c80b1681e17fd38f09b4a73db5cee7838b45be7e8c8d37a2f9ad7ac6767e5e45",
+      "5-build-order": "ff7d3249374be465bf574155857978833f497fa45555402ddca08819a60dae81",
+      "6-what-the-thesis-refuses": "32810d5d27943704fa2d9589abcd0d757c8a7cc72b6d595239e910d2180696a8",
+      "7-resolved-decisions": "904e2e6f43f683bc5e9d6e18a3aa90ee1ed78452b163f42f2a96f4bc68ab07cc",
+      "verification": "1e380836a0900d9de5372236885481aa7d43d86e324b17b5043265bb7e484175"
+    },
+    "sectionHeadings": [
+      "002: Memory thesis",
+      "1. What it is",
+      "2. The nine responsibilities",
+      "3. Provider agnostic, by protocol not by adapter",
+      "4. Crate topology",
+      "5. Build order",
+      "6. What the thesis refuses",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/002-memory-thesis/spec.md",
+    "status": "approved",
+    "summary": "What aicortex is, what it refuses, and the order it is built in. It is persistent memory for AI clients, delivered as a governed cell on the rahi chassis, reached by any client that speaks MCP over streamable HTTP. Nine responsibilities across eight domains, thirteen crates and one binary, four build waves. The refusals are as load-bearing as the claims: no second store, no static key, no fork-per-feature, no local stdio server, and no memory that a model may treat as an instruction unless a human promoted it.\n",
+    "title": "Memory thesis: nine responsibilities, one governed cell, provider agnostic by protocol"
+  },
+  "shardHash": "0a81411ca1f675f03579b43b532d9c1511d50ee2f8d2a0df84c3a8cdc9091d52",
+  "specVersion": "1.11.0"
+}

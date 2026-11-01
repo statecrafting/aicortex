@@ -1,0 +1,177 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-03",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "000-aicortex-bootstrap"
+    ],
+    "domain": "governance",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "AGENTS.md"
+      },
+      {
+        "kind": "file",
+        "path": "CLAUDE.md"
+      },
+      {
+        "kind": "file",
+        "path": "README.md"
+      },
+      {
+        "kind": "file",
+        "path": "Makefile"
+      },
+      {
+        "kind": "file",
+        "path": "spec-spine.toml"
+      },
+      {
+        "kind": "file",
+        "path": ".mcp.json"
+      },
+      {
+        "kind": "file",
+        "path": "standards/spec/contract.md"
+      },
+      {
+        "kind": "file",
+        "path": "standards/spec/templates/"
+      },
+      {
+        "kind": "file",
+        "path": ".claude/settings.json"
+      },
+      {
+        "kind": "file",
+        "path": ".claude/agents/"
+      },
+      {
+        "kind": "file",
+        "path": ".claude/rules/"
+      },
+      {
+        "kind": "file",
+        "path": ".claude/skills/"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/govern.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/statecraft-ai-review.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/statecraft-ci.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/cargo-deny.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/corpus-attestation.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/workflows/spec-dag.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".github/CODEOWNERS"
+      },
+      {
+        "kind": "file",
+        "path": ".github/dependabot.yml"
+      },
+      {
+        "kind": "file",
+        "path": ".statecraft/"
+      },
+      {
+        "kind": "file",
+        "path": ".githooks/"
+      },
+      {
+        "kind": "file",
+        "path": ".gitattributes"
+      },
+      {
+        "kind": "file",
+        "path": ".gitignore"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/check-authored-content.sh"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/statecraft/"
+      },
+      {
+        "kind": "file",
+        "path": "scripts/spec-dag.sh"
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 1
+    },
+    "id": "001-agentic-harness",
+    "implementation": "complete",
+    "kind": "governance",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "docs/design/00-lineage.md"
+        }
+      }
+    ],
+    "risk": "high",
+    "sectionDigests": {
+      "001-agentic-engineering-harness": "527946a3c0a522a79dafff1c922167cd25193d265f038e4fd18f5c9fc2a3aee8",
+      "1-purpose": "e8e79fa321ec9a5ff407990e586c2b60720314bd570c6e0461a1d327b25979e9",
+      "2-territory": "5c9eee77cc5bdf8cf4cdff7e64e510aca134a5a3274b05196ab264940de1c226",
+      "3-behavior": "c1162cc7737998e2d48ecb94b1c2c4ed67ee7c16e02604e4037ea4ac8dd27a66",
+      "4-functional-requirements": "64023d74bab0edf9cfc48731c18009e757143943905e030f24dd5d53e4e94156",
+      "5-acceptance-criteria": "2ce15f8bf0c4e272f5a86c5b6c58a49d1bbc69897db137aa26c9f964ff464edb",
+      "6-out-of-scope": "758afe22a2084f65e8c5136b8df32a85a8aa9016de657b1907b71a5a6cb0d102",
+      "7-resolved-decisions": "492a01fdcb4e988b549dfa5b987299670194773e4e9d6324dcc982b7c2f2079c",
+      "engine-upgrade-record-2026-10-02": "3bd336d442dbe47ed7de32ee12c3efc8ea7df6443d022b258dd9280f0269ff37",
+      "profile-upgrade-record-2026-10-02": "d26d084ec1ac53f0450dc009347a561cd698b3b52ed68517f57d2dbcf429c187",
+      "revision-14-implementation-record-2026-10-02": "d5c20a1c6c5c29d1772c2458c0c97fff2d9ea16eb99132222fc0352815bfb9c1",
+      "revision-21-implementation-record-2026-10-30": "f4dc09524029e372ac1d100961895c785d662965fda2be61cab6ac705d23e077",
+      "revision-22-implementation-record-2026-10-30": "1d9513b7a178a3b7344c00a263b454abc624c89df452dcce980c1dac4177ca39",
+      "verification": "a4cc373d91ba6d971ac7ad04ed912c6dad51341da8817eeec4fa1af774bcdb37"
+    },
+    "sectionHeadings": [
+      "001: Agentic engineering harness",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification",
+      "Profile upgrade record (2026-10-02)",
+      "Engine upgrade record (2026-10-02)",
+      "Revision 14 implementation record (2026-10-02)",
+      "Revision 21 implementation record (2026-10-30)",
+      "Revision 22 implementation record (2026-10-30)"
+    ],
+    "specPath": "specs/001-agentic-harness/spec.md",
+    "status": "approved",
+    "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, six behavioral rules of which three are path-scoped, four subagents, ten skills, settings hooks that report and refuse, one Makefile that is the single definition of the gate and splits its reading half from its writing half, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
+    "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
+  },
+  "shardHash": "8b2232976f63014bbddb7ba33df17ed5028f800bf3db2a335274f9c059d8cee4",
+  "specVersion": "1.11.0"
+}

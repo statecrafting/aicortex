@@ -1,0 +1,188 @@
+{
+  "inputs": {
+    ".claude/agents/architect.md": {
+      "contentHash": "6b955fc3892d57eb36a1cbe45189ae9c8cc847dd688d115a3a139c2c761f0fdb"
+    },
+    ".claude/agents/explorer.md": {
+      "contentHash": "b8e06ec7caec71fa5b34a9a139562a955f7fdb4aa784d65bf17bfdb9abc42c34"
+    },
+    ".claude/agents/implementer.md": {
+      "contentHash": "b4d40bf097ec433bc05a4f9fb3ed5e7aea29b6d67891206e745fe026433d67d2"
+    },
+    ".claude/agents/reviewer.md": {
+      "contentHash": "7a9fab672d994b2041e10e25b08c4f849cdbc1d252553fd6e86cb1b45134edb1"
+    },
+    ".claude/rules/adversarial-prompt-refusal.md": {
+      "contentHash": "ada612670263555fa6472d6c6d5d677f726cb50df7933900d2c961556605cedb"
+    },
+    ".claude/rules/build-commands.md": {
+      "contentHash": "dc6be7de9731c91690a5c5bdecfedf3430c369c7214dd3349a35a16a60f6b532"
+    },
+    ".claude/rules/derived-artifacts-are-compiler-output.md": {
+      "contentHash": "5bbb2e5b3f5d41deaa8cd7d2e702d750f59cc93446ea801c060a95cb705614bc"
+    },
+    ".claude/rules/governed-artifact-reads.md": {
+      "contentHash": "48849d68e478a309667de8f4bc680f807a65d38efb53dd5a0f8c014b8b9e82d5"
+    },
+    ".claude/rules/memory-invariants.md": {
+      "contentHash": "1d41a069b2af6f83527d5255749da2248179b83d72cea9d68e921b3ee75f34c8"
+    },
+    ".claude/rules/orchestrator-rules.md": {
+      "contentHash": "ef923ecb44037eadeafcaf8886fc3091acfe3d02cc41003b172459b42a155df8"
+    },
+    ".claude/settings.json": {
+      "contentHash": "ff5d10a65064ec18f120f1b7be020222db1e7f004cd08b3f4937df0b1226b956"
+    },
+    ".claude/skills/build/SKILL.md": {
+      "contentHash": "ec0da9456c8324b71207a0b53cb27b2e29bebe60c4aa957ad360491825a0f676"
+    },
+    ".claude/skills/code-review/SKILL.md": {
+      "contentHash": "4d7cf54543511f8dc67d4f6eb096bb9c2f0b33e35626ad5aca50bae436448349"
+    },
+    ".claude/skills/commit/SKILL.md": {
+      "contentHash": "dc959564cdd71638aa355ff1b1831965e9ccea4213f927a36583638a7c156591"
+    },
+    ".claude/skills/next/SKILL.md": {
+      "contentHash": "85f27c50b67ac64d0ec455e198a46a10e41664a970796f4828f383bc9d5be355"
+    },
+    ".claude/skills/prime/SKILL.md": {
+      "contentHash": "765db1e6bc5cfc84791a0f175eebc2d1a2b71c8a97fec11e74c61b6f6593ebef"
+    },
+    ".claude/skills/setup/SKILL.md": {
+      "contentHash": "8ef4a14df8b66224e6dea619b7b6a80c11e65c8a5b7f4199d2c5456d41ef9554"
+    },
+    ".claude/skills/shepherd/SKILL.md": {
+      "contentHash": "8e23b46c1fb7173f4bb06b81de6225bbd2f6b8471f03fdd81ca354f919baf61a"
+    },
+    ".claude/skills/ship/SKILL.md": {
+      "contentHash": "d928634a1810b303790d30262dff8022728aa9bd8bfafdc42312c6a1f6f3aba1"
+    },
+    ".claude/skills/spec/SKILL.md": {
+      "contentHash": "cb5d3e4dcfc111c5b1a6f0b12ff2c3de021af9abc70a993c48f4dc8d8d376983"
+    },
+    ".claude/skills/verify/SKILL.md": {
+      "contentHash": "7bfa43dd22323b9c16ff46916f61b70b33c0e853f11a35996f2c6ec1854a0b33"
+    },
+    ".gitattributes": {
+      "contentHash": "3dcb140a17fda2a50440fb20693b7b49e98e60310753e43f0d41cb2267b87fe8"
+    },
+    ".githooks/enable-merge-driver.sh": {
+      "contentHash": "c40d9d67fe30a4308c7d293a21a133ccbb602b1a84dc844113caa92cf82d1f97"
+    },
+    ".githooks/merge-derived-index.sh": {
+      "contentHash": "8011b5157791546859e1ddeaab345fd8f05d05f502f712610908ff303bb3d23c"
+    },
+    ".github/CODEOWNERS": {
+      "contentHash": "4627ea115139ebec76d454cf7b753ab238f7d2b75f0afce68e71e294bc614cfa"
+    },
+    ".github/dependabot.yml": {
+      "contentHash": "cdb43cdfef72204808a427b3f8d9c52fdf2ab16b549d93059cee4175f6be5f93"
+    },
+    ".github/workflows/cargo-deny.yml": {
+      "contentHash": "1425d1f62c9a8d0eb2a74ae5d4c4ac2cbc2fed5606387fdd299ae5bec4d6ce7e"
+    },
+    ".github/workflows/corpus-attestation.yml": {
+      "contentHash": "3a811f0d4a01db52f79610a327c9b165181032ee6896e6d188a27dad062b769c"
+    },
+    ".github/workflows/govern.yml": {
+      "contentHash": "1973123f558c8933d8aab19fc6da225f4634c76b4241dbb83f9bd568cdbc4526"
+    },
+    ".github/workflows/spec-dag.yml": {
+      "contentHash": "4a57f7231b4aba89f14228da1657a8701f3ff7563ed695fc064a4a37ffc8b4be"
+    },
+    ".github/workflows/statecraft-ai-review.yml": {
+      "contentHash": "2312937dd0d14b500c3ca5d15c64fc33a59de4c66fd0bba199f343631ff3f116"
+    },
+    ".github/workflows/statecraft-ci.yml": {
+      "contentHash": "b4a00849300af2cf7d3da555b13cae66c0e9848bcfd7370c5615fac5480afea7"
+    },
+    ".gitignore": {
+      "contentHash": "dd96f32b2c55112ba1186087873013606716d747a2ac590b85f68bee8acda60e"
+    },
+    ".mcp.json": {
+      "contentHash": "267962ad307e5707f2a025ce1fa40b80d52cd0cf3f8c8bdb25d03a6459366a1a"
+    },
+    ".statecraft/AGENTS.md": {
+      "contentHash": "c6543d237a50d94a81935ccdcfc6fc15a162b30f133d7d251c4777ab8ad0f4d2"
+    },
+    ".statecraft/environment.json": {
+      "contentHash": "a4993a335cf530a6f79ed95380f2661c596e9bb621d65ba75f8f041d90312ee4"
+    },
+    ".statecraft/setup/github-actions-rust.json": {
+      "contentHash": "07141626fc04a9e737b91d46f3a1c9b6ab26474b5d2986dcb2e79a4f9ac8f6f4"
+    },
+    ".statecraft/setup/github-actions-rust.remote.json": {
+      "contentHash": "2fed245c8e8ec37bab3df97b8d71ae2f99d49358b6dad9accda7ad2812416078"
+    },
+    "AGENTS.md": {
+      "contentHash": "dbfe879ca5d909e4583afbd8ae324ef37d790f24bbd537ed790755fb29fe1aee"
+    },
+    "CLAUDE.md": {
+      "contentHash": "134cf78051ee5d0248c7ec9bd3024c7ea274199af114ae469ce8d1f3acd1c6fa"
+    },
+    "Cargo.toml": {
+      "contentHash": "4a857c736ef49feafc0ad5d27383c5db3f0e48e4941b57f67ea1156542687d71"
+    },
+    "Makefile": {
+      "contentHash": "7cadeb615fee0f2f88afb13cc2aaa8148c8c6dafd9770d649e3beb366981adb9"
+    },
+    "README.md": {
+      "contentHash": "09da1a0acf1a1123a3a55e7bfbd11bfaff500d777a339683385b8a3a56c2f722"
+    },
+    "deny.toml": {
+      "contentHash": "0ab60dc88a920760841c08caa8981e2b9127320af711166ad428a50e107617d6"
+    },
+    "docs/design/00-lineage.md": {
+      "contentHash": "9d984b63e7ab4a28087e10910798c158733dbc8cf3d4cb5c3a272b0c28fc1af7"
+    },
+    "docs/design/01-coordination-and-local-integration.md": {
+      "contentHash": "0033d6ae22ee86b5ae1e36cc347e61a1a898425e88e5c615e1fb95906c9fb11f"
+    },
+    "docs/design/02-rahi-chassis-prerequisites-handoff.md": {
+      "contentHash": "32957083a7209828db3cbc19d75be818ef21b67de5ee4d5c385ed1f440d2b65b"
+    },
+    "rust-toolchain.toml": {
+      "contentHash": "cfa8b02ef36a6184d951240f0ef86c628dd637f94a74def5b05d8201540ceefc"
+    },
+    "scripts/check-authored-content.sh": {
+      "contentHash": "dfda8b439bfe320be0d78dc1fe167095351350581e44cc2875d64385821f4fda"
+    },
+    "scripts/spec-dag.sh": {
+      "contentHash": "b24026f3b06615dc6a411aa2c90afb44c70626a5bf7848a2ed776d588ad8be69"
+    },
+    "scripts/statecraft/ai-review.sh": {
+      "contentHash": "58abf9263d455dd829db9ba6897d6b025f51fe128464944da22f5204c3ba87b9"
+    },
+    "scripts/statecraft/ci-gate.sh": {
+      "contentHash": "d0989411daa65ee583aad4fa7e232c971142278ca58fc5b65a86a557daa65632"
+    },
+    "scripts/statecraft/gate.sh": {
+      "contentHash": "6d085e4c6d7404fb8f34671c700c1401dffcd4d229128eed53d71af461f3bcff"
+    },
+    "scripts/statecraft/guard-policy-files.sh": {
+      "contentHash": "5e790f8312b7b47714dc36ff94f00b856e2416688d590fe5b650f1f14a269ee5"
+    },
+    "scripts/statecraft/install-spec-spine.sh": {
+      "contentHash": "5e7bba061cede95f260dd786b4f95f2d362754795a904aa17d762d241b1f7a2b"
+    },
+    "scripts/statecraft/verify-action-pins.sh": {
+      "contentHash": "88c83716a93b0f0d2972497f9e155c85ccd9dd92b1428932a5658906f0349976"
+    },
+    "spec-spine.toml": {
+      "contentHash": "72ce573a38cc38675faf7772b8e2dc2d1aa5496ac5b54b04b8a29fc773ca19f5"
+    },
+    "standards/spec/constitution.md": {
+      "contentHash": "88dcf39d33f7941ae4ac8953d7a3df36cf11e4f735bd1309229f8c63d2270a56"
+    },
+    "standards/spec/contract.md": {
+      "contentHash": "b2446ea2afaad49088102e55f2a61f0227c80c80ab8bd23e8234eb27ed6bb49e"
+    },
+    "standards/spec/templates/constitution-template.md": {
+      "contentHash": "9422c45aeea54a1765b9da797f6c7e958dd2e7d4e74a7e3b788f3ec281a97900"
+    },
+    "standards/spec/templates/spec-template.md": {
+      "contentHash": "584931035d629d5f8643148f9dee7b4e0bd8e7d3f86e880b8e0e10ded9b6f60c"
+    }
+  },
+  "schemaVersion": "1.3.0"
+}

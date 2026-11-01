@@ -1,0 +1,282 @@
+{
+  "record": {
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-09-11",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "035-agent-coordination",
+      "042-portability-and-migration"
+    ],
+    "domain": "protocol",
+    "establishes": [
+      {
+        "kind": "file",
+        "path": "docs/design/01-coordination-and-local-integration.md"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/src/coordination.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-types/tests/coordination.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/coordination_repo.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/coordination_fold.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/coordination.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/coordination_recovery.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/coordination_erasure.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/src/coordination.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-api/tests/coordination.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/sources/coordination.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/coordination.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/coordination_portable.rs"
+      },
+      {
+        "kind": "file",
+        "path": "specs/045-durable-coordination-protocol/fixtures/"
+      }
+    ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "011-memory-model",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/scopes.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/events.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/error.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "042-portability-and-migration",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/export.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "042-portability-and-migration",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/import.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "042-portability-and-migration",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/portable/format.md"
+        }
+      }
+    ],
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "045-durable-coordination-protocol",
+    "implementation": "pending",
+    "kind": "feature",
+    "references": [
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/002-memory-thesis/spec.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/013-write-gate-and-redaction/spec.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/019-untrusted-content-boundary/spec.md"
+        }
+      },
+      {
+        "role": "constraint",
+        "unit": {
+          "kind": "file",
+          "path": "specs/024-decision-and-audit-references/spec.md"
+        }
+      },
+      {
+        "role": "context",
+        "unit": {
+          "kind": "file",
+          "path": "specs/033-observatory-and-agent-ingestion/spec.md"
+        }
+      }
+    ],
+    "risk": "critical",
+    "sectionDigests": {
+      "045-durable-coordination": "ce2bc9a7353c88498f7568ecb63ca67d5bcb26f9aaab389649d4d258a201f874",
+      "1-purpose": "0356189bb2b6eba4244c408adc07fddb52ea400f06f6c352446f1acdbdee31b5",
+      "2-territory": "bfcb5a5b75d46b1966c8f25e135aa78275659c75efed94a25f478535b807103a",
+      "3-behavior": "2366a6f567acbc1fe26e16277ccd255e2a71008be260375af6ca02c0f383302f",
+      "4-functional-requirements": "7e54fd991da9332da5a29f583f949781849f423f22ca3421f439c2723c2fa51a",
+      "5-acceptance-criteria": "3b79e98740a4e5519efd192c44435f5a438cd9ed08f41bb0325a1c39fb226615",
+      "6-out-of-scope": "f20161f9bae332c19639076249bc853e6f1b7379dc7372f804911de6303c3d38",
+      "7-resolved-decisions": "ad24693799be83e27a78a3dd2e1db6ea9911507f6a9354d0fc8c9fe4ad00d4c4",
+      "b-1-five-concepts-remain-distinct": "08e2ee8085652ee32092a8690ec1abc98f8a7d1e6fb9a9e71bc02b850c4530b8",
+      "b-10-semantic-memory-remains-a-separate-projection": "9cd875107f42d984328e819a69e95701aba013ad6b243d2f188d9261aeab6778",
+      "b-11-retention-erasure-and-access-revocation": "48a18df7a9baa47e81ced111f6e5b39175f9b60b0a274506d6956732582d5b6b",
+      "b-12-local-product-integration": "52bb68e994dff1c2a44742dd3e8096ef960171fbab2b410bd7d3a8e4e385c580",
+      "b-2-envelope-and-identity": "f5a716642a6cb81b5160e218f36ea6e0fabb3da714eca9fee43708be44fff144",
+      "b-3-requests-recipients-and-revisions": "56d04431395b62f4d2c4ae27ed85598068dd4e8f6bb89bd0482786f6e1f9d7e9",
+      "b-4-atomic-storage-and-recoverable-delivery": "210ff3189c70aae8823c14b88c380808ba1d53ac342859862443b88b95ba42d7",
+      "b-5-single-authority-fencing-and-cancellation": "108aaf274ded8af4ef0dd943193b6d8ce15e36a4c17b25221f0acb4abc21d61a",
+      "b-6-git-and-provider-observations": "9bb95c163e478584aa8c641bc3e5d1c4a09f9af29162c08951d0f7a03d31bfa2",
+      "b-7-reconciliation-is-proposition-specific": "06056f695d2eec55dc6108b102957efd352063d71809c79fdd98c2483ef432ac",
+      "b-8-query-views-and-bounded-attention": "6784092a6a7e36cc2de982fd8b8acdbc0887a2278f87b3c29d691e5830c12d15",
+      "b-9-packets-remain-portable-versioned-views": "a3831096c8eaac6ac51f9a8ff0b4a0ac6aa9dc7e6ae2ed2566dd738adcf46766",
+      "verification": "721de808aecda5848961bd43e410030214c2a66b3aef0bccf799c89a73464bd3"
+    },
+    "sectionHeadings": [
+      "045: Durable coordination",
+      "1. Purpose",
+      "2. Territory",
+      "3. Behavior",
+      "B-1. Five concepts remain distinct",
+      "B-2. Envelope and identity",
+      "B-3. Requests, recipients and revisions",
+      "B-4. Atomic storage and recoverable delivery",
+      "B-5. Single authority, fencing and cancellation",
+      "B-6. Git and provider observations",
+      "B-7. Reconciliation is proposition-specific",
+      "B-8. Query views and bounded attention",
+      "B-9. Packets remain portable, versioned views",
+      "B-10. Semantic memory remains a separate projection",
+      "B-11. Retention, erasure and access revocation",
+      "B-12. Local product integration",
+      "4. Functional requirements",
+      "5. Acceptance criteria",
+      "6. Out of scope",
+      "7. Resolved decisions",
+      "Verification"
+    ],
+    "specPath": "specs/045-durable-coordination-protocol/spec.md",
+    "status": "approved",
+    "summary": "Generalize repository handoff packets and handbacks into a durable, scoped coordination protocol. Requests, acknowledgment, replies, evidence observations, explicit resolutions and corrections retain their identity and revision. Inbox and outbox are projections, not another broker or hash chain. The same hiqlite store holds records, recipient state and consumer cursors transactionally; chassis events only wake consumers. Statecraft-cli supplies local session and Git/provider observations and keeps execution authority. A recalled request cannot authorize an action, a session report cannot approve its own specification, and an interrupted or disconnected consumer can reconcile what it missed.\n",
+    "title": "Coordinate repository work through durable requests, replies, and reconciled evidence"
+  },
+  "shardHash": "68741beb7634d88a90b5137bb77c08b2b240482e26b4b8ce38218d9f17c6e4f9",
+  "specVersion": "1.11.0"
+}
