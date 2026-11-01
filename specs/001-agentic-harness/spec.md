@@ -36,6 +36,7 @@ establishes:
   - ".githooks/"
   - ".gitattributes"
   - ".gitignore"
+  - ".gitleaks.toml"
   - "scripts/check-authored-content.sh"
   - "scripts/statecraft/"
   - "scripts/spec-dag.sh"
