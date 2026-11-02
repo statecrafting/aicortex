@@ -14,12 +14,12 @@
       },
       {
         "code": "W-001",
-        "message": "spec '055-release-and-crate-publication' file unit 'docs/release.md' does not exist",
+        "message": "spec '055-release-and-crate-publication' section unit 'releasing-the-library-crates' not found in docs/release.md",
         "path": "docs/release.md"
       },
       {
         "code": "W-001",
-        "message": "spec '055-release-and-crate-publication' file unit 'CHANGELOG.md' does not exist",
+        "message": "spec '055-release-and-crate-publication' section unit 'changelog' not found in CHANGELOG.md",
         "path": "CHANGELOG.md"
       }
     ]
@@ -38,7 +38,23 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-claims/README.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/README.md",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-gate/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-gate/README.md",
         "source": "spec-edge"
       },
       {
@@ -46,7 +62,19 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-store/README.md",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-types/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/README.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "deny.toml",
         "source": "spec-edge"
       }
     ],
@@ -66,25 +94,117 @@
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
-          "path": "CHANGELOG.md"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "docs/release.md"
-        }
-      },
-      {
-        "locations": [],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
           "path": "scripts/release-check.sh"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "changelog",
+          "file": "CHANGELOG.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-claims/README.md",
+            "span": {
+              "endLine": 13,
+              "startLine": 1
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "aicortex-claims",
+          "file": "crates/aicortex-claims/README.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/README.md",
+            "span": {
+              "endLine": 13,
+              "startLine": 1
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "aicortex-embed",
+          "file": "crates/aicortex-embed/README.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-gate/README.md",
+            "span": {
+              "endLine": 13,
+              "startLine": 1
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "aicortex-gate",
+          "file": "crates/aicortex-gate/README.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/README.md",
+            "span": {
+              "endLine": 13,
+              "startLine": 1
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "aicortex-store",
+          "file": "crates/aicortex-store/README.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/README.md",
+            "span": {
+              "endLine": 13,
+              "startLine": 1
+            }
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "aicortex-types",
+          "file": "crates/aicortex-types/README.md",
+          "kind": "section"
+        }
+      },
+      {
+        "locations": [],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "anchor": "releasing-the-library-crates",
+          "file": "docs/release.md",
+          "kind": "section"
         }
       },
       {
@@ -98,6 +218,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-claims/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/Cargo.toml"
         }
       },
       {
@@ -142,6 +275,19 @@
       {
         "locations": [
           {
+            "file": "deny.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "deny.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "Cargo.toml",
             "span": {
               "endLine": 19,
@@ -175,5 +321,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "63eb216f93ca51236b65eaefa05fa0f15d452266b3b1208923cfbb040da8db72"
+  "shardHash": "ae2b1d247208a71d1eb074ccdd1767e6eccc2b2a3f6f5af7e7097237d01839de"
 }
