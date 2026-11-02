@@ -1,13 +1,15 @@
 [package]
 name = "aicortex-store"
-version = "0.1.0"
+version.workspace = true
 description = "The tables and the only code allowed to touch them: ordered migrations, scope-predicated repositories, counters, and a signed keyset cursor"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-publish = false
+readme = "README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [package.metadata.spec-spine]
 spec = "012-store-schema-and-repositories"
@@ -49,7 +51,11 @@ base64 = { workspace = true }
 # Spec 014 erasure tests stage spec 015 embedding work explicitly before
 # proving that erasure removes its queue rows. This is a test-only cycle: the
 # production edge remains embed -> store.
-aicortex-embed = { workspace = true }
+# Spec 055: a dev edge between workspace crates is path-only, with no
+# version, so publication strips it; with a version, crates.io would have to
+# hold the crate before this one could publish. `deny.toml` permits the
+# path-only form (`allow-wildcard-paths`) for exactly this case.
+aicortex-embed = { path = "../aicortex-embed" }
 # Spec 050 B-15: the registration test appends the Decision it stages.
 rahi-ledger = { workspace = true }
 tokio = { workspace = true }

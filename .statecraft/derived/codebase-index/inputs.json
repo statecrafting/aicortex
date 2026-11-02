@@ -124,7 +124,7 @@
       "contentHash": "92de2fecd1266c680a0e818cff646482de72f3af99ac6d9badf7aace0668a51d"
     },
     "Cargo.toml": {
-      "contentHash": "4a857c736ef49feafc0ad5d27383c5db3f0e48e4941b57f67ea1156542687d71"
+      "contentHash": "dace250dd575cd93bffb203bdd709d51753b47e30d20c836d4ba75d907ee2b71"
     },
     "Makefile": {
       "contentHash": "12d26ecd5f668a82c85d1d7fe018cf45571c05015cf17291db8e38d70eb2ab8a"
@@ -133,7 +133,7 @@
       "contentHash": "09da1a0acf1a1123a3a55e7bfbd11bfaff500d777a339683385b8a3a56c2f722"
     },
     "deny.toml": {
-      "contentHash": "0ab60dc88a920760841c08caa8981e2b9127320af711166ad428a50e107617d6"
+      "contentHash": "7359b7243fbd1e438136572c13836f15241b11c8b0952ee6a1efeb071acdb9a1"
     },
     "docs/design/00-lineage.md": {
       "contentHash": "9d984b63e7ab4a28087e10910798c158733dbc8cf3d4cb5c3a272b0c28fc1af7"

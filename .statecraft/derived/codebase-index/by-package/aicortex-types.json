@@ -3,9 +3,8 @@
     "kind": "rust-lib",
     "name": "aicortex-types",
     "path": "crates/aicortex-types",
-    "specRef": "011-memory-model",
-    "version": "0.1.0"
+    "specRef": "011-memory-model"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "d543314a93b630d2a18cd47b8b17228c3d7c83de828d1e84f585389c04ba26d7"
+  "shardHash": "2dbd0a4db9f5e28d18c033f23eba4fb998a63e26e51b1f0b45c26b89eb22dcf4"
 }
