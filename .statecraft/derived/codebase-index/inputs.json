@@ -88,7 +88,7 @@
       "contentHash": "1973123f558c8933d8aab19fc6da225f4634c76b4241dbb83f9bd568cdbc4526"
     },
     ".github/workflows/release.yml": {
-      "contentHash": "3c43709ff5391387ef44d037f6f20d981bf0ecb1905ef25452fe9bf7a780bc25"
+      "contentHash": "a336bbf49ff24987217e3adec43576765a3507b9530a36b30bd48dd59ebaf94f"
     },
     ".github/workflows/spec-dag.yml": {
       "contentHash": "4a57f7231b4aba89f14228da1657a8701f3ff7563ed695fc064a4a37ffc8b4be"
@@ -154,7 +154,7 @@
       "contentHash": "753da766cc823927fd3c8fc1b1cbc7a50ed62c8ae1fc497179f33f3e7a0cb5ff"
     },
     "scripts/release-check.sh": {
-      "contentHash": "a634a10c6876a2ae71b1da3d941f0bfe8347c381dd3f6604c7c89ca19617e941"
+      "contentHash": "ff4defbf6cc4cc46e7958fa19594debe85934c491556d4e7886d09aea8bc6dbf"
     },
     "scripts/spec-dag.sh": {
       "contentHash": "ff52e4df042607fd6fd693e181c44932554bdeda62f415a13476d2b00161b784"

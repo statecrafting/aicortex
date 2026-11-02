@@ -48,6 +48,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      # The toolchain rust-toolchain.toml pins, installed explicitly so a
+      # runner image without it fails here with a toolchain error.
+      - name: Install the pinned toolchain
+        run: |
+          rustup toolchain install --profile minimal
+          cargo --version
       # The tag object itself, fetched again: a checkout of a tag can leave a
       # lightweight ref in its place, and the guard must judge what was
       # pushed. The repository is public, so no credential is needed.
@@ -74,6 +80,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      # The toolchain rust-toolchain.toml pins, installed explicitly so a
+      # runner image without it fails here with a toolchain error.
+      - name: Install the pinned toolchain
+        run: |
+          rustup toolchain install --profile minimal
+          cargo --version
       # Judged again in this job, at the commit this job checked out, so the
       # approval that released the token approved the tag the guard passed.
       - name: Guard the tag

@@ -18,6 +18,9 @@
 #                      crates.io (B-4); the release workflow runs it only
 #                      after --guard-tag passed
 #   --self-test        exercise the negative cases of FR-001 and FR-003
+#   --allow-dirty      with the check: package uncommitted changes too. Off by
+#                      default, so a local pass judges the committed tree CI
+#                      judges; cargo refuses a dirty tree without it
 #
 # Exit 0 ok, 1 finding or refusal, 3 usage, 4 execution failure.
 
@@ -43,7 +46,7 @@ REGISTRY_INCLUDE='"../../../crates/aicortex-claims/testdata/registries/travel-v1
 NON_ASSERTION='asserts no deployment, image, reference-deployment qualification, or production readiness'
 
 usage() {
-  echo "usage: release-check.sh [--guard-tag TAG [--main-ref REF]] [--publish] [--self-test]" >&2
+  echo "usage: release-check.sh [--allow-dirty] [--guard-tag TAG [--main-ref REF]] [--publish] [--self-test]" >&2
   exit 3
 }
 fail() {
@@ -196,14 +199,16 @@ PY
 }
 
 # B-5: package every crate (cargo verifies each against the ones before it)
-# and audit the lists. $1 is the workspace root to package.
+# and audit the lists. $1 is the workspace root to package, then any extra
+# `cargo package` flags (`--allow-dirty`).
 package_crates() {
   local ws=$1
+  shift
   local args=() pairs=() crate
   for crate in "${CRATES[@]}"; do args+=(-p "$crate"); done
-  (cd "$ws" && cargo package --locked --allow-dirty "${args[@]}") || return 1
+  (cd "$ws" && cargo package --locked "$@" "${args[@]}") || return 1
   for crate in "${CRATES[@]}"; do
-    (cd "$ws" && cargo package --locked --allow-dirty --list -p "$crate") > "$work/$crate.list" \
+    (cd "$ws" && cargo package --locked "$@" --list -p "$crate") > "$work/$crate.list" \
       || return 1
     pairs+=("$ws/crates/$crate=$work/$crate.list")
   done
@@ -312,7 +317,7 @@ run_check() {
   echo "release-check: version $version, crates ${CRATES[*]}"
   check_manifests || fail "the manifests are not publishable as declared"
   echo "release-check: manifests ok"
-  package_crates "$root" || fail "packaging refused"
+  package_crates "$root" ${dirty[@]+"${dirty[@]}"} || fail "packaging refused"
   echo "release-check: packages ok"
   build_consumer "$version"
   echo "release-check: registry-only consumer ok"
@@ -501,7 +506,9 @@ open(path, "w").write(text.replace(marker, marker + 'exclude = ["src/migrations.
 PY
   # The copy builds into the workspace's own target directory, so the self
   # test reuses the artifacts the check already built.
-  copied_package() { CARGO_TARGET_DIR="$tdir" package_crates "$copy"; }
+  # The copy is edited on purpose and may sit inside the repository's
+  # ignored target directory, so it always packages as it stands.
+  copied_package() { CARGO_TARGET_DIR="$tdir" package_crates "$copy" --allow-dirty; }
   expect 1 "migrations" "a package that omits a migration source is refused" copied_package
 
   [ "$failures" -eq 0 ] || fail "$failures self-test case(s) failed"
@@ -509,6 +516,7 @@ PY
 }
 
 mode=check
+dirty=()
 tag=""
 main_ref=origin/main
 while [ "$#" -gt 0 ]; do
@@ -523,6 +531,10 @@ while [ "$#" -gt 0 ]; do
       [ "$#" -ge 2 ] || usage
       main_ref=$2
       shift 2
+      ;;
+    --allow-dirty)
+      dirty=(--allow-dirty)
+      shift
       ;;
     --publish)
       mode=publish
