@@ -1,10 +1,12 @@
 {
   "mapping": {
     "amends": [
-      "001-agentic-harness"
+      "001-agentic-harness",
+      "055-release-and-crate-publication"
     ],
     "dependsOn": [
       "001-agentic-harness",
+      "055-release-and-crate-publication",
       "061-statecraft-profile-22"
     ],
     "implementingPaths": [],
@@ -12,5 +14,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "4fab05302fba1540aad38e93cabb15256b51b42bf89adeca42b0fa820e1e2851"
+  "shardHash": "e16c474726f284d1cdcf7be957f82de8b0922f2c03369097ef2cea1663f596db"
 }

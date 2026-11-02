@@ -36,7 +36,7 @@ make lint       # cargo clippy --workspace --all-targets --locked -- -D warnings
 make fmt        # cargo fmt --all --check
 make deny       # cargo deny check (when deny.toml exists)
 make coverage   # spec-spine index coverage
-make attest     # spec-spine attest --with-coupling -> .derived/attestation/
+make attest     # spec-spine attest --with-coupling -> .statecraft/derived/attestation/
 make verify SPEC=<id>         # spec-spine verify <id>: the spec's declared acceptance
 spec-spine verify <id> --plan # print those commands and run none of them
 scripts/spec-dag.sh           # depends_on is acyclic and only points to lower-numbered specs
@@ -96,7 +96,7 @@ depends on the app.
 - Every source file inside a crate must be specifically claimed by a spec
   (`require_ownership` is on). Add new files to the implementing spec's
   `establishes` in the same change.
-- `.derived/` shards are committed; regenerate with `make refresh`
+- `.statecraft/derived/` shards are committed; regenerate with `make refresh`
   (`spec-spine compile && spec-spine index`) and commit them with the
   change. `make gate` never writes: a gate that repairs the tree hides the
   defect it exists to find.

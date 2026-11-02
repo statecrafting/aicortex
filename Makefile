@@ -21,7 +21,7 @@ SPEC_SPINE ?= $(if $(wildcard $(SPEC_SPINE_LOCAL)),$(SPEC_SPINE_LOCAL),spec-spin
 SPEC_SPINE_DEFAULT_BRANCH ?= $(shell git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')
 BASE ?= origin/$(or $(SPEC_SPINE_DEFAULT_BRANCH),main)
 # The derived directory, read from spec-spine.toml [layout] (spec 062).
-DERIVED_DIR := $(or $(shell sed -n 's/^derived_dir *= *"\(.*\)"/\1/p' spec-spine.toml),.derived)
+DERIVED_DIR := $(or $(shell sed -n 's/^derived_dir *= *"\(.*\)"/\1/p' spec-spine.toml),.statecraft/derived)
 
 .PHONY: gate refresh spine spec-dag ci build test lint fmt deny coverage attest verify help
 

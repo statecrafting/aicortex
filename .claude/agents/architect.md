@@ -35,7 +35,7 @@ aicortex is specified before it is built: the corpus under `specs/` is the whole
 | Rust workspace | `crates/aicortex-*/`, `apps/aicortex/` | types, store, gate, embed, index, graph, recall, api, mcp, ingest, curate, eval; dependencies point downward only |
 | Standard | `standards/spec/{constitution.md,contract.md,templates/}` | Fifteen principles, five frozen at tier 1 |
 | Design | `docs/design/` | Analysis; cited, never authoritative |
-| Derived | `.derived/` | Compiler output, read only through `spec-spine` |
+| Derived | `.statecraft/derived/` | Compiler output, read only through `spec-spine` |
 
 Behavioral rules live in `.claude/rules/`: the standing three (orchestrator, governed reads, coherence guard) and the path-scoped two (memory invariants, build commands).
 
@@ -49,7 +49,7 @@ Read the spec (or request). Identify the layer, the crate, every file in `establ
 
 - `CLAUDE.md` and `AGENTS.md`: conventions and the backlog protocol
 - `standards/spec/constitution.md`: which principles the change touches (VIII for anything hashed, XI and XII for trust and agents, VI for projections)
-- `spec-spine registry show <id> --json` and `spec-spine registry relationships <id>`: the compiled surface and edges (never parse `.derived/` directly)
+- `spec-spine registry show <id> --json` and `spec-spine registry relationships <id>`: the compiled surface and edges (never parse `.statecraft/derived/` directly)
 - The dependency specs' bodies: their seams (traits, injected readers) are what this spec composes
 - Existing code in the affected crates, if any
 

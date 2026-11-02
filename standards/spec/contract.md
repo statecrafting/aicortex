@@ -14,10 +14,10 @@ govern.
 
 ## Outputs (machine truth: compiler-owned JSON, read via `spec-spine` only)
 
-- `.derived/spec-registry/by-spec/<id>.json`: spec-as-source shards (`compile`).
-- `.derived/codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`:
+- `.statecraft/derived/spec-registry/by-spec/<id>.json`: spec-as-source shards (`compile`).
+- `.statecraft/derived/codebase-index/by-spec/<id>.json`, `by-package/<slug>.json`:
   code-as-source shards (`index`).
-- `.derived/**/build-meta.json`: wall-clock metadata; gitignored.
+- `.statecraft/derived/**/build-meta.json`: wall-clock metadata; gitignored.
 
 Both shard trees are **committed**. `spec-spine check` answers for both in
 one read and refuses a stale tree in CI. It never writes: the primitives it

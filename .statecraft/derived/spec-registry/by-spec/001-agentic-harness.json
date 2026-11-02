@@ -108,6 +108,10 @@
       },
       {
         "kind": "file",
+        "path": ".gitleaks.toml"
+      },
+      {
+        "kind": "file",
         "path": "scripts/check-authored-content.sh"
       },
       {
@@ -136,19 +140,20 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "001-agentic-engineering-harness": "527946a3c0a522a79dafff1c922167cd25193d265f038e4fd18f5c9fc2a3aee8",
+      "001-agentic-engineering-harness": "9524b4f36e98ccf06ba8e0392c53804eeef65f3a8bb52d2a3dcb22a03541564c",
       "1-purpose": "e8e79fa321ec9a5ff407990e586c2b60720314bd570c6e0461a1d327b25979e9",
       "2-territory": "5c9eee77cc5bdf8cf4cdff7e64e510aca134a5a3274b05196ab264940de1c226",
-      "3-behavior": "c1162cc7737998e2d48ecb94b1c2c4ed67ee7c16e02604e4037ea4ac8dd27a66",
+      "3-behavior": "9d59c72507df510835d1fe8e4791e99d456323af273816b66e0215a697bac832",
       "4-functional-requirements": "64023d74bab0edf9cfc48731c18009e757143943905e030f24dd5d53e4e94156",
       "5-acceptance-criteria": "2ce15f8bf0c4e272f5a86c5b6c58a49d1bbc69897db137aa26c9f964ff464edb",
       "6-out-of-scope": "758afe22a2084f65e8c5136b8df32a85a8aa9016de657b1907b71a5a6cb0d102",
       "7-resolved-decisions": "492a01fdcb4e988b549dfa5b987299670194773e4e9d6324dcc982b7c2f2079c",
+      "derived-directory-move-record-2026-10-31": "053faaf11393c45f666a20b29dce244f24efd32e16aed24cb26a14519f357097",
       "engine-upgrade-record-2026-10-02": "3bd336d442dbe47ed7de32ee12c3efc8ea7df6443d022b258dd9280f0269ff37",
       "profile-upgrade-record-2026-10-02": "d26d084ec1ac53f0450dc009347a561cd698b3b52ed68517f57d2dbcf429c187",
       "revision-14-implementation-record-2026-10-02": "d5c20a1c6c5c29d1772c2458c0c97fff2d9ea16eb99132222fc0352815bfb9c1",
       "revision-21-implementation-record-2026-10-30": "f4dc09524029e372ac1d100961895c785d662965fda2be61cab6ac705d23e077",
-      "revision-22-implementation-record-2026-10-30": "1d9513b7a178a3b7344c00a263b454abc624c89df452dcce980c1dac4177ca39",
+      "revision-22-implementation-record-2026-10-30": "3594645da25b3840bf435488509fd21a7a10f0b1d611faa531d55d80d22ab021",
       "verification": "a4cc373d91ba6d971ac7ad04ed912c6dad51341da8817eeec4fa1af774bcdb37"
     },
     "sectionHeadings": [
@@ -165,13 +170,14 @@
       "Engine upgrade record (2026-10-02)",
       "Revision 14 implementation record (2026-10-02)",
       "Revision 21 implementation record (2026-10-30)",
-      "Revision 22 implementation record (2026-10-30)"
+      "Revision 22 implementation record (2026-10-30)",
+      "Derived directory move record (2026-10-31)"
     ],
     "specPath": "specs/001-agentic-harness/spec.md",
     "status": "approved",
     "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, six behavioral rules of which three are path-scoped, four subagents, ten skills, settings hooks that report and refuse, one Makefile that is the single definition of the gate and splits its reading half from its writing half, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
     "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
   },
-  "shardHash": "8b2232976f63014bbddb7ba33df17ed5028f800bf3db2a335274f9c059d8cee4",
+  "shardHash": "5131fd1eb5b856d8a356ee1e2e93f1a481857ea9a4092faf59f03a5b46d8c6ea",
   "specVersion": "1.11.0"
 }

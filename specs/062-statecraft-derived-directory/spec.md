@@ -7,7 +7,7 @@ domain: "governance"
 authors: ["Bartek Kus"]
 risk: low
 wave: 4
-implementation: in-progress
+implementation: complete
 created: "2026-10-31"
 summary: >
   Authorizes moving spec-spine's committed derived directory from .derived/
@@ -19,8 +19,10 @@ summary: >
   from every other non-generated path.
 amends:
   - "001-agentic-harness"
+  - "055-release-and-crate-publication"
 depends_on:
   - "001-agentic-harness"
+  - "055-release-and-crate-publication"
   - "061-statecraft-profile-22"
 obligations:
   - id: "R-1"
@@ -47,7 +49,8 @@ added.
 This amendment owns no product code and grants no implementation claim. It
 changes one layout key and one resolver exclusion in `spec-spine.toml`, the
 location of the committed shards, and the tooling and prose in spec 001's
-authority that name the derived directory. The managed Statecraft files are
+authority that name the derived directory, and the path spec 055 B-5 keeps out
+of a published package. The managed Statecraft files are
 not re-rendered.
 
 ## 3. Migration contract
@@ -123,6 +126,19 @@ Owner consent is the explicit owner decision of 2026-10-31 to move the
 derived directory to `.statecraft/derived/` and to approve the coupling
 waiver for the configuration pull request. This spec grants only that scoped
 move.
+
+## 8. Implementation record
+
+- Preparation: #105 (this spec, spec 001 D-20, tooling for either location).
+- Secret-scan allowlist: #108 (`.gitleaks.toml`, D-2).
+- Configuration: #106 (`derived_dir`, the resolver exclusion, `.gitleaks.toml`
+  in `extra_hashed_inputs` and the governance slice, every shard regenerated;
+  owner-approved waiver, D-1).
+- Cleanup: deletes `.derived/`, drops the old location from the merge-driver
+  attributes, `.gitignore`, the PR gate hook, `make attest` and the authored
+  content check, moves every live reference in the agents, rules, skills,
+  hooks, `AGENTS.md`, `CLAUDE.md`, the constitution, the contract and spec 055
+  B-5 to `.statecraft/derived/`, and claims `.gitleaks.toml` in spec 001.
 
 ## Verification
 

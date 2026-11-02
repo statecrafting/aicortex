@@ -33,11 +33,6 @@ Makefile text eol=lf
 # It never replaces the `index check` staleness gate. The driver resolves a
 # textual conflict by regenerating from the merged tree; the gate is what
 # proves the result is what the corpus compiles to.
-.derived/spec-registry/by-spec/*.json merge=spec-spine-derived-regen
-.derived/codebase-index/by-spec/*.json merge=spec-spine-derived-regen
-.derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
-.derived/codebase-index/slices.json merge=spec-spine-derived-regen
-.derived/codebase-index/inputs.json merge=spec-spine-derived-regen
 .statecraft/derived/spec-registry/by-spec/*.json merge=spec-spine-derived-regen
 .statecraft/derived/codebase-index/by-spec/*.json merge=spec-spine-derived-regen
 .statecraft/derived/codebase-index/by-package/*.json merge=spec-spine-derived-regen
