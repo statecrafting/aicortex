@@ -66,6 +66,11 @@ unused-allowed-license = "allow"
 # behaviour to audit and two places a fix has to land.
 multiple-versions = "warn"
 wildcards = "deny"
+# Spec 055: a path dependency with no version is allowed only where
+# cargo-deny permits it, a dev-dependency or a crate that does not publish.
+# The publishable crates' dev edges to each other take this form so
+# publication strips them; a normal dependency still needs its version.
+allow-wildcard-paths = true
 highlight = "all"
 deny = [
   # Cryptography.

@@ -1,13 +1,15 @@
 [package]
 name = "aicortex-gate"
-version = "0.1.0"
+version.workspace = true
 description = "The write gate: a pure function from a candidate to a verdict, refusing credentials rather than redacting them"
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
 authors.workspace = true
-publish = false
+readme = "README.md"
+keywords.workspace = true
+categories.workspace = true
 
 [package.metadata.spec-spine]
 spec = "013-write-gate-and-redaction"
@@ -37,8 +39,12 @@ unicode-normalization = { workspace = true }
 [dev-dependencies]
 # Spec 047: the registry's golden vectors, for the parity tests by id.
 action-gate-core = { workspace = true, features = ["golden-vectors"] }
-aicortex-embed = { workspace = true }
-aicortex-store = { workspace = true }
+# Spec 055: a dev edge between workspace crates is path-only, with no
+# version, so publication strips it; with a version, crates.io would have to
+# hold the crate before this one could publish. `deny.toml` permits the
+# path-only form (`allow-wildcard-paths`) for exactly this case.
+aicortex-embed = { path = "../aicortex-embed" }
+aicortex-store = { path = "../aicortex-store" }
 rahi-ledger = { workspace = true }
 rahi-store = { workspace = true }
 ring = { workspace = true }

@@ -3,9 +3,8 @@
     "kind": "rust-lib",
     "name": "aicortex-claims",
     "path": "crates/aicortex-claims",
-    "specRef": "050-typed-claims-and-predicate-registry",
-    "version": "0.1.0"
+    "specRef": "050-typed-claims-and-predicate-registry"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "6108b974fe12bbf356960df3f1f1f0eba09ffff96bd0a3c0228d8ac35881391c"
+  "shardHash": "dfe008ab18d520e6eefde0db68e7c7263128bd7be1812dd8d79b24ccd0df9e52"
 }
