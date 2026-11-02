@@ -6,7 +6,7 @@ kind: "tooling"
 domain: "ops"
 created: "2026-09-27"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: high
 wave: 5
 depends_on:

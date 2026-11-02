@@ -117,7 +117,7 @@
       "wave": 5
     },
     "id": "055-release-and-crate-publication",
-    "implementation": "in-progress",
+    "implementation": "complete",
     "kind": "tooling",
     "obligations": [
       {
@@ -188,6 +188,6 @@
     "summary": "No aicortex crate has been published, so host-library consumers (053) pin an exact source revision. This spec makes the five library crates that host-library mode needs (types, claims, gate, store, embed) publishable to crates.io under one lockstep version, adds a release check that packages them and builds a registry-only consumer, and adds a workflow that publishes only from an annotated tag a human pushed. Publication stays a separate human act from merge, deployment, and qualification, and a release note must say which of those it is.\n",
     "title": "Release the library crates: a tag publishes, a human cuts the tag, and nothing else is implied"
   },
-  "shardHash": "1fb2bcdc638357786b2fd6fd9180bbfc591f876d15c89dfbed2b8edb69ee4873",
+  "shardHash": "1906285cd6bf0a8b9fc3305724de60355a2085dd5a8d1d0afd8d1ff45f8e9748",
   "specVersion": "1.11.0"
 }
