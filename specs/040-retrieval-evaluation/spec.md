@@ -1,7 +1,7 @@
 ---
 id: "040-retrieval-evaluation"
 title: "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
-status: draft
+status: approved
 kind: "kernel"
 domain: "ops"
 created: "2026-09-03"
