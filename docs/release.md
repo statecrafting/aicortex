@@ -59,13 +59,12 @@ scripts/release-check.sh --self-test
 
 ## One-time setup (owner)
 
-1. On crates.io, create an API token scoped to `publish-new` and
-   `publish-update` for the five crate names.
-2. In the repository settings, create the environment `release`. Add
-   required reviewers (a human), restrict deployment to tags matching `v*`,
-   and add the token as the environment secret `CARGO_REGISTRY_TOKEN`. Do
-   not add it as a repository or organization secret: only the `release`
-   environment may hold it, so no pull-request run can read it.
+1. The registry token is the organization secret `CARGO_REGISTRY_TOKEN`.
+   Only the publish job references it, and a pull-request run never
+   reaches that job.
+2. In the repository settings, the environment `release` restricts
+   deployment to tags matching `v*` and has no required reviewer: the
+   signed, annotated tag is the authorization (spec 055 D-10).
 
 ## Cutting a release
 
@@ -88,11 +87,11 @@ scripts/release-check.sh --self-test
    git push origin vX.Y.Z
    ```
 
-4. **Approve.** The `release` workflow guards the tag (annotated, on
+4. **Publish.** The `release` workflow guards the tag (annotated, on
    `main`, matching the workspace version, with a changelog section that
-   carries the non-assertion), reruns the release check, and waits for
-   approval of the `release` environment. Approving it releases the token
-   to the publish job.
+   carries the non-assertion), reruns the release check, and runs the
+   publish job in the `release` environment, which guards the tag again
+   and publishes in dependency order.
 5. **Record.** After the crates are on crates.io, add the tag's commit and
    the published versions to the release's changelog section in a pull
    request. The tagged commit cannot name itself, so this record follows
