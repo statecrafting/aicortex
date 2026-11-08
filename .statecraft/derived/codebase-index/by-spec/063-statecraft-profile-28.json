@@ -1,0 +1,17 @@
+{
+  "mapping": {
+    "amends": [
+      "001-agentic-harness"
+    ],
+    "dependsOn": [
+      "001-agentic-harness",
+      "061-statecraft-profile-22",
+      "062-statecraft-derived-directory"
+    ],
+    "implementingPaths": [],
+    "specId": "063-statecraft-profile-28",
+    "specStatus": "approved"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "9efd13471ab13f92e7c841091c85d0b614803275f7a1d82f54d3c39644dce791"
+}

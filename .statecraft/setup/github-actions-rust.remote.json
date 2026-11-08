@@ -6,6 +6,7 @@
     "paths": [
       "/.github/workflows/statecraft-ai-review.yml",
       "/.github/workflows/statecraft-ci.yml",
+      "/.statecraft/REVIEW.md",
       "/.statecraft/setup/github-actions-rust.json",
       "/.statecraft/setup/github-actions-rust.remote.json",
       "/Makefile",
@@ -34,8 +35,8 @@
   },
   "profile": {
     "id": "github-actions-rust",
-    "identity": "6da3ede78368133fe8f463ac341a8ea0ce8e959c0c059066f50c8a89253a4c88",
-    "revision": 22
+    "identity": "ddb55e6ee7c1478b1c88463a3f2fa7a53b3f20aad492a7dfcae29cbbd4d21178",
+    "revision": 28
   },
   "requiredChecks": [
     {
