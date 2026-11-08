@@ -12,6 +12,8 @@
 //!
 //! - [`router`]: the routes under `/api/v1`, each behind its scope gate.
 //! - [`capture`]: `POST /capture`, through the write gate, idempotent.
+//! - [`memories`]: listing, detail, correction, supersession, erasure,
+//!   counts, and the promotion boundary.
 //! - [`events`]: `GET /events`, the chassis-declared progress stream.
 //! - [`dto`]: the wire types; inputs reject unknown fields.
 //! - [`error`]: RFC 9457 problem documents with a stable type per reason.
@@ -26,6 +28,7 @@ pub mod capture;
 pub mod dto;
 pub mod error;
 pub mod events;
+pub mod memories;
 pub mod router;
 pub mod scopes;
 

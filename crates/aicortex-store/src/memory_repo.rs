@@ -190,6 +190,11 @@ const FINGERPRINT_SQL: &str = "SELECT id FROM memory
 /// The base of every listing: the scope, always, in the statement itself.
 const LIST_BASE_SQL: &str = "SELECT record, created, id FROM memory WHERE scope_id = $1";
 
+/// The ids among a JSON array of ids whose origin has been erased (spec 020,
+/// for the envelope marker of 019 B-1 and 014 B-8).
+const ORIGIN_ERASED_SQL: &str = "SELECT id FROM memory
+    WHERE scope_id = $1 AND origin_erased = 1 AND id IN (SELECT value FROM json_each($2))";
+
 #[derive(Debug, Deserialize)]
 struct RecordRow {
     record: String,
@@ -465,6 +470,48 @@ impl MemoryRepo {
             _ => None,
         };
         Ok(Listing { memories, next })
+    }
+}
+
+impl MemoryRepo {
+    /// Which of `ids` carry the `origin_erased` marker of 014 B-8 (spec 020).
+    ///
+    /// The marker is a column beside the record rather than a field of it,
+    /// and the envelope of 019 B-1 must carry it, so a surface reads it here
+    /// alongside the memories it returns. `query`, the local replica, like
+    /// the listing it accompanies (B-5).
+    ///
+    /// # Errors
+    ///
+    /// The store's error, or [`Error::Integrity`] when a row holds an id that
+    /// is not a memory id.
+    pub async fn origin_erased(
+        &self,
+        store: &StoreHandle,
+        scope: &Scope,
+        ids: &[MemoryId],
+    ) -> Result<std::collections::BTreeSet<MemoryId>, Error> {
+        if ids.is_empty() {
+            return Ok(std::collections::BTreeSet::new());
+        }
+        let wanted: Vec<String> = ids.iter().map(ToString::to_string).collect();
+        let wanted = serde_json::to_string(&wanted)
+            .map_err(|error| Error::Validation(format!("ids do not serialize: {error}")))?;
+        let rows: Vec<IdRow> = store
+            .query(
+                ORIGIN_ERASED_SQL,
+                vec![Value::from(&ScopeId::of(scope)), Value::from(wanted)],
+            )
+            .await?;
+        rows.into_iter()
+            .map(|row| {
+                MemoryId::parse(&row.id).map_err(|error| {
+                    Error::Integrity(format!(
+                        "memory holds an id that is not a memory id: {error}"
+                    ))
+                })
+            })
+            .collect()
     }
 }
 

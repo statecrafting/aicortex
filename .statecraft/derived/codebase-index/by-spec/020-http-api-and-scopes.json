@@ -9,11 +9,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/memories.rs' does not exist",
-        "path": "crates/aicortex-api/src/memories.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/entities.rs' does not exist",
         "path": "crates/aicortex-api/src/entities.rs"
       }
@@ -66,6 +61,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-api/src/memories.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api/src/router.rs",
         "source": "spec-edge"
       },
@@ -83,6 +82,10 @@
       },
       {
         "path": "crates/aicortex-api/tests/common/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/memory_repo.rs",
         "source": "spec-edge"
       }
     ],
@@ -175,7 +178,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/memories.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -299,6 +306,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/src/memory_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "specs/019-untrusted-content-boundary/spec.md"
           }
         ],
@@ -314,5 +334,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "d24cd3eb671808f2452e187e6bf160d41232c6fe90f28df7c6e29b238c9daf30"
+  "shardHash": "2afce03fe1d1d090362ec0eafb81b4db04cf2e87a71d6a32a4815130ae5ac2ba"
 }

@@ -31,6 +31,7 @@ extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
 summary: >
@@ -240,8 +241,7 @@ documents.
 - **D-8 (2026-10-29, this spec, build).** `GET /events` is fed by a node-local
   bus. The store's notify is a single-reader hint stream (`rahi://012` B-3)
   and cannot fan out to many subscribers. This build publishes capture
-  verdicts, and the memory routes add state changes (superseded, erased),
-  filtered to the caller's own scopes, as ids, codes, and states. A lagging subscriber gets
+  verdicts and memory state changes (superseded, erased), filtered to the caller's own scopes, as ids, codes, and states. A lagging subscriber gets
   a `lagged` event with no count, because the count would describe other
   subjects' traffic.
 - **D-9 (2026-10-29, this spec, build).** A capture of one candidate that
@@ -259,24 +259,41 @@ documents.
   answered on a safe request; an unsafe one is refused 403 and stores
   nothing. Both are recorded for rahi rather than patched here.
 
+- **D-11 (2026-10-29, this spec, build).** The listing cursor (012 B-7) is
+  signed with a random key that the first node writes into the chassis's
+  replicated cache, so every node verifies every other node's cursors. If
+  the cache is cleared, outstanding cursors stop verifying and the client
+  starts its listing again; no decision depends on a cursor. Rejected: a
+  per-process key, which breaks paging behind a load balancer.
+- **D-12 (2026-10-29, this spec, build).** `POST /promote/{id}` is mounted
+  with its authorization (`memory.promote`, a person's token, a reachable
+  scope) and answers 501 `promotion_unavailable` without writing anything.
+  The act (appending the Decision, constructing the `Promotion`, writing the
+  trust class) is 023 B-5's and needs a store write this crate's territory
+  does not contain; 023's build replaces the 501.
+- **D-13 (2026-10-29, this spec, build).** The `origin_erased` marker the
+  envelope of 019 B-1 carries is a column beside the stored record, so the
+  memory routes read it through a new `MemoryRepo::origin_erased` beside the
+  memories they return (an additive `extends` edge on 012's repository): the
+  SQL stays in the store crate, and a correction whose corrected memory was
+  erased is labelled rather than presented as if its source still stood.
+
 ## Status
 
-- **2026-10-29.** `implementation: in-progress`. This spec lands in two
-  changes, each under the size the delivery policy sets. The first, this
-  one, founds the crate and mounts it: B-1 to B-3, `POST /capture` with B-7
-  to B-10, `GET /events` (B-6), and FR-001, FR-002, FR-004, FR-006 to
-  FR-008, all under AC-1. Remaining before `complete`:
-  - **The rest of the D-3 routes**, in the second change: `GET /memories`,
-    `GET /memories/{id}`, `PATCH /memories/{id}`, `DELETE /memories/{id}`,
-    `GET /stats`, and `POST /promote/{id}`, with FR-003 and FR-005.
+- **2026-10-29.** `implementation: in-progress`. Landed in two changes:
+  the first founded the crate with capture and events; the second adds the
+  rest of the D-3 routes (`GET /memories`, `GET /memories/{id}`,
+  `PATCH /memories/{id}`, `DELETE /memories/{id}`, `GET /stats`,
+  `POST /promote/{id}`) with FR-003 and FR-005. B-1 to B-3, B-5, B-7 to
+  B-10 and FR-001 to FR-008 hold under AC-1. Remaining before `complete`:
   - **AC-2** needs a rauthy binary on loopback. None exists on the build
     host (macOS; rahi pins a Linux image) or in CI, so the end-to-end
     authorization code with PKCE run has not been performed.
   - **FR-009** boots `aicortex serve` and captures over HTTP, which needs
     composed identity: the same rauthy binary, or a discovery stub that
     `serve` accepts.
-  - **B-6** carries capture verdicts; embedding progress, curator
-    activity, and review-queue changes are not published yet (D-8).
+  - **B-6** carries capture verdicts and state changes; embedding progress,
+    curator activity, and review-queue changes are not published yet (D-8).
 
 ## Verification
 

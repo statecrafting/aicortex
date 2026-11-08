@@ -1,5 +1,5 @@
-//! Capture and events, end to end through the chassis (spec 020 B-6 to
-//! B-10, FR-006, FR-007).
+//! The routes, end to end through the chassis (spec 020 B-4 to B-10,
+//! FR-005, FR-006, FR-007).
 
 #![allow(
     clippy::unwrap_used,
@@ -12,6 +12,7 @@ mod common;
 
 use std::time::Duration;
 
+use aicortex_recall::FRAMING_STATEMENT;
 use common::{Who, capture_body};
 use reqwest::{Method, StatusCode, header};
 use serde_json::{Value, json};
@@ -41,6 +42,73 @@ async fn send(
 
 fn parse(text: &str) -> Value {
     serde_json::from_str(text).unwrap_or_else(|error| panic!("{error}: {text}"))
+}
+
+/// FR-005 / 019 FR-001: the fixture appears only inside an envelope, after
+/// the framing statement.
+fn assert_enveloped(text: &str) {
+    let framing = text.find(FRAMING_STATEMENT).expect("the framing statement");
+    let mut rest = text;
+    let mut seen = 0;
+    while let Some(at) = rest.find(INJECTION) {
+        let before = &rest[..at];
+        let open = before
+            .rfind("<<<AICORTEX_MEMORY ")
+            .expect("inside an envelope");
+        assert!(
+            !before[open..].contains("<<<END_AICORTEX_MEMORY"),
+            "the fixture sits outside an envelope"
+        );
+        assert!(framing < text.len() - rest.len() + at);
+        rest = &rest[at + INJECTION.len()..];
+        seen += 1;
+    }
+    assert!(seen > 0, "the fixture was returned");
+    let body = parse(text);
+    assert_eq!(body["framing"], FRAMING_STATEMENT);
+    assert!(body["memories"].is_array());
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn fr005_every_content_route_returns_the_fixture_only_enveloped() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    let (status, _, text) = send(
+        &cell,
+        Method::POST,
+        "/api/v1/capture",
+        &alice,
+        Some(capture_body(INJECTION)),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    assert!(!text.contains(INJECTION), "capture echoes no content");
+    let id = parse(&text)["results"][0]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+
+    let (status, _, list) = send(&cell, Method::GET, "/api/v1/memories", &alice, None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_enveloped(&list);
+    assert_eq!(parse(&list)["items"][0]["id"], id.as_str());
+
+    let (status, _, one) = send(
+        &cell,
+        Method::GET,
+        &format!("/api/v1/memories/{id}"),
+        &alice,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_enveloped(&one);
+
+    let (status, _, stats) = send(&cell, Method::GET, "/api/v1/stats", &alice, None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(!stats.contains(INJECTION));
+    assert_eq!(parse(&stats)["total"], 1);
+    cell.shutdown().await;
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
@@ -275,6 +343,173 @@ async fn b9_b10_batches_are_bounded_and_unknown_fields_refused() {
     .await;
     assert_eq!(status, StatusCode::BAD_REQUEST);
     assert_eq!(parse(&text)["type"], "urn:aicortex:problem:invalid_request");
+    let (status, _, _) = send(
+        &cell,
+        Method::GET,
+        "/api/v1/memories?colour=blue",
+        &alice,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
     assert_eq!(cell.rows("memory").await, 0);
+    cell.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn b4_correct_supersede_page_and_erase() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    let capture = |text: &'static str| {
+        let cell = &cell;
+        let alice = &alice;
+        async move {
+            let (status, _, body) = send(
+                cell,
+                Method::POST,
+                "/api/v1/capture",
+                alice,
+                Some(capture_body(text)),
+            )
+            .await;
+            assert_eq!(status, StatusCode::OK, "{body}");
+            parse(&body)["results"][0]["id"]
+                .as_str()
+                .unwrap()
+                .to_owned()
+        }
+    };
+    let wrong = capture("the release shipped on tuesday").await;
+    let stale = capture("the standup is at nine").await;
+    let fresh = capture("the standup is at ten").await;
+
+    // A correction supersedes the memory it corrects.
+    let (status, _, text) = send(
+        &cell,
+        Method::PATCH,
+        &format!("/api/v1/memories/{wrong}"),
+        &alice,
+        Some(json!({ "correction": { "text": "the release shipped on wednesday" } })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    let correction = parse(&text)["superseded_by"].as_str().unwrap().to_owned();
+
+    // A supersession by an existing memory.
+    let (status, _, text) = send(
+        &cell,
+        Method::PATCH,
+        &format!("/api/v1/memories/{stale}"),
+        &alice,
+        Some(json!({ "superseded_by": fresh })),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+
+    // Neither, or both, is a malformed patch.
+    let (status, _, _) = send(
+        &cell,
+        Method::PATCH,
+        &format!("/api/v1/memories/{stale}"),
+        &alice,
+        Some(json!({})),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    let (_, _, text) = send(
+        &cell,
+        Method::GET,
+        "/api/v1/memories?status=superseded",
+        &alice,
+        None,
+    )
+    .await;
+    let superseded: Vec<String> = parse(&text)["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|item| item["id"].as_str().unwrap().to_owned())
+        .collect();
+    assert_eq!(superseded.len(), 2, "{text}");
+    assert!(superseded.contains(&wrong) && superseded.contains(&stale));
+
+    // Keyset paging: one row a page, every row once.
+    let mut seen = Vec::new();
+    let mut cursor: Option<String> = None;
+    loop {
+        let path = match &cursor {
+            Some(cursor) => format!("/api/v1/memories?limit=1&cursor={cursor}"),
+            None => "/api/v1/memories?limit=1".to_owned(),
+        };
+        let (status, _, text) = send(&cell, Method::GET, &path, &alice, None).await;
+        assert_eq!(status, StatusCode::OK, "{text}");
+        let page = parse(&text);
+        for item in page["items"].as_array().unwrap() {
+            seen.push(item["id"].as_str().unwrap().to_owned());
+        }
+        match page["next"].as_str() {
+            Some(next) => cursor = Some(next.to_owned()),
+            None => break,
+        }
+    }
+    seen.sort();
+    seen.dedup();
+    assert_eq!(seen.len(), 4, "{seen:?}");
+    let (status, _, _) = send(
+        &cell,
+        Method::GET,
+        "/api/v1/memories?cursor=forged",
+        &alice,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    // Erasing the corrected memory marks the correction's origin erased.
+    let (status, _, text) = send(
+        &cell,
+        Method::DELETE,
+        &format!("/api/v1/memories/{wrong}"),
+        &alice,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    let erased = parse(&text);
+    assert_eq!(erased["id"], wrong.as_str());
+    assert_eq!(erased["marked"], 1);
+    let (_, _, text) = send(
+        &cell,
+        Method::GET,
+        &format!("/api/v1/memories/{correction}"),
+        &alice,
+        None,
+    )
+    .await;
+    let envelope = parse(&text)["memories"][0].as_str().unwrap().to_owned();
+    assert!(envelope.contains("\"origin_erased\":true"), "{envelope}");
+    let (_, _, text) = send(
+        &cell,
+        Method::GET,
+        &format!("/api/v1/memories/{wrong}"),
+        &alice,
+        None,
+    )
+    .await;
+    assert_eq!(parse(&text)["items"][0]["status"], "erased");
+    assert!(!text.contains("tuesday"), "the body is gone");
+
+    // Erasure needs its own scope.
+    let writer = Who::person("sub-alice", &["memory.read", "memory.write"]);
+    let (status, _, _) = send(
+        &cell,
+        Method::DELETE,
+        &format!("/api/v1/memories/{stale}"),
+        &writer,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
     cell.shutdown().await;
 }
