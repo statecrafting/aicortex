@@ -10,18 +10,21 @@
 use std::sync::Arc;
 
 use aicortex_gate::Gate;
+use aicortex_store::CursorKey;
 use axum::Router;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
-use axum::routing::{get, post};
+use axum::routing::{delete, get, patch, post};
 use rahi_edge::{AppState, StreamRoutes};
 use rahi_idp::{Bearer, BearerRoutes};
 use rahi_types::{Error, Principal, Sub};
+use ring::rand::{SecureRandom, SystemRandom};
+use tokio::sync::OnceCell;
 
 use crate::error::ApiError;
 use crate::events::Events;
 use crate::scopes::{ApiScope, scoped};
-use crate::{capture, events};
+use crate::{capture, events, memories};
 
 /// Where the router is mounted (B-1, B-10).
 pub const API_PREFIX: &str = "/api/v1";
@@ -35,6 +38,9 @@ pub const DEFAULT_MAX_BATCH: usize = 100;
 
 /// How long an `Idempotency-Key` is remembered, in seconds (B-8, D-7).
 pub const DEFAULT_IDEMPOTENCY_TTL_SECS: u32 = 24 * 60 * 60;
+
+/// The cache key the listing cursor's signing secret lives under (D-11).
+pub const CURSOR_KEY_CACHE_KEY: &str = "aicortex.api.cursor-key";
 
 /// Where this surface accepts a bearer credential (B-3, D-5).
 ///
@@ -79,6 +85,7 @@ pub struct Api {
     pub events: Events,
     /// The surface's limits.
     pub limits: Limits,
+    cursor: Arc<OnceCell<CursorKey>>,
 }
 
 impl std::fmt::Debug for Api {
@@ -98,6 +105,7 @@ impl Api {
             gate: Arc::new(Gate::standard()),
             events: Events::new(),
             limits: Limits::default(),
+            cursor: Arc::new(OnceCell::new()),
         }
     }
 
@@ -106,6 +114,41 @@ impl Api {
     pub const fn with_limits(mut self, limits: Limits) -> Self {
         self.limits = limits;
         self
+    }
+
+    /// The key the listing cursor is signed with (D-11).
+    ///
+    /// Kept in the chassis's replicated cache so every node signs and checks
+    /// with the same secret. The first node to need one writes a random key
+    /// and every node then reads back whichever write won, so a race costs at
+    /// most the cursors signed in that instant. The cache is derived state:
+    /// if it is cleared, outstanding cursors stop verifying and a client
+    /// starts its listing again, and no decision depends on that.
+    ///
+    /// # Errors
+    ///
+    /// The store's error, or [`Error::Integrity`] when no entropy is
+    /// available.
+    pub async fn cursor_key(&self) -> Result<&CursorKey, Error> {
+        self.cursor
+            .get_or_try_init(|| async {
+                let store = self.app.store();
+                if let Some(hex) = store.kv_get::<String>(CURSOR_KEY_CACHE_KEY).await? {
+                    return Ok(CursorKey::from_secret(hex.as_bytes()));
+                }
+                let mut secret = [0_u8; CursorKey::BYTES];
+                SystemRandom::new()
+                    .fill(&mut secret)
+                    .map_err(|_| Error::Integrity("no entropy for the cursor key".to_owned()))?;
+                let hex = crate::capture::hex(&secret);
+                store.kv_put(CURSOR_KEY_CACHE_KEY, &hex, None).await?;
+                let winner = store
+                    .kv_get::<String>(CURSOR_KEY_CACHE_KEY)
+                    .await?
+                    .unwrap_or(hex);
+                Ok(CursorKey::from_secret(winner.as_bytes()))
+            })
+            .await
     }
 }
 
@@ -163,8 +206,7 @@ impl<S: Send + Sync> FromRequestParts<S> for Caller {
 /// The product router, mounted under [`API_PREFIX`] (B-1, B-4).
 ///
 /// Staged per D-3: `POST /search` arrives with 018 and the entity routes with
-/// 017, each mounted here through an `extends` edge on this file. The memory
-/// routes of B-4 land in this spec's second change.
+/// 017, each mounted here through an `extends` edge on this file.
 pub fn router(state: AppState) -> Router {
     router_with(Api::new(state))
 }
@@ -177,6 +219,24 @@ pub fn router_with(api: Api) -> Router {
         .route(
             "/capture",
             scoped(ApiScope::MemoryWrite, k, post(capture::capture)),
+        )
+        .route(
+            "/memories",
+            scoped(ApiScope::MemoryRead, k, get(memories::list)),
+        )
+        .route(
+            "/memories/{id}",
+            scoped(ApiScope::MemoryRead, k, get(memories::get_one))
+                .merge(scoped(ApiScope::MemoryWrite, k, patch(memories::patch_one)))
+                .merge(scoped(ApiScope::MemoryDelete, k, delete(memories::erase))),
+        )
+        .route(
+            "/stats",
+            scoped(ApiScope::MemoryRead, k, get(memories::stats)),
+        )
+        .route(
+            "/promote/{id}",
+            scoped(ApiScope::MemoryPromote, k, post(memories::promote)),
         )
         .stream_route(
             "/events",

@@ -1,5 +1,5 @@
-//! Authorization: the credential, the scope, and scope reachability (spec
-//! 020 FR-001, FR-002, FR-004, FR-008, B-2, B-3).
+//! Authorization: the credential, the scope, the interactive principal, and
+//! scope reachability (spec 020 FR-001 to FR-004, FR-008, B-2, B-3).
 //!
 //! Every request goes over a socket into the chassis's bearer layer and edge;
 //! every refusal asserted here is the one a client receives.
@@ -22,6 +22,7 @@ use serde_json::Value;
 
 const READ: &str = "memory.read";
 const WRITE: &str = "memory.write";
+const PROMOTE: &str = "memory.promote";
 
 async fn json(response: reqwest::Response) -> Value {
     let bytes = response.bytes().await.expect("a body");
@@ -48,7 +49,15 @@ async fn captured(cell: &common::Cell, who: &Who, text: &str) -> String {
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr001_no_credential_is_a_401_naming_the_resource_metadata() {
     let cell = common::boot().await;
-    for (method, path) in [(Method::GET, "/api/v1/events")] {
+    for (method, path) in [
+        (Method::GET, "/api/v1/memories"),
+        (
+            Method::GET,
+            "/api/v1/memories/0195f0e0-9b1e-7c1f-9c0e-2c4a4f2b0a11",
+        ),
+        (Method::GET, "/api/v1/stats"),
+        (Method::GET, "/api/v1/events"),
+    ] {
         let response = cell
             .request(method.clone(), path, None)
             .send()
@@ -74,7 +83,7 @@ async fn fr001_no_credential_is_a_401_naming_the_resource_metadata() {
         assert!(challenge.contains(&metadata), "{challenge}");
     }
     // An unsafe method with no credential at all meets the chassis's CSRF
-    // check first (D-12): refused, never admitted, and nothing stored.
+    // check first (D-10): refused, never admitted, and nothing stored.
     let response = cell
         .request(Method::POST, "/api/v1/capture", None)
         .body(capture_body("anonymous").to_string())
@@ -129,6 +138,71 @@ async fn fr002_a_read_token_is_refused_capture_naming_memory_write() {
     }
     assert!(refused, "the scope refusal is in the chain");
 
+    // The same token reads.
+    let response = cell
+        .request(Method::GET, "/api/v1/memories", Some(&reader))
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::OK);
+    cell.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn fr003_a_client_credentials_token_never_reaches_promote() {
+    let cell = common::boot().await;
+    let person = Who::person("sub-promoter", &[READ, WRITE, PROMOTE]);
+    let id = captured(&cell, &person, "a memory someone may promote").await;
+
+    // A client acting as itself, holding every scope there is.
+    let every: Vec<&'static str> = ApiScope::ALL.iter().map(|scope| scope.as_str()).collect();
+    let service = Who::service("importer", &every);
+    let response = cell
+        .request(
+            Method::POST,
+            &format!("/api/v1/promote/{id}"),
+            Some(&service),
+        )
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    assert_eq!(cell.rows("memory").await, 1);
+
+    // The same service reaches the service-callable rest of the surface.
+    let response = cell
+        .request(Method::GET, "/api/v1/memories", Some(&service))
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::OK);
+
+    // A person with the scope reaches the route, which waits on 023 (D-12).
+    let response = cell
+        .request(
+            Method::POST,
+            &format!("/api/v1/promote/{id}"),
+            Some(&person),
+        )
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::NOT_IMPLEMENTED);
+    let body = json(response).await;
+    assert_eq!(body["code"], "promotion_unavailable");
+
+    // Without the scope, the gate refuses first.
+    let writer = Who::person("sub-promoter", &[READ, WRITE]);
+    let response = cell
+        .request(
+            Method::POST,
+            &format!("/api/v1/promote/{id}"),
+            Some(&writer),
+        )
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::FORBIDDEN);
     cell.shutdown().await;
 }
 
@@ -137,33 +211,71 @@ async fn fr004_an_unreachable_scope_is_a_404_that_says_nothing() {
     let cell = common::boot().await;
     let alice = Who::person("sub-alice", &[READ, WRITE]);
     let bob = Who::person("sub-bob", &[READ, WRITE]);
-    captured(&cell, &alice, "alice's own note").await;
+    let id = captured(&cell, &alice, "alice's own note").await;
+    let absent = aicortex_types::MemoryId::now_v7().to_string();
 
-    // Bob naming a scope Alice owns, whether it holds rows or not, gets the
-    // same document, and nothing is written.
+    // Alice reads her own memory.
+    let response = cell
+        .request(Method::GET, &format!("/api/v1/memories/{id}"), Some(&alice))
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::OK);
+
+    // Bob naming Alice's scope: a held id and an absent one answer the same,
+    // byte for byte, and so does a listing or a count of that scope.
     let mut answers = BTreeSet::new();
-    for scope in [
-        serde_json::json!({ "kind": "personal", "owner": "sub-alice" }),
-        serde_json::json!({ "kind": "project", "project": "p", "owner": "sub-alice" }),
-        serde_json::json!({ "kind": "personal", "owner": "sub-carol" }),
+    for path in [
+        format!("/api/v1/memories/{id}?owner=sub-alice"),
+        format!("/api/v1/memories/{absent}?owner=sub-alice"),
+        format!("/api/v1/memories/{id}?owner=sub-carol"),
+        "/api/v1/memories?owner=sub-alice".to_owned(),
+        "/api/v1/stats?owner=sub-alice".to_owned(),
+        format!("/api/v1/memories/{id}?scope=project&project=p&owner=sub-alice"),
     ] {
         let response = cell
-            .request(Method::POST, "/api/v1/capture", Some(&bob))
-            .header(header::CONTENT_TYPE, "application/json")
-            .body(
-                serde_json::json!({
-                    "scope": scope,
-                    "candidates": [{ "kind": "fact", "text": "planted" }]
-                })
-                .to_string(),
-            )
+            .request(Method::GET, &path, Some(&bob))
             .send()
             .await
             .expect("answered");
-        assert_eq!(response.status(), StatusCode::NOT_FOUND, "{scope}");
+        assert_eq!(response.status(), StatusCode::NOT_FOUND, "{path}");
         answers.insert(response.bytes().await.expect("a body"));
     }
+    // Bob naming Alice's memory in his own scope finds nothing either.
+    let response = cell
+        .request(Method::GET, &format!("/api/v1/memories/{id}"), Some(&bob))
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    answers.insert(response.bytes().await.expect("a body"));
     assert_eq!(answers.len(), 1, "every 404 is the same document");
+
+    // Nor can Bob write into, erase from, or patch in Alice's scope.
+    let response = cell
+        .request(
+            Method::DELETE,
+            &format!("/api/v1/memories/{id}?owner=sub-alice"),
+            Some(&Who::person("sub-bob", &["memory.delete"])),
+        )
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
+    let response = cell
+        .request(Method::POST, "/api/v1/capture", Some(&bob))
+        .header(header::CONTENT_TYPE, "application/json")
+        .body(
+            serde_json::json!({
+                "scope": { "kind": "personal", "owner": "sub-alice" },
+                "candidates": [{ "kind": "fact", "text": "planted" }]
+            })
+            .to_string(),
+        )
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::NOT_FOUND);
     assert_eq!(cell.rows("memory").await, 1);
     cell.shutdown().await;
 }

@@ -133,10 +133,11 @@ touch the app, the image (043), or any deployment (044).
   limitations. It MUST state that the release is a publication of library
   crates and that it asserts no deployment, image, reference-deployment
   qualification, or production readiness (I-3).
-- **B-9 (no secret in CI).** The registry token is a repository secret
-  scoped to the release environment, which requires a human approval in
-  the GitHub environment protection rules. The workflow MUST NOT expose it
-  to pull-request runs.
+- **B-9 (no secret in CI).** The publish job runs only in the `release`
+  environment, whose deployment policy admits only tags matching `v*`; the
+  signed, annotated tag a human pushed is the authorization (D-10). The
+  workflow MUST NOT expose the registry token to pull-request runs: only
+  the publish job references it.
 
 ## 4. Functional requirements
 
@@ -234,6 +235,17 @@ AIC-REL decision.
   file from a copy's store package (`exclude`) and expects packaging to
   refuse it. The static audit of `include_str!`, `include_bytes!`, and
   `#[path]` reads is exercised separately on a synthetic crate.
+- **D-10 (2026-11-08, owner-approved amendment of B-9).** The release
+  environment follows rustev's: a deployment policy restricted to `v*`
+  tags and no required reviewer, because the human act that authorizes a
+  release is cutting and pushing the signed, annotated tag, which the
+  guard then judges twice. The registry token is the organization secret
+  `CARGO_REGISTRY_TOKEN`, which the owner already holds for every
+  repository; the workflow still reads it only in the publish job, which a
+  pull-request run never reaches. Rejected: a required reviewer on the
+  environment, which repeats the tag's authorization as a second click;
+  and trusted publishing for the first release, which crates.io cannot
+  grant to a crate that does not exist yet.
 
 ## Verification
 

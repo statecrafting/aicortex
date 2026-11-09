@@ -73,7 +73,7 @@ fn digest(parts: &[&[u8]]) -> String {
 }
 
 /// The current time, in Unix seconds.
-fn now() -> UnixSeconds {
+pub(crate) fn now() -> UnixSeconds {
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |elapsed| elapsed.as_secs());
@@ -284,7 +284,7 @@ fn source(caller: &Caller, candidate: &CandidateIn) -> ApiResult<SourceRef> {
 }
 
 /// The record a candidate becomes, before the gate judges it.
-fn parts(
+pub(crate) fn parts(
     caller: &Caller,
     scope: &Scope,
     candidate: &CandidateIn,
@@ -309,7 +309,7 @@ fn parts(
 }
 
 /// The outbox work a capture stages (012 B-3).
-fn work(scope: &Scope, id: MemoryId) -> Envelope {
+pub(crate) fn work(scope: &Scope, id: MemoryId) -> Envelope {
     Envelope::new(
         "memory",
         Some(scope.owner.as_str().to_owned()),
@@ -329,7 +329,7 @@ async fn capture_one(
     let parts = parts(caller, scope, candidate, now())?;
     let candidate = Candidate::new(parts, Origin::Authenticated);
     let verdict = api.gate.evaluate(&candidate);
-    let (stored, decision) = commit(api, caller, &candidate, &verdict).await?;
+    let (stored, decision) = commit(api, caller, &candidate, &verdict, None).await?;
 
     let (label, problem) = match &verdict {
         Verdict::Admit(_) => ("admit", None),
@@ -364,11 +364,15 @@ async fn capture_one(
 }
 
 /// The one transaction a verdict implies, then its Decision (013 B-9).
-async fn commit(
+///
+/// With `corrects`, an admitted candidate is a correction that supersedes
+/// that memory in the same transaction (014 B-4).
+pub(crate) async fn commit(
     api: &Api,
     caller: &Caller,
     candidate: &Candidate,
     verdict: &Verdict,
+    corrects: Option<MemoryId>,
 ) -> ApiResult<(Option<Captured>, Option<String>)> {
     let store = api.app.store();
     let mut txn = TxnBuilder::new();
@@ -376,11 +380,15 @@ async fn commit(
         Some(admitted) => {
             let memory = admitted.memory();
             let work = work(&memory.scope, memory.id);
-            Some(
-                Lifecycle::new()
-                    .capture(store, &mut txn, admitted, &work)
-                    .await?,
-            )
+            let lifecycle = Lifecycle::new();
+            Some(match corrects {
+                Some(old) => {
+                    lifecycle
+                        .correct(store, &mut txn, admitted, old, &work)
+                        .await?
+                }
+                None => lifecycle.capture(store, &mut txn, admitted, &work).await?,
+            })
         }
         None => None,
     };
