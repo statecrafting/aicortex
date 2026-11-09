@@ -344,6 +344,7 @@ fn serve_crosses_only_additive_versions(data_dir: &Path, ports: Ports) -> Outcom
             migration.version,
             aicortex_store::migrations::ERASURE_RECEIPTS_VERSION
                 | aicortex_store::migrations::EMBEDDING_MIGRATION_VERSION
+                | aicortex_store::migrations::TEXT_INDEX_VERSION
         );
         assert_eq!(
             migration.additive, expected,

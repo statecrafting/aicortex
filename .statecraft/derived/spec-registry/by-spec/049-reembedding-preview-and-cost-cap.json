@@ -126,10 +126,10 @@
       "Verification"
     ],
     "specPath": "specs/049-reembedding-preview-and-cost-cap/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Spec 015 B-9 makes a model change a migration: a new revision is marked active and a re-embed pass runs over the scope. With the local provider that pass costs CPU time. With a remote provider it sends every chunk of a scope out and is billed per token, and nothing in 015 tells the operator how much before it starts or stops it at an amount they chose. This spec amends 015 B-9: every re-embed pass can be previewed with no provider call, reporting the work and its estimated cost, and a pass that would call a remote provider is refused until an operator approves a finite total cost cap, which admission enforces batch by batch.\n",
     "title": "Re-embedding: a dry run that reports counts and cost, and an approved total cap before any remote call"
   },
-  "shardHash": "70344c6b83e2b5bc95e3e99a07e78993b757c9a61ccf22c0c25cf116f510ebb0",
+  "shardHash": "d09ba6a343dd39c3ea256afa45d414a2a451292c616d9862113ddb29aab98e31",
   "specVersion": "1.11.0"
 }

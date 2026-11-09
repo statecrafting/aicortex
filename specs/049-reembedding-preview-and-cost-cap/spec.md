@@ -1,7 +1,7 @@
 ---
 id: "049-reembedding-preview-and-cost-cap"
 title: "Re-embedding: a dry run that reports counts and cost, and an approved total cap before any remote call"
-status: draft
+status: approved
 kind: "feature"
 domain: "memory"
 created: "2026-10-25"

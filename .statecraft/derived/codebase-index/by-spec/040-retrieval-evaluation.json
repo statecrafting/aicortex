@@ -459,8 +459,8 @@
       }
     ],
     "specId": "040-retrieval-evaluation",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "93db0ba39e6932d40e9fb03bff35fafe474ac27549aa89f2ea87c58bf039580a"
+  "shardHash": "9dad0aefb5d75a7ab7fda8bf6e25c3fd397d77ded1030aa0bc972e24b7dc704e"
 }

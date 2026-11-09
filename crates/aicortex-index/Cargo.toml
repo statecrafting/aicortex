@@ -18,6 +18,8 @@ aicortex-types = { workspace = true }
 rahi-store = { workspace = true }
 rahi-types = { workspace = true }
 serde = { workspace = true }
+unicode-general-category = { workspace = true }
+unicode-normalization = { workspace = true }
 
 [dev-dependencies]
 peak_alloc = { workspace = true }

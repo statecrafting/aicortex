@@ -207,10 +207,10 @@
       "Verification"
     ],
     "specPath": "specs/040-retrieval-evaluation/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Retrieval quality is the product, and it degrades invisibly. This spec builds the instrument: a committed golden corpus of memories and queries with judged relevance, a runner that loads it into a temporary instance and executes every query, metrics that are the standard ones rather than invented, a baseline file per configuration, and a gate that fails a change which moves a metric down by more than its tolerance without an explicit, justified baseline update. Constitution XIV becomes a command with an exit code.\n",
     "title": "Evaluation: a golden corpus, recall and precision at k, and a gate that refuses a silent regression"
   },
-  "shardHash": "93db0ba39e6932d40e9fb03bff35fafe474ac27549aa89f2ea87c58bf039580a",
+  "shardHash": "9dad0aefb5d75a7ab7fda8bf6e25c3fd397d77ded1030aa0bc972e24b7dc704e",
   "specVersion": "1.11.0"
 }
