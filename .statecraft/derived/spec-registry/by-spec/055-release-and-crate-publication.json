@@ -156,17 +156,17 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "055-release-and-crate-publication": "25f08de59c64c7275be21260dddbf0a7f7f1d774bcf489797c12977572f68254",
+      "055-release-and-crate-publication": "a0bca61a64471b301dddb4cb1925a11d6da114129e9b37803c7fbbc1c9377096",
       "1-purpose": "d798868e56f80b6cf1540f3e36ca623d281afddfae07fcf1203240bee6d33f77",
       "2-territory": "d32071a0576f35ec024cbed5c596ecc9648745fedb700bc2e367c955280f12f6",
       "3-1-what-publishes-and-who-decides": "6e94d126e2def6cf9ca147960c965ab571d75beca666b59f9cb838cec899a6ac",
       "3-2-the-release-check": "df6f46fcce5d65b38c9b56852e803f73c2ea975147ba80475349b9c9868c09a3",
-      "3-3-what-a-release-says": "9ebb61b03f780099f59e4b1675cb3a5a664f12cb9986c04ea6f5eaae7065b8a1",
-      "3-behavior": "00b1b0d2fc49e7c6de1d6ef99d9e9d89f6ad62c23dd13afe530bf34d670fcd28",
+      "3-3-what-a-release-says": "dadb36e56e2e4d0d277bec702ab9803b024d98ceaa874567379938ad298403d9",
+      "3-behavior": "2cdf9e36914fb3311e8feca392250e7820c6b9f5edf329cd486f9e5af35089d2",
       "4-functional-requirements": "0b22e37ae256eadb8d50ad6cd4f036f3bfea35677d3a19a6504c4ac0e81a1be9",
       "5-acceptance-criteria": "ee4950c141cfec284263b25ba382e027b76991918d48cd894af75200f18e8668",
       "6-out-of-scope": "d428cf4d86fa4df2a5ceee5d372ed58273e9badf040bc27311b50acf060223ad",
-      "7-resolved-decisions": "112e6fa17738a0572272f69947734abc7269144ced28387c397c3cf3736fa099",
+      "7-resolved-decisions": "e7baadb2305b0406e542801849d9b8e7efd6eb49cc0877a56e08c92bc0662b5c",
       "verification": "6937fe0e7779f18f3a8ebe58d245ac6a0fe5be914fed537ff9ebb0e6d96a9f1b"
     },
     "sectionHeadings": [
@@ -188,6 +188,6 @@
     "summary": "No aicortex crate has been published, so host-library consumers (053) pin an exact source revision. This spec makes the five library crates that host-library mode needs (types, claims, gate, store, embed) publishable to crates.io under one lockstep version, adds a release check that packages them and builds a registry-only consumer, and adds a workflow that publishes only from an annotated tag a human pushed. Publication stays a separate human act from merge, deployment, and qualification, and a release note must say which of those it is.\n",
     "title": "Release the library crates: a tag publishes, a human cuts the tag, and nothing else is implied"
   },
-  "shardHash": "1906285cd6bf0a8b9fc3305724de60355a2085dd5a8d1d0afd8d1ff45f8e9748",
+  "shardHash": "886d438e26a415bd81f773939b460d6a786b84167f2d8b73ee037a4f800ff59b",
   "specVersion": "1.11.0"
 }

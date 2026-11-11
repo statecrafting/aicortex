@@ -209,7 +209,7 @@
           {
             "file": "docs/release.md",
             "span": {
-              "endLine": 132,
+              "endLine": 131,
               "startLine": 1
             }
           }
@@ -336,5 +336,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "3c2b3c8706d7e593db86fecb469b2b62f5d496ac1e8ab66769f2a2596f349305"
+  "shardHash": "1cdbbaca773b745fe3b2bd17348a39f18b896ccfbdd021671976712cb578c7ad"
 }
