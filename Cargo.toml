@@ -135,7 +135,7 @@ prometheus = { version = "0.14", default-features = false }
 # fetch test downloads from, at the versions hiqlite carries.
 reqwest = { version = "0.13", default-features = false, features = ["rustls"] }
 rcgen = "0.14"
-axum-server = { version = "0.8", features = ["tls-rustls"] }
+axum-server = { version = "0.9", features = ["tls-rustls"] }
 # The mirror selects its TLS provider explicitly, because the tree enables
 # both of rustls's and none is chosen for a server by default.
 rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"] }
