@@ -81,7 +81,7 @@
       "wave": 1
     },
     "id": "017-entities-and-typed-edges",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "kernel",
     "risk": "high",
     "sectionDigests": {
@@ -111,6 +111,6 @@
     "summary": "Similarity alone answers \"what looks like this\", not \"what do I know about this person\". Entities give recall a second axis: people, projects, organizations, places, and artifacts, resolved to canonical records with aliases, connected by typed edges from a closed vocabulary. Every entity and every edge names the memory it was derived from and the extractor version that produced it, and a derived assertion never outranks the memory it came from. Extraction is a job on the same outbox as embedding, so it inherits the retry and dead-letter discipline rather than inventing its own.\n",
     "title": "Entities and typed edges: a closed predicate vocabulary, derived facts that never outrank their source"
   },
-  "shardHash": "f29a52f749ad061af2b25433dfd9afbdf4ad8b6e75a70f5cef9166c762bd7d00",
+  "shardHash": "55f04a585c60d43332f291b1b0a1056986d4944df4ecacbc2f8c06c8ff18a33f",
   "specVersion": "1.11.0"
 }
