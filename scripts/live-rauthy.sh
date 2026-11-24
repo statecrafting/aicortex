@@ -39,6 +39,8 @@ up() {
   docker rm -f "$NAME" >/dev/null 2>&1 || true
   work="$(mktemp -d)"
   trap 'rm -rf "$work"' EXIT
+  # A fresh 32-byte key per run: the throwaway rauthy's data dies with it.
+  ENC_KEY="$(head -c 32 /dev/urandom | base64 | tr -d '\n')"
   cat > "$work/rauthy.env" <<ENV
 PUB_URL=localhost:${PORT}
 LISTEN_SCHEME=http
@@ -54,7 +56,7 @@ HQL_LISTEN_ADDR_API=127.0.0.1
 HQL_LISTEN_ADDR_RAFT=127.0.0.1
 HQL_SECRET_RAFT=AicortexLiveRaftSecret0123456789abcdefghijklmnopqrstuvwxyz0123456789
 HQL_SECRET_API=AicortexLiveApiClusterSecret0123456789abcdefghijklmnopqrstuvwxyz0123456789
-ENC_KEYS=live/9/KslT9sVWd0aEnR9e0AVrd4aTue/etZIqCm4PsjsnU=
+ENC_KEYS=live/${ENC_KEY}
 ENC_KEY_ACTIVE=live
 ENABLE_DYN_CLIENT_REG=true
 DYN_CLIENT_REG_TOKEN=${REG_TOKEN}
