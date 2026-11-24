@@ -1,0 +1,7 @@
+# Spec 020 D-14: the live rauthy harness first committed a fixed, loopback-only
+# test encryption key (copied from rahi's fixture) before switching to a key
+# generated per run. The key never protected anything outside a throwaway
+# container. gitleaks scans every commit of a pull request, so that one
+# historical finding is ignored by its exact fingerprint; any new finding,
+# including the same key in another commit or file, still fails the scan.
+50abdc25739520a50c0f7fffaf6d6e2cca8ee64c:scripts/live-rauthy.sh:generic-api-key:57
