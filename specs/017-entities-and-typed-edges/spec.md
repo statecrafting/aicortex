@@ -21,11 +21,24 @@ establishes:
   - "crates/aicortex-graph/src/extract.rs"
   - "crates/aicortex-graph/src/walk.rs"
   - "crates/aicortex-graph/src/migrations.rs"
+  - "crates/aicortex-graph/src/worker.rs"
+  - "crates/aicortex-graph/src/preflight.rs"
+  - "crates/aicortex-graph/tests/common/mod.rs"
+  - "crates/aicortex-graph/tests/extract.rs"
+  - "crates/aicortex-graph/tests/worker.rs"
+  - "crates/aicortex-store/src/graph_tables.rs"
+  - "crates/aicortex-store/tests/graph_erasure.rs"
   - "crates/aicortex-graph/tests/resolve.rs"
   - "crates/aicortex-graph/tests/edge.rs"
   - "crates/aicortex-graph/testdata/extraction/"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
+  - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/tests/text.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
   - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/src/worker.rs", nature: additive }
 summary: >
   Similarity alone answers "what looks like this", not "what do I know about
@@ -150,6 +163,50 @@ language over the graph, which no consumer needs.
 - **D-2 (2026-09-03, this spec).** The default extractor is deterministic
   and local. A model-based default would make every capture an outbound
   call, contradicting 015 D-1 and the privacy boundary.
+- **D-3 (2026-11-24, build).** Resolution is scoped to the mention's kind at
+  every step, so a `Project` and an `Organization` of one name stay two
+  entities. B-2 and FR-002 read together say that a same-name mention is
+  the same entity (exact alias) and that a different person is not; the
+  build reads "a different person of the same name above the threshold" as
+  a different person with a similar name whose context falls below the
+  threshold (cosine 0.92, `SIMILARITY_THRESHOLD`). A true homonym with an
+  identical surface resolves to one entity and is separated by an explicit
+  split, which is out of scope here; a missed merge is cheaper than a wrong
+  one.
+- **D-4 (2026-11-24, build).** The vector for step three of B-2 is the
+  embedding of the chunk covering the mention, at the active model
+  revision, read from the table 015 writes; no provider is called. An
+  entity stores the vector of its first mention with the model, revision,
+  width, and normalization, and a query compares only against the same
+  four. A memory without an embedding yet resolves by alias and normalized
+  form only.
+- **D-5 (2026-11-24, build).** Extraction jobs are staged by a scheduling
+  pass over live memories without an `extraction` row at the extractor's
+  version, and drained by their own worker, under processor
+  `extract.r{version}` in the same Rahi namespace as embedding. The
+  embedding worker is not changed, so the declared `extends` edge on
+  `crates/aicortex-embed/src/worker.rs` is not exercised by this build; a
+  version bump reaches existing memories through the same pass.
+- **D-6 (2026-11-24, build).** B-10 is applied literally: two active edges
+  with one subject and predicate, different objects, and overlapping
+  validity are a contradiction for every predicate. Per-predicate
+  cardinality is a later amendment.
+- **D-7 (2026-11-24, build).** The tables are created by `aicortex-store`
+  (migration 11, not additive), beside 015's and 016's, because erasure
+  lives there. `derived_from` is the `edge_source` table. `mention_count`
+  is computed, never stored. A merge marks the absorbed entity and every
+  read follows the pointer one hop; nothing is moved or deleted, the
+  reversal window is 30 days, and an entity that absorbed others cannot
+  itself be merged. Confidence is an integer in permille with a floor of
+  500, because float arithmetic is denied outside the index and recall
+  crates. A superseded edge keeps its source rows; erasing the last of them
+  marks it `origin_erased` like any other edge.
+- **D-8 (2026-11-24, build).** Landing is split. This change delivers the
+  crate, the schema, extraction, resolution, the walk, contradiction
+  records, and erasure (FR-001 to FR-006, AC-1). AC-2 (the `app.graph`
+  preflight check and the extraction service in the cell) and the
+  `GET /entities` routes of 020 D-3 follow in a second change on top of 020,
+  so this spec stays `in-progress` until then.
 
 ## Verification
 

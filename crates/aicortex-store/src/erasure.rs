@@ -182,6 +182,11 @@ pub const DERIVATIVES: &[Derivative] = &[
     Derivative::new("provenance", "memory_id", "scope_id"),
     Derivative::new("memory_derivation", "memory_id", "scope_id"),
     Derivative::new("memory_source", "memory_id", "scope_id"),
+    // Spec 017 FR-006: what the graph derived from the memory. An edge left
+    // with no source is marked `origin_erased` by `stage_sweep`.
+    Derivative::new("mention", "memory_id", "scope_id"),
+    Derivative::new("edge_source", "memory_id", "scope_id"),
+    Derivative::new("extraction", "memory_id", "scope_id"),
 ];
 
 /// The derivative tables later specs add, named here before they exist.
@@ -858,6 +863,7 @@ impl Eraser {
             ERASE_SCOPE_CLAIMS_SQL,
             vec![Value::from(&scope_id)],
         ));
+        crate::graph_tables::stage_scope_erasure(&mut txn, scope_id.as_str());
         for statement in [
             "DELETE FROM claim_relation WHERE scope_id = ?1",
             "DELETE FROM claim_retraction WHERE scope_id = ?1",
@@ -1085,7 +1091,10 @@ impl Eraser {
                 ));
             }
         }
-        start..txn.len()
+        let swept = start..txn.len();
+        // Spec 017 FR-006: outside the counted span, like the uncount above.
+        crate::graph_tables::stage_origin_erased(txn, scope.as_str());
+        swept
     }
 
     /// The columns a tombstone needs, for a memory that is not one yet.
