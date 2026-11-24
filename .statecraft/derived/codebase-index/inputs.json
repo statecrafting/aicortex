@@ -87,6 +87,9 @@
     ".github/workflows/govern.yml": {
       "contentHash": "1973123f558c8933d8aab19fc6da225f4634c76b4241dbb83f9bd568cdbc4526"
     },
+    ".github/workflows/live.yml": {
+      "contentHash": "a029ccef9d74d4783ab2359bf6014d701f323ab8ab73acff0341c00fd5135ee3"
+    },
     ".github/workflows/release.yml": {
       "contentHash": "a336bbf49ff24987217e3adec43576765a3507b9530a36b30bd48dd59ebaf94f"
     },
@@ -152,6 +155,9 @@
     },
     "scripts/check-authored-content.sh": {
       "contentHash": "753da766cc823927fd3c8fc1b1cbc7a50ed62c8ae1fc497179f33f3e7a0cb5ff"
+    },
+    "scripts/live-rauthy.sh": {
+      "contentHash": "8f4a8eacdd894696989a806204d220ed46262a01b7a0603e42bf9dd3e64a8516"
     },
     "scripts/release-check.sh": {
       "contentHash": "ff4defbf6cc4cc46e7958fa19594debe85934c491556d4e7886d09aea8bc6dbf"

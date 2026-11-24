@@ -19,11 +19,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-api/src/search.rs' does not exist",
-        "path": "crates/aicortex-api/src/search.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
         "path": "crates/aicortex-mcp/src/tools.rs"
       },
@@ -44,6 +39,10 @@
     "implementingPaths": [
       {
         "path": "crates/aicortex-api/src/dto.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/search.rs",
         "source": "spec-edge"
       },
       {
@@ -113,7 +112,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/search.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
