@@ -37,6 +37,15 @@ ignore = [
   # carries age 0.12.1.
   { id = "RUSTSEC-2026-0374", reason = "rahi 0.7.1: basic-toml is unmaintained; reached only through the chassis's age -> i18n-embed-fl, at build time" },
   { id = "RUSTSEC-2026-0387", reason = "rahi 0.7.1: crypto-bigint 0.5 timing; reached only through the chassis's age -> p256 tag recipients, unused: backups are keyed with x25519" },
+  # libsqlite3-sys 0.38.2 bundles SQLite 3.53.2, which can return
+  # uninitialized page-cache memory when it opens a database beside a crafted
+  # -wal file of a different page size. It arrives only through the chassis
+  # (rahi-store and rahi-ops -> hiqlite-patched -> rusqlite 0.40); no
+  # aicortex crate names rusqlite. The only database opened is the cell's own,
+  # in its private data directory, so the -wal file needs a party who can
+  # already write that directory. The fix is rusqlite 0.41 (libsqlite3-sys
+  # 0.39) in the chassis; this entry goes at the rahi bump that carries it.
+  { id = "RUSTSEC-2026-0459", reason = "rahi 0.7.1: bundled SQLite before 3.54 reads uninitialized memory on a crafted -wal; reached only through the chassis's hiqlite, which opens only the cell's own data directory" },
 ]
 
 [licenses]
