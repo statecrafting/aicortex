@@ -128,6 +128,7 @@ version = "0.1.0"
 dependencies = [
  "aicortex-api",
  "aicortex-embed",
+ "aicortex-mcp",
  "aicortex-store",
  "aicortex-types",
  "axum",
@@ -271,6 +272,33 @@ dependencies = [
  "serde",
  "tempfile",
  "tokio",
+]
+
+[[package]]
+name = "aicortex-mcp"
+version = "0.1.0"
+dependencies = [
+ "aicortex-api",
+ "aicortex-embed",
+ "aicortex-recall",
+ "aicortex-store",
+ "aicortex-types",
+ "axum",
+ "base64 0.23.1",
+ "rahi-edge",
+ "rahi-idp",
+ "rahi-kernel",
+ "rahi-ledger",
+ "rahi-store",
+ "rahi-types",
+ "rcgen",
+ "reqwest",
+ "ring",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "tower",
 ]
 
 [[package]]

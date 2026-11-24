@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-mcp",
+    "path": "crates/aicortex-mcp",
+    "specRef": "021-mcp-server",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "808206e64a3ce07632a37f4cba1c9bb36b51ff23167657d626e8a313e6c0d600"
+}

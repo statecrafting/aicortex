@@ -44,6 +44,12 @@ rahi-cli = "=0.7.1"
 # of the HTTP stack.
 axum = "0.8"
 
+# The MCP surface (spec 021) calls the API's own router in process, one
+# request per tool call, so each tool is authorized by the same scope gate as
+# its HTTP route. `oneshot` is the call; axum already locks this version, so
+# the workspace adds no second copy of the stack.
+tower = { version = "0.5", default-features = false, features = ["util"] }
+
 # Tests only: the B-2 test reads Cargo.toml files, and the preflight test
 # needs a data directory that is empty and disposable. Both match the
 # versions and features rahi's tree already carries.
@@ -70,6 +76,7 @@ aicortex-embed = { path = "crates/aicortex-embed", version = "=0.1.0" }
 aicortex-recall = { path = "crates/aicortex-recall", version = "=0.1.0" }
 aicortex-index = { path = "crates/aicortex-index", version = "=0.1.0" }
 aicortex-api = { path = "crates/aicortex-api", version = "=0.1.0" }
+aicortex-mcp = { path = "crates/aicortex-mcp", version = "=0.1.0" }
 
 # The family's secret detector registry (spec 047): aicortex-gate consumes
 # its tables and scan instead of keeping its own. Exact pin, as the chassis
