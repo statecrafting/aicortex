@@ -46,6 +46,16 @@ ignore = [
   # already write that directory. The fix is rusqlite 0.41 (libsqlite3-sys
   # 0.39) in the chassis; this entry goes at the rahi bump that carries it.
   { id = "RUSTSEC-2026-0459", reason = "rahi 0.7.1: bundled SQLite before 3.54 reads uninitialized memory on a crafted -wal; reached only through the chassis's hiqlite, which opens only the cell's own data directory" },
+  # chrono and chrono-tz were declared unmaintained in November 2026 with no
+  # successor release. Unlike the entries above, aicortex-claims names both
+  # directly (claim valid-time parsing, spec 052), and the chassis reaches
+  # chrono through hiqlite's cron and openraft, so dropping it here alone
+  # would not clear the advisory. These are maintenance notices, not
+  # vulnerabilities. Both entries go when aicortex-claims moves to a
+  # maintained time crate and the chassis does the same at a rahi bump
+  # (spec 010 D-6).
+  { id = "RUSTSEC-2026-0543", reason = "chrono unmaintained, no safe upgrade; used by aicortex-claims and by the chassis's hiqlite (cron, openraft)" },
+  { id = "RUSTSEC-2026-0555", reason = "chrono-tz unmaintained, no safe upgrade; used by aicortex-claims for claim valid-time zones" },
 ]
 
 [licenses]
