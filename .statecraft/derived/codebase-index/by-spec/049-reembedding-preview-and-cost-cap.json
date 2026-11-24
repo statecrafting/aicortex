@@ -187,8 +187,8 @@
       }
     ],
     "specId": "049-reembedding-preview-and-cost-cap",
-    "specStatus": "draft"
+    "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "70344c6b83e2b5bc95e3e99a07e78993b757c9a61ccf22c0c25cf116f510ebb0"
+  "shardHash": "d09ba6a343dd39c3ea256afa45d414a2a451292c616d9862113ddb29aab98e31"
 }
