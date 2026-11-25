@@ -15,6 +15,7 @@
 //! - [`memories`]: listing, detail, correction, supersession, erasure,
 //!   counts, and the promotion boundary.
 //! - [`events`]: `GET /events`, the chassis-declared progress stream.
+//! - [`search`] and [`entities`]: the units 018 and 017 extend (020 D-3).
 //! - [`dto`]: the wire types; inputs reject unknown fields.
 //! - [`error`]: RFC 9457 problem documents with a stable type per reason.
 //!
@@ -26,11 +27,13 @@
 
 pub mod capture;
 pub mod dto;
+pub mod entities;
 pub mod error;
 pub mod events;
 pub mod memories;
 pub mod router;
 pub mod scopes;
+pub mod search;
 
 pub use error::{ApiError, ApiResult, Problem};
 pub use events::{ApiEvent, Events};

@@ -107,10 +107,10 @@
       "Verification"
     ],
     "specPath": "specs/034-curation-workers/spec.md",
-    "status": "draft",
+    "status": "approved",
     "summary": "Without curation a memory store becomes a landfill: long notes that match nothing, near-duplicates from three sources, facts that stopped being true, and no way to see what a week contained. Five workers address that, all sharing one discipline: they run under a lease in bounded batches, every change they make is a lifecycle transition that is visible and reversible, they never delete, and anything they produce inherits the lowest trust class of its inputs. A curator can propose; only a human promotes.\n",
     "title": "Curation: atomize, enrich, consolidate, expire, digest, all bounded and reversible"
   },
-  "shardHash": "5edbf7b45bab4231a28c2def69fcb01e7c5c74b9786d1ffa8909f0350c805253",
+  "shardHash": "cab4c10494a43d95c85a555621af58fa428b69d071d6ff88f98b92dbfd710b39",
   "specVersion": "1.11.0"
 }

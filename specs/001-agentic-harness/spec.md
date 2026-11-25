@@ -650,3 +650,13 @@ owner-approved coupling waiver (#106), and the cleanup that deletes
 `.derived/`, moves every live reference, and claims `.gitleaks.toml` in this
 spec's `establishes`. The dated entries above that name `.derived/` record
 what was true when they were written.
+
+## Revision 28 implementation record (2026-11-08)
+
+The scoped migration approved in spec 063 regenerates this spec's managed
+authority files with the revision 28 producer in one pull request. The exact
+engine pin stays 0.32.0, which revision 28's producer still links, and the
+profile newly renders `.statecraft/REVIEW.md` inside the `.statecraft/` claim
+above. Ordinary Rust code, corpus attestation and spec DAG keep their
+acceptance. Spec 063 records the renderer, producer and reviewed plan
+identities.

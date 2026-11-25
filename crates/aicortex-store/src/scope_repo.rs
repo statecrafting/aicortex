@@ -145,6 +145,20 @@ impl ScopeRepo {
             .await?;
         rows.into_iter().next().map(row_to_scope).transpose()
     }
+
+    /// The scope's row by its stored id, for a caller that holds only the
+    /// id a derivative row carries (spec 020 B-6: the embedding worker names
+    /// a scope by id, and the event it raises goes to that scope's owner).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::get`].
+    pub async fn by_id(store: &StoreHandle, id: &str) -> Result<Option<ScopeRow>, Error> {
+        let rows: Vec<Row> = store
+            .query_consistent(GET_SQL, vec![Value::from(id)])
+            .await?;
+        rows.into_iter().next().map(row_to_scope).transpose()
+    }
 }
 
 /// Rebuild a [`ScopeRow`] from its columns.

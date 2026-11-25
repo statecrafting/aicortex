@@ -6,6 +6,11 @@
 //! only decides what goes in: events for the caller's own scopes, carrying
 //! ids, counts, and states and never a memory body.
 //!
+//! Events come from the producers that exist: capture verdicts and memory
+//! state changes (this crate), and embedding progress (the cell's worker,
+//! through [`Events`]). Curator activity and review-queue changes are
+//! published by their producing specs (034, 023) onto the same bus (D-15).
+//!
 //! The bus is node-local. Notify in the store is a single-reader hint stream
 //! (`rahi://012` B-3) and cannot fan out to many subscribers, so a stream
 //! sees what this node's surface did; a client that reconnects to another
@@ -26,6 +31,9 @@ pub const BUS_CAPACITY: usize = 256;
 /// The `event` name a lagging subscriber is told it missed events under; it
 /// re-reads the listing.
 pub const EVENT_LAGGED: &str = "lagged";
+
+/// The `event` name of an embedding progress event (B-6, 015).
+pub const EVENT_EMBEDDING: &str = "embedding";
 
 /// One event, as it travels the bus.
 #[derive(Clone, Debug, PartialEq, Eq)]
