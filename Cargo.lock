@@ -199,6 +199,7 @@ dependencies = [
 name = "aicortex-embed"
 version = "0.1.0"
 dependencies = [
+ "aicortex-index",
  "aicortex-store",
  "aicortex-types",
  "half",
@@ -271,6 +272,8 @@ dependencies = [
  "serde",
  "tempfile",
  "tokio",
+ "unicode-general-category",
+ "unicode-normalization",
 ]
 
 [[package]]

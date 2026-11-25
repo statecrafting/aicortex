@@ -202,6 +202,12 @@ the need.
   `k`, budget, and profile, and per size the run count and p50, p95, and
   max in milliseconds. Spec 040 reads it from there; this spec writes
   nothing under `eval/`, which 040 owns.
+- **D-13 (2026-11-25, implementation).** The text channel's manifests land
+  ahead of its code, under policy isolation (spec 044 section 3.3):
+  `aicortex-index` takes the workspace `unicode-general-category` and
+  `unicode-normalization` for tokenization (B-6), and `aicortex-embed` takes
+  `aicortex-index` so the embedding worker writes text terms beside its
+  vectors (015 D-35). No requirement or acceptance criterion changes.
 
 ## Verification
 
