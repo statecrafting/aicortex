@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "protocol"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: critical
 wave: 2
 depends_on:
@@ -22,10 +22,15 @@ establishes:
   - "crates/aicortex-mcp/src/render.rs"
   - "crates/aicortex-mcp/tests/protocol.rs"
   - "crates/aicortex-mcp/tests/tools.rs"
+  - "crates/aicortex-mcp/tests/support/mod.rs"
+  - "crates/aicortex-mcp/tests/live.rs"
   - "crates/aicortex-mcp/testdata/sessions/"
 extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/dto.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/tests/common/mod.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
 summary: >
@@ -164,6 +169,121 @@ thesis.
   sessions replace those answers through `extends` edges. Adding or
   removing a tool later would break clients that cached the list, which is
   why the list does not wait.
+
+- **D-4 (2026-11-24, this spec, build).** A tool call is one in-process request
+  to the API's own router (`aicortex_api::router_with`), made with the
+  `Principal` and `Bearer` the chassis's bearer layer already resolved. The
+  route's scope gate (`RequireScope`) is therefore the one that decides, so
+  this crate holds no authorization logic, no scope table that could drift
+  from the routes (a test pins each tool to its scope), and no SQL. Rejected:
+  calling the handlers as functions, which take extractors this crate cannot
+  build, and a scope check of its own, which would be a second boundary. It
+  adds `tower` (the `util` feature, for `oneshot`) to the workspace
+  dependencies, which axum already locks, with the `extends` edge on 010's
+  `Cargo.toml`.
+- **D-5 (2026-11-24, this spec, build).** How an API answer becomes a
+  protocol answer (B-3). A 401 or 403, a 400, and a 5xx other than 501 are
+  protocol-level and answer a JSON-RPC error at HTTP 200: code `-32001` with
+  `data.code` of `unauthorized` or `insufficient_scope` and the scope the
+  challenge named, `-32602` for arguments the route refused, `-32603` for the
+  cell failing. A route's own outcome (404, 409, 422 gate refusal, 501) is a
+  tool result with `isError: true` carrying the problem document, which never
+  holds content, so a model can read the reason code and correct itself.
+  `-32002` is an unserved resource URI and `-32010` with `data.code`
+  `not_yet_available` is D-3's answer for `search` and `relate`. The staged
+  two answer without checking a scope: the answer says nothing a token could
+  not learn from `tools/list`.
+- **D-6 (2026-11-24, this spec, build).** Stateless details B-2 leaves open.
+  The revision of a request is its `MCP-Protocol-Version` header, read as
+  2025-03-26 when absent (the protocol's rule for older clients); a header
+  naming a revision not spoken is a `-32600` error at HTTP 200 rather than
+  the 400 the protocol suggests, because B-3 is explicit. Revisions spoken:
+  2025-03-26, 2025-06-18, 2025-11-25; `initialize` answers the requested one
+  or the newest. No session id is issued; a client's is echoed when it is a
+  short visible token and read by nothing. JSON-RPC batches are refused,
+  because 2025-06-18 removed them and a batch would pay the token's rate
+  limit once for many calls (B-9). Notifications and client responses answer
+  202. `GET` is the server-initiated stream and carries only the chassis's
+  keep-alive and shutdown event, since this server initiates no message;
+  `DELETE` is 405. `structuredContent` is sent from 2025-06-18; every
+  revision gets the same document as a text block.
+- **D-7 (2026-11-24, this spec, build).** `/mcp` is a service-callable bearer
+  route, as `/api/v1` is (020 D-5): each tool needs exactly its API route's
+  scope, and no tool promotes, so nothing here needs a person's token that
+  the route behind it would not demand. A `POST` is answered as JSON when
+  the client offers `application/json` (alone or with the stream, or no
+  `Accept`, or a wildcard), as a one-event stream when it offers only
+  `text/event-stream`, and 406 when it offers neither. Both `/mcp` and the
+  compat path are declared streaming routes (`rahi://026`).
+- **D-8 (2026-11-24, this spec, build).** The caps B-9 asks for: `capture`
+  takes 1 to 20 candidates (lower than the API's 100, since a model's call is
+  not an importer's batch), `search` `k` is 1 to 20 (default 10), `list`
+  `limit` is 1 to 50, a query is at most 2,000 characters, an entity name 200.
+  `capture` also takes an optional `idempotency_key` (the API's
+  `Idempotency-Key`, 020 B-8) so a model's retry creates no second row.
+  Validation is typed deserialization with unknown fields refused plus the
+  range checks, and runs before any route is called.
+- **D-9 (2026-11-24, this spec, build).** B-7 selection. The server is
+  stateless, so it cannot remember a client's `initialize` to choose a shape
+  for later calls. The search and fetch shape is therefore a second path,
+  `/mcp/compat/search-fetch`, serving the same seven tools: a user pastes
+  that URL into the client that needs it. Titles are `Memory <id>`, never
+  stored text (019 B-6), and the whole framed response is the `text` member.
+  Its `search` result shaping reads `items[].id` and is written against 020's
+  listing shape; 018 confirms it when `search` is served. Only the one
+  accommodation I can cite (OpenAI's documented requirement) is listed. The
+  `Accept` tolerance of B-1 is read from the protocol's two forms and is not
+  attributed to a named client.
+- **D-10 (2026-11-24, this spec, build).** B-8's resources: counts from
+  `GET /stats` only. `aicortex://scopes/personal`, and the templates
+  `aicortex://scopes/project/{key}` and `aicortex://scopes/shared/{key}`,
+  answer total, by-kind, and by-status counts; `aicortex://review-queue`
+  answers the quarantined count of the personal scope, which is the review
+  queue until 023 gives it a producer of its own. Reading needs
+  `memory.read`, through the same route gate. Both are keyed by closed
+  vocabularies, so no stored string can reach them.
+- **D-11 (2026-11-24, this spec, build).** The protocol harness is spec 020's
+  (`tests/common/mod.rs`, included by path), extended additively with a mount
+  hook so the MCP router and its bearer declaration are served in the same
+  composition as `serve`: an `extends` edge on that unit. The hook also lets a
+  test state the composition a chassis would need for the anonymous
+  `initialize` of B-4 (see the Status note).
+
+## Status
+
+- **2026-11-24.** `implementation: in-progress`. B-1 to B-9 and FR-001 to
+  FR-006 are built and tested (AC-1: `cargo test -p aicortex-mcp --locked`),
+  with D-3's staging: `search` and `relate` are listed with their final
+  schemas and answer `not_yet_available` until 018 and 017. **AC-2 is not met**,
+  and this is what was run.
+  - Run: the pinned rauthy (`rauthy-patched` 0.36.2-patched.3, linux/arm64) from
+    `scripts/live-rauthy.sh up`, spec 020's driver for dynamic registration and
+    authorization code with PKCE as a person, the cell composed as `serve`
+    composes it, and `cargo test -p aicortex-mcp --locked --test live`. Over
+    HTTP with rauthy's token: `initialize`, `capture`, and the read back with
+    `fetch` (018 has not landed `search`, 020 D-3) pass, `forget` is refused
+    inside the session for want of `memory.delete`, and a token for another
+    audience is a 401 `invalid_token`.
+  - Real client: the official TypeScript SDK client,
+    `@modelcontextprotocol/sdk` 1.32.2 (`scripts/mcp-sdk-client.mjs`, Node
+    26.0.0), over streamable HTTP. Presented the rauthy token from its first
+    request, it connected, listed the seven tools and the two resources,
+    captured a memory and read it back framed. That is not the bootstrap of B-4.
+  - Not met: the same client opening anonymously, which is where B-4 begins,
+    ends at the first `POST`: `Streamable HTTP error: Error POSTing to endpoint:
+    {"error":"csrf",...}`, HTTP 403 with no `WWW-Authenticate`. This is rahi
+    0.7.1's edge, whose CSRF exemption for a declared bearer route requires an
+    `Authorization` header (`rahi-cli` `serve.rs`), so a request with no
+    credential is refused before the bearer layer can answer 401 (020 D-10, now
+    pinned by `the_chassis_refuses_an_anonymous_post_before_the_challenge`). A
+    `GET` is challenged correctly, and with the edge exempting declared bearer
+    routes the handler answers 401 with `resource_metadata` on `POST` as well
+    (`fr002_no_credential_is_the_discovery_challenge`). Needs a rahi change.
+  - Also unproven, and not tested here: 020 D-14 records that the pinned
+    rauthy cannot be asked for an audience by a dynamically registered client,
+    so a client that registers itself would receive a token the chassis refuses
+    on audience until rauthy or rahi supports it. AC-2 as worded (registration,
+    authorization, capture, retrieval with nothing pasted but a URL) needs both.
 
 ## Verification
 
