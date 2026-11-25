@@ -1,0 +1,18 @@
+{
+  "text": "Dana prefers dark mode. Later Dana met Priya Rao at the lab.",
+  "known": [
+    { "kind": "person", "surfaces": ["Dana"] },
+    { "kind": "person", "surfaces": ["Priya Rao"] }
+  ],
+  "expect": {
+    "mentions": [
+      ["Dana", "person"],
+      ["Dana", "person"],
+      ["Priya Rao", "person"]
+    ],
+    "edges": [
+      ["Dana", "prefers", "dark mode"]
+    ],
+    "rejected": []
+  }
+}

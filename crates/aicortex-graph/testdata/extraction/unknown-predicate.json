@@ -1,0 +1,16 @@
+{
+  "text": "Dana Whitfield --mentors--> Priya Rao. Dana Whitfield works at Acme Corp.",
+  "known": [{ "kind": "person", "surfaces": ["Dana Whitfield"] }],
+  "expect": {
+    "mentions": [
+      ["Dana Whitfield", "person"],
+      ["Priya Rao", "concept"],
+      ["Dana Whitfield", "person"],
+      ["Acme Corp", "organization"]
+    ],
+    "edges": [
+      ["Dana Whitfield", "works_at", "Acme Corp"]
+    ],
+    "rejected": [["mentors", "unknown_predicate"]]
+  }
+}
