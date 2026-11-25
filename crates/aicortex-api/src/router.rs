@@ -109,6 +109,15 @@ impl Api {
         }
     }
 
+    /// The same, publishing to `events` instead of a bus of its own, so a
+    /// producer outside this crate (the embedding worker, B-6) and this
+    /// surface's `GET /events` share one bus on the node.
+    #[must_use]
+    pub fn with_events(mut self, events: Events) -> Self {
+        self.events = events;
+        self
+    }
+
     /// The same, with other limits.
     #[must_use]
     pub const fn with_limits(mut self, limits: Limits) -> Self {

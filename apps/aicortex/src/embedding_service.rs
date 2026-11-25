@@ -22,11 +22,14 @@
 use std::future::Future;
 use std::time::Duration;
 
+use aicortex_api::events::{EVENT_EMBEDDING, scope_label};
+use aicortex_api::{ApiEvent, Events};
 use aicortex_embed::{
     ConfiguredProvider, EmbeddingConfig, EmbeddingPreflight, EmbeddingWorker, ModelRegistry,
-    ModelRevision, NoTransport, ServiceSettings, default_chunker, default_worker_config,
-    run_worker, unix_now,
+    ModelRevision, NoTransport, ProgressObserver, ServiceSettings, default_chunker,
+    default_worker_config, run_worker, unix_now,
 };
+use aicortex_store::ScopeRepo;
 use prometheus::{IntGauge, Opts, Registry};
 use rahi_cli::{ManagedService, ServiceShutdown};
 use rahi_edge::AppState;
@@ -186,7 +189,46 @@ pub fn compose(
         let signal = signal.clone();
         async move { signal.cancelled().await }
     };
-    Ok(build(config, state.store().clone(), gauges, fetch, stop))
+    let observer = progress_events(state.store().clone(), crate::events());
+    Ok(build_observed(
+        config,
+        state.store().clone(),
+        gauges,
+        fetch,
+        stop,
+        Some(observer),
+    ))
+}
+
+/// The observer that turns each embedding outcome into an `embedding` event
+/// on `events` (spec 020 B-6, D-15).
+///
+/// The worker names a scope by its stored id; the event goes to that scope's
+/// owner, labelled by kind and key, carrying the memory id and a state and no
+/// body. The scope read is a store call, so it runs in a task: the observer
+/// itself never blocks the drain. A scope that cannot be read raises no event,
+/// because an event without an owner has nobody to go to.
+#[must_use]
+pub fn progress_events(store: StoreHandle, events: Events) -> ProgressObserver {
+    ProgressObserver::new(move |progress| {
+        let store = store.clone();
+        let events = events.clone();
+        tokio::spawn(async move {
+            let Ok(Some(row)) = ScopeRepo::by_id(&store, &progress.scope_id).await else {
+                return;
+            };
+            events.publish(ApiEvent {
+                owner: row.scope.owner.clone(),
+                name: EVENT_EMBEDDING,
+                data: aicortex_api::events::EventData {
+                    scope: scope_label(&row.scope),
+                    id: Some(progress.memory_id),
+                    state: progress.kind.label().to_owned(),
+                    reason_code: None,
+                },
+            });
+        });
+    })
 }
 
 /// The services for a configuration, a store, and a stop signal.
@@ -204,6 +246,22 @@ where
     S: Fn() -> Fut + Clone + Send + Sync + 'static,
     Fut: Future<Output = ()> + Send + 'static,
 {
+    build_observed(config, store, gauges, fetch, stop, None)
+}
+
+/// [`build`], with an observer the worker reports each item to (B-6).
+pub fn build_observed<S, Fut>(
+    config: EmbeddingConfig,
+    store: StoreHandle,
+    gauges: Gauges,
+    fetch: Option<WeightFetch>,
+    stop: S,
+    observer: Option<ProgressObserver>,
+) -> Vec<ManagedService>
+where
+    S: Fn() -> Fut + Clone + Send + Sync + 'static,
+    Fut: Future<Output = ()> + Send + 'static,
+{
     let mut services = vec![ManagedService::new(
         METRICS_NAME,
         collect(store.clone(), gauges, stop.clone()),
@@ -211,7 +269,7 @@ where
     if !matches!(config, EmbeddingConfig::Disabled) {
         services.push(ManagedService::new(
             WORKER_NAME,
-            work(config, store, fetch, stop),
+            work_observed(config, store, fetch, stop, observer),
         ));
     }
     services
@@ -311,6 +369,25 @@ where
     S: Fn() -> Fut + Clone + Send + Sync + 'static,
     Fut: Future<Output = ()> + Send + 'static,
 {
+    work_observed(config, store, fetch, stop, None).await
+}
+
+/// [`work`], reporting each item to `observer` (B-6).
+///
+/// # Errors
+///
+/// As [`work`].
+pub async fn work_observed<S, Fut>(
+    config: EmbeddingConfig,
+    store: StoreHandle,
+    fetch: Option<WeightFetch>,
+    stop: S,
+    observer: Option<ProgressObserver>,
+) -> Result<()>
+where
+    S: Fn() -> Fut + Clone + Send + Sync + 'static,
+    Fut: Future<Output = ()> + Send + 'static,
+{
     if let Some(fetch) = fetch {
         let mut backoff = SETTINGS.error_backoff;
         loop {
@@ -348,7 +425,13 @@ where
         };
         let bound = match active {
             Some(active) => match bind(&config, &active, &actor, &holder).await {
-                Ok(worker) => Some((worker, active)),
+                Ok(worker) => Some((
+                    match &observer {
+                        Some(observer) => worker.with_observer(observer.clone()),
+                        None => worker,
+                    },
+                    active,
+                )),
                 Err(_) => None,
             },
             None => None,

@@ -39,6 +39,8 @@ use ring::rsa::PublicKeyComponents;
 use ring::signature::{RSA_PKCS1_SHA256, RsaKeyPair};
 use serde_json::{Value, json};
 
+pub mod live;
+
 /// The client id every person's token names unless a test says otherwise.
 pub const CLIENT: &str = "test-client";
 /// The key id the stub publishes.
@@ -161,6 +163,10 @@ pub struct Cell {
     pub ledger: Ledger,
     pub kernel: Kernel,
     pub hub: StreamHub,
+    /// The bus the API publishes to and `GET /events` reads: shared with a
+    /// producer outside the crate, as the cell shares it with the embedding
+    /// worker (B-6).
+    pub events: aicortex_api::Events,
     pub origin: String,
     pub http: reqwest::Client,
     issuer: String,
@@ -174,6 +180,18 @@ pub async fn boot() -> Cell {
 
 /// Boot the cell with `limits`.
 pub async fn boot_with(limits: aicortex_api::Limits) -> Cell {
+    boot_inner(limits, None).await
+}
+
+/// Boot the cell against a real rauthy (spec 020 D-14): the discovery
+/// document and key set are fetched from it, and the cell's public URL is its
+/// origin, so a token it issues for that origin is addressed to this resource.
+/// Requests still go to [`Cell::origin`], the loopback socket the cell is on.
+pub async fn boot_live(live: &live::LiveEnv) -> Cell {
+    boot_inner(aicortex_api::Limits::default(), Some(live)).await
+}
+
+async fn boot_inner(limits: aicortex_api::Limits, live: Option<&live::LiveEnv>) -> Cell {
     let (store, dir) = open_store().await;
     let handle = store.handle();
     handle
@@ -217,41 +235,64 @@ pub async fn boot_with(limits: aicortex_api::Limits) -> Cell {
         .await
         .expect("the kernel boots");
 
-    // The key set stub: one route, the JWKS document.
-    let (_, jwk) = signing_key();
-    let keys = json!({ "keys": [jwk] });
-    let stub = tokio::net::TcpListener::bind("127.0.0.1:0")
-        .await
-        .expect("a stub port");
-    let stub_origin = format!("http://{}", stub.local_addr().expect("the stub port"));
-    let stub_router = Router::new().route(
-        "/jwks",
-        get(move || {
-            let keys = keys.clone();
-            async move { axum::Json(keys) }
-        }),
-    );
-    tokio::spawn(async move { axum::serve(stub, stub_router).await });
-
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
         .await
         .expect("an app port");
     let origin = format!("http://{}", listener.local_addr().expect("the app port"));
-    let env = BTreeMap::from([("RAHI_PUBLIC_URL", origin.as_str())]);
-    let config = Config::from_env(&env).expect("the environment is well formed");
-    let idp = IdpConfig::derive(&config, "aicortex").expect("the identity config derives");
-    let resource = Resource::derive(&idp).expect("the resource derives");
-    let issuer = resource.authorization_server().to_owned();
-    let discovery = Discovery {
-        issuer: issuer.clone(),
-        authorization_endpoint: format!("{stub_origin}/authorize"),
-        token_endpoint: format!("{stub_origin}/token"),
-        userinfo_endpoint: format!("{stub_origin}/userinfo"),
-        end_session_endpoint: format!("{stub_origin}/logout"),
-        jwks_uri: format!("{stub_origin}/jwks"),
-        revocation_endpoint: None,
+
+    let (config, resource, jwks, issuer) = match live {
+        Some(live) => {
+            let loopback = live.loopback_addr();
+            let env = BTreeMap::from([
+                ("RAHI_PUBLIC_URL", live.origin.as_str()),
+                ("RAHI_RAUTHY_ADDR", loopback.as_str()),
+            ]);
+            let config = Config::from_env(&env).expect("the origin is a well formed public url");
+            let idp = IdpConfig::derive(&config, "aicortex").expect("the identity config derives");
+            let discovery = Discovery::fetch_within(&idp, Duration::from_secs(10))
+                .await
+                .expect("a real rauthy publishes a document this cell accepts");
+            let jwks = Jwks::load(&discovery)
+                .await
+                .expect("rauthy's key set loads");
+            let resource = Resource::derive(&idp).expect("the resource derives");
+            (config, resource, jwks, discovery.issuer)
+        }
+        None => {
+            // The key set stub: one route, the JWKS document.
+            let (_, jwk) = signing_key();
+            let keys = json!({ "keys": [jwk] });
+            let stub = tokio::net::TcpListener::bind("127.0.0.1:0")
+                .await
+                .expect("a stub port");
+            let stub_origin = format!("http://{}", stub.local_addr().expect("the stub port"));
+            let stub_router = Router::new().route(
+                "/jwks",
+                get(move || {
+                    let keys = keys.clone();
+                    async move { axum::Json(keys) }
+                }),
+            );
+            tokio::spawn(async move { axum::serve(stub, stub_router).await });
+
+            let env = BTreeMap::from([("RAHI_PUBLIC_URL", origin.as_str())]);
+            let config = Config::from_env(&env).expect("the environment is well formed");
+            let idp = IdpConfig::derive(&config, "aicortex").expect("the identity config derives");
+            let resource = Resource::derive(&idp).expect("the resource derives");
+            let issuer = resource.authorization_server().to_owned();
+            let discovery = Discovery {
+                issuer: issuer.clone(),
+                authorization_endpoint: format!("{stub_origin}/authorize"),
+                token_endpoint: format!("{stub_origin}/token"),
+                userinfo_endpoint: format!("{stub_origin}/userinfo"),
+                end_session_endpoint: format!("{stub_origin}/logout"),
+                jwks_uri: format!("{stub_origin}/jwks"),
+                revocation_endpoint: None,
+            };
+            let jwks = Jwks::load(&discovery).await.expect("the key set loads");
+            (config, resource, jwks, issuer)
+        }
     };
-    let jwks = Jwks::load(&discovery).await.expect("the key set loads");
     let server = ResourceServer::new(&config, resource, jwks, handle.clone(), kernel.clone());
 
     let hub = StreamHub::new(StreamOptions {
@@ -260,7 +301,12 @@ pub async fn boot_with(limits: aicortex_api::Limits) -> Cell {
     });
     let state =
         AppState::new(kernel.clone(), handle, ledger.clone(), config).with_extension(hub.clone());
-    let api = aicortex_api::router_with(aicortex_api::Api::new(state.clone()).with_limits(limits));
+    let events = aicortex_api::Events::new();
+    let api = aicortex_api::router_with(
+        aicortex_api::Api::new(state.clone())
+            .with_events(events.clone())
+            .with_limits(limits),
+    );
     // The composition `serve` performs, minus sessions: the edge with the
     // bearer CSRF exemption of 038 B-1, then the bearer layer outside it.
     let edge = Edge::builder(state)
@@ -283,6 +329,7 @@ pub async fn boot_with(limits: aicortex_api::Limits) -> Cell {
         ledger,
         kernel,
         hub,
+        events,
         origin,
         // A test's loopback client to the cell it booted: not egress, which
         // 010 B-8's scan polices in the shipped sources.
