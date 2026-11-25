@@ -24,11 +24,6 @@
       },
       {
         "code": "W-001",
-        "message": "spec '056-entity-pages' file unit 'crates/aicortex-api/src/entities.rs' does not exist",
-        "path": "crates/aicortex-api/src/entities.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '056-entity-pages' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
         "path": "crates/aicortex-mcp/src/tools.rs"
       },
@@ -48,6 +43,10 @@
     "implementingPaths": [
       {
         "path": "crates/aicortex-api/src/dto.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/entities.rs",
         "source": "spec-edge"
       },
       {
@@ -97,7 +96,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/entities.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

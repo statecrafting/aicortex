@@ -246,6 +246,48 @@ async fn fr007_events_keep_alive_carry_no_body_and_close_on_shutdown() {
     cell.shutdown().await;
 }
 
+/// B-6: a producer outside this crate publishes to the shared bus and the
+/// stream carries its event to the owner of the scope and to nobody else.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn b6_an_embedding_event_on_the_shared_bus_reaches_only_its_owner() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    let bob = Who::person("sub-bob", ALL);
+    let open = |who: &Who| {
+        let request = cell.request(Method::GET, "/api/v1/events", Some(who));
+        async move { request.send().await.expect("the stream opens") }
+    };
+    let alice_stream = open(&alice).await;
+    let bob_stream = open(&bob).await;
+    assert_eq!(alice_stream.status(), StatusCode::OK);
+
+    cell.events.publish(aicortex_api::ApiEvent {
+        owner: rahi_types::Sub::new("sub-alice"),
+        name: aicortex_api::events::EVENT_EMBEDDING,
+        data: aicortex_api::events::EventData {
+            scope: "personal".to_owned(),
+            id: Some("01900000-0000-7000-8000-000000000000".to_owned()),
+            state: "embedded".to_owned(),
+            reason_code: None,
+        },
+    });
+
+    let alice_reader = tokio::spawn(read_events(alice_stream, |text| {
+        text.contains("event: embedding")
+    }));
+    let bob_reader = tokio::spawn(read_events(bob_stream, |text| {
+        text.contains("event: shutdown")
+    }));
+    tokio::time::sleep(common::KEEP_ALIVE * 3).await;
+    assert_eq!(cell.hub.drain().await, 0);
+    let seen = alice_reader.await.expect("alice reads");
+    assert!(seen.contains("event: embedding"), "{seen}");
+    assert!(seen.contains("\"state\":\"embedded\""), "{seen}");
+    let other = bob_reader.await.expect("bob reads");
+    assert!(!other.contains("event: embedding"), "{other}");
+    cell.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn b7_a_gate_refusal_is_a_422_with_its_reason_and_no_content() {
     let cell = common::boot().await;

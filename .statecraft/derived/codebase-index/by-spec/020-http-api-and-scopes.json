@@ -1,19 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/search.rs' does not exist",
-        "path": "crates/aicortex-api/src/search.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '020-http-api-and-scopes' file unit 'crates/aicortex-api/src/entities.rs' does not exist",
-        "path": "crates/aicortex-api/src/entities.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "015-embedding-pipeline",
@@ -33,6 +18,14 @@
         "source": "spec-edge"
       },
       {
+        "path": "apps/aicortex/src/embedding_service.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "apps/aicortex/tests/serve_capture.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api",
         "source": "manifest-metadata"
       },
@@ -46,6 +39,10 @@
       },
       {
         "path": "crates/aicortex-api/src/dto.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/entities.rs",
         "source": "spec-edge"
       },
       {
@@ -73,6 +70,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-api/src/search.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api/tests/api.rs",
         "source": "spec-edge"
       },
@@ -81,15 +82,48 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-api/tests/common/live.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api/tests/common/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/live.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-embed/src/worker.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-store/src/memory_repo.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/src/scope_repo.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
+      {
+        "locations": [
+          {
+            "file": "apps/aicortex/tests/serve_capture.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/serve_capture.rs"
+        }
+      },
       {
         "locations": [
           {
@@ -130,7 +164,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/entities.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -217,7 +255,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/search.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -254,6 +296,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-api/tests/common/live.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/common/live.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-api/tests/common/mod.rs"
           }
         ],
@@ -262,6 +317,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/tests/common/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/live.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/live.rs"
         }
       },
       {
@@ -306,6 +374,45 @@
       {
         "locations": [
           {
+            "file": "apps/aicortex/src/embedding_service.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/embedding_service.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-embed/src/worker.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-embed/src/worker.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/src/memory_repo.rs"
           }
         ],
@@ -314,6 +421,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-store/src/memory_repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/src/scope_repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/scope_repo.rs"
         }
       },
       {
@@ -334,5 +454,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "2afce03fe1d1d090362ec0eafb81b4db04cf2e87a71d6a32a4815130ae5ac2ba"
+  "shardHash": "9dfe36eb447f803813e07757f1c5954dcc434ee4eb19670aa6ba19a0312f2ac4"
 }
