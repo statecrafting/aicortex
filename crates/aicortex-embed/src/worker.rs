@@ -1,6 +1,7 @@
 //! Durable embedding work over Rahi's fenced processing queue.
 
 use std::mem::size_of;
+use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use aicortex_index::text::ChunkText;
@@ -216,6 +217,60 @@ pub struct ReembeddingBatch {
     pub more: bool,
 }
 
+/// What became of one claimed item (spec 020 B-6).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ProgressKind {
+    /// The vectors and the completion committed together.
+    Embedded,
+    /// The provider failed and the item is scheduled for a retry.
+    Retrying,
+    /// The item exhausted its attempts and moved to the dead letter.
+    DeadLettered,
+}
+
+impl ProgressKind {
+    /// The state label an event carries.
+    #[must_use]
+    pub const fn label(self) -> &'static str {
+        match self {
+            Self::Embedded => "embedded",
+            Self::Retrying => "retrying",
+            Self::DeadLettered => "dead_lettered",
+        }
+    }
+}
+
+/// One item's progress: ids and a state, never a body.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct WorkProgress {
+    /// The scope the memory belongs to, by its stored id.
+    pub scope_id: String,
+    /// The memory.
+    pub memory_id: String,
+    /// The model revision the work was for.
+    pub revision: u32,
+    /// What happened.
+    pub kind: ProgressKind,
+}
+
+/// A callback a worker calls after each item (spec 020 B-6). It must not
+/// block: a caller that needs I/O hands the value to a task.
+#[derive(Clone)]
+pub struct ProgressObserver(Arc<dyn Fn(WorkProgress) + Send + Sync>);
+
+impl ProgressObserver {
+    /// Wrap `observer`.
+    pub fn new(observer: impl Fn(WorkProgress) + Send + Sync + 'static) -> Self {
+        Self(Arc::new(observer))
+    }
+}
+
+impl std::fmt::Debug for ProgressObserver {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("ProgressObserver")
+    }
+}
+
 /// A worker bound to one active model revision.
 #[derive(Clone, Debug)]
 pub struct EmbeddingWorker<P> {
@@ -225,6 +280,7 @@ pub struct EmbeddingWorker<P> {
     config: WorkerConfig,
     holder: String,
     processor: String,
+    observer: Option<ProgressObserver>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -291,7 +347,26 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
             config,
             holder,
             processor,
+            observer: None,
         })
+    }
+
+    /// Report each item's outcome to `observer` (spec 020 B-6).
+    #[must_use]
+    pub fn with_observer(mut self, observer: ProgressObserver) -> Self {
+        self.observer = Some(observer);
+        self
+    }
+
+    fn notify(&self, claim: &Claim, kind: ProgressKind) {
+        if let Some(observer) = &self.observer {
+            (observer.0)(WorkProgress {
+                scope_id: claim.key.receipt.tenant.as_str().to_owned(),
+                memory_id: claim.key.receipt.key.clone(),
+                revision: claim.key.revision,
+                kind,
+            });
+        }
     }
 
     /// Drain one bounded batch.
@@ -369,6 +444,7 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                         Err(error) => return Err(error),
                     }
                     report.dead = report.dead.saturating_add(1);
+                    self.notify(&claim, ProgressKind::DeadLettered);
                     break;
                 }
                 match self.process(store, &claim, now, started).await {
@@ -398,8 +474,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
                         };
                         if dead {
                             report.dead = report.dead.saturating_add(1);
+                            self.notify(&claim, ProgressKind::DeadLettered);
                         } else {
                             report.failed = report.failed.saturating_add(1);
+                            self.notify(&claim, ProgressKind::Retrying);
                         }
                         break;
                     }
@@ -629,7 +707,10 @@ impl<P: EmbeddingProvider> EmbeddingWorker<P> {
         }
         Work::complete(&mut txn, &claim, now);
         match store.txn(txn.into_statements()).await {
-            Ok(_) => Ok(ProcessOutcome::Completed),
+            Ok(_) => {
+                self.notify(&claim, ProgressKind::Embedded);
+                Ok(ProcessOutcome::Completed)
+            }
             Err(error) => {
                 self.reconcile_commit_failure(store, &claim, error, now)
                     .await

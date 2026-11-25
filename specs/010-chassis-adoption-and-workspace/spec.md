@@ -329,6 +329,23 @@ manifest will eventually declare. The reference deployment (044).
   hold at 0.6.0: `age` 0.12 arrives through `rahi-ops` 0.6.0, which also
   keys backups with `age::x25519` only.
 
+- **D-12 (2026-11-24, dependency maintenance, PR 124 and the 020 manifest
+  PR; owner approval 2026-11-24).** Two records. First, PR 124 applied D-6
+  to six advisories published in November 2026: `quinn-proto` 0.11.19
+  (RUSTSEC-2026-0523, 0524), `quinn-udp` 0.5.16 (RUSTSEC-2026-0538) and
+  `url` 2.5.9 (RUSTSEC-2026-0592) are lockfile fixes; `chrono`
+  (RUSTSEC-2026-0543) and `chrono-tz` (RUSTSEC-2026-0555) are unmaintained
+  notices with no successor and are ignored by id. Unlike the earlier
+  ignores they are not chassis-only: `aicortex-claims` names both (052's
+  valid-time parsing), and the chassis reaches `chrono` through hiqlite's
+  `cron` and `openraft`. They come out when `aicortex-claims` moves to a
+  maintained time crate and a rahi bump does the same. PR 124 carried a
+  `Spec-Drift-Waiver` because profile revision 22 refused this entry beside
+  a policy file; revision 28 (063) allows it, so it is recorded here.
+  Second, `apps/aicortex` takes the workspace's `base64` as a
+  dev-dependency for 020's live rauthy harness (020 D-14), split from the
+  020 code under policy isolation.
+
 ## Status (2026-09-17, complete: the chassis release landed)
 
 rahi published all nine crates at `0.1.0`, none yanked, tagged `v0.1.0`. The

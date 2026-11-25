@@ -13,12 +13,27 @@ pub mod embedding_fetch;
 pub mod embedding_preflight;
 pub mod embedding_service;
 
+use std::sync::OnceLock;
+
+use aicortex_api::{Api, Events};
 use axum::Router;
 use rahi_cli::{AppCheck, Cell, ManagedService, ServiceShutdown};
 use rahi_edge::AppState;
 use rahi_idp::BearerRoutes;
 use rahi_store::{Migration, MigrationSet};
 use rahi_types::Result;
+
+/// The node's event bus (spec 020 B-6, D-15).
+///
+/// `routes` and `services` are built apart from one `AppState` the chassis
+/// owns, so the bus that `GET /events` subscribes to and the one the embedding
+/// worker publishes to are joined here, once per process. It carries ids,
+/// codes, and states, and no store handle (B-5, D-9).
+#[must_use]
+pub fn events() -> Events {
+    static BUS: OnceLock<Events> = OnceLock::new();
+    BUS.get_or_init(Events::new).clone()
+}
 
 /// The cell.
 ///
@@ -55,7 +70,7 @@ impl Cell for Aicortex {
 
     /// The merged product router: spec 020's HTTP API under `/api/v1`.
     fn routes(state: AppState) -> Router {
-        aicortex_api::router(state)
+        aicortex_api::router_with(Api::new(state).with_events(events()))
     }
 
     /// Where a bearer credential is accepted (spec 020 B-3, D-5): the whole

@@ -1,6 +1,6 @@
 # Releasing the library crates
 
-Spec 055 owns this procedure. A release publishes five library crates to
+Spec 055 owns this procedure. A release publishes six library crates to
 crates.io at one version. Publication is not a deployment, not an image,
 not a reference-deployment qualification, and not a claim of production
 readiness; a release note says so every time.
@@ -13,9 +13,10 @@ In dependency order, which is also the order they publish in:
 2. `aicortex-claims`
 3. `aicortex-gate`
 4. `aicortex-store`
-5. `aicortex-embed`
+5. `aicortex-index`
+6. `aicortex-embed`
 
-All five share `[workspace.package] version`, and every requirement between
+All six share `[workspace.package] version`, and every requirement between
 them is exact (`=x.y.z`). `apps/aicortex`, every crate under `fixtures/`,
 and every other library keep `publish = false`. A crate joins the set only
 through an amendment of spec 055; `scripts/release-check.sh` refuses any
@@ -29,19 +30,19 @@ pushes the tag. Merging a pull request never publishes anything.
 ## The release check
 
 `scripts/release-check.sh` runs on every pull request that touches one of
-the five crates, the external host fixture, the workspace manifest or lock,
+the six crates, the external host fixture, the workspace manifest or lock,
 or the release tooling. It:
 
-1. checks the manifests: the five crates are publishable with a
+1. checks the manifests: the six crates are publishable with a
    description, license, repository, and readme, share the workspace
    version, and depend on each other exactly and in order; everything else
    keeps `publish = false`;
-2. packages the five crates with `cargo package --locked`, which builds each
+2. packages the six crates with `cargo package --locked`, which builds each
    package against the ones before it, and refuses a package that omits a
    file its library reads at compile time or reads from `fixtures/`,
    `data/`, or `.statecraft/derived/`;
 3. builds a consumer outside the workspace whose only source is a registry:
-   the locked tree vendored with the five packages unpacked into it as
+   the locked tree vendored with the six packages unpacked into it as
    crates.io would serve them, replacing crates.io, with no path, git, or
    `[patch]` source. It runs the spec 053 external host proof against them.
 
@@ -69,7 +70,7 @@ scripts/release-check.sh --self-test
 ## Cutting a release
 
 1. **Prepare the release pull request.** On a branch from `main`:
-   - set `[workspace.package] version` and the five `aicortex-*` entries
+   - set `[workspace.package] version` and the six `aicortex-*` entries
      of `[workspace.dependencies]` to the new version (`=x.y.z`);
    - add a `CHANGELOG.md` section headed `## x.y.z` (format below);
    - run the release check and the gate, then open the pull request.

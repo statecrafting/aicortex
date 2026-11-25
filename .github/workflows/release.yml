@@ -16,6 +16,7 @@ on:
       - "crates/aicortex-claims/**"
       - "crates/aicortex-gate/**"
       - "crates/aicortex-store/**"
+      - "crates/aicortex-index/**"
       - "crates/aicortex-embed/**"
       - "fixtures/external-host/**"
       - "Cargo.toml"

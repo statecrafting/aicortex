@@ -1,0 +1,56 @@
+# The live identity proof (spec 020 D-14): every test that needs a real
+# rauthy, against the rauthy image pinned by digest in
+# scripts/live-rauthy.sh, with AICORTEX_REQUIRE_RAUTHY=1 so a skip is a
+# failure and a green run means the tests ran.
+#
+# Advisory: it publishes no check that branch protection requires. It boots a
+# real rauthy and real cell processes with wall-clock budgets.
+
+name: live
+
+on:
+  pull_request:
+    paths:
+      - "crates/**"
+      - "apps/**"
+      - "scripts/live-rauthy.sh"
+      - ".github/workflows/live.yml"
+  schedule:
+    - cron: "23 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  live:
+    name: AC-2 and FR-009 against a real rauthy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # rustup installs the toolchain pinned in rust-toolchain.toml.
+      - run: rustup show
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2
+      # FR-009 samples the cell process's sockets with lsof.
+      - run: sudo apt-get install -y --no-install-recommends lsof
+      - name: Start rauthy
+        run: scripts/live-rauthy.sh up | tee -a "$GITHUB_ENV"
+      - name: AC-2 (spec 020)
+        env:
+          AICORTEX_REQUIRE_RAUTHY: "1"
+        run: cargo test -p aicortex-api --locked --test live -- --nocapture
+      - name: FR-009 (spec 020)
+        env:
+          AICORTEX_REQUIRE_RAUTHY: "1"
+        run: cargo test -p aicortex --locked --test serve_capture -- --nocapture
+      - name: rauthy's log, on a failure
+        if: failure()
+        run: docker logs aicortex-rauthy-live
+      - name: Stop rauthy
+        if: always()
+        run: scripts/live-rauthy.sh down

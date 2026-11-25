@@ -3,9 +3,8 @@
     "kind": "rust-lib",
     "name": "aicortex-index",
     "path": "crates/aicortex-index",
-    "specRef": "016-vector-index-and-scan",
-    "version": "0.1.0"
+    "specRef": "016-vector-index-and-scan"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "7027751f2760d032b9fab31bdd9b4d9e2541409284458e1a1a57d4812b524adb"
+  "shardHash": "43bb121695fbab8061947d07b70dcf6dcf7c210a18fb7e5080a59294e39ac54e"
 }

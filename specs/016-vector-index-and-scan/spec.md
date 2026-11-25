@@ -265,6 +265,12 @@ the need.
   in that order, so its sums are deterministic (B-4), and it honours the
   same budget as the scan (B-8). Rejected: dictionary segmentation for CJK,
   which would need a data dependency and is spec 040's to justify.
+- **D-13 (2026-11-25, implementation).** The text channel's manifests land
+  ahead of its code, under policy isolation (spec 044 section 3.3):
+  `aicortex-index` takes the workspace `unicode-general-category` and
+  `unicode-normalization` for tokenization (B-6), and `aicortex-embed` takes
+  `aicortex-index` so the embedding worker writes text terms beside its
+  vectors (015 D-35). No requirement or acceptance criterion changes.
 
 ## Verification
 

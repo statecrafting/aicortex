@@ -33,7 +33,7 @@ set -uo pipefail
 # B-2: the publishable set, in dependency order. Publishing walks this list
 # front to back, and the manifest check refuses an order a crate's normal
 # dependencies contradict. A crate joins only through an amendment of 055.
-CRATES=(aicortex-types aicortex-claims aicortex-gate aicortex-store aicortex-embed)
+CRATES=(aicortex-types aicortex-claims aicortex-gate aicortex-store aicortex-index aicortex-embed)
 
 # The external host fixture of spec 053, whose proof the consumer reruns.
 FIXTURE=fixtures/external-host
@@ -216,7 +216,7 @@ package_crates() {
 }
 
 # B-6: a consumer outside the workspace whose only source is a registry. The
-# vendored copy of the locked tree stands in for crates.io, the five
+# vendored copy of the locked tree stands in for crates.io, the six
 # packages are unpacked into it as crates.io would serve them, and the
 # consumer names every dependency by version alone.
 build_consumer() {

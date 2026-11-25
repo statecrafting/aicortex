@@ -44,7 +44,8 @@ pub use static_model::StaticEmbeddingEngine;
 pub use wordpiece::WordPiece;
 pub use worker::{
     ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingPreflight, EmbeddingScope,
-    EmbeddingWorker, MAX_REEMBED_BATCH, QueueHealth, ReembeddingBatch, WorkerConfig, WorkerReport,
-    embedding_processor, embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
+    EmbeddingWorker, MAX_REEMBED_BATCH, ProgressKind, ProgressObserver, QueueHealth,
+    ReembeddingBatch, WorkProgress, WorkerConfig, WorkerReport, embedding_processor,
+    embedding_work_key, queue_health, stage_active_embedding, stage_embedding,
     stage_live_embedding, stage_reembedding_batch,
 };

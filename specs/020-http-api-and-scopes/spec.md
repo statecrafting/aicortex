@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "protocol"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: critical
 wave: 2
 depends_on:
@@ -27,11 +27,18 @@ establishes:
   - "crates/aicortex-api/tests/api.rs"
   - "crates/aicortex-api/tests/authz.rs"
   - "crates/aicortex-api/tests/common/mod.rs"
+  - "crates/aicortex-api/tests/common/live.rs"
+  - "crates/aicortex-api/tests/live.rs"
+  - "apps/aicortex/tests/serve_capture.rs"
 extends:
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/memory_repo.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/scope_repo.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/src/worker.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/src/lib.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "apps/aicortex/src/embedding_service.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
 summary: >
@@ -278,22 +285,76 @@ documents.
   SQL stays in the store crate, and a correction whose corrected memory was
   erased is labelled rather than presented as if its source still stood.
 
+- **D-14 (2026-11-24, approved by the owner 2026-11-24).** AC-2 and FR-009
+  run against a real rauthy on loopback, provided by a container. The image
+  is the one rahi ships its cell with, pinned by digest in
+  `scripts/live-rauthy.sh` (copied from rahi's `docker/Dockerfile`, not
+  modified there); `scripts/live-rauthy.sh up` starts it with dynamic client
+  registration, a bootstrap administrator, and an API key, and prints the
+  `AICORTEX_TEST_RAUTHY_*` variables. The driver (dynamic registration,
+  authorization code with PKCE, proof of work) is
+  `crates/aicortex-api/tests/common/live.rs`, written to be included by
+  another crate's tests with `#[path]` so 021 AC-2 reuses it. The
+  registration token, administrator, and API key belong to the throwaway
+  fixture; the product mints no credential and accepts no static key, and the
+  token a test uses is the one rauthy signs after a PKCE login. A test skips
+  without `AICORTEX_TEST_RAUTHY_URL`, and `AICORTEX_REQUIRE_RAUTHY=1` (set by
+  `.github/workflows/live.yml`) makes a skip a failure. The workflow is
+  advisory, as rahi's is. The fixture client's `default_aud` is the cell's
+  public origin, which is how the pinned rauthy adds an audience (rahi 037
+  D-7), and its access token lifetime is 300 seconds, under the cell's 600
+  second ceiling.
+- **D-15 (2026-11-24, approved by the owner 2026-11-24).** B-6 publishes the
+  event kinds whose producers exist: capture verdicts, memory state changes,
+  and embedding progress (`embedding` events with the memory id and a state
+  of `embedded`, `retrying`, or `dead_lettered`; no body). Curator activity
+  and review-queue changes are published by their producing specs (034 and
+  023) onto the same bus through `extends` edges on this crate's events unit
+  when those specs are built. This is a scoping of what is built now, not a
+  weakening of any requirement. The worker reports through a
+  `ProgressObserver` (additive on 015's worker); the cell joins the worker and
+  `GET /events` on one process-wide bus (`aicortex::events()`), because
+  `routes` and `services` are built apart from the chassis's state. The
+  observer resolves the scope's owner with `ScopeRepo::by_id` (additive on
+  012) in a task, so the drain never waits on it.
+- **D-16 (2026-11-24, this spec, build).** FR-009's arrangement. The test
+  runs the real `aicortex` binary in `required` identity mode against the
+  fixture rauthy: `first-boot` and `migrate` as verbs; the fixture's API key
+  written as the cell's admin token (as `supervise` does for the rauthy it
+  starts); `custody_client` registering the cell's own client; and the local
+  model activated before `serve` with `operator::activate_configured`, the
+  function behind `POST /operator/embedding/activate`, because that route
+  needs a browser session and the cell's origin here is rauthy's. Artifacts
+  are a generated static model pinned by digest. "Opened no outbound socket"
+  is asserted by sampling the process's sockets with `lsof` every 50 ms from
+  before the capture until two seconds after the embedding event, requiring
+  that every socket be loopback or a wildcard listener, plus the shipped
+  manifest declaring no egress host. Sampling can miss a connection shorter
+  than its interval; the kernel's egress denial and the empty ceiling are the
+  structural guarantee, and this is the process-level witness.
+- **D-17 (2026-11-24, this spec, build).** `search.rs` and `entities.rs` are
+  claimed by this spec and extended by 018, 017, 025, 026, 040, and 056, and
+  the governance gate refuses `complete` while a claimed unit is absent
+  (I-004). They exist as documentation-only modules that mount no route, so
+  D-3's staging is unchanged: the 404 for those paths stands until 018 and 017
+  mount them. No claim moved and no other spec's edge changed.
+
 ## Status
 
-- **2026-10-29.** `implementation: in-progress`. Landed in two changes:
-  the first founded the crate with capture and events; the second adds the
-  rest of the D-3 routes (`GET /memories`, `GET /memories/{id}`,
-  `PATCH /memories/{id}`, `DELETE /memories/{id}`, `GET /stats`,
-  `POST /promote/{id}`) with FR-003 and FR-005. B-1 to B-3, B-5, B-7 to
-  B-10 and FR-001 to FR-008 hold under AC-1. Remaining before `complete`:
-  - **AC-2** needs a rauthy binary on loopback. None exists on the build
-    host (macOS; rahi pins a Linux image) or in CI, so the end-to-end
-    authorization code with PKCE run has not been performed.
-  - **FR-009** boots `aicortex serve` and captures over HTTP, which needs
-    composed identity: the same rauthy binary, or a discovery stub that
-    `serve` accepts.
-  - **B-6** carries capture verdicts and state changes; embedding progress,
-    curator activity, and review-queue changes are not published yet (D-8).
+- **2026-11-24.** `implementation: complete`. B-1 to B-10 and FR-001 to FR-009
+  hold, with the D-3 staging (`POST /search` and the entity routes arrive with
+  018 and 017) and the D-15 event scoping. AC-1: `cargo test -p aicortex-api
+  --locked`. AC-2 and FR-009 were run against the pinned rauthy
+  (`rauthy-patched` 0.36.2-patched.3, linux/arm64 locally, linux/amd64 in CI)
+  on loopback: `aicortex-api` `tests/live.rs` registers a client, completes
+  authorization code with PKCE as a person, captures, reads the memory back
+  with `GET /memories/{id}` (until 018 restores "searches for it"), is refused
+  `memory.delete` with `insufficient_scope`, and is refused a token for another
+  audience; `apps/aicortex` `tests/serve_capture.rs` boots `aicortex serve`,
+  captures, waits for the `embedding` event, and finds every sampled socket
+  loopback. Client: reqwest 0.13 (rustls) with rahi 0.7.1 chassis crates.
+  Remaining by design, not by gap: B-6 curator and review-queue events (034,
+  023), `POST /promote` 501 until 023 (D-12), and the chassis limits of D-10.
 
 ## Verification
 
