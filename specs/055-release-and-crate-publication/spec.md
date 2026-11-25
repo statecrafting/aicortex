@@ -22,6 +22,7 @@ establishes:
   - { kind: section, file: "crates/aicortex-claims/README.md", anchor: "aicortex-claims" }
   - { kind: section, file: "crates/aicortex-gate/README.md", anchor: "aicortex-gate" }
   - { kind: section, file: "crates/aicortex-store/README.md", anchor: "aicortex-store" }
+  - { kind: section, file: "crates/aicortex-index/README.md", anchor: "aicortex-index" }
   - { kind: section, file: "crates/aicortex-embed/README.md", anchor: "aicortex-embed" }
 extends:
   - { spec: "011-memory-model", unit: "crates/aicortex-types/Cargo.toml", nature: additive }
@@ -29,19 +30,20 @@ extends:
   - { spec: "013-write-gate-and-redaction", unit: "crates/aicortex-gate/Cargo.toml", nature: additive }
   - { spec: "050-typed-claims-and-predicate-registry", unit: "crates/aicortex-claims/Cargo.toml", nature: additive }
   - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/Cargo.toml", nature: additive }
+  - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/Cargo.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: "deny.toml", nature: additive }
   - { spec: "010-chassis-adoption-and-workspace", unit: { kind: section, file: "Cargo.toml", anchor: "workspace.package" }, nature: additive }
 references:
   - { unit: { kind: file, path: "specs/053-host-library-mode/spec.md" }, role: constraint }
 obligations:
   - { id: "I-1", kind: invariant, text: "Only an annotated tag on a commit already on main, pushed by a human, publishes; no workflow, schedule, or agent creates the tag.", anchor: "3-1-what-publishes-and-who-decides" }
-  - { id: "I-2", kind: invariant, text: "Only the five library crates named in B-2 are publishable; the app and every fixture keep publish = false.", anchor: "3-1-what-publishes-and-who-decides" }
+  - { id: "I-2", kind: invariant, text: "Only the six library crates named in B-2 are publishable; the app and every fixture keep publish = false.", anchor: "3-1-what-publishes-and-who-decides" }
   - { id: "I-3", kind: invariant, text: "A release note distinguishes published from deployed, qualified, and production-ready, and asserts none of the latter three.", anchor: "3-3-what-a-release-says" }
   - { id: "R-1", kind: requirement, text: "A registry consumer outside this workspace builds against the published crates with no path, git, or patch source and runs the 053 external-host proof.", anchor: "3-2-the-release-check" }
 summary: >
   No aicortex crate has been published, so host-library consumers (053) pin
-  an exact source revision. This spec makes the five library crates that
-  host-library mode needs (types, claims, gate, store, embed) publishable to
+  an exact source revision. This spec makes the six library crates that
+  host-library mode needs (types, claims, gate, store, index, embed) publishable to
   crates.io under one lockstep version, adds a release check that packages
   them and builds a registry-only consumer, and adds a workflow that
   publishes only from an annotated tag a human pushed. Publication stays a
@@ -76,7 +78,7 @@ the decision to use it with a human, as rahi 039 does for the chassis.
 A release workflow (`.github/workflows/release.yml`), a local and CI
 release check (`scripts/release-check.sh`), the release procedure
 (`docs/release.md`), a changelog (`CHANGELOG.md`), and a readme for each
-publishable crate. It extends the five library crate manifests (publish
+publishable crate. It extends the six library crate manifests (publish
 flag and crates.io metadata), the workspace `[workspace.package]` section
 (one shared version), and `deny.toml` (D-4). It does not
 touch the app, the image (043), or any deployment (044).
@@ -93,11 +95,11 @@ touch the app, the image (043), or any deployment (044).
   tag; that is the human act (I-1).
 - **B-2 (the publishable set).** Exactly `aicortex-types`,
   `aicortex-claims`, `aicortex-gate`, `aicortex-store`, and
-  `aicortex-embed` become publishable, in that dependency order (amended
-  2026-11-01, D-1). `apps/aicortex` and every crate
+  `aicortex-index`, and `aicortex-embed` become publishable, in that
+  dependency order (amended 2026-11-01, D-1; 2026-11-08, D-11). `apps/aicortex` and every crate
   under `fixtures/` keep `publish = false`. A crate added later is
   publishable only through an amendment naming it.
-- **B-3 (lockstep version).** The five crates share one version inherited
+- **B-3 (lockstep version).** The six crates share one version inherited
   from `[workspace.package] version`, and their inter-crate requirements
   stay exact (`=x.y.z`), matching how this workspace pins rahi (010 B-2).
   Before 1.0.0 any release MAY break the API; the changelog says whether it
@@ -150,7 +152,7 @@ touch the app, the image (043), or any deployment (044).
   non-`main` commit, and a version mismatch, each asserted by a dry-run
   mode of the workflow's guard script against fixture refs.
 - **FR-004.** `apps/aicortex` and every fixture crate report
-  `publish = false`; the five B-2 crates report a publishable manifest with
+  `publish = false`; the six B-2 crates report a publishable manifest with
   `description`, `license`, `repository`, and `readme` set.
 
 ## 5. Acceptance criteria
@@ -165,7 +167,7 @@ touch the app, the image (043), or any deployment (044).
 
 ## 6. Out of scope
 
-Publishing `aicortex-embed`, `-index`, `-graph`, `-recall`, `-api`, `-mcp`,
+Publishing `-graph`, `-recall`, `-api`, `-mcp`,
 or any later crate before its spec is complete and an amendment names it.
 Container images and their signing (043). Deployment and qualification
 (044). Choosing when to cut the first release, which is the owner's
@@ -211,7 +213,7 @@ AIC-REL decision.
   repository README, which documents the app.
 - **D-6 (2026-11-01, B-6's overlay).** The local registry overlay is a
   directory source that replaces crates.io for the consumer alone: the
-  workspace's locked tree from `cargo vendor --locked`, with the five
+  workspace's locked tree from `cargo vendor --locked`, with the six
   `.crate` files from `cargo package` unpacked into it as crates.io would
   serve them. The consumer names every dependency by version, resolves
   `--offline` against the overlay, and runs `cargo test --locked`. Cargo
@@ -246,6 +248,16 @@ AIC-REL decision.
   environment, which repeats the tag's authorization as a second click;
   and trusted publishing for the first release, which crates.io cannot
   grant to a crate that does not exist yet.
+- **D-11 (2026-11-08, owner-approved amendment of B-2 and I-2).**
+  `aicortex-index` joins the publishable set, which becomes types, claims,
+  gate, store, index, embed in dependency order. Spec 016 D-11 makes the
+  embedding worker write a chunk's text postings through
+  `aicortex_index::text`, so `aicortex-embed` depends on `aicortex-index`
+  and cannot publish before it. The index depends only on the store and
+  types crates. Its dev-dependencies on other workspace crates follow D-4
+  (none today). Rejected: moving the tokenizer and posting staging into a
+  published crate, which would redesign spec 016's territory for a
+  packaging constraint.
 
 ## Verification
 
