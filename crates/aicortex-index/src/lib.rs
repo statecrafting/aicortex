@@ -9,6 +9,10 @@
 //!
 //! [`VectorIndex`] is the seam an approximate index may one day fill (B-7);
 //! [`ScanIndex`] is its only implementation.
+//!
+//! The text channel is an inverted index over ordinary rows ([`text`]),
+//! scored with BM25, over postings produced by the pure tokenizer of
+//! [`tokenize`] (B-5, B-6).
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
@@ -18,7 +22,10 @@
 // integer spelling that is easier to verify than the float one.
 #![allow(clippy::float_arithmetic)]
 
+pub mod migrations;
 pub mod scan;
+pub mod text;
+pub mod tokenize;
 pub mod topk;
 pub mod vector;
 

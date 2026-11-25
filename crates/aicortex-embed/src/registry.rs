@@ -328,6 +328,9 @@ impl ModelRegistry {
              WHERE revision = ?1 AND active = 0",
             vec![Value::Integer(i64::from(revision))],
         ));
+        // Spec 016 B-5: the revision's text postings and frequencies go with
+        // its chunks, under the same inactive-revision guard.
+        aicortex_store::text_postings::stage_drop_revision(&mut txn, scope_id, revision);
         for sql in [
             "DELETE FROM embedding WHERE scope_id = ?1 AND model_revision = ?2
              AND EXISTS (SELECT 1 FROM embedding_model
