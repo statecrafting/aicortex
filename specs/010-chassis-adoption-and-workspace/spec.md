@@ -345,6 +345,12 @@ manifest will eventually declare. The reference deployment (044).
   Second, `apps/aicortex` takes the workspace's `base64` as a
   dev-dependency for 020's live rauthy harness (020 D-14), split from the
   020 code under policy isolation.
+- **D-13 (2026-11-25, dependency edge, the 017 manifest PR).**
+  `apps/aicortex` takes the workspace's `aicortex-graph` for 017's
+  `app.graph` preflight check and extraction service (017 D-10). The crate
+  sits below the app in spec 002's graph, so the edge points downward. It
+  lands on its own, ahead of the code, under policy isolation (spec 044
+  section 3.3). No requirement or acceptance criterion changes.
 
 ## Status (2026-09-17, complete: the chassis release landed)
 

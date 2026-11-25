@@ -338,6 +338,12 @@ documents.
   (I-004). They exist as documentation-only modules that mount no route, so
   D-3's staging is unchanged: the 404 for those paths stands until 018 and 017
   mount them. No claim moved and no other spec's edge changed.
+- **D-18 (2026-11-25, dependency edge, the 017 manifest PR).**
+  `aicortex-api` takes the workspace's `aicortex-graph`, so 017 can mount
+  the `GET /entities` routes D-3 stages (017 D-9). The edge points downward
+  (surfaces over understanding, spec 002). It lands on its own, ahead of the
+  code, under policy isolation (spec 044 section 3.3). No requirement or
+  acceptance criterion changes.
 
 ## Status
 
