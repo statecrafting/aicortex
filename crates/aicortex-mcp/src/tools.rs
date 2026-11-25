@@ -517,7 +517,9 @@ fn bounded(name: &str, value: Option<u32>, max: u32) -> Result<Option<u32>, RpcE
 
 fn nonempty(name: &str, text: &str, max_chars: usize) -> Result<(), RpcError> {
     if text.trim().is_empty() {
-        return Err(RpcError::invalid_params(format!("{name} must not be empty")));
+        return Err(RpcError::invalid_params(format!(
+            "{name} must not be empty"
+        )));
     }
     if text.chars().count() > max_chars {
         return Err(RpcError::invalid_params(format!(
@@ -555,7 +557,9 @@ pub fn plan(name: &str, args: Value) -> Result<Plan, RpcError> {
                 )));
             }
             if args.candidates.iter().any(|c| c.text.trim().is_empty()) {
-                return Err(RpcError::invalid_params("a candidate's text must not be empty"));
+                return Err(RpcError::invalid_params(
+                    "a candidate's text must not be empty",
+                ));
             }
             if let Some(key) = &args.idempotency_key
                 && (key.is_empty() || key.len() > MAX_IDEMPOTENCY_BYTES || !key.is_ascii())
