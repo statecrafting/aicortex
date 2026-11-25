@@ -1,7 +1,7 @@
 ---
 id: "034-curation-workers"
 title: "Curation: atomize, enrich, consolidate, expire, digest, all bounded and reversible"
-status: draft
+status: approved
 kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
