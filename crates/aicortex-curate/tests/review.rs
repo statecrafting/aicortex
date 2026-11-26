@@ -893,6 +893,41 @@ async fn demotion_returns_the_memory_to_assertion_and_the_ledger_keeps_both_reco
     node.shutdown().await;
 }
 
+/// D-5: a lapse whose act does not commit is followed by a refusal on the
+/// chain, and the memory keeps its grade.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_lapse_that_cannot_commit_is_refused_on_the_chain() {
+    let node = node().await;
+    let scope = scope("alice");
+    let memory = active(&node, &scope, "reconfirm me or else").await;
+    let handle = node.handle();
+    let promoter = Promoter::new(&handle, &node.ledger);
+    promoter
+        .promote(&scope, memory, &person("alice"), Some(3_600), at(0))
+        .await
+        .unwrap();
+    node.handle()
+        .txn(vec![Statement::new(
+            "CREATE TRIGGER refuse_lapse BEFORE DELETE ON promotion
+             BEGIN SELECT RAISE(ABORT, 'injected lapse failure'); END",
+        )])
+        .await
+        .unwrap();
+    // The store reports the aborted write as a conflict, so the sweep goes
+    // on and lapses nothing; any other error would stop it.
+    let lapsed = promoter.expire_due(&scope, at(3_600)).await.unwrap();
+    assert!(lapsed.is_empty(), "{lapsed:?}");
+    assert!(read(&node, &scope, memory).await.trust.is_actionable());
+    assert_eq!(node.decisions("memory.promotion_lapsed").await, 1);
+    assert_eq!(
+        node.decisions("memory.promotion_lapsed_failed").await,
+        1,
+        "the refusal follows the lapse it undoes"
+    );
+    node.ledger.verify().await.unwrap();
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr004_a_lapsed_promotion_returns_to_assertion_and_opens_a_review_item() {
     let node = node().await;

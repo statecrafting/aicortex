@@ -424,8 +424,17 @@ impl<'a> Promoter<'a> {
                     memory,
                     decision: decision_id,
                 }),
-                Err(Error::Conflict(_)) => {}
-                Err(error) => return Err(error),
+                Err(error) => {
+                    // The lapse Decision is on the chain but its act did not
+                    // commit, so a refusal follows it (D-5). A conflict means a
+                    // concurrent demotion or promotion already moved the
+                    // memory, and the sweep goes on; any other error stops it.
+                    let by = Sub::new(row.promoted_by.as_str());
+                    refuse(self.ledger, KIND_LAPSE, scope, memory, &by).await;
+                    if !matches!(error, Error::Conflict(_)) {
+                        return Err(error);
+                    }
+                }
             }
         }
         Ok(lapsed)
