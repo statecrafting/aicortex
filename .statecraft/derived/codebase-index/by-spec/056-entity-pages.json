@@ -1,24 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '056-entity-pages' file unit 'crates/aicortex-graph/src/page.rs' does not exist",
-        "path": "crates/aicortex-graph/src/page.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '056-entity-pages' file unit 'crates/aicortex-graph/tests/page.rs' does not exist",
-        "path": "crates/aicortex-graph/tests/page.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '056-entity-pages' file unit 'crates/aicortex-graph/testdata/pages/' does not exist",
-        "path": "crates/aicortex-graph/testdata/pages/"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "017-entities-and-typed-edges",
@@ -35,11 +15,27 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api/tests/api.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-graph/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-graph/src/page.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-graph/testdata/pages/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-graph/tests/page.rs",
         "source": "spec-edge"
       },
       {
@@ -49,11 +45,27 @@
       {
         "path": "crates/aicortex-mcp/tests/tools.rs",
         "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/src/envelope.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/tests/literal.rs",
+        "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/src/page.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -62,7 +74,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/testdata/pages/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -71,12 +87,29 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/tests/page.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-graph/tests/page.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/tests/literal.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/tests/literal.rs"
         }
       },
       {
@@ -103,6 +136,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/src/entities.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/router.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
         }
       },
       {
@@ -160,6 +206,32 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-recall/src/envelope.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/envelope.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "docs/design/00-lineage.md"
           }
         ],
@@ -201,5 +273,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "6ff73759b2ded59290730a273adab3854acb08676c92f654cc134aa63506b124"
+  "shardHash": "b4302f4d872bc1b1c656ede714a9bc3f645cb4ae9541577210593773a1598726"
 }

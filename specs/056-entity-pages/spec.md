@@ -6,7 +6,7 @@ kind: "feature"
 domain: "retrieval"
 created: "2026-09-27"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: medium
 wave: 5
 depends_on:
@@ -17,10 +17,14 @@ establishes:
   - "crates/aicortex-graph/src/page.rs"
   - "crates/aicortex-graph/tests/page.rs"
   - "crates/aicortex-graph/testdata/pages/"
+  - "crates/aicortex-recall/tests/literal.rs"
 extends:
   - { spec: "017-entities-and-typed-edges", unit: "crates/aicortex-graph/src/lib.rs", nature: additive }
+  - { spec: "019-untrusted-content-boundary", unit: "crates/aicortex-recall/src/envelope.rs", nature: additive }
+  - { spec: "019-untrusted-content-boundary", unit: "crates/aicortex-recall/src/lib.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/entities.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/dto.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/tests/api.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
@@ -177,6 +181,86 @@ None yet. Open for the owner before approval:
 - **Q-1.** Whether the page should also list the entity's 1-hop
   neighbors as entity references (names only, no bodies), or leave that to
   `relate` with `view: "neighbors"`.
+
+- **D-1 (2026-11-26, build).** A literal edge object is enveloped by a second
+  function beside 019's, not by the memory envelope. `frame_literal` in
+  `aicortex-recall` (an additive `extends` edge on 019's `envelope.rs` and
+  `lib.rs`, the precedent being 025's) produces a delimited record with the
+  edge id, the kind `extracted_literal`, the strongest trust class label among
+  the live sources, and those source ids, escaped as a memory envelope is, and
+  constructible nowhere else. A literal envelope carries no framing sentence of
+  its own: the page that holds it states the versioned framing once, ahead of
+  every envelope in it (019 B-2). No requirement of 019 changes.
+- **D-2 (2026-11-26, build).** Landing is split by size and by crate, each part
+  building and passing on its own: the literal envelope in `aicortex-recall`;
+  the `page` module in `aicortex-graph`, then its tests and fixtures as a
+  commit of their own to stay under the review size; the
+  `GET /entities/{id}` route in `aicortex-api`; the `relate` tool in
+  `aicortex-mcp`. This spec stays `in-progress` until AC-1 to AC-3 hold and
+  021's own blocker (its AC-2, which needs rahi) is settled.
+- **D-3 (2026-11-26, build).** What `as_of` means. The store keeps no history
+  of an erasure, a supersession, or an edge's status, so only time can be
+  evaluated at a past moment: a memory newer than `as_of` is not on the page, an
+  edge is a fact only while `valid_from <= as_of < valid_until`, a contradiction
+  detected after `as_of` is not shown, and a merge made after it is not listed.
+  Whether a memory is live is always its current state, so a page as of a past
+  moment never shows what has since been forgotten. The header (names, aliases,
+  first and last seen, mention count) is the entity's current state. The HTTP
+  default is the moment of the request, so a continuation is only gap-free
+  across calls that send the same `as_of`.
+- **D-4 (2026-11-26, build).** "Live" in B-4 means the memory's status is
+  `active`: the two states the spec names (erased, superseded) and also
+  quarantined and expired, which retrieval does not see (011 `is_retrievable`)
+  and a page must not widen. "Strongest trust class" in B-5 orders
+  `instruction`, then `evidence`, then `assertion`: the class a human promoted,
+  then recorded fact, then a claim. A fact's `trust` is the strongest class
+  among its live sources.
+- **D-5 (2026-11-26, build).** Contradictions on a page are the open ones whose
+  shared subject is this entity or an entity merged into it, each shown only
+  while both sides are cited (B-4): a side with no live source leaves the record
+  off the page, never one side alone. Spec 023 has no queue record yet, so the
+  review item a contradiction waits on is the contradiction record itself,
+  named by its id and `open` status, which 017 B-10 already surfaces to the
+  review queue; 023 replaces it through an `extends` edge when it lands.
+- **D-6 (2026-11-26, build).** Bounds and continuation. Defaults and maxima are
+  10 and 50 for facts per predicate, contradictions, and mentioning memories;
+  a fact lists at most 8 source memories and counts the rest, and a mentioning
+  memory lists at most 50 byte ranges. A continuation is a typed keyset token
+  (`facts:<predicate>:<rank>:<confidence>:<edge>`, `contradictions:<detected>:<id>`,
+  `mentions:<created>:<memory>`), unsigned because it only positions a read
+  inside a scope the caller already owns (017 D-9), and a malformed token is a
+  validation error naming the requirement. A read that resumes a section
+  computes that section alone; the others come back empty.
+- **D-7 (2026-11-26, build).** Q-1 is settled as: the page lists no neighbors.
+  `relate` with `view: "neighbors"` is the one place the 1-hop and deeper
+  neighborhood is read, so the page stays a view of this entity's own facts.
+  The owner may reverse this by amendment.
+- **D-8 (2026-11-26, build).** The wire shape of `GET /entities/{id}`. The route
+  is mounted under `memory.read` and the response types live in `entities.rs`,
+  beside the other entity routes (017 D-9), so `dto.rs` is untouched and its
+  declared `extends` edge is not exercised. Query parameters are `scope`,
+  `project`, `share`, `owner`, `as_of`, `facts`, `contradictions`, `mentions`, and
+  `after`, and an unknown one is a 400. The response states `framing_version` and
+  `framing` first, then `derived: true`, which labels every entity name and alias
+  on the page as a derived value (B-7, 017 D-9), then the four sections.
+  `mentions` is the memory envelope response of 020 B-5 (the framing statement,
+  the envelopes, and their bare fields) so it is byte-for-byte what
+  `/memories/{id}` returns for the same memory; a literal fact object is a
+  string holding its `frame_literal` envelope (D-1). A foreign or unknown id is
+  the one 404 of 020 D-4.
+- **D-9 (2026-11-26, build).** `relate` is served. 021 D-3 listed it with its
+  final schema and an answer of `not_yet_available` until 017's routes mounted;
+  they are mounted, and no earlier change wired the tool, so this change serves
+  both views. `entity` is the entity id as `GET /entities` returns it: names are
+  not unique and no route resolves one, so the schema says "the entity id".
+  `view` is `neighbors` (the default, `GET /entities/{id}/neighbors` with
+  `depth` defaulting to the schema's 1) or `page` (`GET /entities/{id}`). An
+  argument that does not apply to the chosen view is refused as invalid params
+  rather than ignored: `depth` with `page`, `after` with `neighbors`. `after`
+  is added to the schema so a client can pass back the `next` of a truncated
+  page section (B-6); the section bounds and `as_of` are not tool arguments, and
+  the page is read as of the call. The description stays static text (021 B-6)
+  and the tool count stays seven.
 
 ## Verification
 
