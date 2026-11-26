@@ -16,16 +16,6 @@
         "code": "W-001",
         "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-recall/testdata/delivery/' does not exist",
         "path": "crates/aicortex-recall/testdata/delivery/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-mcp/src/tools.rs' does not exist",
-        "path": "crates/aicortex-mcp/src/tools.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-mcp/tests/tools.rs' does not exist",
-        "path": "crates/aicortex-mcp/tests/tools.rs"
       }
     ]
   },
@@ -47,6 +37,14 @@
       },
       {
         "path": "crates/aicortex-api/tests/api.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-mcp/src/tools.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-mcp/tests/tools.rs",
         "source": "spec-edge"
       },
       {
@@ -138,7 +136,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-mcp/src/tools.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -147,7 +149,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-mcp/tests/tools.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

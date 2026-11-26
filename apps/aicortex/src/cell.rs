@@ -68,15 +68,18 @@ impl Cell for Aicortex {
         vec![rahi_store::coordination_set(), rahi_store::receipt_set()]
     }
 
-    /// The merged product router: spec 020's HTTP API under `/api/v1`.
+    /// The merged product router: spec 020's HTTP API under `/api/v1` and
+    /// spec 021's MCP server at `/mcp`, over one event bus.
     fn routes(state: AppState) -> Router {
-        aicortex_api::router_with(Api::new(state).with_events(events()))
+        let api = Api::new(state).with_events(events());
+        aicortex_api::router_with(api.clone()).merge(aicortex_mcp::router(api))
     }
 
     /// Where a bearer credential is accepted (spec 020 B-3, D-5): the whole
-    /// API, service-callable except the promotion subtree.
+    /// API, service-callable except the promotion subtree, and the MCP
+    /// endpoint (spec 021 B-4).
     fn bearer_routes() -> BearerRoutes {
-        aicortex_api::bearer_routes()
+        aicortex_mcp::bearer_routes(aicortex_api::bearer_routes())
     }
 
     /// The operator surface, mounted by the chassis behind the operator
