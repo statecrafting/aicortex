@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-curate",
+    "path": "crates/aicortex-curate",
+    "specRef": "023-review-and-promotion",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "4334c6c9778048aa549f6c65784016db81fb024227faed2631c61ce7ca3b1b47"
+}
