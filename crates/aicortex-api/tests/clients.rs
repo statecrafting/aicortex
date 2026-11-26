@@ -209,7 +209,9 @@ fn a_matrix_outside_the_rules_is_refused() {
         format!(
             "[client.x]\ntransport = [\"streamable-http\"]\noauth = true\ndynamic_registration = true\n\
              compat_pair = false\ncapture = \"hook\"\ncapture_scopes = [\"memory.write\"]\n\
-             fixtures = \"x/fixtures\"\n{extra}"
+             fixtures = \"x/fixtures\"\nread_pointer = \"none\"\n\
+             read_pointer_position = \"not applicable\"\ndata_position = false\n\
+             data_position_evidence = \"none\"\n{extra}"
         )
     };
     assert!(Matrix::parse(&row("verified = false\nnote = \"why\"\n")).is_ok());
@@ -515,4 +517,174 @@ fn fr006_every_readme_states_the_rule_and_the_off_switch() {
             );
         }
     }
+}
+
+// ---- spec 026 B-11, B-12: the read-pointer capability rows ----
+
+/// Whether `source` holds a test function `name` whose body asserts that the
+/// client labels injected text untrusted (026 FR-008): the function exists,
+/// carries `#[test]` or a `tokio::test` attribute, and its body names the
+/// word `untrusted`.
+fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
+    let header = format!("fn {name}(");
+    let Some(at) = source.find(&header) else {
+        return false;
+    };
+    let before = &source[..at];
+    let attribute = before.lines().rev().take(3).any(|line| {
+        let line = line.trim();
+        line.starts_with("#[test") || line.starts_with("#[tokio::test")
+    });
+    let body = source[at..]
+        .split("\n}\n")
+        .next()
+        .unwrap_or_default()
+        .to_lowercase();
+    attribute && body.contains("untrusted")
+}
+
+/// 026 B-11: a row claims a data position only by naming the test that shows
+/// it, and every row says what its hook mechanism and position are.
+#[test]
+fn b11_the_reader_refuses_a_data_position_without_its_test() {
+    let row = |extra: &str| {
+        format!(
+            "[client.x]\ntransport = [\"streamable-http\"]\noauth = true\ndynamic_registration = true\n\
+             compat_pair = false\ncapture = \"hook\"\ncapture_scopes = [\"memory.write\"]\n\
+             fixtures = \"x/fixtures\"\nverified = false\nnote = \"why\"\n{extra}"
+        )
+    };
+    let entry = "read_pointer = \"hook\"\nread_pointer_position = \"context\"\n\
+                 data_position_evidence = \"a test\"\n";
+    assert!(Matrix::parse(&row(&format!("{entry}data_position = false\n"))).is_ok());
+    assert!(
+        Matrix::parse(&row(&format!(
+            "{entry}data_position = true\ndata_position_test = \"a_test\"\n"
+        )))
+        .is_ok()
+    );
+    for (bad, why) in [
+        (String::new(), "no read_pointer entry at all"),
+        (
+            "read_pointer_position = \"p\"\ndata_position = false\ndata_position_evidence = \"e\"\n"
+                .to_owned(),
+            "no read_pointer",
+        ),
+        (
+            "read_pointer = \"h\"\ndata_position = false\ndata_position_evidence = \"e\"\n"
+                .to_owned(),
+            "no read_pointer_position",
+        ),
+        (
+            "read_pointer = \"h\"\nread_pointer_position = \"p\"\ndata_position_evidence = \"e\"\n"
+                .to_owned(),
+            "no data_position",
+        ),
+        (
+            "read_pointer = \"h\"\nread_pointer_position = \"p\"\ndata_position = false\n"
+                .to_owned(),
+            "no data_position_evidence",
+        ),
+        (
+            format!("{entry}data_position = true\n"),
+            "a data position with no test named",
+        ),
+        (
+            format!("{entry}data_position = false\ndata_position_test = \"a_test\"\n"),
+            "a test named by a row that is not a data position",
+        ),
+    ] {
+        assert!(Matrix::parse(&row(&bad)).is_err(), "{why}");
+    }
+}
+
+/// 026 FR-008: the check that a named test exists and asserts the client
+/// labels injected text untrusted does what it says.
+#[test]
+fn fr008_the_untrusted_test_check_reads_the_test_source() {
+    let source = "\
+#[tokio::test]
+async fn labels_it() {
+    assert!(output.contains(\"untrusted\"));
+}
+
+#[test]
+fn says_nothing() {
+    assert!(true);
+}
+
+fn not_a_test() {
+    // untrusted
+}
+";
+    assert!(is_a_test_asserting_untrusted(source, "labels_it"));
+    assert!(!is_a_test_asserting_untrusted(source, "says_nothing"));
+    assert!(!is_a_test_asserting_untrusted(source, "not_a_test"));
+    assert!(!is_a_test_asserting_untrusted(source, "absent"));
+}
+
+/// 026 FR-008: every row has a `read_pointer` entry; a row whose
+/// `data_position` is true names a test in this file that exists and asserts
+/// the client labels injected text untrusted, and every other row is false;
+/// the Claude Code row is false and says why; and no pointer hook is shipped
+/// or generated for any client (B-12).
+#[test]
+fn fr008_every_row_has_a_read_pointer_entry_and_no_hook_carries_pointers() {
+    let source =
+        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/clients.rs"))
+            .unwrap();
+    let matrix = Matrix::shipped();
+    for name in names() {
+        let row = matrix.get(&name).unwrap();
+        assert!(!row.read_pointer.trim().is_empty(), "{name}: read_pointer");
+        assert!(
+            !row.read_pointer_position.trim().is_empty(),
+            "{name}: read_pointer_position"
+        );
+        assert!(
+            !row.data_position_evidence.trim().is_empty(),
+            "{name}: data_position_evidence"
+        );
+        match (&row.data_position, &row.data_position_test) {
+            (true, Some(test)) => assert!(
+                is_a_test_asserting_untrusted(&source, test),
+                "{name} claims a data position but {test} is not a test here that asserts \
+                 the client labels injected text untrusted"
+            ),
+            (true, None) => panic!("{name} claims a data position and names no test"),
+            (false, None) => {}
+            (false, Some(test)) => panic!("{name} says false and names {test}"),
+        }
+
+        // B-12: nothing generated or shipped for a client carries pointers.
+        let dir = root().join(&name);
+        for file in ["snippet.txt", "hook.mjs"] {
+            let text = std::fs::read_to_string(dir.join(file))
+                .unwrap()
+                .to_lowercase();
+            assert!(!text.contains("pointer"), "{name}/{file} mentions pointers");
+        }
+        for entry in std::fs::read_dir(&dir).unwrap().filter_map(Result::ok) {
+            let file = entry.file_name().to_string_lossy().to_lowercase();
+            assert!(!file.contains("pointer"), "{name} ships {file}");
+        }
+        let served = clients::snippet_for(&matrix, &name, "https://mem.example.org").unwrap();
+        assert!(!served.snippet.to_lowercase().contains("pointer"), "{name}");
+    }
+    let core = std::fs::read_to_string(root().join("capture-core.mjs"))
+        .unwrap()
+        .to_lowercase();
+    assert!(
+        !core.contains("pointer"),
+        "the shared hook core carries no pointers"
+    );
+
+    let claude = matrix.get("claude-code").unwrap();
+    assert!(!claude.data_position);
+    assert!(
+        claude
+            .read_pointer_position
+            .contains("feedback from the user")
+    );
+    assert!(claude.read_pointer_position.contains("directive"));
 }

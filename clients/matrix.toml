@@ -10,6 +10,17 @@
 # Adding a client is a row here, a directory beside this file with a README, a
 # snippet.txt, a hook, and fixtures/invocations.json (B-7).
 #
+# `read_pointer` (spec 026 B-11) records, per client, the per-turn hook
+# mechanism that could carry entity pointers (or `none`), where the client
+# places that hook's output (`read_pointer_position`), whether that is a data
+# position (`data_position`), and what that rests on
+# (`data_position_evidence`). `data_position` is false for every client. It
+# becomes true only when a test in crates/aicortex-api/tests/clients.rs shows
+# that the client labels the text a hook injects as untrusted, and the row then
+# names that test in `data_position_test`; a vendor statement or a reading of
+# the documentation is not enough. Nothing here ships a pointer hook: pointers
+# reach a model only inside a `search` result (026 B-8, B-12).
+#
 # The format is the subset of TOML that crates/aicortex-api/src/clients.rs
 # reads: `[client.<name>]` tables of strings, booleans, and string lists.
 
@@ -23,6 +34,10 @@ capture_scopes = ["memory.read", "memory.write"]
 verified = false
 fixtures = "claude-code/fixtures"
 note = "Hook payload shapes follow the vendor's documentation and are authored fixtures, not recordings. The OAuth sign-in path is not yet observed end to end: spec 021 AC-2 waits on rahi specs 051 and 052."
+read_pointer = "UserPromptSubmit hook"
+read_pointer_position = "the harness presents hook output to the model as feedback from the user, a directive position (019 B-3)"
+data_position = false
+data_position_evidence = "the owner decision of 2026-10-30 (026 D-4): treat no client's hook output as data. No test shows this client labels injected text untrusted."
 
 [client.codex]
 transport = ["streamable-http"]
@@ -34,6 +49,10 @@ capture_scopes = ["memory.read", "memory.write"]
 verified = false
 fixtures = "codex/fixtures"
 note = "The notification shape follows the vendor's documentation and is an authored fixture. The OAuth sign-in path is not yet observed end to end (spec 021 AC-2)."
+read_pointer = "none"
+read_pointer_position = "not applicable: the capture mechanism above is a notify program that reports a completed turn, and no per-turn hook that injects text into the model is recorded for this client"
+data_position = false
+data_position_evidence = "no per-turn hook is recorded for this client, and no test shows it labels injected text untrusted (026 D-4)"
 
 [client.cursor]
 transport = ["streamable-http"]
@@ -45,6 +64,10 @@ capture_scopes = ["memory.read", "memory.write"]
 verified = false
 fixtures = "cursor/fixtures"
 note = "Hook payload shapes follow the vendor's documentation and are authored fixtures. The OAuth sign-in path is not yet observed end to end (spec 021 AC-2)."
+read_pointer = "beforeSubmitPrompt hook"
+read_pointer_position = "unrecorded: how this client presents a hook's output to the model has not been checked"
+data_position = false
+data_position_evidence = "not checked, so not a data position (026 B-11, D-4). No test shows this client labels injected text untrusted."
 
 [client.antigravity]
 transport = ["streamable-http"]
@@ -56,3 +79,7 @@ capture_scopes = ["memory.read", "memory.write"]
 verified = false
 fixtures = "antigravity/fixtures"
 note = "Neither the MCP configuration key nor a hook surface has been checked against a release. The snippet and handler are a starting point, not a claim."
+read_pointer = "none"
+read_pointer_position = "not applicable: no hook surface has been checked against a release for this client"
+data_position = false
+data_position_evidence = "no hook surface is recorded for this client, and no test shows it labels injected text untrusted (026 D-4)"

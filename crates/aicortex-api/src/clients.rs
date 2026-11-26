@@ -74,6 +74,20 @@ pub struct Row {
     /// What is unverified or caveated.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub note: Option<String>,
+    /// The client's per-turn hook mechanism that could carry entity
+    /// pointers, or `none` (026 B-11).
+    pub read_pointer: String,
+    /// Where the client places that hook's output (026 B-11).
+    pub read_pointer_position: String,
+    /// Whether a test shows the client labels the text a hook injects as
+    /// untrusted data. `false` until one does (026 B-11, D-4).
+    pub data_position: bool,
+    /// What `data_position` rests on.
+    pub data_position_evidence: String,
+    /// The test in `tests/clients.rs` that shows it, required when
+    /// `data_position` is true and absent otherwise (026 B-11).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub data_position_test: Option<String>,
 }
 
 /// Why a matrix was refused.
@@ -250,6 +264,28 @@ fn row(mut table: BTreeMap<String, Value>, line: usize) -> Result<Row, MatrixErr
     let fixtures = take_str(&mut table, "fixtures", line)?
         .ok_or_else(|| err(line, "`fixtures` is required"))?;
     let note = take_str(&mut table, "note", line)?;
+    let read_pointer = take_str(&mut table, "read_pointer", line)?.ok_or_else(|| {
+        err(
+            line,
+            "`read_pointer` is required: the client's per-turn hook mechanism, or \"none\" (026 B-11)",
+        )
+    })?;
+    let read_pointer_position = take_str(&mut table, "read_pointer_position", line)?
+        .ok_or_else(|| {
+            err(
+                line,
+                "`read_pointer_position` is required: where the client places a hook's output (026 B-11)",
+            )
+        })?;
+    let data_position = take_bool(&mut table, "data_position", line)?;
+    let data_position_evidence =
+        take_str(&mut table, "data_position_evidence", line)?.ok_or_else(|| {
+            err(
+                line,
+                "`data_position_evidence` is required: what `data_position` rests on (026 B-11)",
+            )
+        })?;
+    let data_position_test = take_str(&mut table, "data_position_test", line)?;
     if let Some(unknown) = table.keys().next() {
         return Err(err(line, format!("unknown key `{unknown}`")));
     }
@@ -258,6 +294,23 @@ fn row(mut table: BTreeMap<String, Value>, line: usize) -> Result<Row, MatrixErr
     }
     if capture_scopes.iter().any(|scope| scope == PROMOTE_SCOPE) {
         return Err(err(line, "capture never requests memory.promote (B-6)"));
+    }
+    // 026 B-11: a data position is a fact a test shows, so a row claims one
+    // only by naming that test, and a row that names a test claims it.
+    match (data_position, &data_position_test) {
+        (true, None) => {
+            return Err(err(
+                line,
+                "a row with `data_position = true` names the test that shows it in `data_position_test` (026 B-11)",
+            ));
+        }
+        (false, Some(_)) => {
+            return Err(err(
+                line,
+                "`data_position_test` is for a row with `data_position = true`; this row says false (026 B-11)",
+            ));
+        }
+        (true, Some(_)) | (false, None) => {}
     }
     // FR-002: a verification date and a fixture set, or an explicit false.
     if verified {
@@ -288,6 +341,11 @@ fn row(mut table: BTreeMap<String, Value>, line: usize) -> Result<Row, MatrixErr
         verified_on,
         fixtures,
         note,
+        read_pointer,
+        read_pointer_position,
+        data_position,
+        data_position_evidence,
+        data_position_test,
     })
 }
 
