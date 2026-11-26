@@ -14,6 +14,7 @@ use rahi_types::Sub;
 use serde::{Deserialize, Serialize};
 
 use crate::error::{ApiError, ApiResult};
+use crate::pointers::PointerBlock;
 
 /// A scope as a request names it (D-4).
 ///
@@ -540,6 +541,10 @@ pub struct SearchRequest {
     /// Whether the trace carries every channel's candidates (018 D-2).
     #[serde(default)]
     pub explain: bool,
+    /// Whether to resolve the entities the query names and return a pointer
+    /// block beside the evidence (026 B-8). Off when absent.
+    #[serde(default)]
+    pub pointers: bool,
 }
 
 /// One ranked result, beside its envelope (019 B-6): ids, ranks, and scores,
@@ -576,4 +581,13 @@ pub struct SearchResponse {
     /// What delivery did, when the request asked for it (025 B-11).
     #[serde(skip_serializing_if = "Option::is_none")]
     pub delivery: Option<DeliveryReport>,
+    /// The entities the query names, when the request asked for pointers and
+    /// the deployment serves them (026 B-8). Its names are enveloped (019
+    /// B-6), and it follows the framing statement above.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pointers: Option<PointerBlock>,
+    /// Present, and true, when the request asked for pointers and this
+    /// deployment has disabled them (026 B-8).
+    #[serde(skip_serializing_if = "std::ops::Not::not")]
+    pub pointers_disabled: bool,
 }
