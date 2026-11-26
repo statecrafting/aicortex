@@ -6,7 +6,7 @@ kind: "feature"
 domain: "clients"
 created: "2026-10-25"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: high
 wave: 2
 depends_on:
@@ -23,9 +23,11 @@ establishes:
   - "crates/aicortex-api/src/pointers.rs"
   - "crates/aicortex-api/tests/pointers.rs"
 extends:
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
   - { spec: "017-entities-and-typed-edges", unit: "crates/aicortex-graph/src/lib.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/search.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/dto.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/Cargo.toml", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
   - { spec: "022-client-adapters", unit: "clients/matrix.toml", nature: additive }

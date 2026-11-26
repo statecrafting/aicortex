@@ -355,6 +355,14 @@ documents.
   section 3.3). `Cargo.lock` does not change. No requirement or acceptance
   criterion changes.
 
+- **D-22 (2026-11-26, dependency edge, the 026 manifest commit).**
+  `aicortex-api` takes the workspace's `tracing` as a dev-dependency, so
+  026's FR-006 can capture every log line and span a search produces under
+  the fully assembled router. It is a test-only edge: no shipped source of
+  this crate names the crate. It lands on its own, ahead of the code, under
+  policy isolation (spec 044 section 3.3). No requirement or acceptance
+  criterion changes.
+
 ## Status
 
 - **2026-11-24.** `implementation: complete`. B-1 to B-10 and FR-001 to FR-009
