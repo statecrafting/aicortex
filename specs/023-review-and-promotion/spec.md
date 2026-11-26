@@ -176,7 +176,7 @@ concern; the routes and the queue count are the surface for now.
 - **D-7 (2026-11-26, build, contradiction resolution and 019 FR-005).** B-4's
   three choices are two resolutions: `keep_edge` (the named edge stays active,
   the other becomes `superseded` with `valid_until` set to the later of its
-  own start and the resolution time) and `disjoint` (the earlier edge ends at
+  own start and the resolution time, or kept when it already ended earlier) and `disjoint` (the earlier edge ends at
   a boundary the reviewer names and the later begins there; the boundary must
   lie inside the period both edges claimed, so the edges stop overlapping and
   017's overlap test stays silent). The review views are the only derived

@@ -943,11 +943,17 @@ impl<'a> Reviewer<'a> {
         .await?;
         let mut txn = TxnBuilder::new();
         // The loser stops holding when the reviewer decided, never before it
-        // began; nothing is deleted (017 FR-005).
+        // began, and never later than an end it already had (D-7); nothing is
+        // deleted (017 FR-005). An edge no longer active when this commits
+        // writes NULL into the NOT NULL status, aborting the whole
+        // transaction, so the recorded Decision never closes an item whose
+        // act did not happen (FR-003); `commit_or_refuse` then records the
+        // refusal.
         txn.push(Statement::with_params(
-            "UPDATE edge SET status = 'superseded',
-                 valid_until = COALESCE(valid_until, MAX(valid_from, ?3))
-             WHERE scope_id = ?1 AND edge_id = ?2 AND status = 'active'",
+            "UPDATE edge SET
+                 status = CASE WHEN status = 'active' THEN 'superseded' ELSE NULL END,
+                 valid_until = MIN(COALESCE(valid_until, MAX(valid_from, ?3)), MAX(valid_from, ?3))
+             WHERE scope_id = ?1 AND edge_id = ?2",
             vec![
                 Value::from(closing.scope_id),
                 Value::from(loser.as_str()),
@@ -1010,9 +1016,11 @@ impl<'a> Reviewer<'a> {
         )
         .await?;
         let mut txn = TxnBuilder::new();
+        // As in `keep_edge`: an edge no longer active aborts the transaction.
         txn.push(Statement::with_params(
-            "UPDATE edge SET valid_until = ?3
-             WHERE scope_id = ?1 AND edge_id = ?2 AND status = 'active'",
+            "UPDATE edge SET valid_until = ?3,
+                 status = CASE WHEN status = 'active' THEN status ELSE NULL END
+             WHERE scope_id = ?1 AND edge_id = ?2",
             vec![
                 Value::from(closing.scope_id),
                 Value::from(first.edge_id.as_str()),
@@ -1020,8 +1028,9 @@ impl<'a> Reviewer<'a> {
             ],
         ));
         txn.push(Statement::with_params(
-            "UPDATE edge SET valid_from = ?3
-             WHERE scope_id = ?1 AND edge_id = ?2 AND status = 'active'",
+            "UPDATE edge SET valid_from = ?3,
+                 status = CASE WHEN status = 'active' THEN status ELSE NULL END
+             WHERE scope_id = ?1 AND edge_id = ?2",
             vec![
                 Value::from(closing.scope_id),
                 Value::from(second.edge_id.as_str()),
