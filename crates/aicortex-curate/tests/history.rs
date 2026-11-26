@@ -408,14 +408,24 @@ async fn fr002_fr005_every_emitting_path_validates_and_the_chain_verifies() {
     // FR-002: every Decision this product wrote validates against the closed
     // set, and the kinds we meant to exercise were all written.
     let mut kinds = std::collections::BTreeSet::new();
+    let mut reasons = std::collections::BTreeSet::new();
     for record in cell.records().await {
         let decision = record.decision().unwrap();
         let kind = decision.kind.as_str().to_owned();
         if kind.starts_with("memory.") || kind.starts_with("review.") {
             validate_decision(&decision).unwrap_or_else(|error| panic!("{kind}: {error}"));
+            if let Some(code) = decision.payload.as_value()["reason_code"].as_str() {
+                reasons.insert((kind.clone(), code.to_owned()));
+            }
             kinds.insert(kind);
         }
     }
+    // A rejection is 014's erasure under the review's reason code (023 B-3),
+    // so it is the `memory.erase` Decision that says `review_reject`.
+    assert!(
+        reasons.contains(&("memory.erase".to_owned(), "review_reject".to_owned())),
+        "the rejection's erasure is missing from {reasons:?}"
+    );
     for expected in [
         "memory.gate.refuse",
         "memory.erase",

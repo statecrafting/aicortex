@@ -56,7 +56,7 @@ use rahi_types::{Error, Sub, UnixSeconds};
 use serde::Deserialize;
 
 use crate::decision_key::DecisionKeyRepo;
-use crate::decision_ref::{DecisionRefRepo, RefKind, validate_decision};
+use crate::decision_ref::{DecisionRefRepo, RefKind, append_decision, validate_decision};
 use crate::embedding_memory::EMBEDDING_NAMESPACE;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
@@ -1035,7 +1035,7 @@ impl Eraser {
         let decision: Decision = serde_json::from_value(value).map_err(json_error)?;
         if receipt.delivered == 0
             && !decision_resident(ledger, &decision).await?
-            && let Err(error) = ledger.append(decision.clone()).await
+            && let Err(error) = append_decision(ledger, decision.clone()).await
             && !decision_resident(ledger, &decision).await?
         {
             return Err(error);
