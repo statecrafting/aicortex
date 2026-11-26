@@ -864,6 +864,7 @@ impl Eraser {
             vec![Value::from(&scope_id)],
         ));
         crate::graph_tables::stage_scope_erasure(&mut txn, scope_id.as_str());
+        crate::recall_trace_table::stage_scope_erasure(&mut txn, scope_id.as_str());
         for statement in [
             "DELETE FROM claim_relation WHERE scope_id = ?1",
             "DELETE FROM claim_retraction WHERE scope_id = ?1",

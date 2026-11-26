@@ -14,6 +14,7 @@ pub mod embedding_preflight;
 pub mod embedding_service;
 pub mod graph_preflight;
 pub mod graph_service;
+pub mod search_surface;
 
 use std::sync::OnceLock;
 
@@ -73,7 +74,9 @@ impl Cell for Aicortex {
     /// The merged product router: spec 020's HTTP API under `/api/v1` and
     /// spec 021's MCP server at `/mcp`, over one event bus.
     fn routes(state: AppState) -> Router {
-        let api = Api::new(state).with_events(events());
+        let api = Api::new(state)
+            .with_events(events())
+            .with_search(search_surface::search(&rahi_cli::process_env()));
         aicortex_api::router_with(api.clone()).merge(aicortex_mcp::router(api))
     }
 

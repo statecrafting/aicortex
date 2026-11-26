@@ -48,6 +48,22 @@
       },
       {
         "kind": "file",
+        "path": "crates/aicortex-recall/src/trace_store.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/recall_trace_table.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/recall_trace.rs"
+      },
+      {
+        "kind": "file",
+        "path": "apps/aicortex/src/search_surface.rs"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-recall/src/filter.rs"
       },
       {
@@ -64,6 +80,110 @@
       }
     ],
     "extends": [
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/search.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/api.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/common/mod.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
       {
         "nature": "additive",
         "spec": "016-vector-index-and-scan",
@@ -97,14 +217,15 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "018-recall": "d2b3f119411b0c33ff713d834fd992b7cf24f09ab02e3bf6386413557c3770b6",
+      "018-recall": "3f683f3d45dc2c8785cc013a8cd48c0d5dd2095cc93d36ddc88b008160ad9752",
       "1-purpose": "12eb79601c5277b1eaed13d354120dc5bc73aa78045db6e5227c103c01473fa1",
       "2-territory": "4445ce5a0d5cad27112cd1567995258302a3accfb185d41e791bcf981caf169c",
       "3-behavior": "ad1e5fa7c10be9541fea86cc72cc5995a86eb0a32b657e93c61a3a07b9b84479",
       "4-functional-requirements": "26dc1fca38a83c58188e946870d13ca8171164bf517a2d1809217a5cdcd3e9bf",
       "5-acceptance-criteria": "ef3b3d9add1ffdb4c3acbdb47e3c1010dca083f333ca619ddfbdbc658488fd97",
       "6-out-of-scope": "5a532b1ce244419b5b6f0278a72981af0774f61c5eb2c1f1fa7ce29fb967b204",
-      "7-resolved-decisions": "db127d576cd79e6926f44b6294156e3d120895fe984f3f81a980fe817fea66ab",
+      "7-resolved-decisions": "0a43d35ba63d2eab0735b7388be67f5e2b20ab2e1d7d1ba22b3ff26d937d9a24",
+      "status": "05085d34a3907d7e46987d6efd47e87a9b5aa2df29c35cb48189dac780af9f77",
       "verification": "b98d91f345350958f9006b4ae6e935b68063418d7b9a070d8527d8c7d64c3e0d"
     },
     "sectionHeadings": [
@@ -116,6 +237,7 @@
       "5. Acceptance criteria",
       "6. Out of scope",
       "7. Resolved decisions",
+      "Status",
       "Verification"
     ],
     "specPath": "specs/018-retrieval-and-recall-trace/spec.md",
@@ -123,6 +245,6 @@
     "summary": "One query, four candidate channels (vector, text, recency, graph), one fused order, and a trace that explains it. Fusion is reciprocal rank with declared weights and an importance prior, chosen because it needs no score calibration between channels that do not share a scale. Every result set carries the query, the per-channel candidates and scores, the fusion arithmetic, and the reason each returned memory made the cut. A ranking that cannot be explained is not shippable, and an evaluation corpus (040) is the only way a weight changes.\n",
     "title": "Recall: four channels fused into one order, every result explainable, scope in the SQL"
   },
-  "shardHash": "f738e5609fee50cb8405a2030361dbc53c9f2f53ee50a440752b07e96156572e",
+  "shardHash": "d1969968668d46a89765306d07ce7becc85d520780a213ee13c49ccc24571851",
   "specVersion": "1.11.0"
 }

@@ -180,7 +180,12 @@ pub async fn boot() -> Cell {
 
 /// Boot the cell with `limits`.
 pub async fn boot_with(limits: aicortex_api::Limits) -> Cell {
-    boot_inner(limits, None, None).await
+    boot_inner(limits, None, None, aicortex_api::Search::default()).await
+}
+
+/// Boot the cell with `search` configured for `POST /search` (spec 018, 025).
+pub async fn boot_with_search(search: aicortex_api::Search) -> Cell {
+    boot_inner(aicortex_api::Limits::default(), None, None, search).await
 }
 
 /// A surface mounted beside the API: its router, the bearer routes it
@@ -204,7 +209,13 @@ pub type Mount = Box<dyn FnOnce(&aicortex_api::Api) -> Extra>;
 /// Boot a cell serving the API and `mount`, against a real rauthy when `live`
 /// names one.
 pub async fn boot_mounting(live: Option<&live::LiveEnv>, mount: Mount) -> Cell {
-    boot_inner(aicortex_api::Limits::default(), live, Some(mount)).await
+    boot_inner(
+        aicortex_api::Limits::default(),
+        live,
+        Some(mount),
+        aicortex_api::Search::default(),
+    )
+    .await
 }
 
 /// Boot the cell against a real rauthy (spec 020 D-14): the discovery
@@ -212,13 +223,20 @@ pub async fn boot_mounting(live: Option<&live::LiveEnv>, mount: Mount) -> Cell {
 /// origin, so a token it issues for that origin is addressed to this resource.
 /// Requests still go to [`Cell::origin`], the loopback socket the cell is on.
 pub async fn boot_live(live: &live::LiveEnv) -> Cell {
-    boot_inner(aicortex_api::Limits::default(), Some(live), None).await
+    boot_inner(
+        aicortex_api::Limits::default(),
+        Some(live),
+        None,
+        aicortex_api::Search::default(),
+    )
+    .await
 }
 
 async fn boot_inner(
     limits: aicortex_api::Limits,
     live: Option<&live::LiveEnv>,
     mount: Option<Mount>,
+    search: aicortex_api::Search,
 ) -> Cell {
     let (store, dir) = open_store().await;
     let handle = store.handle();
@@ -332,7 +350,8 @@ async fn boot_inner(
     let events = aicortex_api::Events::new();
     let surface = aicortex_api::Api::new(state.clone())
         .with_events(events.clone())
-        .with_limits(limits);
+        .with_limits(limits)
+        .with_search(search);
     let api = aicortex_api::router_with(surface.clone());
     let (api, bearer, open_bootstrap) = match mount {
         Some(mount) => {

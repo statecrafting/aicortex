@@ -24,7 +24,8 @@ use tokio::sync::OnceCell;
 use crate::error::ApiError;
 use crate::events::Events;
 use crate::scopes::{ApiScope, scoped};
-use crate::{capture, clients, entities, events, memories};
+use crate::search::Search;
+use crate::{capture, clients, entities, events, memories, search};
 
 /// Where the router is mounted (B-1, B-10).
 pub const API_PREFIX: &str = "/api/v1";
@@ -85,6 +86,8 @@ pub struct Api {
     pub events: Events,
     /// The surface's limits.
     pub limits: Limits,
+    /// What `POST /search` is configured with (018, 025).
+    pub search: Search,
     cursor: Arc<OnceCell<CursorKey>>,
 }
 
@@ -105,6 +108,7 @@ impl Api {
             gate: Arc::new(Gate::standard()),
             events: Events::new(),
             limits: Limits::default(),
+            search: Search::default(),
             cursor: Arc::new(OnceCell::new()),
         }
     }
@@ -122,6 +126,14 @@ impl Api {
     #[must_use]
     pub const fn with_limits(mut self, limits: Limits) -> Self {
         self.limits = limits;
+        self
+    }
+
+    /// The same, with other `POST /search` settings: the query embedder, the
+    /// clock, trace persistence, and the delivery ceiling.
+    #[must_use]
+    pub fn with_search(mut self, search: Search) -> Self {
+        self.search = search;
         self
     }
 
@@ -214,8 +226,8 @@ impl<S: Send + Sync> FromRequestParts<S> for Caller {
 
 /// The product router, mounted under [`API_PREFIX`] (B-1, B-4).
 ///
-/// Staged per D-3: `POST /search` arrives with 018, mounted here through an
-/// `extends` edge on this file; the entity routes arrived with 017.
+/// Staged per D-3: `POST /search` arrived with 018 and the entity routes with
+/// 017, each mounted here through an `extends` edge on this file.
 pub fn router(state: AppState) -> Router {
     router_with(Api::new(state))
 }
@@ -228,6 +240,10 @@ pub fn router_with(api: Api) -> Router {
         .route(
             "/capture",
             scoped(ApiScope::MemoryWrite, k, post(capture::capture)),
+        )
+        .route(
+            "/search",
+            scoped(ApiScope::MemoryRead, k, post(search::search)),
         )
         .route(
             "/memories",

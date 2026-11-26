@@ -21,11 +21,28 @@ establishes:
   - "crates/aicortex-recall/tests/common/mod.rs"
   - "crates/aicortex-recall/src/fusion.rs"
   - "crates/aicortex-recall/src/trace.rs"
+  - "crates/aicortex-recall/src/trace_store.rs"
+  - "crates/aicortex-store/src/recall_trace_table.rs"
+  - "crates/aicortex-store/tests/recall_trace.rs"
+  - "apps/aicortex/src/search_surface.rs"
   - "crates/aicortex-recall/src/filter.rs"
   - "crates/aicortex-recall/tests/fusion.rs"
   - "crates/aicortex-recall/tests/trace.rs"
   - "crates/aicortex-recall/testdata/queries/"
 extends:
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "apps/aicortex/tests/migrate.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/search.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/dto.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/lib.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/tests/api.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/tests/common/mod.rs", nature: additive }
+  - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
+  - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
   - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/src/lib.rs", nature: additive }
   - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/src/scan.rs", nature: additive }
   - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/src/text.rs", nature: additive }
@@ -271,6 +288,55 @@ expansion, likewise.
   payload-free `StatusFilter` through `aicortex_index::Filter::status_filters`,
   an additive constructor beside `Filter::statuses` (the D-6 edge on 016's
   `scan.rs`), so no placeholder `MemoryId` is minted.
+
+- **D-10 (2026-11-26, build).** Part 2 of 018 lands B-6, the truncation count
+  of B-9, and `POST /search`. Choices the spec left open.
+  - **Persistence.** A trace is a row of `recall_trace` (migration version
+    `RECALL_TRACE_VERSION`, the one after the conversation columns, so
+    `EXPECTED_SCHEMA_VERSION` follows it): the trace's own body-free JSON, its
+    query hash, the instant recorded, the instant after which it is not read,
+    and, when the query delivered, 025's delivery report in its own column. The
+    table is declared non-additive because an older binary would not remove a
+    scope's traces when it erases the scope. `aicortex-recall`'s `TraceStore`
+    writes and reads it, every statement names its scope, a read is bounded
+    (at most 50), and a record removes up to 500 of the scope's expired rows and
+    any beyond 10,000 newest. The retention window defaults to thirty days
+    when a deployment turns persistence on. A scope erasure deletes the scope's
+    traces in its own batch. Erasing one memory does not rewrite traces that
+    name its id: a trace holds ids, scores, and ranks and no content, and the
+    retention window bounds how long the id survives.
+  - **Off by default.** Persistence is a deployment setting
+    (`Search::with_trace_retention` in `aicortex-api`), never a request field,
+    so a caller cannot fill the table. The evaluation corpus switches it on
+    when 040 lands; nothing in this build does.
+  - **Metric.** `aicortex_recall_truncated_total`, an integer counter of result
+    sets a channel's budget cut short, on the chassis's metrics registry. The
+    API takes a hook rather than a registry, so it links no metrics library;
+    the cell supplies the counter (`apps/aicortex/src/search_surface.rs`).
+  - **The route.** `POST /search` takes `query`, `k` (default 10, at most 50),
+    `scope`, `filter` (the kinds, trusts, actor kinds, sources, entities, time
+    range, and `include` of `superseded` or `expired` that 018 B-1 and B-7
+    name; a quarantined or erased status is a 400), `budget_ms` (1 to 10,000),
+    `explain`, and 025's three delivery parameters, and rejects unknown
+    fields. It answers 019's framing statement and envelopes, `hits` (id, rank,
+    score, chunk range), the recall trace, `trace_id` when persisted, and 025's
+    delivery report when delivery was asked for. A request that asked for no
+    delivery gets each ranked memory whole in its envelope, in rank order; a
+    memory that is gone or no longer admitted is left out of the envelopes and
+    stays in `hits`. The query embedder is a seam of `aicortex-api`
+    (`QueryEmbedder`); a cell with none, or with a remote provider (015 D-27),
+    runs the other three channels and the trace says the vector channel was
+    skipped. The cell's embedder is the local provider, booted on first use.
+
+## Status
+
+- **2026-11-26.** `implementation: in-progress`. Parts 1 and 2 land B-1 to
+  B-11 and FR-001 to FR-009. AC-1 holds (`cargo test -p aicortex-recall
+  --locked`), and the route is covered by `cargo test -p aicortex-api --locked
+  --test api`. Left: AC-2, the evaluation corpus run that records a baseline
+  for recall at 5, 10, and 20, which needs spec 040's corpus and runner, and
+  with it the switch that turns trace persistence on for that corpus (B-6).
+  Until 040 reports a baseline the defaults of D-7 are provisional (B-10).
 
 ## Verification
 

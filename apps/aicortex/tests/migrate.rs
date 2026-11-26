@@ -321,7 +321,8 @@ fn serve_crosses_only_additive_versions(data_dir: &Path, ports: Ports) -> Outcom
     // additive flag it declared. Every shipped migration is additive (046
     // B-2, D-2) except spec 014's fingerprint-version migration and spec
     // 015's embedding migration, whose erasure behavior older binaries do
-    // not implement.
+    // not implement, and the same for 016's text index, 017's graph, and 018's
+    // recall traces.
     let recorded = runtime.block_on(async {
         let store = open_store(data_dir, ports).await?;
         let rows = store.handle().recorded_migrations().await;
@@ -346,6 +347,7 @@ fn serve_crosses_only_additive_versions(data_dir: &Path, ports: Ports) -> Outcom
                 | aicortex_store::migrations::EMBEDDING_MIGRATION_VERSION
                 | aicortex_store::migrations::TEXT_INDEX_VERSION
                 | aicortex_store::migrations::GRAPH_VERSION
+                | aicortex_store::migrations::RECALL_TRACE_VERSION
         );
         assert_eq!(
             migration.additive, expected,
