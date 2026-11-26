@@ -24,7 +24,7 @@ use tokio::sync::OnceCell;
 use crate::error::ApiError;
 use crate::events::Events;
 use crate::scopes::{ApiScope, scoped};
-use crate::{capture, events, memories};
+use crate::{capture, entities, events, memories};
 
 /// Where the router is mounted (B-1, B-10).
 pub const API_PREFIX: &str = "/api/v1";
@@ -214,8 +214,8 @@ impl<S: Send + Sync> FromRequestParts<S> for Caller {
 
 /// The product router, mounted under [`API_PREFIX`] (B-1, B-4).
 ///
-/// Staged per D-3: `POST /search` arrives with 018 and the entity routes with
-/// 017, each mounted here through an `extends` edge on this file.
+/// Staged per D-3: `POST /search` arrives with 018, mounted here through an
+/// `extends` edge on this file; the entity routes arrived with 017.
 pub fn router(state: AppState) -> Router {
     router_with(Api::new(state))
 }
@@ -238,6 +238,14 @@ pub fn router_with(api: Api) -> Router {
             scoped(ApiScope::MemoryRead, k, get(memories::get_one))
                 .merge(scoped(ApiScope::MemoryWrite, k, patch(memories::patch_one)))
                 .merge(scoped(ApiScope::MemoryDelete, k, delete(memories::erase))),
+        )
+        .route(
+            "/entities",
+            scoped(ApiScope::MemoryRead, k, get(entities::list)),
+        )
+        .route(
+            "/entities/{id}/neighbors",
+            scoped(ApiScope::MemoryRead, k, get(entities::neighbors)),
         )
         .route(
             "/stats",
