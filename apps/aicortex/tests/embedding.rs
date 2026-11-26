@@ -453,10 +453,10 @@ where
 }
 
 #[test]
-fn the_cell_declares_exactly_the_embedding_check() {
+fn the_cell_declares_exactly_the_embedding_and_graph_checks() {
     let checks = Aicortex::preflight_checks();
     let names: Vec<&str> = checks.iter().map(rahi_cli::AppCheck::name).collect();
-    assert_eq!(names, vec!["embedding"]);
+    assert_eq!(names, vec!["embedding", "graph"]);
 }
 
 /// FR-005 through the check: a remote provider whose host the ceiling does

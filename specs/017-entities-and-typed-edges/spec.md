@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: in-progress
+implementation: complete
 risk: high
 wave: 1
 depends_on:
@@ -31,6 +31,10 @@ establishes:
   - "crates/aicortex-graph/tests/resolve.rs"
   - "crates/aicortex-graph/tests/edge.rs"
   - "crates/aicortex-graph/testdata/extraction/"
+  - "apps/aicortex/src/graph_preflight.rs"
+  - "apps/aicortex/src/graph_service.rs"
+  - "apps/aicortex/tests/graph.rs"
+  - "crates/aicortex-api/tests/entities.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
@@ -40,6 +44,14 @@ extends:
   - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/tests/text.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
   - { spec: "015-embedding-pipeline", unit: "crates/aicortex-embed/src/worker.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/Cargo.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/tests/cell.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "apps/aicortex/tests/embedding_process.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "apps/aicortex/tests/embedding.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/entities.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/Cargo.toml", nature: additive }
 summary: >
   Similarity alone answers "what looks like this", not "what do I know about
   this person". Entities give recall a second axis: people, projects,
@@ -207,6 +219,43 @@ language over the graph, which no consumer needs.
   preflight check and the extraction service in the cell) and the
   `GET /entities` routes of 020 D-3 follow in a second change on top of 020,
   so this spec stays `in-progress` until then.
+
+- **D-9 (2026-11-25, build).** The entity routes are mounted under
+  `memory.read` like the other reads, and a scope the caller cannot reach is
+  the same 404 as everywhere (020 D-4). Entity names come from stored text, so
+  both responses carry 019's framing statement beside them and a `derived:
+  true` marker; a walk returns memory ids and their paths and never a body,
+  which leave only through the envelopes of `/memories`. The listing cursor is
+  the last entity id, unsigned, because it only positions a read inside a
+  scope the caller already owns. `neighbors` of an id absent from the scope is
+  a 404. The wire types live in `entities.rs`, not `dto.rs`, so 020's `dto.rs`
+  is untouched; `aicortex-api` gains the dependency on `aicortex-graph`.
+- **D-10 (2026-11-25, build).** The cell runs one `extraction-worker` managed
+  service, always on, because the default extractor is local and opens no
+  socket (D-2). Each pass stages jobs for every scope (`schedule_deployment`,
+  100 memories per scope) and drains one batch; it pauses two seconds when
+  idle and five after an error, and returns `Ok` only on shutdown. The
+  `app.graph` check warns on a dead letter or an open contradiction, and on a
+  partial read, and fails only when the store cannot be read. AC-2's report is
+  the check's verdict line and its report lines, deployment totals in the
+  verdict and one line per scope.
+
+- **D-11 (2026-11-26, spec 056 build).** `serde_json` moves from this crate's
+  `[dev-dependencies]` to `[dependencies]` (the workspace entry is unchanged):
+  spec 056's entity page decodes the stored memory record of a mentioning
+  memory, exactly as `aicortex-store` does for a read. No requirement of this
+  spec changes.
+
+## Status
+
+- **2026-11-25.** `implementation: complete`. FR-001 to FR-006 and AC-1 hold
+  from the first change (D-8). AC-2 holds: `aicortex preflight` prints
+  `app.graph` with entity and edge counts per scope and the extraction
+  dead-letter count (`apps/aicortex/tests/embedding_process.rs` runs the real
+  binary; `tests/graph.rs` covers per-scope counts, the dead-letter warning,
+  and the extraction service staging, extracting, and returning on shutdown).
+  The `GET /entities` routes of 020 D-3 are mounted and tested in
+  `crates/aicortex-api/tests/entities.rs`.
 
 ## Verification
 

@@ -1,0 +1,62 @@
+{
+  "record": {
+    "amends": [
+      "001-agentic-harness"
+    ],
+    "authors": [
+      "Bartek Kus"
+    ],
+    "created": "2026-11-26",
+    "declaresAcceptance": true,
+    "dependsOn": [
+      "001-agentic-harness",
+      "063-statecraft-profile-28"
+    ],
+    "domain": "governance",
+    "extraFrontmatter": {
+      "wave": 4
+    },
+    "id": "064-statecraft-profile-29",
+    "implementation": "complete",
+    "kind": "tooling",
+    "obligations": [
+      {
+        "anchor": "3-migration-contract",
+        "id": "R-1",
+        "kind": "requirement",
+        "text": "Profile revision 29 replaces revision 28 while the exact spec-spine pin stays =0.32.0, the ordinary Rust code gate, corpus attestation and spec DAG remain required, and the derived directory stays at .statecraft/derived/."
+      }
+    ],
+    "risk": "low",
+    "sectionDigests": {
+      "064-statecraft-profile-revision-29": "eb6c8416b6f9466a591cf9973e185b1c30a11cf6d24ef2435e89915d37479396",
+      "1-purpose": "f8b5b33edead3198516e56730e6b4406b4cd3f817a8d356d293149a203b81134",
+      "2-territory": "84d77b9e465e331a314c6c56b0eb46f8354bafdd8b728dd197b74051b5ac96d2",
+      "3-migration-contract": "047652ddf6726345d244f19b0a7253c7a9e0ef2880733fc9c477e4bd8c47fa5d",
+      "4-acceptance-criteria": "f80052481ee8a0744a7247041d5c268be89be554e7bc463ebf76202940bfa809",
+      "5-out-of-scope": "e7017bcc34d1154162e020dd329017450da70f3c4b7cb0ce0e6e708cdf507b36",
+      "6-resolved-decisions": "f48cac2282dc1946b1c7e1de33da7042dac1cf2334c2f89e9093b5d66e996495",
+      "7-approval-basis": "eb0d1637b00947d951cffe502c0df68604334722663d9fe21ae61ecada5c16ea",
+      "8-implementation-record": "9fbfd40aecf2529356b79d4344ef0b227e90c1c1663ffb9c43df30e6095f9682",
+      "verification": "fbdcb55eb083710e672f2848413c3579530d5ac4b205ec7e9ae0a4089bb46328"
+    },
+    "sectionHeadings": [
+      "064: Statecraft profile revision 29",
+      "1. Purpose",
+      "2. Territory",
+      "3. Migration contract",
+      "4. Acceptance criteria",
+      "5. Out of scope",
+      "6. Resolved decisions",
+      "7. Approval basis",
+      "8. Implementation record",
+      "Verification"
+    ],
+    "specPath": "specs/064-statecraft-profile-29/spec.md",
+    "status": "approved",
+    "summary": "Authorizes the migration from Statecraft github-actions-rust revision 28 to revision 29 in one pull request. Revision 29's policy-isolation guard ignores, as new-crate, the manifest and lockfile blocks of a new workspace crate that adds no registry or git package, so a new crate lands in one pull request. The producer still links spec-spine-core 0.32.0, so the exact engine pin does not move. Aicortex keeps its ordinary Rust code gate, corpus attestation and spec DAG jobs, and every recorded setup parameter.\n",
+    "title": "Adopt Statecraft profile revision 29 with spec-spine staying at 0.32.0"
+  },
+  "shardHash": "b3f583765ee81ac9d921b01843661037524745363880c5b60f301f9cc03bfc67",
+  "specVersion": "1.11.0"
+}

@@ -12,6 +12,8 @@ mod embedding;
 pub mod embedding_fetch;
 pub mod embedding_preflight;
 pub mod embedding_service;
+pub mod graph_preflight;
+pub mod graph_service;
 
 use std::sync::OnceLock;
 
@@ -93,16 +95,20 @@ impl Cell for Aicortex {
 
     /// The embedding preflight check (spec 015 B-3, AC-2, FR-005): the
     /// configured provider against the manifest ceiling, then the active
-    /// revision, queue health, and coverage from the read-only store view.
+    /// revision, queue health, and coverage from the read-only store view;
+    /// and the graph check (spec 017 AC-2): entity and edge counts per scope
+    /// and the extraction dead-letter count.
     fn preflight_checks() -> Vec<AppCheck> {
-        vec![embedding_preflight::check()]
+        vec![embedding_preflight::check(), graph_preflight::check()]
     }
 
     /// The embedding worker and its metrics collector as managed services
-    /// (spec 015 B-2, D-25). A malformed or un-admitted provider configuration
-    /// fails the composition, so `serve` refuses to start rather than failing
-    /// at first use.
+    /// (spec 015 B-2, D-25), then the extraction worker (spec 017 B-7). A
+    /// malformed or un-admitted provider configuration fails the composition,
+    /// so `serve` refuses to start rather than failing at first use.
     fn services(state: AppState, shutdown: ServiceShutdown) -> Result<Vec<ManagedService>> {
-        embedding_service::compose(&state, &shutdown, &rahi_cli::process_env())
+        let mut services = embedding_service::compose(&state, &shutdown, &rahi_cli::process_env())?;
+        services.extend(graph_service::compose(&state, &shutdown)?);
+        Ok(services)
     }
 }
