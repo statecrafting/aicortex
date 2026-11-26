@@ -240,6 +240,12 @@ language over the graph, which no consumer needs.
   the check's verdict line and its report lines, deployment totals in the
   verdict and one line per scope.
 
+- **D-11 (2026-11-26, spec 056 build).** `serde_json` moves from this crate's
+  `[dev-dependencies]` to `[dependencies]` (the workspace entry is unchanged):
+  spec 056's entity page decodes the stored memory record of a mentioning
+  memory, exactly as `aicortex-store` does for a read. No requirement of this
+  spec changes.
+
 ## Status
 
 - **2026-11-25.** `implementation: complete`. FR-001 to FR-006 and AC-1 hold

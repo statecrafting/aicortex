@@ -241,14 +241,14 @@
     "kind": "kernel",
     "risk": "high",
     "sectionDigests": {
-      "017-entities-and-typed-edges": "5faca0aa733d411cb080a2b9c9700293fb2e9a3059747da81b38185e7229284a",
+      "017-entities-and-typed-edges": "d1c5236c3cfbda82c240920e063c2c9eaa46ef043e684446d8a88be7beb9c739",
       "1-purpose": "9544997bff705b1ab1dd1b67c738aaa08c7698b80e113bc1f2902f6893ebcd15",
       "2-territory": "10d5edb6b016c95da7d191314c3cf05e88882319d7f27f4e9b49e64fe465de9f",
       "3-behavior": "ebfa9a71c539264a83e9112017568fe6ee93dc358176439b3a81645628a805db",
       "4-functional-requirements": "1260c26cdc2fd3ddeb3d3cabbb82c9fe3939b9efc7ea06113acfbb22fe75be9b",
       "5-acceptance-criteria": "8ec1da3d6db6d23bafdf210fb260f382ee7c02dd5cfcc42047f7a6914dbdb508",
       "6-out-of-scope": "b8563666f9cb5a76c216f8922a42241440c28dbf101fbc7a0874a1b2fe8776c7",
-      "7-resolved-decisions": "9be1b2399188245579265cd2111bf8dc415905f6ecfbb273adfff2d4955bc596",
+      "7-resolved-decisions": "41198ee57fca0b5e44e6694cad343b3025db05315b5e6283563513c1aabedc34",
       "status": "4167758ffe2b7a36e6406b2f4744f7bc6c6b4dea530b1a92e8a625aa1425fde6",
       "verification": "4e1d123b7188f4626457fbabf733b0666e353519ca401e3c7da342f5293b42f9"
     },
@@ -269,6 +269,6 @@
     "summary": "Similarity alone answers \"what looks like this\", not \"what do I know about this person\". Entities give recall a second axis: people, projects, organizations, places, and artifacts, resolved to canonical records with aliases, connected by typed edges from a closed vocabulary. Every entity and every edge names the memory it was derived from and the extractor version that produced it, and a derived assertion never outranks the memory it came from. Extraction is a job on the same outbox as embedding, so it inherits the retry and dead-letter discipline rather than inventing its own.\n",
     "title": "Entities and typed edges: a closed predicate vocabulary, derived facts that never outrank their source"
   },
-  "shardHash": "e56b78a6c90e2f2f457cd15b0746b39a57b2470512d3e18fbc538d7295eb57de",
+  "shardHash": "e72876808e00014c0851fbb706c252787377aa5798ff1ca2e070edccbc7b6034",
   "specVersion": "1.11.0"
 }
