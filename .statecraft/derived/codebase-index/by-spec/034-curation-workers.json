@@ -41,11 +41,6 @@
         "code": "W-001",
         "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/testdata/curation/' does not exist",
         "path": "crates/aicortex-curate/testdata/curation/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '034-curation-workers' file unit 'crates/aicortex-curate/src/lib.rs' does not exist",
-        "path": "crates/aicortex-curate/src/lib.rs"
       }
     ]
   },
@@ -54,6 +49,10 @@
       "033-observatory-and-agent-ingestion"
     ],
     "implementingPaths": [
+      {
+        "path": "crates/aicortex-curate/src/lib.rs",
+        "source": "spec-edge"
+      },
       {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
@@ -133,7 +132,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-curate/src/lib.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

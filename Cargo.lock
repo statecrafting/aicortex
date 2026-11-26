@@ -199,6 +199,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "aicortex-curate"
+version = "0.1.0"
+dependencies = [
+ "aicortex-store",
+ "aicortex-types",
+ "rahi-ledger",
+ "rahi-store",
+ "rahi-types",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "aicortex-embed"
 version = "0.1.0"
 dependencies = [

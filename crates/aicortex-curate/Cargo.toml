@@ -1,0 +1,35 @@
+[package]
+name = "aicortex-curate"
+version = "0.1.0"
+description = "The review queue and promotion for Aicortex: where a person decides what a client may act on"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "023-review-and-promotion"
+
+# The territory (spec 023 section 2): the record of 011, the store's
+# repositories and review tables, and rahi's ledger for the Decision every
+# resolution appends. Nothing here opens a socket or a runtime; the HTTP
+# routes live in aicortex-api, which depends on this crate and not the other
+# way round (023 D-1).
+[dependencies]
+aicortex-store = { workspace = true }
+aicortex-types = { workspace = true }
+rahi-ledger = { workspace = true }
+rahi-store = { workspace = true }
+rahi-types = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true
