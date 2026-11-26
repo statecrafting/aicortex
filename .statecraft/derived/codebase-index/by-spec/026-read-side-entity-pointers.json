@@ -4,21 +4,6 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/src/pointer.rs' does not exist",
-        "path": "crates/aicortex-graph/src/pointer.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/tests/pointer.rs' does not exist",
-        "path": "crates/aicortex-graph/tests/pointer.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/testdata/pointers/' does not exist",
-        "path": "crates/aicortex-graph/testdata/pointers/"
-      },
-      {
-        "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/pointers.rs' does not exist",
         "path": "crates/aicortex-api/src/pointers.rs"
       },
@@ -72,6 +57,18 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-graph/src/pointer.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-graph/testdata/pointers/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-graph/tests/pointer.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-mcp/src/tools.rs",
         "source": "spec-edge"
       },
@@ -104,7 +101,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/src/pointer.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -113,7 +114,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/testdata/pointers/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -122,7 +127,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/tests/pointer.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -304,5 +313,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "85d26f3c8de28490b25f6a210b9d88d37abba24842501f8f12a2aab2bc3524b6"
+  "shardHash": "efcf2c2a4437ac6a0b23b053b06cfdf53fae2119ffb6194c54319f0374424a58"
 }
