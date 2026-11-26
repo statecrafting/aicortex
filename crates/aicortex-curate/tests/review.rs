@@ -686,6 +686,19 @@ async fn an_approval_of_an_item_closed_meanwhile_promotes_nothing() {
         .unwrap();
     assert_eq!(item.state, ReviewState::Resolved);
     assert_eq!(item.resolution.as_deref(), Some("decline"));
+    // An item id the scope does not hold promotes nothing either.
+    let unknown = Promoter::new(&handle, &node.ledger)
+        .promote_for_item(
+            &scope,
+            memory,
+            &person("alice"),
+            None,
+            at(7),
+            "no-such-item",
+        )
+        .await;
+    assert!(unknown.is_err(), "{unknown:?}");
+    assert!(!read(&node, &scope, memory).await.trust.is_actionable());
     node.ledger.verify().await.unwrap();
     node.shutdown().await;
 }
