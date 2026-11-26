@@ -23,7 +23,7 @@ pub use delivery::{
 };
 pub use envelope::{
     CUT_MARKER, EnvelopeInput, EvidenceInput, FRAMING_STATEMENT, FRAMING_VERSION, FramedMemories,
-    frame_evidence, frame_memories,
+    LiteralEnvelope, LiteralInput, frame_evidence, frame_literal, frame_memories,
 };
 pub use filter::{Extra, Filter};
 pub use freshness::{EntityFreshness, Freshness, SourceFreshness};

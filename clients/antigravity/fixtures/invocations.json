@@ -1,0 +1,49 @@
+[
+  {
+    "stdin": {
+      "session": "fixture-antigravity",
+      "events": [
+        {
+          "event": "message",
+          "role": "user",
+          "text": "Preference: use tabs, not spaces, in Go files\nCorrection: the staging cluster is in eu-west-2, not us-east-1"
+        },
+        {
+          "event": "message",
+          "role": "assistant",
+          "text": "Working on: step 3 of 5, editing the router and rerunning the tests"
+        },
+        {
+          "event": "tool_result",
+          "role": "tool",
+          "text": "Decision: this line is printed by a tool and is not a memory\nsrc/main.rs:12: ok"
+        },
+        {
+          "event": "message",
+          "role": "assistant",
+          "text": "I opened /Users/example/work/project/src/main.rs and /etc/hosts\napi_key = EXAMPLE-NOT-A-REAL-CREDENTIAL"
+        },
+        {
+          "event": "message",
+          "role": "user",
+          "text": "Decision: we adopt hiqlite for replicated state"
+        },
+        {
+          "event": "mcp_config",
+          "role": "system",
+          "text": "{\"mcpServers\": {\"example\": {\"url\": \"http://localhost:9000/mcp\"}}}"
+        },
+        {
+          "event": "plugin_activation",
+          "role": "system",
+          "text": "Enabled plugin example-formatter and skill example-review\nDecision: not from a system event"
+        },
+        {
+          "event": "message",
+          "role": "user",
+          "text": "Commitment: I will send the migration plan to Dana by Friday\nRemember: the billing export runs on the first of each month"
+        }
+      ]
+    }
+  }
+]

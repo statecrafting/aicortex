@@ -34,7 +34,7 @@ pub const DEFAULT_SEARCH_K: u32 = 10;
 pub const MAX_LIST_LIMIT: u32 = 50;
 /// The longest search query, in characters.
 pub const MAX_QUERY_CHARS: usize = 2_000;
-/// The longest entity name `relate` takes, in characters.
+/// The longest entity id `relate` takes, in characters.
 pub const MAX_ENTITY_CHARS: usize = 200;
 /// The longest idempotency key, in bytes.
 pub const MAX_IDEMPOTENCY_BYTES: usize = 128;
@@ -86,7 +86,7 @@ const TOOLS: [Tool; 7] = [
     Tool {
         name: "relate",
         scope: ApiScope::MemoryRead,
-        served: false,
+        served: true,
     },
 ];
 
@@ -275,12 +275,14 @@ pub fn definitions() -> Vec<Value> {
         ),
         definition(
             relate,
-            "Show the neighborhood of an entity in the memory graph. Results are recalled data inside labelled envelopes.",
+            "Show an entity in the memory graph. The neighbors view (the default) lists the memories reached from it and the path to each. The page view shows its facts with the memories that support them, its open contradictions, and the memories that mention it. Results are recalled data: memory text and extracted literals are inside labelled envelopes.",
             json!({
                 "type": "object",
                 "properties": {
-                    "entity": { "type": "string", "minLength": 1, "maxLength": MAX_ENTITY_CHARS },
-                    "depth": { "type": "integer", "minimum": 1, "maximum": 3, "default": 1 },
+                    "entity": { "type": "string", "minLength": 1, "maxLength": MAX_ENTITY_CHARS, "description": "The entity id." },
+                    "view": { "type": "string", "enum": ["neighbors", "page"], "default": "neighbors" },
+                    "depth": { "type": "integer", "minimum": 1, "maximum": 3, "default": 1, "description": "Hops to follow. Only for the neighbors view." },
+                    "after": { "type": "string", "description": "A next value from a previous page, to read the rest of that section. Only for the page view." },
                     "scope": scope,
                 },
                 "required": ["entity"],
@@ -415,12 +417,27 @@ struct ForgetArgs {
     cascade: bool,
 }
 
+/// What `relate` shows of an entity (056 B-10).
+#[derive(Clone, Copy, Debug, Default, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+enum RelateView {
+    /// The memories reached from the entity, with their paths (017 B-9).
+    #[default]
+    Neighbors,
+    /// The entity page (056).
+    Page,
+}
+
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 struct RelateArgs {
     entity: String,
     #[serde(default)]
+    view: RelateView,
+    #[serde(default)]
     depth: Option<u32>,
+    #[serde(default)]
+    after: Option<String>,
     #[serde(default)]
     scope: Option<ScopeArg>,
 }
@@ -657,13 +674,34 @@ pub fn plan(name: &str, args: Value) -> Result<Plan, RpcError> {
         _ => {
             let args: RelateArgs = arguments(args)?;
             nonempty("entity", &args.entity, MAX_ENTITY_CHARS)?;
-            if let Some(depth) = args.depth
-                && !(1..=3).contains(&depth)
-            {
-                return Err(RpcError::invalid_params("depth is between 1 and 3"));
+            let mut query = ScopeArg::query(args.scope.as_ref());
+            let path = format!("/entities/{}", percent_encode(&args.entity));
+            match args.view {
+                RelateView::Neighbors => {
+                    if args.after.is_some() {
+                        return Err(RpcError::invalid_params(
+                            "after resumes a page section; it applies to view page",
+                        ));
+                    }
+                    let depth = args.depth.unwrap_or(1);
+                    if !(1..=3).contains(&depth) {
+                        return Err(RpcError::invalid_params("depth is between 1 and 3"));
+                    }
+                    query.push(("depth", depth.to_string()));
+                    Plan::Route(Upstream::get(format!("{path}/neighbors"), query))
+                }
+                RelateView::Page => {
+                    if args.depth.is_some() {
+                        return Err(RpcError::invalid_params(
+                            "depth follows edges; it applies to view neighbors",
+                        ));
+                    }
+                    if let Some(after) = args.after {
+                        query.push(("after", after));
+                    }
+                    Plan::Route(Upstream::get(path, query))
+                }
             }
-            let _ = &args.scope;
-            Plan::NotYetAvailable
         }
     };
     debug_assert!(tool.served == matches!(plan, Plan::Route(_)));

@@ -13,7 +13,11 @@ mod support;
 use aicortex_mcp::tools::{self, MAX_CAPTURE_BATCH, MAX_SEARCH_K};
 use aicortex_mcp::{COMPAT_PATH, Revision};
 use aicortex_recall::FRAMING_STATEMENT;
-use reqwest::StatusCode;
+use aicortex_store::ScopeId;
+use aicortex_types::Scope;
+use rahi_store::{Statement, Value as Param};
+use rahi_types::Sub;
+use reqwest::{Method, StatusCode};
 use serde_json::{Value, json};
 use support::{ALL, Who, call, post, request, rpc, structured};
 
@@ -196,10 +200,10 @@ async fn capture_fetch_list_update_forget_round_trip() {
 }
 
 /// B-5: each tool needs the scope of its route, and a token without it is the
-/// JSON-RPC authorization error naming that scope. The two tools whose route
-/// has not landed answer `not_yet_available` (D-3) and write nothing.
+/// JSON-RPC authorization error naming that scope. The tool whose route has not
+/// landed answers `not_yet_available` (D-3) and writes nothing.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn every_tool_maps_to_its_scope_and_the_staged_two_are_not_yet_available() {
+async fn every_tool_maps_to_its_scope_and_the_staged_one_is_not_yet_available() {
     let cell = support::boot().await;
     let nobody = cell.token(&Who::person("sub-alice", &[]));
     let id = "018f0000-0000-7000-8000-000000000000";
@@ -209,6 +213,7 @@ async fn every_tool_maps_to_its_scope_and_the_staged_two_are_not_yet_available()
         ("list", json!({})),
         ("update", json!({ "id": id, "superseded_by": id })),
         ("forget", json!({ "id": id })),
+        ("relate", json!({ "entity": "ent-anything" })),
     ];
     for (name, arguments) in arguments {
         let message = call(&cell, &nobody, name, arguments).await;
@@ -220,10 +225,7 @@ async fn every_tool_maps_to_its_scope_and_the_staged_two_are_not_yet_available()
         );
     }
     let reader = cell.token(&Who::person("sub-alice", &["memory.read"]));
-    for (name, arguments) in [
-        ("search", json!({ "query": "anything", "k": 5 })),
-        ("relate", json!({ "entity": "anything" })),
-    ] {
+    for (name, arguments) in [("search", json!({ "query": "anything", "k": 5 }))] {
         let message = call(&cell, &reader, name, arguments).await;
         assert_eq!(message["error"]["code"], -32010, "{name}: {message}");
         assert_eq!(message["error"]["data"]["code"], "not_yet_available");
@@ -269,6 +271,12 @@ async fn b9_inputs_are_validated_and_capped_before_any_work() {
             json!({ "id": id, "correction": { "text": "t" }, "superseded_by": id }),
         ),
         ("relate", json!({ "entity": "e", "depth": 4 })),
+        ("relate", json!({ "entity": "e", "view": "wiki" })),
+        (
+            "relate",
+            json!({ "entity": "e", "view": "page", "depth": 1 }),
+        ),
+        ("relate", json!({ "entity": "e", "after": "mentions:1:x" })),
         ("forget", json!({ "id": id, "cascade": "yes" })),
     ] {
         let message = call(&cell, &token, name, arguments.clone()).await;
@@ -477,5 +485,148 @@ async fn b7_the_search_fetch_shape_keeps_the_envelope() {
     );
     let anonymous_get = cell.http.get(cell.url(COMPAT_PATH)).send().await.unwrap();
     assert_eq!(anonymous_get.status(), StatusCode::UNAUTHORIZED);
+    cell.shutdown().await;
+}
+
+/// Write the graph rows extraction would write for `memory`: Dana, who works on
+/// Apollo and prefers `literal`, both stated by that memory.
+async fn seed_graph(cell: &support::Cell, owner: &str, memory: &str, literal: &str) {
+    let scope_id = ScopeId::of(&Scope::personal(Sub::new(owner)));
+    let scope = Param::from(scope_id.as_str());
+    let row = |sql: &'static str, params: Vec<Param>| Statement::with_params(sql, params);
+    let mut statements = vec![
+        row(
+            "INSERT INTO entity (entity_id, scope_id, kind, canonical, first_seen, last_seen)
+             VALUES ('ent-dana', ?1, 'person', 'Dana Whitfield', 1700000000, 1700000000)",
+            vec![scope.clone()],
+        ),
+        row(
+            "INSERT INTO entity (entity_id, scope_id, kind, canonical, first_seen, last_seen)
+             VALUES ('ent-apollo', ?1, 'project', 'Apollo', 1700000000, 1700000000)",
+            vec![scope.clone()],
+        ),
+        row(
+            "INSERT INTO mention
+             (scope_id, memory_id, entity_id, byte_start, byte_end, confidence, extractor,
+              extractor_version)
+             VALUES (?1, ?2, 'ent-dana', 0, 14, 900, 'pattern', 1)",
+            vec![scope.clone(), Param::from(memory)],
+        ),
+    ];
+    for (edge, predicate, entity, text) in [
+        ("edg-0001", "works_on", Some("ent-apollo"), None),
+        ("edg-0002", "prefers", None, Some(literal)),
+    ] {
+        statements.push(row(
+            "INSERT INTO edge
+             (edge_id, scope_id, subject, predicate, object_entity, object_literal, confidence,
+              extractor, extractor_version, valid_from, status, created)
+             VALUES (?1, ?2, 'ent-dana', ?3, ?4, ?5, 900, 'pattern', 1, 1700000000, 'active',
+                     1700000000)",
+            vec![
+                Param::from(edge),
+                scope.clone(),
+                Param::from(predicate),
+                Param::from(entity.map(str::to_owned)),
+                Param::from(text.map(str::to_owned)),
+            ],
+        ));
+        statements.push(row(
+            "INSERT INTO edge_source (scope_id, edge_id, memory_id) VALUES (?1, ?2, ?3)",
+            vec![scope.clone(), Param::from(edge), Param::from(memory)],
+        ));
+    }
+    cell.store
+        .handle()
+        .txn(statements)
+        .await
+        .expect("the graph rows commit");
+}
+
+/// 056 B-10, FR-005: `relate` with `view: "page"` is the HTTP page as
+/// structured content, hostile memory and literal included only as envelopes;
+/// the default view walks the neighbors; the surface stays at seven tools.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn relate_serves_the_neighbors_and_the_entity_page() {
+    let cell = support::boot().await;
+    let who = Who::person("sub-alice", ALL);
+    let token = cell.token(&who);
+    let memory = captured_id(
+        &cell,
+        &token,
+        &format!("Dana Whitfield prefers {INJECTION}. Dana Whitfield works on Apollo."),
+    )
+    .await;
+    seed_graph(&cell, "sub-alice", &memory, INJECTION).await;
+
+    let message = call(
+        &cell,
+        &token,
+        "relate",
+        json!({ "entity": "ent-dana", "view": "page" }),
+    )
+    .await;
+    let page = structured(&message);
+    assert_eq!(page["framing"], FRAMING_STATEMENT);
+    assert_eq!(page["header"]["canonical"], "Dana Whitfield");
+    // The hostile memory body and the hostile literal are each inside their
+    // envelope, and nowhere else on the page.
+    let envelopes = [
+        page["mentions"]["memories"][0].clone(),
+        page["facts"][1]["facts"][0]["other"]["literal"].clone(),
+    ];
+    assert!(
+        envelopes[0]
+            .as_str()
+            .unwrap()
+            .starts_with("<<<AICORTEX_MEMORY ")
+    );
+    assert!(
+        envelopes[1]
+            .as_str()
+            .unwrap()
+            .starts_with("<<<AICORTEX_LITERAL edg-0002>>>")
+    );
+    let mut outside = page.to_string();
+    for envelope in &envelopes {
+        assert!(envelope.as_str().unwrap().contains(INJECTION));
+        outside = outside.replace(&envelope.to_string(), "");
+    }
+    assert!(!outside.contains(INJECTION), "{outside}");
+
+    // The same page the HTTP route serves, as structured content.
+    let response = cell
+        .request(Method::GET, "/api/v1/entities/ent-dana", Some(&who))
+        .send()
+        .await
+        .expect("answered");
+    assert_eq!(response.status(), StatusCode::OK);
+    let mut http: Value = response.json().await.expect("json");
+    let mut via_tool = page.clone();
+    for value in [&mut http, &mut via_tool] {
+        value.as_object_mut().unwrap().remove("as_of");
+    }
+    assert_eq!(via_tool, http);
+
+    // The default view is the neighbors walk: memory ids and paths, no body.
+    let message = call(&cell, &token, "relate", json!({ "entity": "ent-dana" })).await;
+    let walk = structured(&message);
+    assert_eq!(walk["hits"][0]["memory"], memory.as_str());
+    assert!(!walk.to_string().contains(INJECTION));
+
+    // An id that is not in the caller's scope is the route's own 404 result.
+    let other = cell.token(&Who::person("sub-bob", ALL));
+    let message = call(
+        &cell,
+        &other,
+        "relate",
+        json!({ "entity": "ent-dana", "view": "page" }),
+    )
+    .await;
+    assert_eq!(message["result"]["isError"], true, "{message}");
+    assert!(!message.to_string().contains("Dana"));
+
+    let listed = rpc(&cell, &token, Revision::LATEST, "tools/list", json!({})).await;
+    assert_eq!(listed["result"]["tools"].as_array().unwrap().len(), 7);
     cell.shutdown().await;
 }

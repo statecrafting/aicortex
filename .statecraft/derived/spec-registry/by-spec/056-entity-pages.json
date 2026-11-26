@@ -23,6 +23,10 @@
       {
         "kind": "file",
         "path": "crates/aicortex-graph/testdata/pages/"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/tests/literal.rs"
       }
     ],
     "extends": [
@@ -32,6 +36,22 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-graph/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "019-untrusted-content-boundary",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/envelope.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "019-untrusted-content-boundary",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-recall/src/lib.rs"
         }
       },
       {
@@ -48,6 +68,14 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/router.rs"
         }
       },
       {
@@ -79,7 +107,7 @@
       "wave": 5
     },
     "id": "056-entity-pages",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "feature",
     "obligations": [
       {
@@ -132,7 +160,7 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "056-entity-pages": "9c0890d235f7e29ba42d1d86fafe3987d3e7470b402592a5f388d7075623dcd1",
+      "056-entity-pages": "5866e9f5a3048ac2ffa5a13984d534b53ed70790f2eabe772fbffb24fe5c285a",
       "1-purpose": "3a3865cf1de82bcd605852e78ea5f91d44a697776a9a7660f9daba1dc3e87afe",
       "2-territory": "8e5d5cf88a7b6e2949565c25f314951735000864cc4aecfb46285cb8a0df29c8",
       "3-1-a-projection-not-a-document": "67780b817b7ad0a071dc9d5a901dd7cf0a82ae9f8f5c9b2800027c8b8ee47b96",
@@ -143,7 +171,7 @@
       "4-functional-requirements": "0793d7113803b2a48af9f7bc70c16eb714785fb3a28deefa3f3c2d8ef18651ab",
       "5-acceptance-criteria": "98f95e2c04cfac2dc1342d9efb86d9768a83adb89a6eb5540e3d6a932c151511",
       "6-out-of-scope": "4a816e75414e95981ada4dbc0d6400412bd0893cb2fe297d124a09cc12d83dd0",
-      "7-resolved-decisions": "f79265cb687c3b0d6a0ef61cb79b86dc734ca8d33e898327feaaa70824c9c94d",
+      "7-resolved-decisions": "c3863e5d3cc9b4a89b89cf251adfac7d0d11887789675fabb4d1547eb3bac2a4",
       "verification": "14fbdc02d8a70dc0f5a9ca759d92892251e3464645d63042d51ad76faf9a20aa"
     },
     "sectionHeadings": [
@@ -166,6 +194,6 @@
     "summary": "The predecessor's users built entity wikis by hand on top of a flat table (openbrain://valued-capabilities). Spec 017 supplies the entities, aliases, typed edges, and mentions, and a bounded neighbor walk, but no single view of what the store holds about one entity. This spec adds that view as a pure, bounded projection computed on read: header, facts grouped by predicate with their source memories, open contradictions shown side by side, and recent mentions in 019 envelopes. It generates no prose, stores no page, and so needs no erasure path of its own.\n",
     "title": "Entity pages: one cited, computed view of what the store holds about an entity, with no generated prose"
   },
-  "shardHash": "6ff73759b2ded59290730a273adab3854acb08676c92f654cc134aa63506b124",
+  "shardHash": "b4302f4d872bc1b1c656ede714a9bc3f645cb4ae9541577210593773a1598726",
   "specVersion": "1.11.0"
 }

@@ -26,21 +26,6 @@
         "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/tests/pointers.rs' does not exist",
         "path": "crates/aicortex-api/tests/pointers.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/matrix.toml' does not exist",
-        "path": "clients/matrix.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'clients/README.md' does not exist",
-        "path": "clients/README.md"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/tests/clients.rs' does not exist",
-        "path": "crates/aicortex-api/tests/clients.rs"
       }
     ]
   },
@@ -55,11 +40,23 @@
     ],
     "implementingPaths": [
       {
+        "path": "clients/README.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "clients/matrix.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api/src/dto.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-api/src/search.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/clients.rs",
         "source": "spec-edge"
       },
       {
@@ -126,7 +123,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "clients/README.md"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -135,7 +136,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "clients/matrix.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
@@ -170,7 +175,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/clients.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

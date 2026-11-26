@@ -1,0 +1,19 @@
+# 1. Connect (one URL, then the browser sign-in; no key is pasted anywhere)
+claude mcp add --transport http aicortex {{mcp_url}}
+# then run /mcp inside Claude Code and choose "aicortex" to sign in
+
+# 2. Optional automatic capture: add to ~/.claude/settings.json
+{
+  "hooks": {
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "AICORTEX_URL={{public_url}} node ~/.aicortex/clients/claude-code/hook.mjs"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,58 @@
+# The client capability matrix (spec 022 B-1). The one place clients differ.
+#
+# Every field is what the vendor documents, not something observed here, until
+# a row says `verified = true`. A verified row names the minimum version it was
+# verified at, the date, and the fixture set that backs it (FR-002). An
+# unverified row says `verified = false` and carries a `note` saying why; it
+# does not imply the client works. `capture_scopes` never includes
+# `memory.promote` (B-6).
+#
+# Adding a client is a row here, a directory beside this file with a README, a
+# snippet.txt, a hook, and fixtures/invocations.json (B-7).
+#
+# The format is the subset of TOML that crates/aicortex-api/src/clients.rs
+# reads: `[client.<name>]` tables of strings, booleans, and string lists.
+
+[client.claude-code]
+transport = ["streamable-http"]
+oauth = true
+dynamic_registration = true
+compat_pair = false
+capture = "SessionEnd hook, reads the session transcript"
+capture_scopes = ["memory.read", "memory.write"]
+verified = false
+fixtures = "claude-code/fixtures"
+note = "Hook payload shapes follow the vendor's documentation and are authored fixtures, not recordings. The OAuth sign-in path is not yet observed end to end: spec 021 AC-2 waits on rahi specs 051 and 052."
+
+[client.codex]
+transport = ["streamable-http"]
+oauth = true
+dynamic_registration = true
+compat_pair = false
+capture = "notify program, one JSON argument per completed turn"
+capture_scopes = ["memory.read", "memory.write"]
+verified = false
+fixtures = "codex/fixtures"
+note = "The notification shape follows the vendor's documentation and is an authored fixture. The OAuth sign-in path is not yet observed end to end (spec 021 AC-2)."
+
+[client.cursor]
+transport = ["streamable-http"]
+oauth = true
+dynamic_registration = true
+compat_pair = false
+capture = "agent hooks beforeSubmitPrompt and afterAgentResponse"
+capture_scopes = ["memory.read", "memory.write"]
+verified = false
+fixtures = "cursor/fixtures"
+note = "Hook payload shapes follow the vendor's documentation and are authored fixtures. The OAuth sign-in path is not yet observed end to end (spec 021 AC-2)."
+
+[client.antigravity]
+transport = ["streamable-http"]
+oauth = true
+dynamic_registration = true
+compat_pair = false
+capture = "none verified; the handler reads a neutral event list on stdin"
+capture_scopes = ["memory.read", "memory.write"]
+verified = false
+fixtures = "antigravity/fixtures"
+note = "Neither the MCP configuration key nor a hook surface has been checked against a release. The snippet and handler are a starting point, not a claim."

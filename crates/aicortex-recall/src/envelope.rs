@@ -188,10 +188,7 @@ fn envelope(
             media: &memory.body.media,
         },
     })?;
-    let escaped = record
-        .replace('&', "\\u0026")
-        .replace('<', "\\u003c")
-        .replace('>', "\\u003e");
+    let escaped = escape(&record);
     Ok(MemoryEnvelope {
         text: format!(
             "<<<AICORTEX_MEMORY {}>>>\n{}\n<<<END_AICORTEX_MEMORY {}>>>",
@@ -257,4 +254,105 @@ pub fn frame_evidence<'a>(
         })
         .collect::<Result<Vec<_>, serde_json::Error>>()?;
     Ok(FramedMemories { memories })
+}
+
+/// Keep stored text from forging a delimiter: `&`, `<`, and `>` in a JSON
+/// record become JSON Unicode escapes, which decode back to the original.
+fn escape(record: &str) -> String {
+    record
+        .replace('&', "\\u0026")
+        .replace('<', "\\u003c")
+        .replace('>', "\\u003e")
+}
+
+/// A literal the graph extracted from memory text, and where it came from
+/// (019 B-6; spec 056 B-7).
+///
+/// The caller supplies what it already holds: the id of the edge that states
+/// the literal, the literal itself, the strongest trust class label among the
+/// memories it was derived from, and those memories. This function does not
+/// authorize access, read storage, or promote anything.
+pub struct LiteralInput<'a> {
+    id: &'a str,
+    text: &'a str,
+    trust_class: &'static str,
+    derived_from: &'a [MemoryId],
+}
+
+impl<'a> LiteralInput<'a> {
+    /// Pair a literal with its origin.
+    #[must_use]
+    pub const fn new(
+        id: &'a str,
+        text: &'a str,
+        trust_class: &'static str,
+        derived_from: &'a [MemoryId],
+    ) -> Self {
+        Self {
+            id,
+            text,
+            trust_class,
+            derived_from,
+        }
+    }
+}
+
+/// A delimited literal, constructed only by [`frame_literal`].
+///
+/// Like a memory envelope it has no raw-text accessor, deserializer, or public
+/// constructor, and it serializes as its delimited text alone. It carries no
+/// framing sentence of its own: the response that holds it states the
+/// versioned framing statement once, ahead of every envelope in it (019 B-2).
+///
+/// ```compile_fail
+/// use aicortex_recall::LiteralEnvelope;
+/// let literal = LiteralEnvelope { text: String::new() };
+/// ```
+pub struct LiteralEnvelope {
+    text: String,
+}
+
+impl Serialize for LiteralEnvelope {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(&self.text)
+    }
+}
+
+#[derive(serde::Serialize)]
+struct LiteralData<'a> {
+    id: &'a str,
+    kind: &'static str,
+    trust_class: &'static str,
+    derived_from: &'a [MemoryId],
+    value: &'a str,
+}
+
+/// Envelope one extracted literal.
+///
+/// The shape is a memory envelope's: an id-bearing opening line, one JSON
+/// record, an id-bearing closing line, and `&`, `<`, `>` escaped inside the
+/// record so the stored text cannot create either delimiter. The record names
+/// its origin (`derived_from`) and the strongest trust class among the
+/// sources, and marks itself `extracted_literal` so a reader knows the value
+/// is a span a derivation proposed and never a statement of record. Nothing is
+/// detected, sanitized, promoted, or rewritten.
+///
+/// # Errors
+///
+/// Returns the JSON serialization error if the record cannot be encoded.
+pub fn frame_literal(input: LiteralInput<'_>) -> Result<LiteralEnvelope, serde_json::Error> {
+    let record = serde_json::to_string(&LiteralData {
+        id: input.id,
+        kind: "extracted_literal",
+        trust_class: input.trust_class,
+        derived_from: input.derived_from,
+        value: input.text,
+    })?;
+    Ok(LiteralEnvelope {
+        text: format!(
+            "<<<AICORTEX_LITERAL {id}>>>\n{}\n<<<END_AICORTEX_LITERAL {id}>>>",
+            escape(&record),
+            id = input.id
+        ),
+    })
 }
