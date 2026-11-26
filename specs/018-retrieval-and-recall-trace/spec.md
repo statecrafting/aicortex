@@ -6,7 +6,7 @@ kind: "kernel"
 domain: "retrieval"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: critical
 wave: 1
 depends_on:
@@ -198,6 +198,16 @@ expansion, likewise.
 
 - **D-4 (2026-10-30, owner approval).** The owner reviewed the D-3
   amendment and approved this spec; it returns to `status: approved`.
+
+- **D-5 (2026-11-26, build).** Dependency edges of `aicortex-recall`,
+  landed in their own commit apart from the code: `aicortex-index` (vector
+  and text channels, 016), `aicortex-embed` (the query embedder and the
+  active model revision, 015), `aicortex-graph` (entity walk, 017),
+  `aicortex-store` (scope ids, the read seam), `rahi-store` (the store
+  handle), `ring` (the SHA-256 `query_hash`), and `tokio` (`join!` runs the
+  channels concurrently; no runtime is started here). All are existing
+  workspace entries; `tempfile` joins as a dev-dependency. Every edge points
+  downward.
 
 ## Verification
 

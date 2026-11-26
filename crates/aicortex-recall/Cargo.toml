@@ -13,10 +13,20 @@ publish = false
 spec = "019-untrusted-content-boundary"
 
 [dependencies]
+aicortex-embed = { workspace = true }
+aicortex-graph = { workspace = true }
+aicortex-index = { workspace = true }
+aicortex-store = { workspace = true }
 aicortex-types = { workspace = true }
+rahi-store = { workspace = true }
 rahi-types = { workspace = true }
+ring = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+tokio = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
 
 [lints]
 workspace = true
