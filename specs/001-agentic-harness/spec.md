@@ -667,3 +667,13 @@ profile newly renders `.statecraft/REVIEW.md` inside the `.statecraft/` claim
 above. Ordinary Rust code, corpus attestation and spec DAG keep their
 acceptance. Spec 063 records the renderer, producer and reviewed plan
 identities.
+
+## Revision 29 implementation record (2026-11-26)
+
+The scoped migration approved in spec 064 regenerates this spec's managed
+authority files with the revision 29 producer in one pull request. The exact
+engine pin stays 0.32.0, which revision 29's producer still links. The
+policy-isolation guard newly ignores a new workspace crate that adds no
+registry or git package. Ordinary Rust code, corpus attestation and spec DAG
+keep their acceptance. Spec 064 records the renderer, producer and reviewed
+plan identities, and the two workflow pins kept newer than the render (D-1).
