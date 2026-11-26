@@ -6,7 +6,7 @@ kind: "feature"
 domain: "memory"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: high
 wave: 2
 depends_on:
@@ -15,9 +15,16 @@ establishes:
   - "crates/aicortex-store/src/audit.rs"
   - "crates/aicortex-store/src/decision_ref.rs"
   - "crates/aicortex-store/tests/audit.rs"
+  - "crates/aicortex-curate/tests/history.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/capture.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/memories.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
+  - { spec: "023-review-and-promotion", unit: "crates/aicortex-curate/src/review.rs", nature: additive }
+  - { spec: "023-review-and-promotion", unit: "crates/aicortex-curate/src/promotion.rs", nature: additive }
 constrains:
   - { flavor: invariant-freeze, unit: "crates/aicortex-store/src/decision_ref.rs", note: "one chain per deployment; this product appends, never chains" }
 summary: >
@@ -116,6 +123,60 @@ to the sibling product.
   without bound, is sealed and archived, and is not indexed by application
   concerns; an index in the application store keeps the audit view cheap
   while leaving the chain authoritative.
+- **D-2 (2026-11-26, build, migration 15).** The `decision_ref` table is
+  migration 15, the next free version after 023's review tables (14), and is
+  additive: an older binary never reads it. `EXPECTED_SCHEMA_VERSION` follows
+  it. The table is keyed `(scope_id, memory_id, decision_id)` and its `kind`
+  column is a closed set (`quarantine`, `review_admit`, `review_decline`,
+  `review_acknowledge`, `promote`, `demote`, `lapse`, `erase`), which is what
+  the history names an event by. A replay of the same Decision against the
+  same memory is the same row.
+- **D-3 (2026-11-26, build, the closed reason-code set).** B-2's enum is
+  `ReasonCode` in `decision_ref.rs`: the gate's seven codes, the erasure
+  codes (`subject_request`, `user_request`, `retention_policy`,
+  `legal_hold_lift`, `review_reject`), the review and promotion codes, and
+  `act_not_committed` for the refusing Decision that follows an act that did
+  not commit. `append_decision` validates before it appends, and every
+  emission site of the gate, the review queue and promotion calls it. Erasure
+  validates the Decision it builds, in both its memory and scope forms, before
+  it stages anything, so an `Authority::because` code outside the set makes the
+  erasure refuse. A payload names a `scope`, a `reason_code`, no key that
+  names content at any depth, and an optional `justification` of at most 280
+  bytes. The reviewer's `reason` text on a review Decision predates this spec
+  and is bounded by 023's own limit; it is not renamed here.
+- **D-4 (2026-11-26, build, references commit with the act).** A reference is
+  staged into the transaction that carries the act it records: the gate's
+  quarantine with the memory row, review admit, decline and acknowledge with
+  the item's close, promotion, demotion and lapse with the memory update, and
+  erasure with the tombstone and the receipt. The gate's Decision id is
+  derived from the candidate, so the reference is known before the Decision is
+  appended; a failed append after the commit leaves an index row for a Decision
+  the chain does not hold, which the chain, as the authority, resolves. Review
+  decline and acknowledge now append the refusing Decision on a failed commit,
+  as admit already did. A scope erasure writes no per-memory references,
+  because its Decision names the scope.
+- **D-5 (2026-11-26, build, what an erased history keeps).** B-5 keeps the
+  tombstone and the references. Erasure also removes the memory's source log
+  and derivation rows (014 B-7), so an erased memory's history lists its
+  creation, the Decisions that referenced it, and the erasure, and no longer
+  its merges or the memory it corrected. The history is one bounded statement
+  over the memory row, the source log, the derivation rows and
+  `decision_ref`, capped at 500 events with a `truncated` flag, and it reports
+  how many statements it issued (FR-004).
+- **D-6 (2026-11-26, build, where the route and its proof live).**
+  `GET /memories/{id}/history` is in `aicortex-api`'s memory routes under
+  `memory.read`, with the same scope resolution as `GET /memories/{id}`. AC-2
+  needs promotion, which is 023's and sits above the API, so its test is
+  `aicortex-curate/tests/history.rs`, which also runs the gate refusal, the
+  review, promotion and erasure paths through FR-002 and FR-005. The gate's
+  quarantine path is not reachable through the API (a capture's origin is
+  always authenticated there), so its reference is staged by the same code
+  but not exercised end to end.
+- **D-7 (2026-11-26, build, B-7 is not delivered here).** B-7 asks that the
+  request path never await a ledger append and that failures be retried.
+  This build keeps each path's existing order (the gate and erasure append
+  after the act commits; review and promotion append before it and refuse on
+  failure) and adds no retry for Decisions. B-7 therefore remains open.
 
 ## Verification
 

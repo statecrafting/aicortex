@@ -19,8 +19,9 @@ use std::fmt;
 use std::str::FromStr;
 
 use aicortex_store::{
-    Authority, Counters, EMBEDDING_NAMESPACE, EmbeddingTarget, Eraser, Erasure, MemoryRepo,
-    ScopeId, embedding_processor, stage_active_embedding,
+    Authority, Counters, DecisionRefRepo, EMBEDDING_NAMESPACE, EmbeddingTarget, Eraser, Erasure,
+    MemoryRepo, ReasonCode, RefKind, ScopeId, append_decision, embedding_processor,
+    stage_active_embedding,
 };
 use aicortex_types::{AicortexTime, Memory, MemoryId, Scope, Status, TrustClass};
 use rahi_ledger::{Decision, DecisionId, DecisionKind, Ledger, Outcome};
@@ -337,6 +338,19 @@ impl Resolution {
             Self::Approve { .. } => "approve",
             Self::Decline => "decline",
             Self::Acknowledge => "acknowledge",
+        }
+    }
+
+    /// The closed reason code the resolution's Decision carries (024 B-2).
+    #[must_use]
+    pub const fn reason_code(&self) -> ReasonCode {
+        match self {
+            Self::Admit => ReasonCode::ReviewAdmit,
+            Self::Reject => ReasonCode::ReviewReject,
+            Self::KeepEdge { .. } | Self::Disjoint { .. } => ReasonCode::ReviewContradiction,
+            Self::Approve { .. } => ReasonCode::Promotion,
+            Self::Decline => ReasonCode::ReviewDecline,
+            Self::Acknowledge => ReasonCode::ReviewAcknowledge,
         }
     }
 
@@ -789,7 +803,16 @@ impl<'a> Reviewer<'a> {
                     resolution,
                 )
                 .await?;
-                close_only(self.store, &closing, &decision).await?;
+                close_only(
+                    self.store,
+                    self.ledger,
+                    scope,
+                    &item,
+                    &closing,
+                    &decision,
+                    (RefKind::ReviewDecline, "review.decline_failed"),
+                )
+                .await?;
             }
             Resolution::Acknowledge => {
                 let decision = decide(
@@ -802,7 +825,16 @@ impl<'a> Reviewer<'a> {
                     resolution,
                 )
                 .await?;
-                close_only(self.store, &closing, &decision).await?;
+                close_only(
+                    self.store,
+                    self.ledger,
+                    scope,
+                    &item,
+                    &closing,
+                    &decision,
+                    (RefKind::ReviewAcknowledge, "review.acknowledge_failed"),
+                )
+                .await?;
             }
         }
         item_in(self.store, &scope_id, id).await?.ok_or_else(|| {
@@ -876,6 +908,14 @@ impl<'a> Reviewer<'a> {
             )?;
             Work::requeue(&mut txn, &key, closing.now);
         }
+        DecisionRefRepo::stage(
+            &mut txn,
+            scope,
+            id,
+            &decision,
+            RefKind::ReviewAdmit,
+            closing.now,
+        );
         txn.push(closing.statement(&decision)?);
         commit_or_refuse(
             self.store,
@@ -1466,9 +1506,10 @@ pub(crate) async fn decide(
         "review_kind": item.kind.label(),
         "subject": item.subject,
         "resolution": resolution.label(),
+        "reason_code": resolution.reason_code().label(),
         "reason": resolution.reason(),
     }));
-    ledger.append(decision).await?;
+    append_decision(ledger, decision).await?;
     Ok(id)
 }
 
@@ -1501,19 +1542,33 @@ async fn commit_or_refuse(
                 "scope": scope.to_string(),
                 "item": item.id,
                 "resolution": closing.resolution,
+                "reason_code": ReasonCode::ActNotCommitted.label(),
             }));
-            let _ = ledger.append(refusal).await;
+            let _ = append_decision(ledger, refusal).await;
             Err(error)
         }
     }
 }
 
 /// Close an item whose resolution has no act beyond its Decision.
+///
+/// The close and the reference to the memory the item names commit together
+/// (spec 024 B-3), and a failed commit appends the refusing Decision that
+/// follows an act that did not happen. An item whose subject is not a memory
+/// id has no memory to reference, so only the close is staged.
 async fn close_only(
     store: &StoreHandle,
+    ledger: &Ledger,
+    scope: &Scope,
+    item: &ReviewItem,
     closing: &Closing<'_>,
     decision: &str,
+    (kind, failed_kind): (RefKind, &str),
 ) -> Result<(), Error> {
-    store.txn(vec![closing.statement(decision)?]).await?;
-    Ok(())
+    let mut txn = TxnBuilder::new();
+    if let Ok(memory) = MemoryId::parse(&item.subject) {
+        DecisionRefRepo::stage(&mut txn, scope, memory, decision, kind, closing.now);
+    }
+    txn.push(closing.statement(decision)?);
+    commit_or_refuse(store, ledger, scope, item, closing, txn, failed_kind).await
 }

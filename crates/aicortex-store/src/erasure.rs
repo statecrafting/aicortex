@@ -56,6 +56,7 @@ use rahi_types::{Error, Sub, UnixSeconds};
 use serde::Deserialize;
 
 use crate::decision_key::DecisionKeyRepo;
+use crate::decision_ref::{DecisionRefRepo, RefKind, validate_decision};
 use crate::embedding_memory::EMBEDDING_NAMESPACE;
 use crate::scope_repo::{ScopeId, seconds_to_sql};
 
@@ -110,7 +111,9 @@ impl Authority {
     ///
     /// A short code, never a sentence about the memory: this value reaches
     /// the chain, and a free-text justification is exactly the field somebody
-    /// eventually pastes content into.
+    /// eventually pastes content into. Spec 024 B-2 closes the set: a code
+    /// that is not a [`crate::ReasonCode`] makes the erasure refuse with
+    /// [`Error::Validation`] before it stages anything.
     #[must_use]
     pub fn because(mut self, reason_code: impl Into<String>) -> Self {
         self.reason_code = reason_code.into();
@@ -575,6 +578,9 @@ impl Eraser {
             "cascaded": cascaded.iter().map(ToString::to_string).collect::<Vec<_>>(),
             "caveat": Erased::caveat(),
         }));
+        // B-2 of spec 024: the code is one of the closed set, and nothing in
+        // the payload names content.
+        validate_decision(&decision)?;
         let mut statements = vec![receipt_insert(&scope_id, &target, &decision)?];
         statements.extend(accounted_batch(
             txn,
@@ -589,6 +595,18 @@ impl Eraser {
                 marked: Some(mark_at),
             },
         ));
+        // Spec 024 B-3, B-5: each memory this erasure reaches keeps a
+        // reference to the Decision, in the transaction that tombstones it, so
+        // its history says it was erased after its content is gone.
+        for shell in &shells {
+            statements.push(DecisionRefRepo::statement(
+                scope,
+                shell.id,
+                decision.id.as_str(),
+                RefKind::Erase,
+                now,
+            ));
+        }
         statements.push(Statement::with_params(
             "UPDATE erasure_receipt SET ready = 1 WHERE scope_id = $1 AND target = $2",
             vec![Value::from(&scope_id), Value::from(target.clone())],
@@ -795,6 +813,7 @@ impl Eraser {
                 "scope": scope.to_string(), "authority": authority.subject().as_str(),
                 "reason_code": authority.reason_code(), "caveat": Erased::caveat(),
             }));
+            validate_decision(&decision)?;
             store.txn(vec![
                 Statement::with_params(
                     "DELETE FROM erasure_receipt WHERE scope_id = $1 AND target = '' AND delivered = 1",

@@ -305,6 +305,10 @@ pub fn router_with(api: Api) -> Router {
                 .merge(scoped(ApiScope::MemoryDelete, k, delete(memories::erase))),
         )
         .route(
+            "/memories/{id}/history",
+            scoped(ApiScope::MemoryRead, k, get(memories::history)),
+        )
+        .route(
             "/entities",
             scoped(ApiScope::MemoryRead, k, get(entities::list)),
         )
