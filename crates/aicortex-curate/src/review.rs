@@ -1127,9 +1127,9 @@ pub(crate) struct EdgeRow {
     pub(crate) status: String,
 }
 
-/// Withdraw open items whose subject no longer needs a person (D-4). Each
-/// statement binds the scope as `?1` and the time as `?2`; the time is
-/// unused by the first three and bound so all four share one parameter list.
+/// Withdraw open items whose subject no longer needs a person (D-4), one
+/// statement per kind that can lapse. Each binds the scope as `?1` and the
+/// withdrawal time as `?2`, which it records as `resolved_at`.
 const WITHDRAW_SQL: [&str; 3] = [
     "UPDATE review_item SET state = 'withdrawn', resolved_at = ?2
      WHERE scope_id = ?1 AND state = 'open' AND kind = 'quarantine'
