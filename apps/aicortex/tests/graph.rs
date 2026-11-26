@@ -242,6 +242,9 @@ async fn ac2_counts_per_scope_and_a_dead_letter_warns() {
     )
     .expect("the work stages");
     store.txn(txn.into_statements()).await.expect("commits");
+    // Extraction jobs ride the embedding outbox under their own processor
+    // (017 D-8): the worker stages and claims them in `EMBEDDING_NAMESPACE`,
+    // so this claim takes the job staged above.
     let claim = Work::next(
         &store,
         aicortex_store::EMBEDDING_NAMESPACE,
