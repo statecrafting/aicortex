@@ -136,7 +136,9 @@ concern; the routes and the queue count are the surface for now.
   composes the two and declares the routes person-only to the chassis. The
   manifest of the new crate has only workspace and path dependencies, so it
   lands whole with the crate; the root workspace entry and the app's edge land
-  ahead of the routes as 010 D-14.
+  ahead of the routes as 010 D-14. The crate's
+  manifest, `crates/aicortex-curate/Cargo.toml`, is claimed in `establishes`
+  with its sources.
 - **D-3 (2026-11-26, build, migration 14).** The review tables are migration
   14 (`REVIEW_VERSION`, additive, in `crates/aicortex-store/src/review_tables.rs`
   beside 015's, 016's and 017's tables), because the migration list is the
