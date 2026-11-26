@@ -24,6 +24,14 @@
       },
       {
         "kind": "file",
+        "path": "crates/aicortex-curate/tests/common/mod.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/review_tables.rs"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-curate/src/promotion.rs"
       },
       {
@@ -33,14 +41,6 @@
       {
         "kind": "file",
         "path": "crates/aicortex-curate/tests/review.rs"
-      },
-      {
-        "kind": "file",
-        "path": "crates/aicortex-curate/tests/common/mod.rs"
-      },
-      {
-        "kind": "file",
-        "path": "crates/aicortex-store/src/review_tables.rs"
       }
     ],
     "extends": [
@@ -122,6 +122,6 @@
     "summary": "Three situations need a person: content whose origin could not be established and was quarantined, two edges that contradict each other, and a memory that someone wants a client to act on. This spec is the one queue where all three wait, the decisions that empty it, and the ledger records those decisions produce. Promotion is the important one: it is the only path to instruction grade, it requires the promote scope and an interactive principal, and it writes a rahi Decision whose id becomes part of the memory's trust.\n",
     "title": "Review: the queue where quarantine, contradiction, and promotion wait for a human"
   },
-  "shardHash": "76aa9597a8e8cd9d63c23c291e545d05f752c1eecceaecb244855d5d43d2f630",
+  "shardHash": "37ceadccc605dd0289460e5baac6b57cc0a2da0ed58e719fc1b4c37e68ca463a",
   "specVersion": "1.11.0"
 }
