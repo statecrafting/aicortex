@@ -130,7 +130,7 @@
       "contentHash": "92de2fecd1266c680a0e818cff646482de72f3af99ac6d9badf7aace0668a51d"
     },
     "Cargo.toml": {
-      "contentHash": "1a9c2964013a3d3f8a8dda577418e5a7b91fac6b2e0f835dbddd89f0816cddf1"
+      "contentHash": "ac4eafaaf8d009ab7bf36009b6787d40fd96406dd832de34418293be854fb1ea"
     },
     "Makefile": {
       "contentHash": "12d26ecd5f668a82c85d1d7fe018cf45571c05015cf17291db8e38d70eb2ab8a"
@@ -158,6 +158,9 @@
     },
     "scripts/live-rauthy.sh": {
       "contentHash": "f2d1c806870b519ccb8ab1937e86d16a5eb4170a38a42f35b7f1a826c7024216"
+    },
+    "scripts/mcp-sdk-client.mjs": {
+      "contentHash": "bdb84bb58cc9d5dc816efbdc3c82cf98abb3ac26bdef0d1e97da950051f8aff3"
     },
     "scripts/release-check.sh": {
       "contentHash": "cb5145b1fb27737e91132fba8936c79a0ae67a67fd67e9ae5e188df3e64517a9"

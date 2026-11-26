@@ -25,6 +25,7 @@ path = "src/main.rs"
 aicortex-api = { workspace = true }
 aicortex-embed = { workspace = true }
 aicortex-graph = { workspace = true }
+aicortex-mcp = { workspace = true }
 aicortex-store = { workspace = true }
 rahi-cli = { workspace = true }
 rahi-edge = { workspace = true }

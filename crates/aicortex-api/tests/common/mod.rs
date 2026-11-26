@@ -180,7 +180,31 @@ pub async fn boot() -> Cell {
 
 /// Boot the cell with `limits`.
 pub async fn boot_with(limits: aicortex_api::Limits) -> Cell {
-    boot_inner(limits, None).await
+    boot_inner(limits, None, None).await
+}
+
+/// A surface mounted beside the API: its router, the bearer routes it
+/// declares, and whether the edge's CSRF check lets a request with no
+/// credential reach it (spec 021 extends this file for its protocol tests).
+pub struct Extra {
+    /// The router merged into the edge.
+    pub router: Router,
+    /// The declaration the bearer layer is built from.
+    pub bearer: rahi_idp::BearerRoutes,
+    /// `false` is the composition `serve` performs at rahi 0.7.1, whose
+    /// exemption needs an `Authorization` header (020 D-10). `true` stands
+    /// for a chassis that exempts every declared bearer route, which the
+    /// anonymous `initialize` of 021 B-4 needs.
+    pub open_bootstrap: bool,
+}
+
+/// What builds an [`Extra`] from the API a cell serves.
+pub type Mount = Box<dyn FnOnce(&aicortex_api::Api) -> Extra>;
+
+/// Boot a cell serving the API and `mount`, against a real rauthy when `live`
+/// names one.
+pub async fn boot_mounting(live: Option<&live::LiveEnv>, mount: Mount) -> Cell {
+    boot_inner(aicortex_api::Limits::default(), live, Some(mount)).await
 }
 
 /// Boot the cell against a real rauthy (spec 020 D-14): the discovery
@@ -188,10 +212,14 @@ pub async fn boot_with(limits: aicortex_api::Limits) -> Cell {
 /// origin, so a token it issues for that origin is addressed to this resource.
 /// Requests still go to [`Cell::origin`], the loopback socket the cell is on.
 pub async fn boot_live(live: &live::LiveEnv) -> Cell {
-    boot_inner(aicortex_api::Limits::default(), Some(live)).await
+    boot_inner(aicortex_api::Limits::default(), Some(live), None).await
 }
 
-async fn boot_inner(limits: aicortex_api::Limits, live: Option<&live::LiveEnv>) -> Cell {
+async fn boot_inner(
+    limits: aicortex_api::Limits,
+    live: Option<&live::LiveEnv>,
+    mount: Option<Mount>,
+) -> Cell {
     let (store, dir) = open_store().await;
     let handle = store.handle();
     handle
@@ -302,26 +330,29 @@ async fn boot_inner(limits: aicortex_api::Limits, live: Option<&live::LiveEnv>) 
     let state =
         AppState::new(kernel.clone(), handle, ledger.clone(), config).with_extension(hub.clone());
     let events = aicortex_api::Events::new();
-    let api = aicortex_api::router_with(
-        aicortex_api::Api::new(state.clone())
-            .with_events(events.clone())
-            .with_limits(limits),
-    );
+    let surface = aicortex_api::Api::new(state.clone())
+        .with_events(events.clone())
+        .with_limits(limits);
+    let api = aicortex_api::router_with(surface.clone());
+    let (api, bearer, open_bootstrap) = match mount {
+        Some(mount) => {
+            let extra = mount(&surface);
+            (api.merge(extra.router), extra.bearer, extra.open_bootstrap)
+        }
+        None => (api, aicortex_api::bearer_routes(), false),
+    };
     // The composition `serve` performs, minus sessions: the edge with the
     // bearer CSRF exemption of 038 B-1, then the bearer layer outside it.
     let edge = Edge::builder(state)
-        .csrf_exemption(Arc::new(|path: &str, headers: &HeaderMap| {
+        .csrf_exemption(Arc::new(move |path: &str, headers: &HeaderMap| {
             rahi_idp::is_bearer_route(path)
-                && headers.contains_key(axum::http::header::AUTHORIZATION)
+                && (open_bootstrap || headers.contains_key(axum::http::header::AUTHORIZATION))
         }))
         .mount("/", api)
         .try_build()
         .map_err(|error| error.0)
         .expect("the edge builds");
-    let app = with_bearer(
-        RequireBearer::new(server, aicortex_api::bearer_routes()),
-        edge,
-    );
+    let app = with_bearer(RequireBearer::new(server, bearer), edge);
     tokio::spawn(async move { axum::serve(listener, app).await });
 
     Cell {
