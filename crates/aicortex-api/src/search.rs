@@ -9,6 +9,11 @@
 //! and `token_budget` does not run that stage (025 B-3) and gets each ranked
 //! memory whole.
 //!
+//! A request that sets `pointers` also receives the entities its query names
+//! (026): resolved by alias match in the searched scope, framed by
+//! [`crate::pointers`], and counted inside any delivery budget after the
+//! evidence is packed, so a pointer never displaces a result.
+//!
 //! What a deployment configures is held in [`Search`]: the query embedder
 //! behind the [`QueryEmbedder`] seam, the clock, the recall and delivery
 //! settings, whether traces are persisted (018 B-6), and a hook the cell
@@ -19,6 +24,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 
 use aicortex_embed::{EmbeddingProvider, ModelId, Vector};
+use aicortex_recall::delivery::Companion;
 use aicortex_recall::{
     Clock, Delivery, DeliveryConfig, DeliveryError, DeliveryRequest, EnvelopeInput, Extra, Filter,
     Query, Recall, RecallConfig, RecallResult, SystemClock, TraceStore, frame_memories,
@@ -33,6 +39,7 @@ use rahi_types::{Error, UnixSeconds};
 
 use crate::dto::{FilterIn, ScopeRef, SearchHit, SearchRequest, SearchResponse};
 use crate::error::{ApiError, ApiResult};
+use crate::pointers::{self, PointerConfig};
 use crate::router::{Api, Caller};
 
 /// Results returned when the request names no `k`.
@@ -135,6 +142,7 @@ pub struct Search {
     clock: Arc<dyn Clock>,
     recall: RecallConfig,
     delivery: DeliveryConfig,
+    pointers: PointerConfig,
     trace_retention_secs: Option<u64>,
     on_truncated: Option<Arc<dyn Fn() + Send + Sync>>,
 }
@@ -146,6 +154,7 @@ impl Default for Search {
             clock: Arc::new(SystemClock),
             recall: RecallConfig::default(),
             delivery: DeliveryConfig::default(),
+            pointers: PointerConfig::default(),
             trace_retention_secs: None,
             on_truncated: None,
         }
@@ -157,6 +166,7 @@ impl std::fmt::Debug for Search {
         f.debug_struct("Search")
             .field("embedder", &self.embedder.as_ref().map(|e| e.id()))
             .field("delivery", &self.delivery)
+            .field("pointers", &self.pointers)
             .field("trace_retention_secs", &self.trace_retention_secs)
             .finish_non_exhaustive()
     }
@@ -188,6 +198,14 @@ impl Search {
     #[must_use]
     pub fn with_delivery(mut self, delivery: DeliveryConfig) -> Self {
         self.delivery = delivery;
+        self
+    }
+
+    /// The same, with other entity pointer settings, or pointers disabled
+    /// (026 B-6, B-8).
+    #[must_use]
+    pub const fn with_pointers(mut self, pointers: PointerConfig) -> Self {
+        self.pointers = pointers;
         self
     }
 
@@ -381,13 +399,48 @@ pub async fn search(
         hook();
     }
 
+    // Entity pointers (026): only when asked, only in the scope this search
+    // was admitted for, and nothing is stored, traced, or logged for them.
+    let pointers_disabled = request.pointers && !config.pointers.enabled();
+    let block = if request.pointers && config.pointers.enabled() {
+        pointers::resolve(
+            store,
+            &scope,
+            &request.query,
+            &config.pointers,
+            &config.delivery,
+        )
+        .await?
+    } else {
+        None
+    };
+
+    // The evidence is packed first, as it would be without pointers; the
+    // block is fitted into what it leaves (026 B-9).
     let delivered = Delivery::new(store.clone(), config.delivery.clone())
-        .deliver(&scope, &result, &delivery)
+        .deliver_with(
+            &scope,
+            &result,
+            &delivery,
+            block.as_ref().map(|block| block as &dyn Companion),
+        )
         .await
         .map_err(delivery_error)?;
-    let (framed, report) = match delivered {
-        Some(delivered) => (delivered.payload, Some(delivered.report)),
-        None => (whole(&api, &scope, &result).await?, None),
+    let (framed, report, fitted) = match delivered {
+        Some(delivered) => (
+            delivered.payload,
+            Some(delivered.report),
+            delivered.companion,
+        ),
+        None => (whole(&api, &scope, &result).await?, None, None),
+    };
+    let block = match (block, fitted) {
+        (Some(mut block), Some(fitted)) => fitted.keep.map(|keep| {
+            block.cut(keep);
+            block
+        }),
+        (block, None) => block,
+        (None, Some(_)) => None,
     };
     let trace_id = match config.trace_retention_secs {
         Some(retention) => Some(
@@ -419,5 +472,7 @@ pub async fn search(
         trace: result.trace,
         trace_id,
         delivery: report,
+        pointers: block,
+        pointers_disabled,
     }))
 }

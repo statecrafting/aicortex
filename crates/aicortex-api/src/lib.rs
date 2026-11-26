@@ -19,6 +19,7 @@
 //! - [`events`]: `GET /events`, the chassis-declared progress stream.
 //! - [`search`] and [`entities`]: `POST /search` (018, 025) and the entity
 //!   routes (017), staged by 020 D-3.
+//! - [`pointers`]: the entity pointer block a search may carry (026).
 //! - [`dto`]: the wire types; inputs reject unknown fields.
 //! - [`error`]: RFC 9457 problem documents with a stable type per reason.
 //!
@@ -35,6 +36,7 @@ pub mod entities;
 pub mod error;
 pub mod events;
 pub mod memories;
+pub mod pointers;
 pub mod router;
 pub mod scopes;
 pub mod search;

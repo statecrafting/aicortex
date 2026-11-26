@@ -1,19 +1,4 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/pointers.rs' does not exist",
-        "path": "crates/aicortex-api/src/pointers.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/tests/pointers.rs' does not exist",
-        "path": "crates/aicortex-api/tests/pointers.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "017-entities-and-typed-edges",
@@ -45,11 +30,23 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-api/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/pointers.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api/src/search.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-api/tests/clients.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/pointers.rs",
         "source": "spec-edge"
       },
       {
@@ -83,7 +80,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/pointers.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -92,7 +93,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/pointers.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -207,6 +212,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-api/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-api/src/search.rs"
           }
         ],
@@ -313,5 +331,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "93a9228f1d9e183dd565467986790d093f65d80afe5711b7a07ea4d9871f609c"
+  "shardHash": "d806e7b86d5094e309d78b0f9c15fa079c218469d4ad5dcb7f114f0c7cce88bb"
 }

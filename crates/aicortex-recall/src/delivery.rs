@@ -254,6 +254,24 @@ impl Default for DeliveryConfig {
 }
 
 impl DeliveryConfig {
+    /// The counter a delivery counts with, and why it is not the configured
+    /// one when it cannot run (B-5): the configured counter when ready, else
+    /// [`Utf8Bytes`] with the configured counter's identity and the reason.
+    #[must_use]
+    pub fn effective_counter(&self) -> (Arc<dyn TokenCounter>, Option<String>) {
+        match self.counter.ready() {
+            Ok(()) => (Arc::clone(&self.counter), None),
+            Err(CounterUnavailable(why)) => (
+                Arc::new(Utf8Bytes) as Arc<dyn TokenCounter>,
+                Some(format!(
+                    "{}@{}: {why}",
+                    self.counter.id(),
+                    self.counter.version()
+                )),
+            ),
+        }
+    }
+
     /// A configuration with `counter`, a default budget, and a ceiling.
     ///
     /// # Errors
@@ -446,6 +464,68 @@ pub struct Delivered {
     pub payload: FramedMemories,
     /// What a client and the trace read.
     pub report: DeliveryReport,
+    /// How much of the companion block (026 B-9) fits beside the payload;
+    /// `None` when [`Delivery::deliver_with`] was given none.
+    pub companion: Option<Fitted>,
+}
+
+/// A block that travels in the same model-facing payload as the evidence and
+/// is fitted into what the evidence leaves of the budget (026 B-9).
+///
+/// The evidence is packed first, exactly as it would be without a companion,
+/// so a companion never reduces, cuts, or drops a delivered result. The
+/// companion is a list of entries cut from the end; the stage asks what each
+/// prefix of the list costs and keeps the longest that fits.
+pub trait Companion: Send + Sync {
+    /// How many entries the block holds when nothing is cut.
+    fn entries(&self) -> usize;
+
+    /// The tokens `counter` counts in the block's serialization when it keeps
+    /// its first `keep` entries (`keep` at most [`Self::entries`]) and marks
+    /// itself truncated when it keeps fewer than all. Counting is monotone in
+    /// the text, as [`TokenCounter`] requires.
+    ///
+    /// # Errors
+    ///
+    /// The serialization error if the block cannot be encoded.
+    fn tokens(&self, counter: &dyn TokenCounter, keep: usize) -> Result<u64, serde_json::Error>;
+}
+
+/// What of a [`Companion`] fits (026 B-9).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Fitted {
+    /// The entries kept, or `None` when not even the block with no entries
+    /// fits in what the evidence leaves, so the block is omitted.
+    pub keep: Option<usize>,
+    /// The tokens the kept block counts, already added to the report's
+    /// `used`; zero when the block is omitted.
+    pub tokens: u64,
+}
+
+/// The longest prefix of `companion` that fits in `room` tokens, down to none
+/// of its entries (026 B-9).
+fn fit(
+    companion: &dyn Companion,
+    counter: &dyn TokenCounter,
+    room: u64,
+) -> Result<Fitted, DeliveryError> {
+    for keep in (0..=companion.entries()).rev() {
+        // One token more than the block counts alone: a counter that floors
+        // (`utf8-bytes-div3`) can count two texts together one higher than
+        // the sum of their separate counts, and the budget caps the two
+        // together (026 D-8).
+        let tokens = companion.tokens(counter, keep)?.saturating_add(1);
+        if tokens <= room {
+            return Ok(Fitted {
+                keep: Some(keep),
+                tokens,
+            });
+        }
+    }
+    Ok(Fitted {
+        keep: None,
+        tokens: 0,
+    })
 }
 
 /// A memory and its erasure marker.
@@ -605,20 +685,34 @@ impl Delivery {
         result: &RecallResult,
         request: &DeliveryRequest,
     ) -> Result<Option<Delivered>, DeliveryError> {
+        self.deliver_with(scope, result, request, None).await
+    }
+
+    /// [`Self::deliver`] with a `companion` block that shares the payload
+    /// (026 B-9).
+    ///
+    /// The evidence is packed first, exactly as without a companion. The
+    /// companion is then fitted into what the evidence leaves of the budget,
+    /// cut from its end down to no entries, and the report's `used` counts it
+    /// too: the sum of the evidence's count and the companion's, which for the
+    /// shipped counters is never less than the count of the two serialized
+    /// fields together. A companion therefore never reduces, cuts, or drops a
+    /// delivered result.
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::deliver`], and the companion's serialization error.
+    pub async fn deliver_with(
+        &self,
+        scope: &Scope,
+        result: &RecallResult,
+        request: &DeliveryRequest,
+        companion: Option<&dyn Companion>,
+    ) -> Result<Option<Delivered>, DeliveryError> {
         if !request.is_requested() {
             return Ok(None);
         }
-        let (counter, fallback_from) = match self.config.counter.ready() {
-            Ok(()) => (Arc::clone(&self.config.counter), None),
-            Err(CounterUnavailable(why)) => (
-                Arc::new(Utf8Bytes) as Arc<dyn TokenCounter>,
-                Some(format!(
-                    "{}@{}: {why}",
-                    self.config.counter.id(),
-                    self.config.counter.version()
-                )),
-            ),
-        };
+        let (counter, fallback_from) = self.config.effective_counter();
         let asked = request.budget.unwrap_or(self.config.default_budget);
         let budget = asked.min(self.config.max_budget);
         let mut meter = Meter {
@@ -641,12 +735,26 @@ impl Delivery {
         };
         walk.run(&mut meter).await?;
         let (payload, report) = walk.finish(&mut meter, fallback_from)?;
+        let fitted = companion
+            .map(|companion| {
+                fit(
+                    companion,
+                    counter.as_ref(),
+                    budget.saturating_sub(report.used),
+                )
+            })
+            .transpose()?;
+        let used = report
+            .used
+            .saturating_add(fitted.map_or(0, |fitted| fitted.tokens));
         Ok(Some(Delivered {
             payload,
             report: DeliveryReport {
                 budget_clamped: asked > self.config.max_budget,
+                used,
                 ..report
             },
+            companion: fitted,
         }))
     }
 }
@@ -1259,5 +1367,99 @@ impl Walk<'_> {
             covered_by: None,
             tokens,
         }
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    /// A companion of `entries` items each costing `each` tokens, over a
+    /// fixed `base` for the block itself.
+    struct Fixed {
+        entries: usize,
+        base: u64,
+        each: u64,
+    }
+
+    impl Companion for Fixed {
+        fn entries(&self) -> usize {
+            self.entries
+        }
+
+        fn tokens(
+            &self,
+            _counter: &dyn TokenCounter,
+            keep: usize,
+        ) -> Result<u64, serde_json::Error> {
+            Ok(self.base + self.each * keep as u64)
+        }
+    }
+
+    #[test]
+    fn the_longest_prefix_that_fits_is_kept_down_to_none() {
+        let companion = Fixed {
+            entries: 4,
+            base: 10,
+            each: 20,
+        };
+        let kept = |room| fit(&companion, &Utf8Bytes, room).unwrap();
+        // Each cost is the block's count plus the one token of rounding slack
+        // (026 D-8): 10 + 20 per entry + 1.
+        assert_eq!(
+            kept(1_000),
+            Fitted {
+                keep: Some(4),
+                tokens: 91
+            }
+        );
+        assert_eq!(
+            kept(90),
+            Fitted {
+                keep: Some(3),
+                tokens: 71
+            }
+        );
+        assert_eq!(
+            kept(11),
+            Fitted {
+                keep: Some(0),
+                tokens: 11
+            }
+        );
+        assert_eq!(
+            kept(10),
+            Fitted {
+                keep: None,
+                tokens: 0
+            },
+            "not even the empty block fits, so it is omitted"
+        );
+    }
+
+    #[test]
+    fn a_counter_that_cannot_run_is_replaced_and_says_so() {
+        struct Broken;
+        impl TokenCounter for Broken {
+            fn id(&self) -> &str {
+                "broken"
+            }
+            fn version(&self) -> u32 {
+                7
+            }
+            fn ready(&self) -> Result<(), CounterUnavailable> {
+                Err(CounterUnavailable("no vocabulary".to_owned()))
+            }
+            fn count(&self, _text: &str) -> u64 {
+                0
+            }
+        }
+        let (counter, fallback) = DeliveryConfig::default().effective_counter();
+        assert_eq!((counter.id(), fallback), ("utf8-bytes-div3", None));
+        let config = DeliveryConfig::new(100, 200, Arc::new(Broken)).unwrap();
+        let (counter, fallback) = config.effective_counter();
+        assert_eq!(counter.id(), "utf8-bytes");
+        assert_eq!(fallback.as_deref(), Some("broken@7: no vocabulary"));
     }
 }
