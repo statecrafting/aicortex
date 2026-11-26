@@ -565,7 +565,8 @@ impl ReviewQueue {
     ///
     /// [`Error::NotFound`] when the memory is not in the scope;
     /// [`Error::Conflict`] when it is not active or is already instruction
-    /// grade; the store's error.
+    /// grade, or stopped being so while the request was opened; the store's
+    /// error.
     pub async fn request_promotion(
         &self,
         store: &StoreHandle,
@@ -613,8 +614,11 @@ impl ReviewQueue {
             .map(ReviewItem::try_from)
             .transpose()?
             .ok_or_else(|| {
-                Error::Integrity(format!(
-                    "the promotion request for {memory} did not persist"
+                // A concurrent collection withdrew it between the two reads:
+                // the memory changed state, so asking again decides afresh.
+                Error::Conflict(format!(
+                    "the promotion request for {memory} was withdrawn while being opened; \
+                     the memory is no longer an active assertion"
                 ))
             })
     }
@@ -623,6 +627,7 @@ impl ReviewQueue {
     ///
     /// A quarantine or a promotion request is about one memory. A
     /// contradiction is decided on the memories its two edges were read from.
+    /// A gate override names none until its producer is specified (D-4).
     /// Ids only: the routes put the bodies inside 019's envelope.
     ///
     /// # Errors
@@ -636,7 +641,10 @@ impl ReviewQueue {
         item: &ReviewItem,
     ) -> Result<Vec<MemoryId>, Error> {
         match item.kind {
-            ReviewKind::Quarantine | ReviewKind::PromotionRequest | ReviewKind::GateOverride => {
+            // No producer opens a gate override yet, and its subject is not
+            // specified (D-4), so it names no memory to show.
+            ReviewKind::GateOverride => Ok(Vec::new()),
+            ReviewKind::Quarantine | ReviewKind::PromotionRequest => {
                 let id = MemoryId::parse(&item.subject).map_err(|_| {
                     Error::Integrity(format!("review item {} names no memory", item.id))
                 })?;
