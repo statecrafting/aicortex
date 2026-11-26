@@ -236,7 +236,9 @@ server.
   The edge on spec 001's `spec-spine.toml` is additive. The configuration
   lands in its own pull request ahead of this one, under policy isolation,
   recorded as 001 D-21, so the line this edge names is on the base and not
-  in this change's diff.
+  in this change's diff. All three files are claimed in `establishes`:
+  `clients/README.md` and `clients/matrix.toml` since this spec was
+  approved, and `clients/capture-core.mjs` added by this build.
 
 ## Status
 
