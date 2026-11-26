@@ -169,12 +169,12 @@ pub async fn compute(
                  FROM provenance p JOIN memory m
                    ON m.id = p.memory_id AND m.scope_id = p.scope_id
                  WHERE p.scope_id = ?1 AND m.status = 'active' AND p.captured_at <= ?4
-                   AND p.source_system = ?2 AND COALESCE(p.source_external_id, '') = ?3"
+                   AND p.source_system = ?2 AND p.source_external_id IS ?3"
                     .to_owned(),
                 vec![
                     Value::from(scope.as_str()),
                     Value::from(system.as_str()),
-                    Value::from(reference.as_deref().unwrap_or("")),
+                    reference.as_deref().map_or(Value::Null, Value::from),
                     Value::Integer(seconds(now)),
                 ],
             )

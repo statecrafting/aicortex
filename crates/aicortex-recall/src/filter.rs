@@ -122,14 +122,15 @@ impl Filter {
     /// [`Error::Validation`] from [`Filter::validate`].
     pub fn index_filter(&self) -> Result<IndexFilter, Error> {
         self.validate()?;
-        let statuses = self.status_labels().into_iter().filter_map(|label| {
-            Some(match label {
-                "active" => StatusFilter::Active,
-                "superseded" => StatusFilter::Superseded,
-                "expired" => StatusFilter::Expired,
-                _ => return None,
-            })
-        });
+        // Built from the same set as `status_labels`, exhaustively: a new
+        // `Extra` variant does not compile until every channel admits it.
+        let statuses =
+            std::iter::once(StatusFilter::Active).chain(self.extra_statuses.iter().map(|extra| {
+                match extra {
+                    Extra::Superseded => StatusFilter::Superseded,
+                    Extra::Expired => StatusFilter::Expired,
+                }
+            }));
         Ok(IndexFilter::status_filters(statuses)?.restricted(self.restriction()))
     }
 }
