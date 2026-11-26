@@ -196,12 +196,12 @@ async fn ac2_rejecting_a_quarantined_memory_erases_it_and_the_chain_verifies() {
     node.shutdown().await;
 }
 
-/// D-10: a rejection's erasure and the item's close commit together. When
+/// D-9: a rejection's erasure and the item's close commit together. When
 /// the close cannot commit, nothing is erased and the item stays open, so the
 /// reconciliation never withdraws it without a Decision; once the close can
 /// commit, the item names the Decision 014 appended.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn d10_a_rejection_erases_and_closes_together_or_does_neither() {
+async fn d9_a_rejection_erases_and_closes_together_or_does_neither() {
     let node = node().await;
     let scope = scope("alice");
     let memory = quarantined(&node, &scope, "origin unknown").await;

@@ -94,15 +94,15 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "023-review-and-promotion": "faadda173d5e5a5db4194ab1227714e81d0390baeb2c62c9265b12a51c4a097a",
+      "023-review-and-promotion": "dabcec36ebdb49c648d9c074661430c741b2a648a2f16605d97716d65dd6ba2a",
       "1-purpose": "1807f7f18c84dcf1997bfe196f63fa932616cad046bc004c1597eec9e4275c50",
       "2-territory": "fd26d40c077dc7cb155585ca0cf9bf8c1ecd9d1b7f994e3fcada78ef92188d1b",
       "3-behavior": "b91c10d93dfaf0b1d6507297c8d3578f5f9b78c5756014836dcba94417336955",
       "4-functional-requirements": "4a654176440730d68f2774b47ce71631d2a9a86b17733609622ab01e9e341ac6",
       "5-acceptance-criteria": "0d77eb9f00306ecf15ed9c3426c5c76079f5f665cd2d459d8f5ef3354e0e70b8",
       "6-out-of-scope": "2c9f74c5843dd747fb2f74dbd1d962aa8d1ed68e90325c1f971e561a97e01f39",
-      "7-resolved-decisions": "6534575564b59aa5966e1d0c2d975990d27d274a942fea78ec95054f36af451e",
-      "status": "a3cdda39ee66d9de5014e4858d465f7b10c269730f9c4da6570074a61e88ced8",
+      "7-resolved-decisions": "e6cd645fba9a3db0eb71b4fa3d462c212c8cd46a8b029d6f92ec74144b9a8c72",
+      "status": "edf3e1c8314ed32354256a304abf9d662ad18dc61a417665a046a86d84b4bfbc",
       "verification": "94baf4981a922f22b8ccd4f208dedf6410f126aa74c46a0fa74df9189c9ceff3"
     },
     "sectionHeadings": [
@@ -122,6 +122,6 @@
     "summary": "Three situations need a person: content whose origin could not be established and was quarantined, two edges that contradict each other, and a memory that someone wants a client to act on. This spec is the one queue where all three wait, the decisions that empty it, and the ledger records those decisions produce. Promotion is the important one: it is the only path to instruction grade, it requires the promote scope and an interactive principal, and it writes a rahi Decision whose id becomes part of the memory's trust.\n",
     "title": "Review: the queue where quarantine, contradiction, and promotion wait for a human"
   },
-  "shardHash": "37ceadccc605dd0289460e5baac6b57cc0a2da0ed58e719fc1b4c37e68ca463a",
+  "shardHash": "7e0b08f7b0c444ec1ee84c2ad9a05c80a046800b5c10aa20c586142672fa119a",
   "specVersion": "1.11.0"
 }
