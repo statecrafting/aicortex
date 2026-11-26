@@ -570,17 +570,40 @@ impl TokenCounter for Missing {
 
 fn check_report(result: &RecallResult, report: &DeliveryReport, counter: &dyn TokenCounter) {
     assert!(report.used <= report.budget, "{report:?}");
-    // The delivered set is a prefix of the fused order.
-    let ranks: Vec<u32> = report.results.iter().map(|r| r.rank).collect();
-    let expected: Vec<u32> = (1..=u32::try_from(ranks.len()).unwrap()).collect();
-    assert_eq!(ranks, expected, "{report:?}");
+    // Every result is reported exactly once, delivered or covered or
+    // dropped; the accepted results are a prefix of the fused order, and a
+    // dropped result comes after every accepted one (B-6, D-10).
     assert_eq!(
         report.results.len() + report.dropped.len(),
         result.memories.len()
     );
-    let dropped: Vec<MemoryId> = report.dropped.iter().map(|d| d.memory_id).collect();
-    let tail: Vec<MemoryId> = result.memories[ranks.len()..]
+    // Up to the last accepted result the report is exactly the prefix of
+    // the fused order; after it, only covered results are reported, and
+    // every other result is dropped.
+    let last_accepted = report
+        .results
         .iter()
+        .filter(|r| r.reason != Reason::Covered)
+        .map(|r| r.rank)
+        .max()
+        .unwrap_or(0);
+    let prefix: Vec<u32> = report
+        .results
+        .iter()
+        .map(|r| r.rank)
+        .filter(|rank| *rank <= last_accepted)
+        .collect();
+    let expected: Vec<u32> = (1..=last_accepted).collect();
+    assert_eq!(prefix, expected, "{report:?}");
+    for later in report.results.iter().filter(|r| r.rank > last_accepted) {
+        assert_eq!(later.reason, Reason::Covered, "{report:?}");
+    }
+    let reported: Vec<MemoryId> = report.results.iter().map(|r| r.memory_id).collect();
+    let dropped: Vec<MemoryId> = report.dropped.iter().map(|d| d.memory_id).collect();
+    let tail: Vec<MemoryId> = result
+        .memories
+        .iter()
+        .filter(|m| m.rank > last_accepted && !reported.contains(&m.memory_id))
         .map(|m| m.memory_id)
         .collect();
     assert_eq!(dropped, tail, "{report:?}");

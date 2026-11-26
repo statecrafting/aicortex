@@ -501,6 +501,13 @@ tokenizer as the default counter (D-6).
   tokens, provisional until 040 reports a baseline. The neighbor chunks of a
   memory that is not a conversation turn are read from the `chunk` table
   under the active model revision, in the caller's scope.
+- **D-10 (2026-11-26, build).** B-6 step 3 drops the first result that
+  does not fit and every result after it, and B-6 also has a covered
+  result keep its place. When a result after that point is a turn an
+  accepted unit already carries, it is reported `covered`, not dropped: its
+  turn is in the payload, so reporting it dropped would contradict the
+  payload, and no result is ever both. The accepted results remain a prefix
+  of the fused order, and every dropped result ranks after all of them.
 
 ## Verification
 

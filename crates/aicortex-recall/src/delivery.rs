@@ -734,8 +734,14 @@ impl Walk<'_> {
                 }
                 None => {
                     // B-6 step 3: the first result that does not fit even as
-                    // its chunk is dropped, and so is every one after it.
+                    // its chunk is dropped, and so is every one after it,
+                    // except a result an accepted unit already carries, which
+                    // is covered, never both covered and dropped.
                     for later in results.iter().skip(position) {
+                        if let Some(carrier) = self.carried.get(&later.memory_id) {
+                            self.covered.push((later.rank, later.memory_id, *carrier));
+                            continue;
+                        }
                         self.dropped.push(DroppedReport {
                             memory_id: later.memory_id,
                             reason: DROPPED_BUDGET,
