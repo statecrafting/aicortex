@@ -1,0 +1,9 @@
+[
+  {
+    "stdin": {
+      "session_id": "fixture-claude-code",
+      "transcript_path": "${FIXTURES}/transcript.jsonl",
+      "hook_event_name": "SessionEnd"
+    }
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "args": [
+      {
+        "type": "agent-turn-complete",
+        "thread-id": "fixture-codex",
+        "turn-id": "1",
+        "cwd": "/Users/example/work/project",
+        "input-messages": [
+          "Preference: use tabs, not spaces, in Go files",
+          "Working on: step 3 of 5, editing the router and rerunning the tests",
+          "Correction: the staging cluster is in eu-west-2, not us-east-1"
+        ],
+        "last-assistant-message": "I opened /Users/example/work/project/src/main.rs and /etc/hosts\nDecision: we adopt hiqlite for replicated state\napi_key = EXAMPLE-NOT-A-REAL-CREDENTIAL"
+      }
+    ]
+  },
+  {
+    "args": [
+      {
+        "type": "agent-turn-complete",
+        "thread-id": "fixture-codex",
+        "turn-id": "2",
+        "cwd": "/Users/example/work/project",
+        "input-messages": [
+          "{\"mcpServers\": {\"example\": {\"url\": \"http://localhost:9000/mcp\"}}}",
+          "Commitment: I will send the migration plan to Dana by Friday"
+        ],
+        "last-assistant-message": "Enabled plugin example-formatter and skill example-review\nRemember: the billing export runs on the first of each month"
+      }
+    ]
+  },
+  {
+    "args": [
+      {
+        "type": "approval-requested",
+        "thread-id": "fixture-codex",
+        "input-messages": [
+          "Decision: a notification of another type"
+        ]
+      }
+    ]
+  }
+]

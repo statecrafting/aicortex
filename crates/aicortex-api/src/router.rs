@@ -24,7 +24,7 @@ use tokio::sync::OnceCell;
 use crate::error::ApiError;
 use crate::events::Events;
 use crate::scopes::{ApiScope, scoped};
-use crate::{capture, entities, events, memories};
+use crate::{capture, clients, entities, events, memories};
 
 /// Where the router is mounted (B-1, B-10).
 pub const API_PREFIX: &str = "/api/v1";
@@ -250,6 +250,10 @@ pub fn router_with(api: Api) -> Router {
         .route(
             "/stats",
             scoped(ApiScope::MemoryRead, k, get(memories::stats)),
+        )
+        .route(
+            "/clients/{name}",
+            scoped(ApiScope::MemoryRead, k, get(clients::get_snippet)),
         )
         .route(
             "/promote/{id}",

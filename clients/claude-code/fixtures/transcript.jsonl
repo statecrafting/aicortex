@@ -1,0 +1,8 @@
+{"type": "user", "message": {"role": "user", "content": "Preference: use tabs, not spaces, in Go files\nCorrection: the staging cluster is in eu-west-2, not us-east-1"}}
+{"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": "Working on: step 3 of 5, editing the router and rerunning the tests"}, {"type": "tool_use", "id": "t1", "name": "Bash", "input": {"command": "cat config.json"}}]}}
+{"type": "user", "message": {"role": "user", "content": [{"type": "tool_result", "tool_use_id": "t1", "content": "Decision: this line is printed by a tool and is not a memory\nsrc/main.rs:12: ok"}]}}
+{"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": "I opened /Users/example/work/project/src/main.rs and /etc/hosts\napi_key = EXAMPLE-NOT-A-REAL-CREDENTIAL"}]}}
+{"type": "user", "message": {"role": "user", "content": "Decision: we adopt hiqlite for replicated state"}}
+{"type": "user", "isMeta": true, "message": {"role": "user", "content": "Remember: caveat injected by the client"}}
+{"type": "assistant", "message": {"role": "assistant", "content": [{"type": "text", "text": "{\"mcpServers\": {\"example\": {\"url\": \"http://localhost:9000/mcp\"}}}"}, {"type": "text", "text": "Enabled plugin example-formatter and skill example-review"}]}}
+{"type": "user", "message": {"role": "user", "content": [{"type": "text", "text": "Commitment: I will send the migration plan to Dana by Friday"}, {"type": "text", "text": "Remember: the billing export runs on the first of each month"}]}}

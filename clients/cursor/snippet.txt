@@ -1,0 +1,19 @@
+// 1. Connect: add to ~/.cursor/mcp.json, then sign in from Cursor's MCP settings
+{
+  "mcpServers": {
+    "aicortex": { "url": "{{mcp_url}}" }
+  }
+}
+
+// 2. Optional automatic capture: add to ~/.cursor/hooks.json
+{
+  "version": 1,
+  "hooks": {
+    "beforeSubmitPrompt": [
+      { "command": "AICORTEX_URL={{public_url}} node ~/.aicortex/clients/cursor/hook.mjs" }
+    ],
+    "afterAgentResponse": [
+      { "command": "AICORTEX_URL={{public_url}} node ~/.aicortex/clients/cursor/hook.mjs" }
+    ]
+  }
+}

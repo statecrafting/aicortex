@@ -138,6 +138,15 @@
     "README.md": {
       "contentHash": "09da1a0acf1a1123a3a55e7bfbd11bfaff500d777a339683385b8a3a56c2f722"
     },
+    "clients/README.md": {
+      "contentHash": "320e1ef62aefec8ea772808415edda69c81563fefa1f2a0d99324d1337d9f9d4"
+    },
+    "clients/capture-core.mjs": {
+      "contentHash": "0c7a6753f0908cb88a533f489202e62344933c2923277fce2a00004e6c6cb9c7"
+    },
+    "clients/matrix.toml": {
+      "contentHash": "a6876b62c3e0e6513ce371cde108eebc77b0deefef2499fd2dfe03ecdb47d61a"
+    },
     "deny.toml": {
       "contentHash": "d280857c883fd1e8a3031681a409994affeba0ad64438c0e7121ee2e7af4fd35"
     },
