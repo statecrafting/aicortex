@@ -14,22 +14,35 @@ spec = "023-review-and-promotion"
 
 # The territory (spec 023 section 2): the record of 011, the store's
 # repositories and review tables, and rahi's ledger for the Decision every
-# resolution appends. Nothing here opens a socket or a runtime; the HTTP
-# routes live in aicortex-api, which depends on this crate and not the other
-# way round (023 D-1).
+# resolution appends, and the HTTP handlers of the review routes. Curation sits
+# above the surfaces in spec 002's layering, so this crate depends downward on
+# aicortex-api for the scope gate, the errors, and the caller, and the app
+# hands its routes to the API's extension seam (023 D-2). Nothing here opens
+# a socket or a runtime of its own.
 [dependencies]
+aicortex-api = { workspace = true }
+aicortex-recall = { workspace = true }
 aicortex-store = { workspace = true }
 aicortex-types = { workspace = true }
 rahi-ledger = { workspace = true }
 rahi-store = { workspace = true }
 rahi-types = { workspace = true }
+axum = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
 
 [dev-dependencies]
+aicortex-embed = { workspace = true }
+base64 = { workspace = true }
+rahi-edge = { workspace = true }
+rahi-idp = { workspace = true }
+rahi-kernel = { workspace = true }
+rcgen = { workspace = true, features = ["aws_lc_rs"] }
+reqwest = { workspace = true }
+ring = { workspace = true }
 tempfile = { workspace = true }
-tokio = { workspace = true }
+tokio = { workspace = true, features = ["net", "sync", "time"] }
 
 [lints]
 workspace = true
