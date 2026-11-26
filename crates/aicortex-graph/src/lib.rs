@@ -11,6 +11,8 @@
 //! from and the extractor version that produced it, a walk ([`walk`]) returns
 //! memories with the path that reached them and never an answer of its own,
 //! and a derived assertion never outranks the memory it came from (B-6).
+//! Pointers ([`pointer`]) tell a surface which known entities a text names,
+//! by alias match alone, so an agent learns that memory exists (spec 026).
 //! The page ([`page`]) is the one answer to "what do I know about this entity,
 //! and why": a computed projection of all of the above, cited to the memories
 //! that still exist, with nothing generated and nothing stored (spec 056).
@@ -27,6 +29,7 @@ pub mod entity;
 pub mod extract;
 pub mod migrations;
 pub mod page;
+pub mod pointer;
 pub mod preflight;
 pub mod resolve;
 pub mod vocabulary;
@@ -47,6 +50,10 @@ pub use page::{
     Fact, FactEnd, FactGroup, Header, MAX_CONTRADICTIONS, MAX_FACT_SOURCES, MAX_FACTS,
     MAX_MENTIONS, MentionRange, MentioningMemory, PageBounds, PageContradiction, Slice,
     entity_page,
+};
+pub use pointer::{
+    DEFAULT_MAX_POINTERS, DEFAULT_TEXT_BYTES, MAX_NAME_WORDS, MAX_POINTERS, MAX_TEXT_BYTES,
+    Pointer, PointerBounds, PointerSet, pointers,
 };
 pub use preflight::{GraphPreflight, ScopeGraph, read_deployment, read_scope};
 pub use resolve::{
