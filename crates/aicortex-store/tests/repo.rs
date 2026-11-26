@@ -24,11 +24,14 @@ mod common;
 
 use std::collections::HashSet;
 
+use aicortex_store::provenance_repo::TurnRange;
 use aicortex_store::{
     Counters, Cursor, CursorKey, EmbeddingTarget, MemoryFilter, MemoryRepo, ProvenanceRepo,
     ScopeId, ScopeRepo, StatusFilter,
 };
-use aicortex_types::{ExtractorVersion, MemoryId, MemoryKind};
+use aicortex_types::{
+    ConversationId, ConversationRef, ExtractorVersion, MemoryId, MemoryKind, SourceSystem,
+};
 use rahi_store::{Statement, TxnBuilder, Value};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
@@ -794,4 +797,84 @@ fn a_cursor_carries_nothing_a_reader_can_use() {
         Cursor::decode("", &key(), &scope, &filter).is_err(),
         "the empty string decoded"
     );
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_conversation_reference_round_trips_and_selects_turns_in_order() {
+    let fixture = common::Fixture::migrated().await;
+    let store = fixture.handle();
+    let repo = MemoryRepo::new();
+    let scope = common::scope("conversation");
+    let id = ConversationId::new("c1").unwrap();
+
+    // Written out of order, so the read's order is the turn number's.
+    let mut stored = Vec::new();
+    for (position, turn) in [3_u32, 1, 2].into_iter().enumerate() {
+        let mut memory =
+            common::memory(&scope, &format!("message {turn}"), 5_000 + position as u64);
+        memory.provenance = memory
+            .provenance
+            .clone()
+            .in_conversation(ConversationRef::new(id.clone(), turn).unwrap());
+        let mut txn = TxnBuilder::new();
+        repo.insert(
+            &mut txn,
+            &common::admit(&memory),
+            &memory.provenance,
+            &EmbeddingTarget::observe(&store).await.unwrap(),
+            &common::work(&memory),
+        )
+        .unwrap();
+        store.txn(txn.into_statements()).await.unwrap();
+        stored.push((turn, memory));
+    }
+    let plain = common::memory(&scope, "not a message", 5_100);
+    let mut txn = TxnBuilder::new();
+    repo.insert(
+        &mut txn,
+        &common::admit(&plain),
+        &plain.provenance,
+        &EmbeddingTarget::observe(&store).await.unwrap(),
+        &common::work(&plain),
+    )
+    .unwrap();
+    store.txn(txn.into_statements()).await.unwrap();
+
+    for (_, memory) in &stored {
+        assert_eq!(
+            ProvenanceRepo::get(&store, &scope, memory.id)
+                .await
+                .unwrap()
+                .unwrap(),
+            memory.provenance,
+            "the conversation reference did not round-trip through its columns"
+        );
+    }
+    assert_eq!(
+        ProvenanceRepo::get(&store, &scope, plain.id)
+            .await
+            .unwrap()
+            .unwrap()
+            .conversation,
+        None
+    );
+
+    let source = SourceSystem::new("test").unwrap();
+    let all = ProvenanceRepo::conversation_turns(&store, &scope, &source, &id, TurnRange::All)
+        .await
+        .unwrap();
+    let order: Vec<&str> = all.iter().map(|memory| memory.body.text.as_str()).collect();
+    assert_eq!(order, ["message 1", "message 2", "message 3"]);
+    let between = ProvenanceRepo::conversation_turns(
+        &store,
+        &scope,
+        &source,
+        &id,
+        TurnRange::Between { first: 2, last: 9 },
+    )
+    .await
+    .unwrap();
+    assert_eq!(between.len(), 2);
+
+    fixture.shutdown().await;
 }

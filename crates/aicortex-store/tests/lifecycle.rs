@@ -1132,7 +1132,7 @@ async fn migration_seven_preserves_v6_rows_and_backfills_them_after_reopen() {
             .await
             .unwrap()
             .applied,
-        vec![8, 9, 10, 11]
+        (8..=aicortex_store::EXPECTED_SCHEMA_VERSION).collect::<Vec<_>>()
     );
     assert!(
         fixture

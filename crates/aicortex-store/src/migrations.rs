@@ -68,7 +68,12 @@ pub const EMBEDDING_MIGRATION_VERSION: u32 = 9;
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = GRAPH_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = CONVERSATION_VERSION;
+
+/// The conversation reference of spec 031 B-9 on the provenance row, added by
+/// spec 025 section 2 because evidence delivery is built first: two nullable
+/// columns and the index `conversation_turns` reads through (031 B-11).
+pub const CONVERSATION_VERSION: u32 = GRAPH_VERSION + 1;
 
 /// The graph schema of spec 017, appended by that spec under an `extends`
 /// edge on this file; its tables live in [`crate::graph_tables`].
@@ -76,6 +81,18 @@ pub use crate::graph_tables::GRAPH_VERSION;
 /// The text index of spec 016 B-5, appended by that spec under an `extends`
 /// edge on this file; its tables live in [`crate::text_postings`].
 pub use crate::text_postings::TEXT_INDEX_VERSION;
+
+/// The conversation reference as columns of the provenance row (031 B-9).
+///
+/// Both are null for a memory that is not a turn of a conversation. The
+/// index is partial, so it holds only message memories and costs nothing for
+/// the rest; its key order is the scope, the source system, the conversation
+/// id, and the turn, which is the order 031 B-11's read selects and sorts by.
+const CONVERSATION_COLUMNS: &str = "ALTER TABLE provenance ADD COLUMN conversation_id TEXT;
+ALTER TABLE provenance ADD COLUMN conversation_turn INTEGER;
+CREATE INDEX provenance_conversation
+    ON provenance (scope_id, source_system, conversation_id, conversation_turn)
+    WHERE conversation_id IS NOT NULL";
 
 const CLAIM_HISTORY_TABLES: &str = "CREATE TABLE claim_tx_counter (
     scope_id TEXT PRIMARY KEY,
@@ -493,7 +510,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 11]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 12]> = std::sync::LazyLock::new(|| {
     [
         // Creation-only migrations are additive (spec 046 B-2, D-2). Versions
         // 7 and 9 below are deliberately not additive. The declaration is not
@@ -606,5 +623,13 @@ static LIST: std::sync::LazyLock<[Migration; 11]> = std::sync::LazyLock::new(|| 
         // Not declared additive either: an older binary does not release
         // mentions and edge sources on erasure (spec 017 FR-006).
         crate::graph_tables::graph_migration(),
+        // Additive: nullable columns and a partial index. An older binary
+        // writes provenance rows without them and reads none of them.
+        Migration::new(
+            CONVERSATION_VERSION,
+            "aicortex conversation reference on provenance",
+            CONVERSATION_COLUMNS,
+        )
+        .additive(),
     ]
 });

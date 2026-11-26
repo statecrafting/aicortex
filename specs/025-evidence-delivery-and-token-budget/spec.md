@@ -6,7 +6,7 @@ kind: "feature"
 domain: "retrieval"
 created: "2026-10-25"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: high
 wave: 2
 depends_on:
@@ -27,8 +27,12 @@ extends:
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/provenance.rs", nature: additive }
+  - { spec: "011-memory-model", unit: "crates/aicortex-types/src/lib.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/provenance_repo.rs", nature: additive }
+  - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/tests/repo.rs", nature: additive }
+  - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/tests/lifecycle.rs", nature: additive }
+  - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/tests/text.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
@@ -444,6 +448,59 @@ tokenizer as the default counter (D-6).
   that holds against that model, and only the per-byte count cannot
   under-count it. Rejected: a pinned tokenizer of one model family as the
   default, which needs vocabulary files and is exact for one family only.
+
+- **D-7 (2026-11-26, build).** Part 1 of 025 lands the stage and the
+  conversation seam it reads: B-1 to B-13 and FR-001 to FR-010, with
+  FR-011's stage half (the `Turn` rung, the refusal of `turn` as a unit
+  name in `DeliveryRequest::parse`), over the real store, and leaves
+  `implementation: in-progress`. Not in part 1: B-14 and the surface halves
+  of FR-011, AC-2, and AC-3, because `POST /search` does not exist (020
+  D-17 leaves the route to 018's build, and 018 D-8 left it out of part 1)
+  and the MCP `search` tool still answers `not_yet_available` (021 D-3);
+  they land once a search route exists, over `Delivery::deliver` and
+  `DeliveryRequest::parse`. Also not in part 1: AC-4, which needs 040's
+  corpus; and the counter's presence in a stored trace, because 018 B-6's
+  persisted trace is not built (018 D-8). `DeliveryReport` is body-free JSON
+  that names the counter, and FR-010 is asserted on it. The fixtures are
+  built inline by `tests/delivery.rs` from the shared recall fixture, so
+  `testdata/delivery/` holds nothing yet.
+- **D-8 (2026-11-26, build).** 031 is not built, so section 2's first
+  branch applies: this build adds `ConversationId` and `ConversationRef`
+  to `provenance.rs` and `Provenance::conversation` (011), migration
+  version 12 (two nullable `provenance` columns and a partial index, additive
+  under 046 B-2), the columns written by `ProvenanceRepo::stage` and read
+  back by `get`, and `ProvenanceRepo::conversation_turns` with
+  `TurnRange` (012), as 031 B-9 and B-11 define them. Where 031 is silent:
+  a `ConversationId` is held to the key shape of every other identifier here
+  (non-empty, unpadded, no control character, at most 128 bytes), and a turn
+  of 0 is refused because turns are numbered from 1. 031's build runs its
+  FR-010 fixture against these. `TurnRange` is reached as
+  `aicortex_store::provenance_repo::TurnRange`, so no unit of 012 beyond its
+  migrations, its provenance repository, and the repository test is touched.
+  Two tests named the last migration version outright (016's text index test
+  and 014's upgrade test); each now follows `EXPECTED_SCHEMA_VERSION`, which
+  changes no requirement.
+- **D-9 (2026-11-26, build).** Choices the spec left open. The counted
+  payload is the serialized `FramedMemories` (the framing version, the
+  framing statement, and each envelope as the JSON string a surface sends),
+  counted whole with the declared counter, so JSON escaping is paid for and
+  the cap holds on what is sent. Packing estimates one envelope as its
+  serialized string plus one token for the separator, and decides a close
+  call by recounting the whole payload, so a budget that exactly holds the
+  payload accepts it. The cut marker is the field `cut` of the envelope's
+  record (`CUT_MARKER`), beside `delivered_range`, so it is data inside the
+  envelope and never a line of the body. The minimum of B-7 is the recount of
+  the rank-one result's chunk cut after its first character, so it includes
+  that result's own labels. A cut keeps the longest prefix that fits and
+  ends it at the last sentence or line boundary within it, or at a character
+  boundary when it has none. A result with no chunk range, or whose range is
+  not a character range of the body, takes the whole body as its chunk. A
+  result whose memory is gone, or whose status the query no longer admits, is
+  listed as dropped with the reason `unavailable` and does not stop the walk.
+  The deployment defaults are a budget of 6000 and a maximum of 32000
+  tokens, provisional until 040 reports a baseline. The neighbor chunks of a
+  memory that is not a conversation turn are read from the `chunk` table
+  under the active model revision, in the caller's scope.
 
 ## Verification
 

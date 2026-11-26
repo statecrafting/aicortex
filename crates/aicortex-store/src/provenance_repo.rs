@@ -13,7 +13,10 @@
 //! predicate like everything else, and a parent that lives in another scope
 //! is not reachable through it (B-9).
 
-use aicortex_types::{ExtractorVersion, MemoryId, Provenance, Scope, SourceRef, SourceSystem};
+use aicortex_types::{
+    ConversationId, ConversationRef, ExtractorVersion, Memory, MemoryId, Provenance, Scope,
+    SourceRef, SourceSystem,
+};
 use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{Error, UnixSeconds};
 use serde::Deserialize;
@@ -29,13 +32,39 @@ const INSERT_SQL: &str = "INSERT INTO provenance (
         captured_at, ingested_at, extractor_name, extractor_version
     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)";
 
+/// The same row for a turn of a conversation, naming the two columns of
+/// 031 B-9. A memory that is not a turn is written by [`INSERT_SQL`], exactly
+/// as before those columns existed.
+const INSERT_TURN_SQL: &str = "INSERT INTO provenance (
+        memory_id, scope_id, source_system, source_external_id, source_locator,
+        captured_at, ingested_at, extractor_name, extractor_version,
+        conversation_id, conversation_turn
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)";
+
 const DERIVATION_SQL: &str =
     "INSERT INTO memory_derivation (memory_id, parent_id, position, scope_id)
     VALUES ($1, $2, $3, $4)";
 
 const GET_SQL: &str = "SELECT source_system, source_external_id, source_locator,
-        captured_at, ingested_at, extractor_name, extractor_version
+        captured_at, ingested_at, extractor_name, extractor_version,
+        conversation_id, conversation_turn
     FROM provenance WHERE scope_id = $1 AND memory_id = $2";
+
+/// A conversation's active message memories in turn order (031 B-11).
+///
+/// The scope is on the provenance row and on the memory row it joins, and the
+/// status predicate is the one every recall read applies (018 B-7), so a
+/// quarantined, expired, superseded, or erased turn is absent. The scope is
+/// named twice, so the statement uses `?NNN` (012 D-9).
+const TURNS_SQL: &str = "SELECT memory.record AS record
+    FROM provenance
+    JOIN memory ON memory.id = provenance.memory_id
+               AND memory.scope_id = provenance.scope_id
+    WHERE provenance.scope_id = ?1 AND provenance.source_system = ?2
+      AND provenance.conversation_id = ?3
+      AND provenance.conversation_turn BETWEEN ?4 AND ?5
+      AND memory.status = 'active'
+    ORDER BY provenance.conversation_turn";
 
 /// The parents of one memory, in the order they were named.
 ///
@@ -59,6 +88,31 @@ struct ProvenanceRow {
     ingested_at: i64,
     extractor_name: Option<String>,
     extractor_version: Option<String>,
+    conversation_id: Option<String>,
+    conversation_turn: Option<i64>,
+}
+
+#[derive(Debug, Deserialize)]
+struct RecordRow {
+    record: String,
+}
+
+/// Which turns of a conversation a read selects (031 B-11).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TurnRange {
+    /// Every turn.
+    All,
+    /// The turns numbered `first` to `last`, inclusive, with `first <= last`.
+    ///
+    /// It selects by turn number, not by count: a range over a gap returns
+    /// fewer memories than its width, and no turn from outside the range
+    /// substitutes for a missing one.
+    Between {
+        /// The first turn number, from 1.
+        first: u32,
+        /// The last turn number.
+        last: u32,
+    },
 }
 
 #[derive(Debug, Deserialize)]
@@ -89,20 +143,25 @@ impl ProvenanceRepo {
                         Some(extractor.version.clone()),
                     )
                 });
-        txn.push(Statement::with_params(
-            INSERT_SQL,
-            vec![
-                Value::from(memory.to_string()),
-                Value::from(scope),
-                Value::from(provenance.source.system.as_str()),
-                Value::from(provenance.source.external_id.clone()),
-                Value::from(provenance.source.locator.clone()),
-                Value::Integer(seconds_to_sql(provenance.captured_at)),
-                Value::Integer(seconds_to_sql(provenance.ingested_at)),
-                Value::from(extractor_name),
-                Value::from(extractor_version),
-            ],
-        ));
+        let mut params = vec![
+            Value::from(memory.to_string()),
+            Value::from(scope),
+            Value::from(provenance.source.system.as_str()),
+            Value::from(provenance.source.external_id.clone()),
+            Value::from(provenance.source.locator.clone()),
+            Value::Integer(seconds_to_sql(provenance.captured_at)),
+            Value::Integer(seconds_to_sql(provenance.ingested_at)),
+            Value::from(extractor_name),
+            Value::from(extractor_version),
+        ];
+        let sql = if let Some(conversation) = &provenance.conversation {
+            params.push(Value::from(conversation.id.as_str()));
+            params.push(Value::Integer(i64::from(conversation.turn)));
+            INSERT_TURN_SQL
+        } else {
+            INSERT_SQL
+        };
+        txn.push(Statement::with_params(sql, params));
         for (position, parent) in provenance.derived_from.iter().enumerate() {
             let position = i64::try_from(position).map_err(|_| {
                 Error::Validation(format!(
@@ -149,6 +208,55 @@ impl ProvenanceRepo {
         };
         let parents = Self::parents(store, scope, memory).await?;
         row_to_provenance(memory, row, parents).map(Some)
+    }
+
+    /// A conversation's message memories in turn order (031 B-11).
+    ///
+    /// `query`, the local replica: a detail read that accompanies recall, and
+    /// nothing is decided on it (B-5). Only `Active` memories of `scope` are
+    /// returned, so a turn that is quarantined, expired, superseded, or erased
+    /// is absent, and a conversation with the same id in another scope or
+    /// from another source system is a different conversation.
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Validation`] for a reversed range; the store's error; or
+    /// [`Error::Integrity`] when a stored record does not read back.
+    pub async fn conversation_turns(
+        store: &StoreHandle,
+        scope: &Scope,
+        source: &SourceSystem,
+        id: &ConversationId,
+        turns: TurnRange,
+    ) -> Result<Vec<Memory>, Error> {
+        let (first, last) = match turns {
+            TurnRange::All => (1, u32::MAX),
+            TurnRange::Between { first, last } if first <= last => (first, last),
+            TurnRange::Between { first, last } => {
+                return Err(Error::Validation(format!(
+                    "the turn range {first} to {last} is reversed; first must not exceed last"
+                )));
+            }
+        };
+        let rows: Vec<RecordRow> = store
+            .query(
+                TURNS_SQL,
+                vec![
+                    Value::from(&ScopeId::of(scope)),
+                    Value::from(source.as_str()),
+                    Value::from(id.as_str()),
+                    Value::Integer(i64::from(first)),
+                    Value::Integer(i64::from(last)),
+                ],
+            )
+            .await?;
+        rows.into_iter()
+            .map(|row| {
+                serde_json::from_str(&row.record).map_err(|error| {
+                    Error::Integrity(format!("a stored memory does not read back: {error}"))
+                })
+            })
+            .collect()
     }
 
     /// The memories this one was derived from, in order, within this scope.
@@ -221,6 +329,22 @@ fn row_to_provenance(
             )));
         }
     };
+    let conversation = match (row.conversation_id, row.conversation_turn) {
+        (Some(id), Some(turn)) => {
+            let turn = u32::try_from(turn).map_err(|_| {
+                Error::Integrity(format!(
+                    "provenance row for {memory} holds a conversation turn out of range: {turn}"
+                ))
+            })?;
+            Some(ConversationRef::new(ConversationId::new(id)?, turn)?)
+        }
+        (None, None) => None,
+        (id, turn) => {
+            return Err(Error::Integrity(format!(
+                "provenance row for {memory} names half a conversation reference: {id:?}/{turn:?}"
+            )));
+        }
+    };
     Ok(Provenance {
         source,
         captured_at: seconds(row.captured_at, "captured_at")?,
@@ -229,5 +353,6 @@ fn row_to_provenance(
         extractor,
         admission: None,
         spans: Vec::new(),
+        conversation,
     })
 }

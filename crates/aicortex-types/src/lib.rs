@@ -77,7 +77,10 @@ pub use predicate::{
     Cardinality, CardinalityKind, PredicateDef, PredicateDefParts, PredicateName, PredicateRef,
     PredicateSet, SlotName, SupersessionRule, ValidTimeMode, ValueType,
 };
-pub use provenance::{AdmissionOverride, ExtractorVersion, Provenance, SourceRef, SourceSystem};
+pub use provenance::{
+    AdmissionOverride, ConversationId, ConversationRef, ExtractorVersion, Provenance, SourceRef,
+    SourceSystem,
+};
 pub use scope::{ProjectKey, Scope, ScopeKind, ShareKey};
 pub use span::{ContentDigest, Hex, PartKind, PartLocator, SourceSpan, SpanRange, SpanUnit};
 pub use trust::{DecisionRef, Promotion, TrustClass};

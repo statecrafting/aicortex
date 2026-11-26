@@ -41,11 +41,6 @@
         "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/tests/clients.rs' does not exist",
         "path": "crates/aicortex-api/tests/clients.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-recall/src/delivery.rs' does not exist",
-        "path": "crates/aicortex-recall/src/delivery.rs"
       }
     ]
   },
@@ -77,6 +72,10 @@
       },
       {
         "path": "crates/aicortex-mcp/tests/tools.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/src/delivery.rs",
         "source": "spec-edge"
       }
     ],
@@ -219,7 +218,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/delivery.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
