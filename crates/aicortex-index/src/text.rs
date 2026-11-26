@@ -280,6 +280,10 @@ pub async fn search(
         .map(|offset| format!("?{}", offset + 5 + tokens.len()))
         .collect::<Vec<_>>()
         .join(", ");
+    let (restriction, extra) = query
+        .filter
+        .restriction()
+        .clauses(5 + tokens.len() + labels.len());
     // The reserved length token is a store constant, spliced as a quoted
     // literal so the join cannot drift from it.
     let stats_token = STATS_TOKEN.replace('\'', "''");
@@ -293,7 +297,7 @@ pub async fn search(
          WHERE p.scope_id = ?1 AND p.model_revision = ?2
            AND (p.token > ?3 OR (p.token = ?3 AND p.chunk_id > ?4))
            AND p.token IN ({token_params})
-           AND m.status IN ({status_params})
+           AND m.status IN ({status_params}){restriction}
          ORDER BY p.token, p.chunk_id"
     );
     let mut params = vec![
@@ -304,6 +308,7 @@ pub async fn search(
     ];
     params.extend(tokens.iter().map(|token| Value::from(token.as_str())));
     params.extend(labels.iter().map(|label| Value::from(*label)));
+    params.extend(extra);
 
     let idfs: HashMap<&str, f64> = stats
         .df

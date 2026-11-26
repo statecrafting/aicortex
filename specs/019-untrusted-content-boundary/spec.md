@@ -181,6 +181,13 @@ therefore does not claim.
   `tempfile` for tests (018 D-5). Every edge points downward. They land on
   their own, ahead of 018's code, under policy isolation (spec 044 section
   3.3). The boundary this spec owns is unchanged.
+- **D-6 (2026-11-26, the 018 code PR).** 018 extends this crate's root
+  with its ranking modules (`channels`, `filter`, `freshness`, `fusion`,
+  `query`, `recall`, `trace`) and their re-exports, and allows float
+  arithmetic at the crate root as the workspace lint permits for recall.
+  The frozen invariant holds: `Recall::recall` returns memory ids, ranks
+  and a trace and never a body, and surfaces still serialize only
+  `FramedMemories`. No requirement here changes.
 
 ## Verification
 

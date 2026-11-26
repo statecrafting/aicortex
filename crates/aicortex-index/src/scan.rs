@@ -62,6 +62,7 @@ impl Default for ScanConfig {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Filter {
     statuses: Vec<&'static str>,
+    restriction: Restriction,
 }
 
 impl Filter {
@@ -70,6 +71,7 @@ impl Filter {
     pub fn retrievable() -> Self {
         Self {
             statuses: vec![Status::Active.label()],
+            restriction: Restriction::default(),
         }
     }
 
@@ -88,7 +90,23 @@ impl Filter {
                 "a scan filter must admit at least one memory status".to_owned(),
             ));
         }
-        Ok(Self { statuses: labels })
+        Ok(Self {
+            statuses: labels,
+            restriction: Restriction::default(),
+        })
+    }
+
+    /// The same filter, narrowed by `restriction` (spec 018 B-1).
+    #[must_use]
+    pub fn restricted(mut self, restriction: Restriction) -> Self {
+        self.restriction = restriction;
+        self
+    }
+
+    /// The restriction the filter carries.
+    #[must_use]
+    pub const fn restriction(&self) -> &Restriction {
+        &self.restriction
     }
 
     /// The admitted status labels, sorted.
@@ -96,6 +114,123 @@ impl Filter {
     pub fn labels(&self) -> &[&'static str] {
         &self.statuses
     }
+}
+
+/// The memory predicates beyond status that a channel applies in its own
+/// statement (spec 018 B-1, an additive extension of this filter).
+///
+/// Closed by construction: each field is a typed set or bound, rendered into
+/// a fixed clause over the `memory` alias `m` with every value bound as a
+/// parameter. An empty field adds no clause, so a statement that does not
+/// ask for a source never touches the provenance table.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub struct Restriction {
+    /// Memory kind labels.
+    pub kinds: Vec<String>,
+    /// Trust class labels.
+    pub trusts: Vec<String>,
+    /// Actor kind labels.
+    pub actor_kinds: Vec<String>,
+    /// Source system names, matched against the memory's provenance.
+    pub sources: Vec<String>,
+    /// Entity ids the memory must mention, merged entities included.
+    pub entities: Vec<String>,
+    /// Earliest `created`, inclusive.
+    pub created_from: Option<u64>,
+    /// Latest `created`, inclusive.
+    pub created_to: Option<u64>,
+}
+
+impl Restriction {
+    /// Whether no predicate is set.
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        *self == Self::default()
+    }
+
+    /// The `AND ...` clauses over alias `m` and their parameters, numbered
+    /// from `first` (`?first`, `?first + 1`, ...).
+    #[must_use]
+    pub fn clauses(&self, first: usize) -> (String, Vec<Value>) {
+        let mut sql = String::new();
+        let mut params = Vec::new();
+        let mut next = first;
+        let mut set = |template: &str, value: Value, sql: &mut String| {
+            sql.push_str(&template.replace("{n}", &next.to_string()));
+            params.push(value);
+            next += 1;
+        };
+        let listed: [(&Vec<String>, &str); 5] = [
+            (
+                &self.kinds,
+                "\n AND m.kind IN (SELECT value FROM json_each(?{n}))",
+            ),
+            (
+                &self.trusts,
+                "\n AND m.trust IN (SELECT value FROM json_each(?{n}))",
+            ),
+            (
+                &self.actor_kinds,
+                "\n AND json_extract(m.record, '$.actor.kind') IN (SELECT value FROM json_each(?{n}))",
+            ),
+            (
+                &self.sources,
+                "\n AND EXISTS (SELECT 1 FROM provenance pv WHERE pv.memory_id = m.id \
+                 AND pv.scope_id = m.scope_id \
+                 AND pv.source_system IN (SELECT value FROM json_each(?{n})))",
+            ),
+            (
+                &self.entities,
+                "\n AND EXISTS (SELECT 1 FROM mention mn WHERE mn.scope_id = m.scope_id \
+                 AND mn.memory_id = m.id AND mn.entity_id IN \
+                 (SELECT en.entity_id FROM entity en WHERE en.scope_id = m.scope_id \
+                  AND (en.entity_id IN (SELECT value FROM json_each(?{n})) \
+                       OR en.merged_into IN (SELECT value FROM json_each(?{n})))))",
+            ),
+        ];
+        for (values, template) in listed {
+            if !values.is_empty() {
+                set(template, Value::from(json_array(values)), &mut sql);
+            }
+        }
+        if let Some(from) = self.created_from {
+            set(
+                "\n AND m.created >= ?{n}",
+                Value::Integer(i64::try_from(from).unwrap_or(i64::MAX)),
+                &mut sql,
+            );
+        }
+        if let Some(to) = self.created_to {
+            set(
+                "\n AND m.created <= ?{n}",
+                Value::Integer(i64::try_from(to).unwrap_or(i64::MAX)),
+                &mut sql,
+            );
+        }
+        (sql, params)
+    }
+}
+
+/// `values` as a JSON array of strings, for SQLite's `json_each`.
+fn json_array(values: &[String]) -> String {
+    let mut out = String::from("[");
+    for (n, value) in values.iter().enumerate() {
+        if n > 0 {
+            out.push(',');
+        }
+        out.push('"');
+        for c in value.chars() {
+            match c {
+                '"' => out.push_str("\\\""),
+                '\\' => out.push_str("\\\\"),
+                c if u32::from(c) < 0x20 => out.push_str(&format!("\\u{:04x}", u32::from(c))),
+                c => out.push(c),
+            }
+        }
+        out.push('"');
+    }
+    out.push(']');
+    out
 }
 
 impl Default for Filter {
@@ -216,8 +351,12 @@ impl<'a> StoreRows<'a> {
             .map(|offset| format!("?{}", FIRST_STATUS_PARAM + offset))
             .collect::<Vec<_>>()
             .join(", ");
+        let (restriction, extra) = query
+            .filter
+            .restriction()
+            .clauses(FIRST_STATUS_PARAM + labels.len());
         let sql = format!(
-            "{SELECT}\n        AND m.status IN ({placeholders})\n    \
+            "{SELECT}\n        AND m.status IN ({placeholders}){restriction}\n    \
              ORDER BY e.memory_id, e.chunk_ordinal"
         );
         let mut params = vec![
@@ -230,6 +369,7 @@ impl<'a> StoreRows<'a> {
             Value::Null,
         ];
         params.extend(labels.iter().map(|label| Value::from(*label)));
+        params.extend(extra);
         Self { store, sql, params }
     }
 }

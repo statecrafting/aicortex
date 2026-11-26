@@ -30,8 +30,8 @@ pub mod topk;
 pub mod vector;
 
 pub use scan::{
-    Comparable, DEFAULT_BUDGET, Filter, PageSource, ScanConfig, ScanIndex, ScanOutcome, ScanQuery,
-    StoreRows, VectorIndex, VectorRow, scan, scan_rows,
+    Comparable, DEFAULT_BUDGET, Filter, PageSource, Restriction, ScanConfig, ScanIndex,
+    ScanOutcome, ScanQuery, StoreRows, VectorIndex, VectorRow, scan, scan_rows,
 };
 pub use topk::{Candidate, TopK};
 pub use vector::{VectorError, decode, decode_into, dot, dot_scalar, normalize};

@@ -1,0 +1,8 @@
+[
+  { "name": "vector only", "text": "apple", "channels": ["vector"], "k": 5, "expected": [1, 2, 4, 5, 3] },
+  { "name": "text only", "text": "apple", "channels": ["text"], "k": 5, "expected": [2, 4, 1] },
+  { "name": "recency only", "text": "apple", "channels": ["recency"], "k": 5, "expected": [2, 3, 4] },
+  { "name": "vector and text", "text": "apple", "channels": ["vector", "text"], "k": 5, "expected": [2, 1, 4, 5, 3] },
+  { "name": "all channels", "text": "apple", "channels": ["vector", "text", "recency", "graph"], "k": 5, "expected": [2, 4, 1, 3, 5] },
+  { "name": "all channels, boat", "text": "boat", "channels": ["vector", "text", "recency", "graph"], "k": 3, "expected": [3, 4, 2] }
+]
