@@ -57,6 +57,14 @@ fn run_hook(client: &str, invocation: &Value, url: &str, extra: &[(&str, &str)],
     command
         .arg(dir.join("hook.mjs"))
         .current_dir(scratch)
+        // Only what this test sets reaches the hook: nothing inherited from
+        // the runner's environment can supply a token or turn capture off.
+        .env_remove("AICORTEX_ACCESS_TOKEN")
+        .env_remove("AICORTEX_TOKEN_FILE")
+        .env_remove("AICORTEX_CAPTURE")
+        .env_remove("AICORTEX_HOOK_TIMEOUT_MS")
+        .env_remove("AICORTEX_TRANSCRIPT_ROOT")
+        .env_remove("CLAUDE_CONFIG_DIR")
         .env("AICORTEX_URL", url)
         .env("AICORTEX_HOME", scratch)
         .env("AICORTEX_HOOK_LOG", scratch.join("hook.log"))
