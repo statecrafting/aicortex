@@ -174,6 +174,13 @@ therefore does not claim.
   FR-004 reuses the existing types crate's agent-promotion compile-fail
   case, which the workspace gate executes, rather than duplicating its
   compiler diagnostic. FR-005 remains with 023 under D-2.
+- **D-5 (2026-11-26, dependency edges, the 018 manifest PR).** As D-2
+  foresaw, 018 adds ranking to the crate this spec founded: the recall
+  `Cargo.toml` takes the workspace's `aicortex-embed`, `aicortex-graph`,
+  `aicortex-index`, `aicortex-store`, `rahi-store`, `ring` and `tokio`, and
+  `tempfile` for tests (018 D-5). Every edge points downward. They land on
+  their own, ahead of 018's code, under policy isolation (spec 044 section
+  3.3). The boundary this spec owns is unchanged.
 
 ## Verification
 
