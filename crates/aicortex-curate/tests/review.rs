@@ -196,12 +196,12 @@ async fn ac2_rejecting_a_quarantined_memory_erases_it_and_the_chain_verifies() {
     node.shutdown().await;
 }
 
-/// D-10: a rejection's erasure and the item's close commit together. When
+/// D-9: a rejection's erasure and the item's close commit together. When
 /// the close cannot commit, nothing is erased and the item stays open, so the
 /// reconciliation never withdraws it without a Decision; once the close can
 /// commit, the item names the Decision 014 appended.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn d10_a_rejection_erases_and_closes_together_or_does_neither() {
+async fn d9_a_rejection_erases_and_closes_together_or_does_neither() {
     let node = node().await;
     let scope = scope("alice");
     let memory = quarantined(&node, &scope, "origin unknown").await;
@@ -488,6 +488,57 @@ async fn keep_edge_keeps_an_earlier_end_and_refuses_an_edge_no_longer_active() {
     node.shutdown().await;
 }
 
+/// D-7: a boundary at the end of the shared period would leave the later
+/// edge with no duration, so it is refused; one second earlier holds.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_disjoint_boundary_never_leaves_an_edge_without_duration() {
+    let node = node().await;
+    let scope = scope("alice");
+    let source = active(&node, &scope, "alice changed projects twice").await;
+    add_edge(&node.handle(), &scope, "edg-a", "apollo", 100, None, source).await;
+    add_edge(
+        &node.handle(),
+        &scope,
+        "edg-b",
+        "gemini",
+        200,
+        Some(400),
+        source,
+    )
+    .await;
+    add_contradiction(&node.handle(), &scope, "edg-a", "edg-b").await;
+    let item = the_open_item(&node, &scope, ReviewKind::Contradiction).await;
+    let handle = node.handle();
+    let reviewer = Reviewer::new(&handle, &node.ledger);
+    let at_boundary = |boundary| Resolution::Disjoint {
+        boundary: UnixSeconds::new(boundary),
+        reason: "the periods meet here".to_owned(),
+    };
+    let refused = reviewer
+        .resolve(
+            &scope,
+            &item.id,
+            &person("alice"),
+            &at_boundary(400),
+            at(10),
+        )
+        .await;
+    assert!(matches!(refused, Err(Error::Validation(_))), "{refused:?}");
+    reviewer
+        .resolve(
+            &scope,
+            &item.id,
+            &person("alice"),
+            &at_boundary(399),
+            at(11),
+        )
+        .await
+        .unwrap();
+    let later = edge(&node.handle(), &scope, "edg-b").await;
+    assert_eq!((later.valid_from, later.valid_until), (399, Some(400)));
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr005_two_disjoint_periods_leave_two_active_edges_that_do_not_overlap() {
     let node = node().await;
@@ -642,6 +693,84 @@ async fn a_promotion_that_cannot_be_made_appends_no_decision() {
     node.shutdown().await;
 }
 
+/// FR-003: an approval commits only while its item is open. An item a
+/// concurrent decline already closed aborts the promotion, and the memory
+/// stays an assertion.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn an_approval_of_an_item_closed_meanwhile_promotes_nothing() {
+    let node = node().await;
+    let scope = scope("alice");
+    let memory = active(&node, &scope, "approve me late").await;
+    let queue = ReviewQueue::new();
+    let request = queue
+        .request_promotion(
+            &node.handle(),
+            &scope,
+            memory,
+            &person("agent-client"),
+            at(1),
+        )
+        .await
+        .unwrap();
+    let handle = node.handle();
+    let reviewer = Reviewer::new(&handle, &node.ledger);
+    reviewer
+        .resolve(
+            &scope,
+            &request.id,
+            &person("bob"),
+            &Resolution::Decline,
+            at(5),
+        )
+        .await
+        .unwrap();
+    // The approval read the item as open before the decline committed.
+    let late = Promoter::new(&handle, &node.ledger)
+        .promote_for_item(&scope, memory, &person("alice"), None, at(6), &request.id)
+        .await;
+    assert!(late.is_err(), "{late:?}");
+    assert!(!read(&node, &scope, memory).await.trust.is_actionable());
+    let item = queue
+        .get(&node.handle(), &scope, &request.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(item.state, ReviewState::Resolved);
+    assert_eq!(item.resolution.as_deref(), Some("decline"));
+    // Another memory's open request does not authorize this one.
+    let other = active(&node, &scope, "someone else's request").await;
+    let others = queue
+        .request_promotion(
+            &node.handle(),
+            &scope,
+            other,
+            &person("agent-client"),
+            at(6),
+        )
+        .await
+        .unwrap();
+    let borrowed = Promoter::new(&handle, &node.ledger)
+        .promote_for_item(&scope, memory, &person("alice"), None, at(6), &others.id)
+        .await;
+    assert!(borrowed.is_err(), "{borrowed:?}");
+    assert!(!read(&node, &scope, memory).await.trust.is_actionable());
+    // An item id the scope does not hold promotes nothing either.
+    let unknown = Promoter::new(&handle, &node.ledger)
+        .promote_for_item(
+            &scope,
+            memory,
+            &person("alice"),
+            None,
+            at(7),
+            "no-such-item",
+        )
+        .await;
+    assert!(unknown.is_err(), "{unknown:?}");
+    assert!(!read(&node, &scope, memory).await.trust.is_actionable());
+    node.ledger.verify().await.unwrap();
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn approving_a_request_promotes_and_declining_leaves_the_memory_alone() {
     let node = node().await;
@@ -760,6 +889,41 @@ async fn demotion_returns_the_memory_to_assertion_and_the_ledger_keeps_both_reco
         .promote(&scope, memory, &alice, None, at(30))
         .await
         .unwrap();
+    node.ledger.verify().await.unwrap();
+    node.shutdown().await;
+}
+
+/// D-5: a lapse whose act does not commit is followed by a refusal on the
+/// chain, and the memory keeps its grade.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_lapse_that_cannot_commit_is_refused_on_the_chain() {
+    let node = node().await;
+    let scope = scope("alice");
+    let memory = active(&node, &scope, "reconfirm me or else").await;
+    let handle = node.handle();
+    let promoter = Promoter::new(&handle, &node.ledger);
+    promoter
+        .promote(&scope, memory, &person("alice"), Some(3_600), at(0))
+        .await
+        .unwrap();
+    node.handle()
+        .txn(vec![Statement::new(
+            "CREATE TRIGGER refuse_lapse BEFORE DELETE ON promotion
+             BEGIN SELECT RAISE(ABORT, 'injected lapse failure'); END",
+        )])
+        .await
+        .unwrap();
+    // The store reports the aborted write as a conflict, so the sweep goes
+    // on and lapses nothing; any other error would stop it.
+    let lapsed = promoter.expire_due(&scope, at(3_600)).await.unwrap();
+    assert!(lapsed.is_empty(), "{lapsed:?}");
+    assert!(read(&node, &scope, memory).await.trust.is_actionable());
+    assert_eq!(node.decisions("memory.promotion_lapsed").await, 1);
+    assert_eq!(
+        node.decisions("memory.promotion_lapsed_failed").await,
+        1,
+        "the refusal follows the lapse it undoes"
+    );
     node.ledger.verify().await.unwrap();
     node.shutdown().await;
 }

@@ -12,7 +12,7 @@
 //! the Decision says, in one transaction, with the item closed in the same
 //! transaction. A rejection is the one act whose Decision is 014's: its
 //! erasure and the item's close commit together and 014 appends the Decision
-//! from the receipt that transaction wrote (D-10). The Decision names ids and
+//! from the receipt that transaction wrote (D-9). The Decision names ids and
 //! reason codes. It never carries a body (constitution XIV).
 
 use std::fmt;
@@ -565,7 +565,8 @@ impl ReviewQueue {
     ///
     /// [`Error::NotFound`] when the memory is not in the scope;
     /// [`Error::Conflict`] when it is not active or is already instruction
-    /// grade; the store's error.
+    /// grade, or stopped being so while the request was opened; the store's
+    /// error.
     pub async fn request_promotion(
         &self,
         store: &StoreHandle,
@@ -613,8 +614,11 @@ impl ReviewQueue {
             .map(ReviewItem::try_from)
             .transpose()?
             .ok_or_else(|| {
-                Error::Integrity(format!(
-                    "the promotion request for {memory} did not persist"
+                // A concurrent collection withdrew it between the two reads:
+                // the memory changed state, so asking again decides afresh.
+                Error::Conflict(format!(
+                    "the promotion request for {memory} was withdrawn while being opened; \
+                     the memory is no longer an active assertion"
                 ))
             })
     }
@@ -623,6 +627,7 @@ impl ReviewQueue {
     ///
     /// A quarantine or a promotion request is about one memory. A
     /// contradiction is decided on the memories its two edges were read from.
+    /// A gate override names none until its producer is specified (D-4).
     /// Ids only: the routes put the bodies inside 019's envelope.
     ///
     /// # Errors
@@ -636,7 +641,10 @@ impl ReviewQueue {
         item: &ReviewItem,
     ) -> Result<Vec<MemoryId>, Error> {
         match item.kind {
-            ReviewKind::Quarantine | ReviewKind::PromotionRequest | ReviewKind::GateOverride => {
+            // No producer opens a gate override yet, and its subject is not
+            // specified (D-4), so it names no memory to show.
+            ReviewKind::GateOverride => Ok(Vec::new()),
+            ReviewKind::Quarantine | ReviewKind::PromotionRequest => {
                 let id = MemoryId::parse(&item.subject).map_err(|_| {
                     Error::Integrity(format!("review item {} names no memory", item.id))
                 })?;
@@ -767,7 +775,7 @@ impl<'a> Reviewer<'a> {
                 // Promotion closes this item, with the others open for the
                 // memory, in its own transaction (B-5).
                 Promoter::new(self.store, self.ledger)
-                    .promote(scope, memory, by, *interval_secs, now)
+                    .promote_for_item(scope, memory, by, *interval_secs, now, id)
                     .await?;
             }
             Resolution::Decline => {
@@ -904,7 +912,7 @@ impl<'a> Reviewer<'a> {
         let prepared = eraser
             .prepare_erase(self.store, scope, id, false, &authority, closing.now)
             .await?;
-        // The erasure and the item's close commit together (D-10): a failure
+        // The erasure and the item's close commit together (D-9): a failure
         // of either leaves the memory quarantined and the item open, so the
         // reconciliation never withdraws an item for a memory that a
         // rejection erased.
@@ -959,6 +967,8 @@ impl<'a> Reviewer<'a> {
         )
         .await?;
         let mut txn = TxnBuilder::new();
+        txn.push(require_active_edge(closing.scope_id, survivor));
+        txn.push(require_active_edge(closing.scope_id, loser));
         // The loser stops holding when the reviewer decided, never before it
         // began, and never later than an end it already had (D-7); nothing is
         // deleted (017 FR-005). An edge no longer active when this commits
@@ -1007,10 +1017,11 @@ impl<'a> Reviewer<'a> {
             .valid_until
             .unwrap_or(i64::MAX)
             .min(second.valid_until.unwrap_or(i64::MAX));
-        if meet <= first.valid_from || meet < latest_start || meet > earliest_end {
+        if meet <= first.valid_from || meet < latest_start || meet >= earliest_end {
             return Err(Error::Validation(format!(
                 "the boundary must fall after the earlier edge begins ({}) and inside the \
-                 period both edges claim, from {latest_start} to {}; got {meet}",
+                 period both edges claim, from {latest_start} up to but not including {}; \
+                 got {meet}",
                 first.valid_from,
                 if earliest_end == i64::MAX {
                     "no end".to_owned()
@@ -1033,7 +1044,10 @@ impl<'a> Reviewer<'a> {
         )
         .await?;
         let mut txn = TxnBuilder::new();
-        // As in `keep_edge`: an edge no longer active aborts the transaction.
+        // As in `keep_edge`: an edge no longer active, or gone, aborts the
+        // transaction.
+        txn.push(require_active_edge(closing.scope_id, &first.edge_id));
+        txn.push(require_active_edge(closing.scope_id, &second.edge_id));
         txn.push(Statement::with_params(
             "UPDATE edge SET valid_until = ?3,
                  status = CASE WHEN status = 'active' THEN status ELSE NULL END
@@ -1083,10 +1097,14 @@ impl Closing<'_> {
     /// The statement that resolves the item, naming the Decision.
     fn statement(&self, decision: &str) -> Result<Statement, Error> {
         Ok(Statement::with_params(
+            // An item no longer open writes NULL into the NOT NULL state,
+            // aborting the whole transaction: a concurrent resolution or
+            // withdrawal never lets a second act commit beside it (FR-003).
             "UPDATE review_item
-             SET state = 'resolved', resolved_by = ?3, resolved_at = ?4,
+             SET state = CASE WHEN state = 'open' THEN 'resolved' ELSE NULL END,
+                 resolved_by = ?3, resolved_at = ?4,
                  resolution = ?5, reason = ?6, decision_id = ?7
-             WHERE scope_id = ?1 AND item_id = ?2 AND state = 'open'",
+             WHERE scope_id = ?1 AND item_id = ?2",
             vec![
                 Value::from(self.scope_id),
                 Value::from(self.item_id),
@@ -1127,9 +1145,24 @@ pub(crate) struct EdgeRow {
     pub(crate) status: String,
 }
 
-/// Withdraw open items whose subject no longer needs a person (D-4). Each
-/// statement binds the scope as `?1` and the time as `?2`; the time is
-/// unused by the first three and bound so all four share one parameter list.
+/// A statement that aborts its transaction unless `edge` is an active edge
+/// of the scope when it commits: it then inserts a review item with a NULL
+/// scope, which the NOT NULL column refuses. A resolution therefore never
+/// records an act on an edge that a concurrent change retired or removed
+/// (FR-003).
+fn require_active_edge(scope_id: &ScopeId, edge: &str) -> Statement {
+    Statement::with_params(
+        "INSERT INTO review_item (item_id, scope_id, kind, subject, created, state)
+         SELECT ?2, NULL, 'contradiction', '', 0, 'open'
+         WHERE NOT EXISTS (SELECT 1 FROM edge
+                           WHERE scope_id = ?1 AND edge_id = ?2 AND status = 'active')",
+        vec![Value::from(scope_id), Value::from(edge)],
+    )
+}
+
+/// Withdraw open items whose subject no longer needs a person (D-4), one
+/// statement per kind that can lapse. Each binds the scope as `?1` and the
+/// withdrawal time as `?2`, which it records as `resolved_at`.
 const WITHDRAW_SQL: [&str; 3] = [
     "UPDATE review_item SET state = 'withdrawn', resolved_at = ?2
      WHERE scope_id = ?1 AND state = 'open' AND kind = 'quarantine'

@@ -363,6 +363,16 @@ manifest will eventually declare. The reference deployment (044).
   workspace declaration and the app's edge, and no third-party package. No
   requirement or acceptance criterion changes.
 
+- **D-15 (2026-11-26, dependency edge, the 026 manifest commit).** The
+  workspace declares `tracing` 0.1 and `aicortex-api` takes it as a
+  dev-dependency, so 026's FR-006 can install a capturing subscriber under
+  the fully assembled router and show that a search asking for entity
+  pointers adds no occurrence of its query to any log line or span. The
+  chassis already locks `tracing` 0.1.44, so `Cargo.lock` gains one
+  dependency line on `aicortex-api` and no package, and `cargo deny` sees no
+  new crate. It lands on its own, ahead of the code, under policy isolation
+  (spec 044 section 3.3). No requirement or acceptance criterion changes.
+
 ## Status (2026-09-17, complete: the chassis release landed)
 
 rahi published all nine crates at `0.1.0`, none yanked, tagged `v0.1.0`. The

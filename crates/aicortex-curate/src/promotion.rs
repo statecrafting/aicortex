@@ -124,6 +124,40 @@ impl<'a> Promoter<'a> {
         interval_secs: Option<u64>,
         now: UnixSeconds,
     ) -> Result<Promoted, Error> {
+        self.promote_inner(scope, memory, by, interval_secs, now, None)
+            .await
+    }
+
+    /// [`Self::promote`] as the approval of review item `item`: the
+    /// promotion commits only while that item is still open, so a
+    /// concurrent decline or withdrawal aborts it (023 FR-003).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::promote`], and the store's error when `item` is no longer
+    /// open at commit.
+    pub async fn promote_for_item(
+        &self,
+        scope: &Scope,
+        memory: MemoryId,
+        by: &Sub,
+        interval_secs: Option<u64>,
+        now: UnixSeconds,
+        item: &str,
+    ) -> Result<Promoted, Error> {
+        self.promote_inner(scope, memory, by, interval_secs, now, Some(item))
+            .await
+    }
+
+    async fn promote_inner(
+        &self,
+        scope: &Scope,
+        memory: MemoryId,
+        by: &Sub,
+        interval_secs: Option<u64>,
+        now: UnixSeconds,
+        item: Option<&str>,
+    ) -> Result<Promoted, Error> {
         let interval = interval_secs.unwrap_or(DEFAULT_REVIEW_INTERVAL_SECS);
         if !(MIN_REVIEW_INTERVAL_SECS..=MAX_REVIEW_INTERVAL_SECS).contains(&interval) {
             return Err(Error::Validation(format!(
@@ -172,6 +206,25 @@ impl<'a> Promoter<'a> {
         found.trust = TrustClass::instruction(Promotion::new(by.clone(), reference));
         found.updated = now;
         let mut txn = TxnBuilder::new();
+        if let Some(item) = item {
+            // The approved item must be this memory's open promotion request
+            // in this scope when this commits. Otherwise this inserts a row with a NULL
+            // scope_id, which the NOT NULL column refuses, aborting the
+            // whole transaction; an absent or closed item never lets the
+            // promotion commit.
+            txn.push(Statement::with_params(
+                "INSERT INTO review_item (item_id, scope_id, kind, subject, created, state)
+                 SELECT ?2, NULL, 'promotion_request', '', 0, 'open'
+                 WHERE NOT EXISTS (SELECT 1 FROM review_item
+                                   WHERE scope_id = ?1 AND item_id = ?2 AND state = 'open'
+                                     AND kind = 'promotion_request' AND subject = ?3)",
+                vec![
+                    Value::from(&scope_id),
+                    Value::from(item),
+                    Value::from(memory.to_string()),
+                ],
+            ));
+        }
         txn.push(memory_update(
             &scope_id,
             &found,
@@ -371,8 +424,17 @@ impl<'a> Promoter<'a> {
                     memory,
                     decision: decision_id,
                 }),
-                Err(Error::Conflict(_)) => {}
-                Err(error) => return Err(error),
+                Err(error) => {
+                    // The lapse Decision is on the chain but its act did not
+                    // commit, so a refusal follows it (D-5). A conflict means a
+                    // concurrent demotion or promotion already moved the
+                    // memory, and the sweep goes on; any other error stops it.
+                    let by = Sub::new(row.promoted_by.as_str());
+                    refuse(self.ledger, KIND_LAPSE, scope, memory, &by).await;
+                    if !matches!(error, Error::Conflict(_)) {
+                        return Err(error);
+                    }
+                }
             }
         }
         Ok(lapsed)

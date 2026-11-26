@@ -15,13 +15,13 @@ establishes:
   - "crates/aicortex-curate/Cargo.toml"
   - "crates/aicortex-curate/src/lib.rs"
   - "crates/aicortex-curate/src/review.rs"
+  - "crates/aicortex-curate/tests/common/mod.rs"
+  - "crates/aicortex-store/src/review_tables.rs"
   - "crates/aicortex-curate/src/promotion.rs"
   - "crates/aicortex-curate/src/migrations.rs"
   - "crates/aicortex-curate/src/routes.rs"
   - "crates/aicortex-curate/tests/review.rs"
   - "crates/aicortex-curate/tests/routes.rs"
-  - "crates/aicortex-curate/tests/common/mod.rs"
-  - "crates/aicortex-store/src/review_tables.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
@@ -148,7 +148,9 @@ concern; the routes and the queue count are the surface for now.
   API's `bearer_routes` (D-6). The
   manifest of the new crate has only workspace and path dependencies, so it
   lands whole with the crate; the root workspace entry and the app's edge land
-  ahead of the routes as 010 D-14.
+  ahead of the routes as 010 D-14. The crate's
+  manifest, `crates/aicortex-curate/Cargo.toml`, is claimed in `establishes`
+  with its sources.
 - **D-3 (2026-11-26, build, migration 14).** The review tables are migration
   14 (`REVIEW_VERSION`, additive, in `crates/aicortex-store/src/review_tables.rs`
   beside 015's, 016's and 017's tables), because the migration list is the
@@ -219,15 +221,7 @@ concern; the routes and the queue count are the surface for now.
   managed service in the cell, which is left to the curation workers of 034
   and the cell's service list; no cell file is changed by this part.
 
-- **D-9 (2026-11-26, build, the MCP count).** B-2's queue count is
-  `aicortex://review-queue`, which now reads `GET /review/count` instead of
-  the quarantined counter (021 D-13). 021 does not extend this spec, so the
-  edges are additive `extends` from here. The count route reconciles the queue
-  (D-4) before it counts, so a memory quarantined a moment ago is counted.
-  No MCP tool resolves, promotes, or demotes anything (B-8), and the tests of
-  021 still assert the seven-tool surface.
-
-- **D-10 (2026-11-26, build, rejection is atomic).** B-3's rejection is
+- **D-9 (2026-11-26, build, rejection is atomic).** B-3's rejection is
   014's erasure, and the item's close has to commit with it, or a failure
   between the two would leave a memory erased and its item open, which the
   reconciliation (D-4) then withdraws with no Decision. 014's `Eraser` already
@@ -241,6 +235,22 @@ concern; the routes and the queue count are the surface for now.
   and the item closed naming the pending Decision; repeating `Eraser::erase`
   for that memory appends it, which is 014's own recovery path. This spec
   adds no sweeper for undelivered receipts. No change to 014 was needed.
+
+- **D-10 (2026-11-26, build, how the build lands).** This spec is built
+  start to finish on one branch and lands in parts, as 017 D-8, 018 D-8,
+  025 D-7 and 026 D-13 did: first the curate crate, its tables and the
+  review and promotion rules; then the workspace and app manifest edges
+  alone, under policy isolation (spec 044 section 3.3); then the routes
+  and the MCP count. The spec stays `in-progress` until its last part
+  lands, so no part claims it complete.
+
+- **D-11 (2026-11-26, build, the MCP count).** B-2's queue count is
+  `aicortex://review-queue`, which now reads `GET /review/count` instead of
+  the quarantined counter (021 D-13). 021 does not extend this spec, so the
+  edges are additive `extends` from here. The count route reconciles the queue
+  (D-4) before it counts, so a memory quarantined a moment ago is counted.
+  No MCP tool resolves, promotes, or demotes anything (B-8), and the tests of
+  021 still assert the seven-tool surface.
 
 ## Status
 

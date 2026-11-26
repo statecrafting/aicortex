@@ -6,7 +6,7 @@ kind: "feature"
 domain: "clients"
 created: "2026-10-25"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: high
 wave: 2
 depends_on:
@@ -23,9 +23,11 @@ establishes:
   - "crates/aicortex-api/src/pointers.rs"
   - "crates/aicortex-api/tests/pointers.rs"
 extends:
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
   - { spec: "017-entities-and-typed-edges", unit: "crates/aicortex-graph/src/lib.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/search.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/dto.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/Cargo.toml", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
   - { spec: "022-client-adapters", unit: "clients/matrix.toml", nature: additive }
@@ -321,6 +323,32 @@ prose, which 017 B-6 forbids.
   the model reads. Rejected: reserving pointer space before packing, which
   would let a list of entity names cut the rank-one result; and a separate
   counter for pointers, which would put two units in one response.
+- **D-6 (2026-11-26, build).** How a text is searched for names, which B-1
+  leaves open. A name is a run of one to six words, a word being a maximal
+  run of alphanumeric characters and combining marks (the characters 017's
+  `normalize` keeps), so a longer alias is never matched. The scan runs left
+  to right and takes the longest name that resolves at each position, so
+  "Dana Whitfield" is one pointer and its two words are not. For one span an
+  exact alias, compared against the text from the first word's start to the
+  last word's end, beats a normalized-form match; a trailing mark of the alias
+  (`Dana W.`) is found through its normalized form. A name shared by two
+  entities resolves to the one with a live mention that was first seen
+  earliest, then by id, which is 017 B-2's order with B-3's filter applied
+  first, so a stale duplicate never hides a live entity. One entity appears
+  once, at its first match.
+- **D-14 (2026-11-26, build).** This spec is built start to finish on one
+  branch and lands in parts, as 017 D-8, 018 D-8 and 025 D-7 did: the
+  manifest edge first, under policy isolation (spec 044 section 3.3), then
+  the code in dependency order, because one change would be about 3,200
+  lines and the review's limit is about 2,000. The spec stays
+  `in-progress` until its last part lands, so no part claims it complete. Part 1 is the resolver in `aicortex-graph` (B-1 to
+  B-4, B-6's bounds, B-7, FR-001 to FR-003, FR-009's default bound, AC-1) and
+  needs nothing else. Part 2 is the block, the budget, and the two read
+  surfaces: 025's `deliver_with`, `aicortex-api`'s `pointers` module and its
+  search wiring, the MCP flag (B-5, B-6's token bound, B-8, B-9, FR-004 to
+  FR-007, FR-009, FR-010, FR-011, AC-2, AC-4), and depends on part 1. Part 3 is
+  the client matrix rows (B-11, B-12, FR-008, AC-3) and the status, and is
+  independent of part 2. No requirement or acceptance criterion changes.
 
 ## Verification
 

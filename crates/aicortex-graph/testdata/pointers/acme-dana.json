@@ -1,0 +1,28 @@
+{
+  "pointers": [
+    {
+      "canonical": "Acme Corp",
+      "end": 15,
+      "entity": "ent-acme",
+      "kind": "organization",
+      "last_seen": 1700000000,
+      "memories": 1,
+      "newest": "019c4f00-0000-7000-8000-000000000001",
+      "start": 4,
+      "trust": "evidence"
+    },
+    {
+      "canonical": "Dana Whitfield",
+      "end": 28,
+      "entity": "ent-dana",
+      "kind": "person",
+      "last_seen": 1700000100,
+      "memories": 3,
+      "newest": "019c4f00-0000-7000-8000-000000000002",
+      "start": 22,
+      "trust": "evidence"
+    }
+  ],
+  "text_truncated": false,
+  "truncated": false
+}
