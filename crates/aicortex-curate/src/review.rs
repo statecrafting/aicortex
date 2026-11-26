@@ -1007,10 +1007,11 @@ impl<'a> Reviewer<'a> {
             .valid_until
             .unwrap_or(i64::MAX)
             .min(second.valid_until.unwrap_or(i64::MAX));
-        if meet <= first.valid_from || meet < latest_start || meet > earliest_end {
+        if meet <= first.valid_from || meet < latest_start || meet >= earliest_end {
             return Err(Error::Validation(format!(
                 "the boundary must fall after the earlier edge begins ({}) and inside the \
-                 period both edges claim, from {latest_start} to {}; got {meet}",
+                 period both edges claim, from {latest_start} up to but not including {}; \
+                 got {meet}",
                 first.valid_from,
                 if earliest_end == i64::MAX {
                     "no end".to_owned()
