@@ -767,7 +767,7 @@ impl<'a> Reviewer<'a> {
                 // Promotion closes this item, with the others open for the
                 // memory, in its own transaction (B-5).
                 Promoter::new(self.store, self.ledger)
-                    .promote(scope, memory, by, *interval_secs, now)
+                    .promote_for_item(scope, memory, by, *interval_secs, now, id)
                     .await?;
             }
             Resolution::Decline => {
@@ -1083,10 +1083,14 @@ impl Closing<'_> {
     /// The statement that resolves the item, naming the Decision.
     fn statement(&self, decision: &str) -> Result<Statement, Error> {
         Ok(Statement::with_params(
+            // An item no longer open writes NULL into the NOT NULL state,
+            // aborting the whole transaction: a concurrent resolution or
+            // withdrawal never lets a second act commit beside it (FR-003).
             "UPDATE review_item
-             SET state = 'resolved', resolved_by = ?3, resolved_at = ?4,
+             SET state = CASE WHEN state = 'open' THEN 'resolved' ELSE NULL END,
+                 resolved_by = ?3, resolved_at = ?4,
                  resolution = ?5, reason = ?6, decision_id = ?7
-             WHERE scope_id = ?1 AND item_id = ?2 AND state = 'open'",
+             WHERE scope_id = ?1 AND item_id = ?2",
             vec![
                 Value::from(self.scope_id),
                 Value::from(self.item_id),

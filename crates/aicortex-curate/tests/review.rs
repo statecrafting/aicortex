@@ -642,6 +642,54 @@ async fn a_promotion_that_cannot_be_made_appends_no_decision() {
     node.shutdown().await;
 }
 
+/// FR-003: an approval commits only while its item is open. An item a
+/// concurrent decline already closed aborts the promotion, and the memory
+/// stays an assertion.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn an_approval_of_an_item_closed_meanwhile_promotes_nothing() {
+    let node = node().await;
+    let scope = scope("alice");
+    let memory = active(&node, &scope, "approve me late").await;
+    let queue = ReviewQueue::new();
+    let request = queue
+        .request_promotion(
+            &node.handle(),
+            &scope,
+            memory,
+            &person("agent-client"),
+            at(1),
+        )
+        .await
+        .unwrap();
+    let handle = node.handle();
+    let reviewer = Reviewer::new(&handle, &node.ledger);
+    reviewer
+        .resolve(
+            &scope,
+            &request.id,
+            &person("bob"),
+            &Resolution::Decline,
+            at(5),
+        )
+        .await
+        .unwrap();
+    // The approval read the item as open before the decline committed.
+    let late = Promoter::new(&handle, &node.ledger)
+        .promote_for_item(&scope, memory, &person("alice"), None, at(6), &request.id)
+        .await;
+    assert!(late.is_err(), "{late:?}");
+    assert!(!read(&node, &scope, memory).await.trust.is_actionable());
+    let item = queue
+        .get(&node.handle(), &scope, &request.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(item.state, ReviewState::Resolved);
+    assert_eq!(item.resolution.as_deref(), Some("decline"));
+    node.ledger.verify().await.unwrap();
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn approving_a_request_promotes_and_declining_leaves_the_memory_alone() {
     let node = node().await;
