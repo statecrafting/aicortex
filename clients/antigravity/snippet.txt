@@ -1,0 +1,12 @@
+// UNVERIFIED. 1. Connect: add the server to the client's MCP configuration
+// (the key that names a remote URL is `serverUrl` in current documentation),
+// then sign in from the client.
+{
+  "mcpServers": {
+    "aicortex": { "serverUrl": "{{mcp_url}}" }
+  }
+}
+
+// 2. Automatic capture has no verified hook surface. A command that pipes
+// { "session": "...", "events": [...] } to this handler is all it needs:
+//   AICORTEX_URL={{public_url}} node ~/.aicortex/clients/antigravity/hook.mjs

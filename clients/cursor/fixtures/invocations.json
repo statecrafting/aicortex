@@ -1,0 +1,55 @@
+[
+  {
+    "stdin": {
+      "conversation_id": "fixture-cursor",
+      "hook_event_name": "beforeSubmitPrompt",
+      "prompt": "Preference: use tabs, not spaces, in Go files\nWorking on: step 3 of 5, editing the router and rerunning the tests",
+      "attachments": []
+    }
+  },
+  {
+    "stdin": {
+      "conversation_id": "fixture-cursor",
+      "hook_event_name": "afterAgentResponse",
+      "text": "Correction: the staging cluster is in eu-west-2, not us-east-1\nI opened /Users/example/work/project/src/main.rs and /etc/hosts"
+    }
+  },
+  {
+    "stdin": {
+      "conversation_id": "fixture-cursor",
+      "hook_event_name": "afterShellExecution",
+      "command": "cat notes.txt",
+      "output": "Decision: this line is printed by a tool and is not a memory\nsrc/main.rs:12: ok"
+    }
+  },
+  {
+    "stdin": {
+      "conversation_id": "fixture-cursor",
+      "hook_event_name": "beforeSubmitPrompt",
+      "prompt": "Decision: we adopt hiqlite for replicated state\napi_key = EXAMPLE-NOT-A-REAL-CREDENTIAL"
+    }
+  },
+  {
+    "stdin": {
+      "conversation_id": "fixture-cursor",
+      "hook_event_name": "afterMCPExecution",
+      "tool_name": "example",
+      "tool_input": "{\"mcpServers\": {\"example\": {\"url\": \"http://localhost:9000/mcp\"}}}",
+      "result_json": "Decision: this line is printed by a tool and is not a memory\nsrc/main.rs:12: ok"
+    }
+  },
+  {
+    "stdin": {
+      "conversation_id": "fixture-cursor",
+      "hook_event_name": "afterAgentResponse",
+      "text": "Enabled plugin example-formatter and skill example-review\nCommitment: I will send the migration plan to Dana by Friday"
+    }
+  },
+  {
+    "stdin": {
+      "conversation_id": "fixture-cursor",
+      "hook_event_name": "beforeSubmitPrompt",
+      "prompt": "Remember: the billing export runs on the first of each month"
+    }
+  }
+]

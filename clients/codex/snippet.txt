@@ -1,0 +1,6 @@
+# 1. Connect: add to ~/.codex/config.toml, then run `codex mcp login aicortex`
+[mcp_servers.aicortex]
+url = "{{mcp_url}}"
+
+# 2. Optional automatic capture: add to the top level of the same file
+notify = ["env", "AICORTEX_URL={{public_url}}", "node", "~/.aicortex/clients/codex/hook.mjs"]

@@ -14,6 +14,7 @@
 //! - [`capture`]: `POST /capture`, through the write gate, idempotent.
 //! - [`memories`]: listing, detail, correction, supersession, erasure,
 //!   counts, and the promotion boundary.
+//! - [`clients`]: `GET /clients/{name}`, the filled-in snippet for a client (022).
 //! - [`events`]: `GET /events`, the chassis-declared progress stream.
 //! - [`search`] and [`entities`]: the units 018 and 017 extend (020 D-3).
 //! - [`dto`]: the wire types; inputs reject unknown fields.
@@ -26,6 +27,7 @@
 #![warn(missing_docs)]
 
 pub mod capture;
+pub mod clients;
 pub mod dto;
 pub mod entities;
 pub mod error;
