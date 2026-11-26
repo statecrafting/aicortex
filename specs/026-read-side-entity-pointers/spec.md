@@ -6,7 +6,7 @@ kind: "feature"
 domain: "clients"
 created: "2026-10-25"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: high
 wave: 2
 depends_on:
