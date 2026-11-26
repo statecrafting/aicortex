@@ -128,6 +128,7 @@ version = "0.1.0"
 dependencies = [
  "aicortex-api",
  "aicortex-embed",
+ "aicortex-graph",
  "aicortex-mcp",
  "aicortex-store",
  "aicortex-types",
@@ -161,6 +162,7 @@ version = "0.1.0"
 dependencies = [
  "aicortex-embed",
  "aicortex-gate",
+ "aicortex-graph",
  "aicortex-recall",
  "aicortex-store",
  "aicortex-types",
