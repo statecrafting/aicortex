@@ -546,10 +546,12 @@ fn function_body(source: &str) -> &str {
                     at += if bytes[at] == b'\\' { 2 } else { 1 };
                 }
             }
-            b'\'' if bytes.get(at + 2) == Some(&b'\'') => at += 2,
+            // An escaped character literal (`'\''`, `'\n'`) first, then a
+            // plain one (`'}'`); a lifetime (`'a`) matches neither.
             b'\'' if bytes.get(at + 1) == Some(&b'\\') && bytes.get(at + 3) == Some(&b'\'') => {
                 at += 3;
             }
+            b'\'' if bytes.get(at + 2) == Some(&b'\'') => at += 2,
             b'/' if bytes.get(at + 1) == Some(&b'/') => {
                 while at < bytes.len() && bytes[at] != b'\n' {
                     at += 1;
@@ -584,9 +586,9 @@ fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
     // line of the body that is code, starts an `assert` macro, and mentions
     // the untrusted marking (026 B-11, 019).
     let asserts_the_label = body.lines().map(str::trim).any(|line| {
-        !line.starts_with("//")
-            && line.starts_with("assert")
-            && line.to_lowercase().contains("untrusted")
+        // Only the code before a trailing comment counts.
+        let code = line.split("//").next().unwrap_or_default();
+        code.starts_with("assert") && code.to_lowercase().contains("untrusted")
     });
     attribute && asserts_the_label
 }
@@ -682,6 +684,17 @@ fn formats_before_it_asserts() {
 }
 
 #[test]
+fn quotes_a_quote_then_asserts() {
+    let marks = ['\\'', '}'];
+    assert!(output.contains(\"untrusted\"), \"{marks:?}\");
+}
+
+#[test]
+fn comments_the_label() {
+    assert!(output.is_empty()); // untrusted
+}
+
+#[test]
 fn only_says_it() {
     // the client labels this untrusted
     let label = \"untrusted\";
@@ -696,6 +709,14 @@ fn only_says_it() {
     assert!(
         is_a_test_asserting_untrusted(source, "formats_before_it_asserts"),
         "braces in string and character literals are not counted"
+    );
+    assert!(
+        is_a_test_asserting_untrusted(source, "quotes_a_quote_then_asserts"),
+        "an escaped quote literal does not hide a brace"
+    );
+    assert!(
+        !is_a_test_asserting_untrusted(source, "comments_the_label"),
+        "a trailing comment is not an assertion"
     );
     assert!(!is_a_test_asserting_untrusted(source, "says_nothing"));
     assert!(!is_a_test_asserting_untrusted(source, "not_a_test"));
