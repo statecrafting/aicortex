@@ -526,26 +526,45 @@ fn fr006_every_readme_states_the_rule_and_the_off_switch() {
 /// carries `#[test]` or a `tokio::test` attribute, and its body names the
 /// word `untrusted`.
 /// The text of the function that `source` starts with, from its header to
-/// its matching closing brace, found by counting braces so a nested block,
-/// closure, or inner scope does not end it early. The tests this reads are
-/// rustfmt-formatted Rust; braces inside string literals are not expected
-/// there.
+/// its matching closing brace. Braces are counted only in code: a brace in a
+/// string literal (a format placeholder such as `"{extra}"`), a character
+/// literal, or a line comment does not count, and a nested block, closure,
+/// or inner scope does not end the body early. Raw strings are not used in
+/// the tests this reads.
 fn function_body(source: &str) -> &str {
     let Some(open) = source.find('{') else {
         return "";
     };
+    let bytes = source.as_bytes();
     let mut depth = 0_usize;
-    for (offset, ch) in source[open..].char_indices() {
-        match ch {
-            '{' => depth += 1,
-            '}' => {
+    let mut at = open;
+    while at < bytes.len() {
+        match bytes[at] {
+            b'"' => {
+                at += 1;
+                while at < bytes.len() && bytes[at] != b'"' {
+                    at += if bytes[at] == b'\\' { 2 } else { 1 };
+                }
+            }
+            b'\'' if bytes.get(at + 2) == Some(&b'\'') => at += 2,
+            b'\'' if bytes.get(at + 1) == Some(&b'\\') && bytes.get(at + 3) == Some(&b'\'') => {
+                at += 3;
+            }
+            b'/' if bytes.get(at + 1) == Some(&b'/') => {
+                while at < bytes.len() && bytes[at] != b'\n' {
+                    at += 1;
+                }
+            }
+            b'{' => depth += 1,
+            b'}' => {
                 depth -= 1;
                 if depth == 0 {
-                    return &source[..open + offset + 1];
+                    return &source[..=at];
                 }
             }
             _ => {}
         }
+        at += 1;
     }
     source
 }
@@ -657,6 +676,12 @@ fn asserts_after_a_nested_block() {
 }
 
 #[test]
+fn formats_before_it_asserts() {
+    let shown = format!(\"{extra} }} {{\", extra = '}');
+    assert!(shown.contains(\"untrusted\"));
+}
+
+#[test]
 fn only_says_it() {
     // the client labels this untrusted
     let label = \"untrusted\";
@@ -667,6 +692,10 @@ fn only_says_it() {
     assert!(
         is_a_test_asserting_untrusted(source, "asserts_after_a_nested_block"),
         "a nested block does not end the body early"
+    );
+    assert!(
+        is_a_test_asserting_untrusted(source, "formats_before_it_asserts"),
+        "braces in string and character literals are not counted"
     );
     assert!(!is_a_test_asserting_untrusted(source, "says_nothing"));
     assert!(!is_a_test_asserting_untrusted(source, "not_a_test"));
