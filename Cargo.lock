@@ -327,10 +327,18 @@ dependencies = [
 name = "aicortex-recall"
 version = "0.1.0"
 dependencies = [
+ "aicortex-embed",
+ "aicortex-graph",
+ "aicortex-index",
+ "aicortex-store",
  "aicortex-types",
+ "rahi-store",
  "rahi-types",
+ "ring",
  "serde",
  "serde_json",
+ "tempfile",
+ "tokio",
 ]
 
 [[package]]
