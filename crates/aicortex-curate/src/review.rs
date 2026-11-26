@@ -967,6 +967,8 @@ impl<'a> Reviewer<'a> {
         )
         .await?;
         let mut txn = TxnBuilder::new();
+        txn.push(require_active_edge(closing.scope_id, survivor));
+        txn.push(require_active_edge(closing.scope_id, loser));
         // The loser stops holding when the reviewer decided, never before it
         // began, and never later than an end it already had (D-7); nothing is
         // deleted (017 FR-005). An edge no longer active when this commits
@@ -1042,7 +1044,10 @@ impl<'a> Reviewer<'a> {
         )
         .await?;
         let mut txn = TxnBuilder::new();
-        // As in `keep_edge`: an edge no longer active aborts the transaction.
+        // As in `keep_edge`: an edge no longer active, or gone, aborts the
+        // transaction.
+        txn.push(require_active_edge(closing.scope_id, &first.edge_id));
+        txn.push(require_active_edge(closing.scope_id, &second.edge_id));
         txn.push(Statement::with_params(
             "UPDATE edge SET valid_until = ?3,
                  status = CASE WHEN status = 'active' THEN status ELSE NULL END
@@ -1138,6 +1143,21 @@ pub(crate) struct EdgeRow {
     pub(crate) valid_from: i64,
     pub(crate) valid_until: Option<i64>,
     pub(crate) status: String,
+}
+
+/// A statement that aborts its transaction unless `edge` is an active edge
+/// of the scope when it commits: it then inserts a review item with a NULL
+/// scope, which the NOT NULL column refuses. A resolution therefore never
+/// records an act on an edge that a concurrent change retired or removed
+/// (FR-003).
+fn require_active_edge(scope_id: &ScopeId, edge: &str) -> Statement {
+    Statement::with_params(
+        "INSERT INTO review_item (item_id, scope_id, kind, subject, created, state)
+         SELECT ?2, NULL, 'contradiction', '', 0, 'open'
+         WHERE NOT EXISTS (SELECT 1 FROM edge
+                           WHERE scope_id = ?1 AND edge_id = ?2 AND status = 'active')",
+        vec![Value::from(scope_id), Value::from(edge)],
+    )
 }
 
 /// Withdraw open items whose subject no longer needs a person (D-4), one
