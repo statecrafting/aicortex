@@ -124,6 +124,40 @@ impl<'a> Promoter<'a> {
         interval_secs: Option<u64>,
         now: UnixSeconds,
     ) -> Result<Promoted, Error> {
+        self.promote_inner(scope, memory, by, interval_secs, now, None)
+            .await
+    }
+
+    /// [`Self::promote`] as the approval of review item `item`: the
+    /// promotion commits only while that item is still open, so a
+    /// concurrent decline or withdrawal aborts it (023 FR-003).
+    ///
+    /// # Errors
+    ///
+    /// As [`Self::promote`], and the store's error when `item` is no longer
+    /// open at commit.
+    pub async fn promote_for_item(
+        &self,
+        scope: &Scope,
+        memory: MemoryId,
+        by: &Sub,
+        interval_secs: Option<u64>,
+        now: UnixSeconds,
+        item: &str,
+    ) -> Result<Promoted, Error> {
+        self.promote_inner(scope, memory, by, interval_secs, now, Some(item))
+            .await
+    }
+
+    async fn promote_inner(
+        &self,
+        scope: &Scope,
+        memory: MemoryId,
+        by: &Sub,
+        interval_secs: Option<u64>,
+        now: UnixSeconds,
+        item: Option<&str>,
+    ) -> Result<Promoted, Error> {
         let interval = interval_secs.unwrap_or(DEFAULT_REVIEW_INTERVAL_SECS);
         if !(MIN_REVIEW_INTERVAL_SECS..=MAX_REVIEW_INTERVAL_SECS).contains(&interval) {
             return Err(Error::Validation(format!(
@@ -172,6 +206,16 @@ impl<'a> Promoter<'a> {
         found.trust = TrustClass::instruction(Promotion::new(by.clone(), reference));
         found.updated = now;
         let mut txn = TxnBuilder::new();
+        if let Some(item) = item {
+            // The approved item must still be open when this commits; NULL
+            // into the NOT NULL state aborts the transaction otherwise.
+            txn.push(Statement::with_params(
+                "UPDATE review_item
+                 SET state = CASE WHEN state = 'open' THEN state ELSE NULL END
+                 WHERE scope_id = ?1 AND item_id = ?2",
+                vec![Value::from(&scope_id), Value::from(item)],
+            ));
+        }
         txn.push(memory_update(
             &scope_id,
             &found,
