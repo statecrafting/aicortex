@@ -249,6 +249,14 @@ thesis.
   test state the composition a chassis would need for the anonymous
   `initialize` of B-4 (see the Status note).
 
+- **D-12 (2026-11-26, build, 025 part 2).** D-3's staging ends for `search`:
+  018 and 025 landed `POST /search`, so the tool is a translation to that
+  route like the others, takes 025's `unit`, `window_radius`, and
+  `token_budget` beside `query`, `k`, `scope`, and `kinds` (which becomes the
+  route's `filter.kinds`), and answers the route's framed document with the
+  trace in metadata (B-6). `relate` stays staged until 017's tool lands. The
+  seven tools and the static descriptions (B-5, B-6) are unchanged.
+
 ## Status
 
 - **2026-11-24.** `implementation: in-progress`. B-1 to B-9 and FR-001 to
@@ -284,6 +292,11 @@ thesis.
     so a client that registers itself would receive a token the chassis refuses
     on audience until rauthy or rahi supports it. AC-2 as worded (registration,
     authorization, capture, retrieval with nothing pasted but a URL) needs both.
+
+- **2026-11-26.** `search` is served (D-12); only `relate` still answers
+  `not_yet_available`. AC-3 of spec 025 (`cargo test -p aicortex-mcp --locked
+  --test tools`) covers the tool's delivery parameters. The AC-2 gaps above are
+  unchanged.
 
 ## Verification
 

@@ -16,7 +16,8 @@
 //!   counts, and the promotion boundary.
 //! - [`clients`]: `GET /clients/{name}`, the filled-in snippet for a client (022).
 //! - [`events`]: `GET /events`, the chassis-declared progress stream.
-//! - [`search`] and [`entities`]: the units 018 and 017 extend (020 D-3).
+//! - [`search`] and [`entities`]: `POST /search` (018, 025) and the entity
+//!   routes (017), staged by 020 D-3.
 //! - [`dto`]: the wire types; inputs reject unknown fields.
 //! - [`error`]: RFC 9457 problem documents with a stable type per reason.
 //!
@@ -43,3 +44,4 @@ pub use router::{
     API_PREFIX, Api, Caller, Limits, PROMOTE_PREFIX, bearer_routes, router, router_with,
 };
 pub use scopes::ApiScope;
+pub use search::{QueryEmbedder, Search};

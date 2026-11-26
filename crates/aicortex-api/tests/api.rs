@@ -12,6 +12,10 @@ mod common;
 
 use std::time::Duration;
 
+use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
+
+use aicortex_api::Search;
 use aicortex_graph::{ExtractionConfig, ExtractionWorker, PatternExtractor};
 use aicortex_recall::FRAMING_STATEMENT;
 use aicortex_store::{ScopeId, stage_extraction};
@@ -844,5 +848,287 @@ async fn entity_page_sections_are_bounded_and_resumable() {
         rest["facts"][0]["facts"][0]["edge"]
     );
     assert!(rest["mentions"]["items"].as_array().unwrap().is_empty());
+    cell.shutdown().await;
+}
+
+// ---- POST /search (spec 018 B-4 to B-9, spec 025 B-14) ----
+
+const SEARCH: &str = "/api/v1/search";
+
+async fn captured(cell: &common::Cell, who: &Who, text: &str) -> String {
+    let (status, _, body) = send(
+        cell,
+        Method::POST,
+        "/api/v1/capture",
+        who,
+        Some(capture_body(text)),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    parse(&body)["results"][0]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
+async fn search(cell: &common::Cell, who: &Who, body: Value) -> (StatusCode, Value, String) {
+    let (status, _, text) = send(cell, Method::POST, SEARCH, who, Some(body)).await;
+    let value = serde_json::from_str(&text).unwrap_or(Value::Null);
+    (status, value, text)
+}
+
+/// 018 B-4 and FR-005: a search returns the fixture only inside an envelope,
+/// the ranked ids and the body-free trace beside it, and no delivery section
+/// for a request that asked for none (025 B-3).
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn search_returns_the_fixture_enveloped_with_a_body_free_trace() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    let id = captured(&cell, &alice, INJECTION).await;
+
+    let (status, body, text) = search(&cell, &alice, json!({ "query": "anything" })).await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    assert_enveloped(&text);
+    assert_eq!(body["hits"][0]["id"], id.as_str());
+    assert_eq!(body["hits"][0]["rank"], 1);
+    assert!(body.get("delivery").is_none(), "no delivery was asked for");
+    assert!(body.get("trace_id").is_none(), "persistence is off");
+    // The trace is data about the ranking, never the content: it names the
+    // memory by id and carries the freshness block of 018 B-11.
+    let trace = serde_json::to_string(&body["trace"]).unwrap();
+    assert!(!trace.contains(INJECTION));
+    assert_eq!(body["trace"]["fused"][0]["memory_id"], id.as_str());
+    assert!(body["trace"]["freshness"].is_object());
+    // No query embedder is configured, and the trace says why the vector
+    // channel did not run.
+    let vector = &body["trace"]["per_channel"][0];
+    assert_eq!(vector["channel"], "vector");
+    assert!(vector["skipped"].is_string(), "{vector}");
+    assert_eq!(cell.rows("recall_trace").await, 0);
+    cell.shutdown().await;
+}
+
+/// 020 B-2 and 018 FR-004: another subject finds nothing of this scope, and a
+/// scope the caller does not own is a 404 before any read.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn search_stays_inside_the_callers_scope() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    let bob = Who::person("sub-bob", ALL);
+    captured(&cell, &alice, INJECTION).await;
+
+    let (status, body, text) = search(&cell, &bob, json!({ "query": "anything" })).await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    assert_eq!(body["hits"], json!([]));
+    assert!(!text.contains(INJECTION));
+
+    let (status, _, text) = search(
+        &cell,
+        &bob,
+        json!({ "query": "anything", "scope": { "kind": "personal", "owner": "sub-alice" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND, "{text}");
+    assert!(!text.contains(INJECTION));
+    cell.shutdown().await;
+}
+
+/// 020 B-3 and B-10: the route needs `memory.read`, and malformed requests are
+/// problem documents that name the requirement.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn search_requires_read_and_refuses_malformed_requests() {
+    let cell = common::boot().await;
+    let writer = Who::person("sub-alice", &["memory.write"]);
+    let (status, _, _) = search(&cell, &writer, json!({ "query": "q" })).await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+
+    let alice = Who::person("sub-alice", ALL);
+    for (request, needle) in [
+        (json!({ "query": "  " }), "query must not be empty"),
+        (json!({ "query": "q", "k": 0 }), "k is between"),
+        (json!({ "query": "q", "k": 51 }), "k is between"),
+        (json!({ "query": "q", "budget_ms": 0 }), "budget_ms"),
+        (json!({ "query": "q", "surprise": 1 }), "malformed"),
+        (
+            json!({ "query": "q", "filter": { "kinds": ["nonsense"] } }),
+            "memory kind",
+        ),
+        (
+            json!({ "query": "q", "filter": { "include": ["quarantined"] } }),
+            "cannot be requested",
+        ),
+        (
+            json!({ "query": "q", "filter": { "include": ["erased"] } }),
+            "cannot be requested",
+        ),
+    ] {
+        let (status, body, text) = search(&cell, &alice, request.clone()).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{request}: {text}");
+        assert!(
+            body["detail"].as_str().unwrap().contains(needle),
+            "{request}: {text}"
+        );
+    }
+    cell.shutdown().await;
+}
+
+/// 025 B-14, AC-2: the delivery parameters are accepted, the response reports
+/// the counter and what it used, and every content path stays enveloped.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn b14_delivery_parameters_are_served_inside_the_envelope() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    captured(&cell, &alice, INJECTION).await;
+
+    for unit in ["chunk", "window", "record", "auto"] {
+        let (status, body, text) = search(
+            &cell,
+            &alice,
+            json!({ "query": "anything", "unit": unit, "token_budget": 2000 }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{unit}: {text}");
+        assert_enveloped(&text);
+        let delivery = &body["delivery"];
+        assert_eq!(delivery["counter"]["id"], "utf8-bytes-div3", "{unit}");
+        assert_eq!(delivery["counter"]["version"], 1);
+        assert_eq!(delivery["budget"], 2000);
+        assert!(delivery["used"].as_u64().unwrap() <= 2000, "{unit}");
+        assert_eq!(delivery["results"].as_array().unwrap().len(), 1, "{unit}");
+    }
+
+    // Asking for delivery without naming a unit gets the chunk (B-3).
+    let (_, named, _) = search(
+        &cell,
+        &alice,
+        json!({ "query": "anything", "unit": "chunk", "token_budget": 2000 }),
+    )
+    .await;
+    let (_, unnamed, _) = search(
+        &cell,
+        &alice,
+        json!({ "query": "anything", "token_budget": 2000 }),
+    )
+    .await;
+    assert_eq!(named["memories"], unnamed["memories"]);
+    assert_eq!(named["delivery"], unnamed["delivery"]);
+
+    // A budget the framing alone exhausts is the typed refusal of B-7, which
+    // names the minimum, and it is no empty or unframed answer.
+    let (status, body, text) = search(
+        &cell,
+        &alice,
+        json!({ "query": "anything", "token_budget": 1 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "{text}");
+    assert_eq!(body["code"], "token_budget_below_minimum");
+    assert!(body["detail"].as_str().unwrap().contains("minimum"));
+    assert!(body.get("memories").is_none());
+
+    // Above the server's maximum the budget is clamped and says so (B-8).
+    let (_, body, _) = search(
+        &cell,
+        &alice,
+        json!({ "query": "anything", "token_budget": 1_000_000 }),
+    )
+    .await;
+    assert_eq!(body["delivery"]["budget_clamped"], true);
+    assert_eq!(body["delivery"]["budget"], 32_000);
+    cell.shutdown().await;
+}
+
+/// 025 B-1 and FR-011: `turn` is delivered, never requested; an unknown unit
+/// and a radius outside 1 to 3 are refused as invalid requests.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn fr011_a_request_cannot_name_the_turn_unit() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    captured(&cell, &alice, INJECTION).await;
+    for request in [
+        json!({ "query": "q", "unit": "turn" }),
+        json!({ "query": "q", "unit": "paragraph" }),
+        json!({ "query": "q", "unit": "window", "window_radius": 4 }),
+        json!({ "query": "q", "window_radius": 0 }),
+    ] {
+        let (status, body, text) = search(&cell, &alice, request.clone()).await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{request}: {text}");
+        assert_eq!(body["code"], "invalid_request");
+    }
+    cell.shutdown().await;
+}
+
+/// 018 B-6: with persistence on, the trace is stored against the scope, keyed
+/// by its query hash, with no body, and names the counter when it delivered.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn b6_a_search_persists_a_body_free_trace_when_persistence_is_on() {
+    let cell = common::boot_with_search(Search::default().with_trace_retention(3600)).await;
+    let alice = Who::person("sub-alice", ALL);
+    captured(&cell, &alice, INJECTION).await;
+
+    let (status, body, text) = search(
+        &cell,
+        &alice,
+        json!({ "query": "anything", "token_budget": 2000 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    let trace_id = body["trace_id"].as_str().expect("a stored trace id");
+    assert_eq!(cell.rows("recall_trace").await, 1);
+
+    #[derive(serde::Deserialize)]
+    struct Stored {
+        trace_id: String,
+        query_hash: String,
+        trace: String,
+        delivery: String,
+    }
+    let rows: Vec<Stored> = cell
+        .store
+        .handle()
+        .query_consistent(
+            "SELECT trace_id, query_hash, trace, delivery FROM recall_trace".to_owned(),
+            vec![],
+        )
+        .await
+        .unwrap();
+    assert_eq!(rows[0].trace_id, trace_id);
+    assert_eq!(rows[0].query_hash, body["trace"]["query_hash"]);
+    assert!(!rows[0].trace.contains(INJECTION), "no body in the trace");
+    assert!(
+        !rows[0].delivery.contains(INJECTION),
+        "no text in the report"
+    );
+    assert!(rows[0].delivery.contains("utf8-bytes-div3"));
+    cell.shutdown().await;
+}
+
+/// 018 B-9: the truncation hook fires exactly when the response is truncated.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn b9_the_truncation_hook_fires_exactly_when_the_trace_is_truncated() {
+    let counted = Arc::new(AtomicU64::new(0));
+    let hook = Arc::clone(&counted);
+    let cell =
+        common::boot_with_search(Search::default().with_truncation_hook(Arc::new(move || {
+            hook.fetch_add(1, Ordering::SeqCst);
+        })))
+        .await;
+    let alice = Who::person("sub-alice", ALL);
+    captured(&cell, &alice, INJECTION).await;
+
+    let mut truncated = 0;
+    for budget in [1, 2000] {
+        let (status, body, text) = search(
+            &cell,
+            &alice,
+            json!({ "query": "anything", "budget_ms": budget }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::OK, "{text}");
+        if body["trace"]["truncated"] == true {
+            truncated += 1;
+        }
+        assert_eq!(counted.load(Ordering::SeqCst), truncated, "budget {budget}");
+    }
     cell.shutdown().await;
 }

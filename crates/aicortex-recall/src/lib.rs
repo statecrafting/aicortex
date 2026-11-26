@@ -16,6 +16,7 @@ pub mod fusion;
 pub mod query;
 pub mod recall;
 pub mod trace;
+pub mod trace_store;
 
 pub use delivery::{
     Delivered, Delivery, DeliveryConfig, DeliveryError, DeliveryReport, DeliveryRequest,
@@ -34,3 +35,4 @@ pub use query::{
 };
 pub use recall::{Recall, RecallResult, RecalledMemory};
 pub use trace::{ByteRange, ChannelTrace, Contribution, FusedEntry, RecallTrace, TraceCandidate};
+pub use trace_store::{StoredTrace, TraceStore};

@@ -61,7 +61,7 @@ const TOOLS: [Tool; 7] = [
     Tool {
         name: "search",
         scope: ApiScope::MemoryRead,
-        served: false,
+        served: true,
     },
     Tool {
         name: "fetch",
@@ -199,6 +199,13 @@ pub fn definitions() -> Vec<Value> {
                     "k": { "type": "integer", "minimum": 1, "maximum": MAX_SEARCH_K, "default": DEFAULT_SEARCH_K },
                     "scope": scope,
                     "kinds": { "type": "array", "items": { "type": "string" } },
+                    "unit": {
+                        "type": "string",
+                        "enum": ["chunk", "window", "record", "auto"],
+                        "description": "How much text to return per result. Omit all of unit, window_radius, and token_budget for each ranked memory whole.",
+                    },
+                    "window_radius": { "type": "integer", "minimum": 1, "maximum": 3, "description": "Neighbors on each side of a window." },
+                    "token_budget": { "type": "integer", "minimum": 1, "description": "A hard cap on the returned text, framing included." },
                 },
                 "required": ["query"],
                 "additionalProperties": false,
@@ -362,6 +369,12 @@ struct SearchArgs {
     scope: Option<ScopeArg>,
     #[serde(default)]
     kinds: Option<Vec<String>>,
+    #[serde(default)]
+    unit: Option<String>,
+    #[serde(default)]
+    window_radius: Option<u64>,
+    #[serde(default)]
+    token_budget: Option<u64>,
 }
 
 #[derive(Deserialize)]
@@ -601,8 +614,35 @@ pub fn plan(name: &str, args: Value) -> Result<Plan, RpcError> {
             let args: SearchArgs = arguments(args)?;
             nonempty("query", &args.query, MAX_QUERY_CHARS)?;
             bounded("k", args.k, MAX_SEARCH_K)?;
-            let _ = (&args.scope, &args.kinds);
-            Plan::NotYetAvailable
+            let mut body = serde_json::Map::new();
+            body.insert("query".to_owned(), json!(args.query));
+            if let Some(k) = args.k {
+                body.insert("k".to_owned(), json!(k));
+            }
+            if let Some(scope) = &args.scope {
+                body.insert("scope".to_owned(), json!(scope));
+            }
+            if let Some(kinds) = &args.kinds {
+                body.insert("filter".to_owned(), json!({ "kinds": kinds }));
+            }
+            // The route validates the delivery parameters, `turn` as a unit
+            // included (025 B-1, FR-011), so there is one place that decides.
+            for (name, value) in [
+                ("unit", args.unit.map(Value::from)),
+                ("window_radius", args.window_radius.map(Value::from)),
+                ("token_budget", args.token_budget.map(Value::from)),
+            ] {
+                if let Some(value) = value {
+                    body.insert(name.to_owned(), value);
+                }
+            }
+            Plan::Route(Upstream {
+                method: Method::POST,
+                path: "/search".to_owned(),
+                query: Vec::new(),
+                body: Some(Value::Object(body)),
+                idempotency_key: None,
+            })
         }
         "fetch" => {
             let args: FetchArgs = arguments(args)?;

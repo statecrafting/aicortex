@@ -7,7 +7,7 @@
 //! beside the envelopes (B-5). The bare fields beside it (ids, kinds, states,
 //! timestamps) are not derived from stored text (019 B-6).
 
-use aicortex_recall::FramedMemories;
+use aicortex_recall::{ByteRange, DeliveryReport, FramedMemories, RecallTrace};
 use aicortex_store::{Erased, ScopeStats, StatusFilter};
 use aicortex_types::{Memory, MemoryId, MemoryKind, ProjectKey, Scope, ShareKey, Status};
 use rahi_types::Sub;
@@ -473,4 +473,107 @@ impl From<Erased> for EraseResponse {
             caveat: Erased::caveat().to_owned(),
         }
     }
+}
+
+/// What a search admits beyond its scope (018 B-1, B-7). Empty lists admit
+/// everything; each list is bounded.
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct FilterIn {
+    /// Memory kind labels.
+    #[serde(default)]
+    pub kinds: Vec<String>,
+    /// Trust class labels: `evidence`, `assertion`, `instruction`.
+    #[serde(default)]
+    pub trusts: Vec<String>,
+    /// Actor kind labels: `human`, `agent`, `system`, `import`.
+    #[serde(default)]
+    pub actor_kinds: Vec<String>,
+    /// Source system names.
+    #[serde(default)]
+    pub sources: Vec<String>,
+    /// Entity ids a memory must mention.
+    #[serde(default)]
+    pub entities: Vec<String>,
+    /// Earliest creation time, in Unix seconds, inclusive.
+    #[serde(default)]
+    pub created_from: Option<u64>,
+    /// Latest creation time, in Unix seconds, inclusive.
+    #[serde(default)]
+    pub created_to: Option<u64>,
+    /// Statuses to admit beyond active: `superseded` and `expired`. A
+    /// quarantined or erased memory can never be requested.
+    #[serde(default)]
+    pub include: Vec<String>,
+}
+
+/// `POST /search`: a query, and optionally how its evidence is delivered
+/// (018 B-1, 025 B-14).
+#[derive(Clone, Debug, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct SearchRequest {
+    /// The query text.
+    pub query: String,
+    /// How many memories to return at most.
+    #[serde(default)]
+    pub k: Option<u32>,
+    /// The scope searched; the caller's personal scope when absent.
+    #[serde(default)]
+    pub scope: Option<ScopeRef>,
+    /// What the search admits.
+    #[serde(default)]
+    pub filter: Option<FilterIn>,
+    /// The evidence unit: `chunk`, `window`, `record`, or `auto` (025 B-1).
+    #[serde(default)]
+    pub unit: Option<String>,
+    /// Neighbors each side of a window, 1 to 3 (025 B-1).
+    #[serde(default)]
+    pub window_radius: Option<u8>,
+    /// The hard cap on the model-facing payload, in the counter's units
+    /// (025 B-4).
+    #[serde(default)]
+    pub token_budget: Option<u64>,
+    /// The time the channels share, in milliseconds (018 B-9); the shipped
+    /// default when absent.
+    #[serde(default)]
+    pub budget_ms: Option<u64>,
+    /// Whether the trace carries every channel's candidates (018 D-2).
+    #[serde(default)]
+    pub explain: bool,
+}
+
+/// One ranked result, beside its envelope (019 B-6): ids, ranks, and scores,
+/// never derived from stored text.
+#[derive(Clone, Debug, Serialize, PartialEq)]
+pub struct SearchHit {
+    /// The memory.
+    pub id: MemoryId,
+    /// Its place in the result, from 1.
+    pub rank: u32,
+    /// The fused score.
+    pub score: f64,
+    /// The winning chunk's byte range (018 B-4).
+    pub chunk: Option<ByteRange>,
+}
+
+/// The answer to `POST /search` (018 B-5, 020 B-5, 025 B-11).
+///
+/// The envelopes and the framing statement are 019's. `trace` is the
+/// body-free recall trace (ids, ranks, scores, counts, and the freshness
+/// block), and `delivery` is present only when the request asked for it.
+#[derive(Serialize)]
+pub struct SearchResponse {
+    /// The framing statement and the envelopes, as 019 serializes them.
+    #[serde(flatten)]
+    pub framed: FramedMemories,
+    /// The ranked results, whether or not each is in the payload.
+    pub hits: Vec<SearchHit>,
+    /// Why the results are in this order.
+    pub trace: RecallTrace,
+    /// The id of the persisted trace, when persistence is on (018 B-6).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub trace_id: Option<String>,
+    /// What delivery did, when the request asked for it (025 B-11).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub delivery: Option<DeliveryReport>,
 }

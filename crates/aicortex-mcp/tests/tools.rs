@@ -200,15 +200,16 @@ async fn capture_fetch_list_update_forget_round_trip() {
 }
 
 /// B-5: each tool needs the scope of its route, and a token without it is the
-/// JSON-RPC authorization error naming that scope. The tool whose route has not
-/// landed answers `not_yet_available` (D-3) and writes nothing.
+/// JSON-RPC authorization error naming that scope, and writes nothing. Every
+/// tool's route has landed, so none answers `not_yet_available` (D-3).
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
-async fn every_tool_maps_to_its_scope_and_the_staged_one_is_not_yet_available() {
+async fn every_tool_maps_to_its_scope() {
     let cell = support::boot().await;
     let nobody = cell.token(&Who::person("sub-alice", &[]));
     let id = "018f0000-0000-7000-8000-000000000000";
     let arguments = [
         ("capture", capture_args("x")),
+        ("search", json!({ "query": "anything" })),
         ("fetch", json!({ "id": id })),
         ("list", json!({})),
         ("update", json!({ "id": id, "superseded_by": id })),
@@ -223,13 +224,6 @@ async fn every_tool_maps_to_its_scope_and_the_staged_one_is_not_yet_available() 
             tools::scope_of(name).unwrap(),
             "{name}"
         );
-    }
-    let reader = cell.token(&Who::person("sub-alice", &["memory.read"]));
-    for (name, arguments) in [("search", json!({ "query": "anything", "k": 5 }))] {
-        let message = call(&cell, &reader, name, arguments).await;
-        assert_eq!(message["error"]["code"], -32010, "{name}: {message}");
-        assert_eq!(message["error"]["data"]["code"], "not_yet_available");
-        assert!(message.get("result").is_none(), "never a partial result");
     }
     assert_eq!(cell.rows("memory").await, 0);
     cell.shutdown().await;
@@ -628,5 +622,94 @@ async fn relate_serves_the_neighbors_and_the_entity_page() {
 
     let listed = rpc(&cell, &token, Revision::LATEST, "tools/list", json!({})).await;
     assert_eq!(listed["result"]["tools"].as_array().unwrap().len(), 7);
+    cell.shutdown().await;
+}
+
+/// 018 B-4, 025 B-14, AC-3: `search` ranks, frames, and serves the delivery
+/// parameters; the trace travels in metadata, never in the content.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn search_serves_ranked_envelopes_and_the_delivery_parameters() {
+    let cell = support::boot().await;
+    let alice = cell.token(&Who::person("sub-alice", ALL));
+    let bob = cell.token(&Who::person("sub-bob", ALL));
+    let id = captured_id(&cell, &alice, INJECTION).await;
+
+    let found = call(
+        &cell,
+        &alice,
+        "search",
+        json!({ "query": "anything", "k": 5 }),
+    )
+    .await;
+    let body = structured(&found);
+    assert_eq!(body["framing"], FRAMING_STATEMENT);
+    assert!(body["memories"][0].as_str().unwrap().contains(INJECTION));
+    assert_eq!(body["hits"][0]["id"], id.as_str());
+    assert!(body.get("trace").is_none(), "the trace is metadata");
+    assert_eq!(
+        found["result"]["_meta"]["aicortex/trace"]["fused"][0]["memory_id"],
+        id.as_str()
+    );
+    assert!(body.get("delivery").is_none());
+
+    let delivered = call(
+        &cell,
+        &alice,
+        "search",
+        json!({ "query": "anything", "unit": "auto", "token_budget": 2000, "kinds": ["observation"] }),
+    )
+    .await;
+    let body = structured(&delivered);
+    assert_eq!(body["delivery"]["counter"]["id"], "utf8-bytes-div3");
+    assert!(body["delivery"]["used"].as_u64().unwrap() <= 2000);
+    assert!(body["memories"][0].as_str().unwrap().contains(INJECTION));
+
+    // A kind that matches nothing returns nothing, still framed.
+    let none = call(
+        &cell,
+        &alice,
+        "search",
+        json!({ "query": "anything", "kinds": ["decision"] }),
+    )
+    .await;
+    assert_eq!(structured(&none)["memories"], json!([]));
+    assert_eq!(structured(&none)["framing"], FRAMING_STATEMENT);
+
+    // Another subject's search reaches none of it.
+    let theirs = call(&cell, &bob, "search", json!({ "query": "anything" })).await;
+    assert_eq!(structured(&theirs)["hits"], json!([]));
+    assert!(!theirs.to_string().contains(INJECTION));
+
+    // The budget's typed refusal is a tool result the model can read.
+    let tiny = call(
+        &cell,
+        &alice,
+        "search",
+        json!({ "query": "anything", "token_budget": 1 }),
+    )
+    .await;
+    assert_eq!(tiny["result"]["isError"], true, "{tiny}");
+    assert_eq!(
+        tiny["result"]["structuredContent"]["code"],
+        "token_budget_below_minimum"
+    );
+    cell.shutdown().await;
+}
+
+/// 025 FR-011: naming `turn`, an unknown unit, or a radius outside 1 to 3 is
+/// invalid params, and the tool still counts seven.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn fr011_search_refuses_the_turn_unit_and_a_bad_radius() {
+    let cell = support::boot().await;
+    let token = cell.token(&Who::person("sub-alice", ALL));
+    for arguments in [
+        json!({ "query": "q", "unit": "turn" }),
+        json!({ "query": "q", "unit": "paragraph" }),
+        json!({ "query": "q", "unit": "window", "window_radius": 4 }),
+    ] {
+        let message = call(&cell, &token, "search", arguments.clone()).await;
+        assert_eq!(message["error"]["code"], -32602, "{arguments}: {message}");
+    }
+    assert_eq!(tools::names().len(), 7);
     cell.shutdown().await;
 }

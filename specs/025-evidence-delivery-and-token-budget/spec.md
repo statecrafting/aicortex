@@ -509,6 +509,32 @@ tokenizer as the default counter (D-6).
   payload, and no result is ever both. The accepted results remain a prefix
   of the fused order, and every dropped result ranks after all of them.
 
+- **D-10 (2026-11-26, build).** Part 2 of 025 lands B-14, AC-2, AC-3, and
+  the surface halves of FR-011. `POST /search` and the MCP `search` tool take
+  `unit`, `window_radius`, and `token_budget`; the route validates them once
+  through `DeliveryRequest::parse`, and the tool forwards them unchanged, so
+  `turn` is refused in one place. An unknown unit or a radius outside 1 to 3 is
+  a 400 `invalid_request` (a JSON-RPC invalid-params error from the tool); a
+  budget below B-7's minimum is a 422 `token_budget_below_minimum` whose
+  detail names the minimum (a tool result with `isError`). A budget above the
+  maximum is clamped and the response's `delivery.budget_clamped` says so. The
+  response's `delivery` member is the stage's body-free report, counter
+  included, and it is stored beside the recall trace when persistence is on
+  (018 B-6, D-10), which completes FR-010's stored-trace half. The cell uses the
+  shipped delivery configuration (D-9); `Search::with_delivery` is the seam for
+  another.
+
+## Status
+
+- **2026-11-26.** `implementation: in-progress`. B-1 to B-14 and FR-001 to
+  FR-011 hold. AC-1: `cargo test -p aicortex-recall --locked --test delivery`.
+  AC-2: `cargo test -p aicortex-api --locked --test api`. AC-3: `cargo test
+  -p aicortex-mcp --locked --test tools`. Left: AC-4, the evaluation corpus
+  report of the four units side by side with tokens delivered per query, which
+  needs spec 040's corpus; and `testdata/delivery/`, which the part's tests do
+  not need (their fixtures are built inline) but which this spec claims, so it
+  must hold a committed fixture, or the claim must go, before `complete`.
+
 ## Verification
 
 ```verify:cli
