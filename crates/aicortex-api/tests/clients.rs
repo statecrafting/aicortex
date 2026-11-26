@@ -535,12 +535,16 @@ fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
         let line = line.trim();
         line.starts_with("#[test") || line.starts_with("#[tokio::test")
     });
-    let body = source[at..]
-        .split("\n}\n")
-        .next()
-        .unwrap_or_default()
-        .to_lowercase();
-    attribute && body.contains("untrusted")
+    let body = source[at..].split("\n}\n").next().unwrap_or_default();
+    // An assertion, not a comment or a stray string, must name the label: a
+    // line of the body that is code, starts an `assert` macro, and mentions
+    // the untrusted marking (026 B-11, 019).
+    let asserts_the_label = body.lines().map(str::trim).any(|line| {
+        !line.starts_with("//")
+            && line.starts_with("assert")
+            && line.to_lowercase().contains("untrusted")
+    });
+    attribute && asserts_the_label
 }
 
 /// 026 B-11: a row claims a data position only by naming the test that shows
@@ -616,11 +620,22 @@ fn says_nothing() {
 fn not_a_test() {
     // untrusted
 }
+
+#[test]
+fn only_says_it() {
+    // the client labels this untrusted
+    let label = \"untrusted\";
+    assert!(!label.is_empty());
+}
 ";
     assert!(is_a_test_asserting_untrusted(source, "labels_it"));
     assert!(!is_a_test_asserting_untrusted(source, "says_nothing"));
     assert!(!is_a_test_asserting_untrusted(source, "not_a_test"));
     assert!(!is_a_test_asserting_untrusted(source, "absent"));
+    assert!(
+        !is_a_test_asserting_untrusted(source, "only_says_it"),
+        "a comment or a string outside an assertion does not count"
+    );
 }
 
 /// 026 FR-008: every row has a `read_pointer` entry; a row whose

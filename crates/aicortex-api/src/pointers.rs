@@ -200,7 +200,12 @@ impl PointerBlock {
 
     /// The tokens `counter` counts in the block with its first `keep` entries.
     fn count(&self, counter: &dyn TokenCounter, keep: usize) -> Result<u64, serde_json::Error> {
-        Ok(counter.count(&serde_json::to_string(&self.view(keep))?))
+        // The block travels as a sibling field of the evidence, so its cost
+        // includes the separator and key that join it (026 D-8).
+        Ok(counter.count(&format!(
+            ",\"pointers\":{}",
+            serde_json::to_string(&self.view(keep))?
+        )))
     }
 
     /// Frame `set` and fit it into `max_tokens` of `counter`'s units.

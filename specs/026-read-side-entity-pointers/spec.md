@@ -354,9 +354,12 @@ prose, which 017 B-6 forbids.
 - **D-8 (2026-11-26, build).** How B-9 counts. 025's `deliver_with` packs the
   evidence exactly as `deliver` does, then asks the block what each prefix of
   its pointers costs and keeps the longest that fits in what the evidence
-  leaves, down to none. The recounted payload is the sum of the evidence's
-  count and the block's, which for the shipped counters is never less than the
-  count of the two fields serialized together, and `used` reports that sum.
+  leaves, down to none. The block's cost is its serialization with the
+  separator and key that join it to the evidence, plus one token: a counter
+  that floors (`utf8-bytes-div3`) can count two texts together one higher
+  than the sum of their counts, and the extra token covers that, so the sum
+  is never less than the count of the two serialized together. `used`
+  reports that sum.
   Because the evidence is packed first and fits, pointers can never force step
   5's recount to cut or drop a result. When even the block with no pointer does
   not fit, the block is omitted and `used` is the evidence's. The trait is

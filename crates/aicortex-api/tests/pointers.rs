@@ -26,7 +26,7 @@ use aicortex_api::pointers::{POINTER_NOTE, PointerConfig};
 use aicortex_api::{QueryEmbedder, Search};
 use aicortex_embed::{ModelId, Vector};
 use aicortex_recall::delivery::TokenCounter;
-use aicortex_recall::{FRAMING_STATEMENT, Utf8BytesDiv3};
+use aicortex_recall::{Clock, FRAMING_STATEMENT, FixedClock, SystemClock, Utf8BytesDiv3};
 use aicortex_store::ScopeId;
 use aicortex_types::Scope;
 use common::{Who, capture_body};
@@ -211,6 +211,16 @@ async fn seed(cell: &common::Cell, owner: &str, memory: &str, entities: &[(&str,
 /// The tokens the default counter counts in `value`'s compact serialization.
 fn tokens(value: &Value) -> u64 {
     Utf8BytesDiv3.count(&serde_json::to_string(value).unwrap())
+}
+
+/// What a kept block costs in the budget: its serialization with the
+/// separator and key that join it to the evidence, plus the one token of
+/// rounding slack (026 D-8).
+fn block_cost(value: &Value) -> u64 {
+    Utf8BytesDiv3.count(&format!(
+        ",\"pointers\":{}",
+        serde_json::to_string(value).unwrap()
+    )) + 1
 }
 
 fn names(block: &Value) -> Vec<String> {
@@ -562,7 +572,7 @@ async fn fr011_pointers_are_fitted_into_what_the_evidence_leaves() {
     assert_eq!(roomy["delivery"]["results"], base["delivery"]["results"]);
     assert_eq!(names(&roomy["pointers"]).len(), 3, "{roomy}");
     assert_eq!(roomy["pointers"]["truncated"], false);
-    let full = tokens(&roomy["pointers"]);
+    let full = block_cost(&roomy["pointers"]);
     assert_eq!(roomy["delivery"]["used"].as_u64().unwrap(), evidence + full);
 
     // Evidence nearly fills the budget: every budget below leaves the same
@@ -581,13 +591,13 @@ async fn fr011_pointers_are_fitted_into_what_the_evidence_leaves() {
                 let kept = names(&body["pointers"]);
                 assert!(!kept.is_empty() && kept.len() < 3, "{kept:?}");
                 assert_eq!(body["pointers"]["truncated"], true);
-                assert_eq!(used, evidence + tokens(&body["pointers"]));
+                assert_eq!(used, evidence + block_cost(&body["pointers"]));
             }
             "none" => {
                 assert_eq!(names(&body["pointers"]), Vec::<String>::new());
                 assert_eq!(body["pointers"]["truncated"], true);
                 assert!(body["pointers"].get("note").is_none());
-                assert_eq!(used, evidence + tokens(&body["pointers"]));
+                assert_eq!(used, evidence + block_cost(&body["pointers"]));
             }
             _ => {
                 assert!(body.get("pointers").is_none(), "{text}");
@@ -718,9 +728,12 @@ async fn fr006_asking_for_pointers_adds_no_occurrence_of_the_query_anywhere() {
     let lines = captured_lines();
     lines.lock().unwrap().clear();
     let embedded = Arc::new(AtomicU64::new(0));
+    // One fixed moment for both runs, so recency scores the same memory the
+    // same way and the two traces differ only where pointers could leak.
     let cell = common::boot_with_search(
         Search::default()
             .with_embedder(Arc::new(Counting(Arc::clone(&embedded))))
+            .with_clock(Arc::new(FixedClock(SystemClock.now())))
             .with_trace_retention(3600),
     )
     .await;
