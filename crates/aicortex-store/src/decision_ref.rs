@@ -347,8 +347,11 @@ pub fn validate_decision(decision: &Decision) -> Result<ReasonCode, Error> {
 
 /// Validate `decision` and append it to the chassis's chain (B-1, B-2).
 ///
-/// The one way this product appends: the chain is rahi's and this function
-/// names only its `append`.
+/// The one way this product appends a new Decision: the chain is rahi's and
+/// this function names only its `append`. The one exception is 014's
+/// delivery of an erasure receipt: that Decision was validated when the
+/// erasure was staged and its act has committed, so it is delivered exactly
+/// as recorded and never refused afterwards (014 B-7, 024 D-3).
 ///
 /// # Errors
 ///

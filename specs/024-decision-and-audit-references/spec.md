@@ -144,6 +144,10 @@ to the sibling product.
   names content at any depth, and an optional `justification` of at most 280
   bytes. The reviewer's `reason` text on a review Decision predates this spec
   and is bounded by 023's own limit; it is not renamed here.
+  A Decision is validated before its act is staged. An erasure receipt that
+  014 delivers after the commit is appended as recorded and never refused
+  again, so a receipt written before this closed set existed still reaches
+  the chain.
 - **D-4 (2026-11-26, build, references commit with the act).** A reference is
   staged into the transaction that carries the act it records: the gate's
   quarantine with the memory row, review admit, decline and acknowledge with
