@@ -495,6 +495,15 @@ configuration with a pinned digest rather than a spec-level commitment.
   collision. Any other failure still fails the test. The shared store
   fixture this spec extends follows 012 D-10. No requirement or acceptance
   criterion changes.
+- **D-35 (2026-11-25, implementation).** `aicortex-embed` takes
+  `aicortex-index` as a normal dependency, and `aicortex-index` takes the
+  workspace `unicode-general-category` and `unicode-normalization`, for spec
+  016's text channel: the embedding worker writes a memory's text terms
+  beside its vectors through the index crate, and the index tokenizes with
+  NFKC and the Unicode general categories (016 B-6). The manifests land on
+  their own, ahead of the code that uses them, under policy isolation (spec
+  044 section 3.3), the same split as 055's #128 and #119. No requirement or
+  acceptance criterion changes.
 
 ## Status (2026-10-10, complete)
 

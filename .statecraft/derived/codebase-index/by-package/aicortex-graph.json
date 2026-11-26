@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-graph",
+    "path": "crates/aicortex-graph",
+    "specRef": "017-entities-and-typed-edges",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "e93777840c41fbbf4356ae1cceadfaea34d009f49d6deb85b6ee4d8db0a83cd6"
+}

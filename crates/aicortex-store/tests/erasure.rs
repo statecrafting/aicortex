@@ -37,28 +37,19 @@ use rahi_ledger::SignedRecord;
 use rahi_store::{LEASE_TTL_SECONDS, Outbox, Statement, TxnBuilder, Value, Work};
 use rahi_types::UnixSeconds;
 
-/// The remaining future derivative table, created here so that FR-003 can be
-/// asserted over a real row rather than over the absence of a table.
-const FUTURE_TABLES: &[&str] = &["CREATE TABLE IF NOT EXISTS chunk_token (
-        chunk_id TEXT NOT NULL, memory_id TEXT NOT NULL, scope_id TEXT NOT NULL,
-        token TEXT NOT NULL, tf INTEGER NOT NULL, PRIMARY KEY (chunk_id, token))"];
-
-/// An eraser that also sweeps the tables specs 015 and 016 will bring.
+/// An eraser that also sweeps any table a later spec has planned. Spec 016
+/// moved the last one, `chunk_token`, into the live sweep, so this is the
+/// default eraser until another spec plans a table.
 fn eraser_with_future_tables() -> Eraser {
     PLANNED
         .iter()
         .fold(Eraser::new(), |eraser, planned| eraser.also(*planned))
 }
 
-/// Create the future tables and put one row per table behind `memory`.
+/// Put one row per derivative table behind `memory`, and the text index
+/// frequency row its posting accounts for (spec 016 B-5).
 async fn seed_derivatives(node: &common::Node, scope: &Scope, memory: MemoryId) {
     let scope_id = ScopeId::of(scope);
-    for ddl in FUTURE_TABLES {
-        node.handle()
-            .execute(*ddl, vec![])
-            .await
-            .expect("the future table is created");
-    }
     node.handle()
         .txn(vec![
             Statement::with_params(
@@ -83,12 +74,22 @@ async fn seed_derivatives(node: &common::Node, scope: &Scope, memory: MemoryId) 
                 ],
             ),
             Statement::with_params(
-                "INSERT INTO chunk_token (chunk_id, memory_id, scope_id, token, tf)
-                 VALUES ($1, $2, $3, 'token', 1)",
+                "INSERT INTO chunk_token
+                 (chunk_id, memory_id, scope_id, model_revision, token, tf)
+                 VALUES ($1, $2, $3, 1, $4, 1)",
                 vec![
-                    Value::from(format!("chunk-{memory}")),
+                    Value::from(format!("chunk-{memory}-1-0")),
                     Value::from(memory.to_string()),
                     Value::from(&scope_id),
+                    Value::from(format!("token-{memory}")),
+                ],
+            ),
+            Statement::with_params(
+                "INSERT INTO token_df (scope_id, model_revision, token, df, cf)
+                 VALUES ($1, 1, $2, 1, 1)",
+                vec![
+                    Value::from(&scope_id),
+                    Value::from(format!("token-{memory}")),
                 ],
             ),
         ])
@@ -505,6 +506,19 @@ async fn fr003_erasure_empties_the_chunk_and_embedding_tables_and_leaves_retriev
     assert_eq!(
         erased.removed_derivatives, 7,
         "five derivative rows and two queue rows are counted"
+    );
+    assert_eq!(
+        common::count(
+            &node,
+            "SELECT COUNT(*) AS count FROM token_df WHERE scope_id = $1 AND token = $2",
+            vec![
+                Value::from(&ScopeId::of(&alice)),
+                Value::from(format!("token-{}", memory.id)),
+            ],
+        )
+        .await,
+        0,
+        "erasure forgets a token only the erased memory held (016 B-5)"
     );
 
     // A targeted search that previously returned it returns nothing.
@@ -1466,11 +1480,13 @@ async fn fr005_a_scope_erasure_of_five_thousand_memories_is_bounded_and_resumabl
         total as u64
     );
 
-    // No orphaned embedding or chunk row, which is FR-005's own words.
+    // No orphaned embedding or chunk row, which is FR-005's own words, and
+    // no text index frequency row (spec 016 B-5).
     for table in [
         "chunk",
         "embedding",
         "chunk_token",
+        "token_df",
         "provenance",
         "memory_source",
     ] {
@@ -1596,16 +1612,15 @@ async fn ac2_the_chain_still_verifies_after_an_erasure() {
 
 #[test]
 fn the_sweep_names_every_table_a_later_spec_will_add() {
-    // Spec 015 moves its now-real tables into the live sweep. Spec 016 stays
-    // planned until its migration lands.
+    // Specs 015 and 016 moved their now-real tables into the live sweep.
     let live: Vec<&str> = DERIVATIVES
         .iter()
         .map(|derivative| derivative.table)
         .collect();
     assert!(live.contains(&"chunk"), "015's chunks (B-7)");
     assert!(live.contains(&"embedding"), "015's vectors (B-7)");
-    let tables: Vec<&str> = PLANNED.iter().map(|planned| planned.table).collect();
-    assert!(tables.contains(&"chunk_token"), "016's index entries (B-7)");
+    assert!(live.contains(&"chunk_token"), "016's index entries (B-7)");
+    assert!(PLANNED.is_empty(), "no table is planned and not yet swept");
     for planned in PLANNED {
         assert!(
             !DERIVATIVES.contains(planned),
@@ -1613,12 +1628,15 @@ fn the_sweep_names_every_table_a_later_spec_will_add() {
             planned.table
         );
     }
-    // And registering one is what makes it swept.
+    // Registering a live table again adds nothing, and registering a new
+    // one is what makes it swept.
     let eraser = Eraser::new().also(Derivative::new("chunk_token", "memory_id", "scope_id"));
+    assert_eq!(eraser.derivatives().len(), DERIVATIVES.len());
+    let eraser = eraser.also(Derivative::new("later_table", "memory_id", "scope_id"));
     assert_eq!(eraser.derivatives().len(), DERIVATIVES.len() + 1);
     // Twice is once: a registry that grew on every call would emit a DELETE
     // per registration and count the same removal more than once.
-    let eraser = eraser.also(Derivative::new("chunk_token", "memory_id", "scope_id"));
+    let eraser = eraser.also(Derivative::new("later_table", "memory_id", "scope_id"));
     assert_eq!(eraser.derivatives().len(), DERIVATIVES.len() + 1);
 }
 

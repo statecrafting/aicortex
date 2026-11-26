@@ -48,6 +48,34 @@
       },
       {
         "kind": "file",
+        "path": "crates/aicortex-graph/src/worker.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/src/preflight.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/tests/common/mod.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/tests/extract.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-graph/tests/worker.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/src/graph_tables.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-store/tests/graph_erasure.rs"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-graph/tests/resolve.rs"
       },
       {
@@ -70,6 +98,54 @@
       },
       {
         "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/tests/migrate.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "016-vector-index-and-scan",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/tests/text.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "015-embedding-pipeline",
         "unit": {
           "kind": "file",
@@ -81,18 +157,18 @@
       "wave": 1
     },
     "id": "017-entities-and-typed-edges",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "kernel",
     "risk": "high",
     "sectionDigests": {
-      "017-entities-and-typed-edges": "adc70f32aded882907c057dc823dbc1823237e90220548678c70c84aa7307502",
+      "017-entities-and-typed-edges": "c7bf9f2016e134ce08d11a9440211bd9a446bf803a700f25c6da32b75e28ebf9",
       "1-purpose": "9544997bff705b1ab1dd1b67c738aaa08c7698b80e113bc1f2902f6893ebcd15",
       "2-territory": "10d5edb6b016c95da7d191314c3cf05e88882319d7f27f4e9b49e64fe465de9f",
       "3-behavior": "ebfa9a71c539264a83e9112017568fe6ee93dc358176439b3a81645628a805db",
       "4-functional-requirements": "1260c26cdc2fd3ddeb3d3cabbb82c9fe3939b9efc7ea06113acfbb22fe75be9b",
       "5-acceptance-criteria": "8ec1da3d6db6d23bafdf210fb260f382ee7c02dd5cfcc42047f7a6914dbdb508",
       "6-out-of-scope": "b8563666f9cb5a76c216f8922a42241440c28dbf101fbc7a0874a1b2fe8776c7",
-      "7-resolved-decisions": "8c8f95f89b2861fd5c93cda7914571f76fd0389c73b207815a8d619318f00786",
+      "7-resolved-decisions": "01f2bd4f9f7978edd61cb7bb31d2cf817bf608df5c6276a9c0e98615a8da29c3",
       "verification": "4e1d123b7188f4626457fbabf733b0666e353519ca401e3c7da342f5293b42f9"
     },
     "sectionHeadings": [
@@ -111,6 +187,6 @@
     "summary": "Similarity alone answers \"what looks like this\", not \"what do I know about this person\". Entities give recall a second axis: people, projects, organizations, places, and artifacts, resolved to canonical records with aliases, connected by typed edges from a closed vocabulary. Every entity and every edge names the memory it was derived from and the extractor version that produced it, and a derived assertion never outranks the memory it came from. Extraction is a job on the same outbox as embedding, so it inherits the retry and dead-letter discipline rather than inventing its own.\n",
     "title": "Entities and typed edges: a closed predicate vocabulary, derived facts that never outrank their source"
   },
-  "shardHash": "f29a52f749ad061af2b25433dfd9afbdf4ad8b6e75a70f5cef9166c762bd7d00",
+  "shardHash": "b40609aa62d94becd986900499a0908e3ac9c5ff2d1a0e631b7accf129f5daff",
   "specVersion": "1.11.0"
 }

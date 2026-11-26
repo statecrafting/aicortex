@@ -80,6 +80,7 @@ pub mod decision_key;
 pub mod embedding_memory;
 pub mod erasure;
 pub mod fingerprint;
+pub mod graph_tables;
 pub mod host;
 pub mod lifecycle;
 pub mod memory_repo;
@@ -87,6 +88,7 @@ pub mod migrations;
 pub mod predicate_registry_repo;
 pub mod provenance_repo;
 pub mod scope_repo;
+pub mod text_postings;
 
 pub use claim_admission_repo::{
     AdmissionDecisions, AdmissionRecord, ClaimAdmissionRepo, policy_digest,
@@ -108,6 +110,10 @@ pub use erasure::{
     MAX_ACCOUNTED_ERASURE_BATCH, MAX_ERASURE_BATCH, PLANNED, PreparedErasure, ScopeErased,
     erasure_lease_key,
 };
+pub use graph_tables::{
+    EXTRACTION_PROCESSOR, GRAPH_VERSION, ORIGIN_ERASED, extraction_key, extraction_processor,
+    graph_migration, stage_extraction,
+};
 pub use host::{
     AICORTEX_MIGRATION_SET_NAME, AuthorizedPredicateRegistration, OperatorPredicateConfig,
     PredicateRegistrationGrant, PredicateRegistrationIdentity, PredicateRegistrationPlan,
@@ -126,6 +132,7 @@ pub use predicate_registry_repo::{
 };
 pub use provenance_repo::ProvenanceRepo;
 pub use scope_repo::{ScopeId, ScopeRepo, ScopeRow};
+pub use text_postings::{TEXT_INDEX_VERSION, text_index_migration};
 
 /// The lowercase hex SHA-256 of `material`.
 ///

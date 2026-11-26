@@ -75,6 +75,7 @@ aicortex-claims = { path = "crates/aicortex-claims", version = "=0.1.0" }
 aicortex-embed = { path = "crates/aicortex-embed", version = "=0.1.0" }
 aicortex-recall = { path = "crates/aicortex-recall", version = "=0.1.0" }
 aicortex-index = { path = "crates/aicortex-index", version = "=0.1.0" }
+aicortex-graph = { path = "crates/aicortex-graph", version = "=0.1.0" }
 aicortex-api = { path = "crates/aicortex-api", version = "=0.1.0" }
 aicortex-mcp = { path = "crates/aicortex-mcp", version = "=0.1.0" }
 

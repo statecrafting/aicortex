@@ -173,31 +173,34 @@ impl Derivative {
 /// Naming it as an ordinary derivative would hide a frozen invariant inside a
 /// loop.
 pub const DERIVATIVES: &[Derivative] = &[
+    // Spec 016 B-5: the text index's postings. `stage_sweep` releases their
+    // `token_df` counts first, while the postings still exist.
+    Derivative::new("chunk_token", "memory_id", "scope_id"),
     // Embeddings reference chunks, so erase them first.
     Derivative::new("embedding", "memory_id", "scope_id"),
     Derivative::new("chunk", "memory_id", "scope_id"),
     Derivative::new("provenance", "memory_id", "scope_id"),
     Derivative::new("memory_derivation", "memory_id", "scope_id"),
     Derivative::new("memory_source", "memory_id", "scope_id"),
+    // Spec 017 FR-006: what the graph derived from the memory. An edge left
+    // with no source is marked `origin_erased` by `stage_sweep`.
+    Derivative::new("mention", "memory_id", "scope_id"),
+    Derivative::new("edge_source", "memory_id", "scope_id"),
+    Derivative::new("extraction", "memory_id", "scope_id"),
 ];
 
 /// The derivative tables later specs add, named here before they exist.
 ///
-/// B-7 requires erasure to reach every index entry. That table belongs to
-/// spec 016 and this schema version does not carry it, so sweeping it now would fail every
-/// erasure: SQLite refuses a `DELETE` against a table that does not exist and
-/// the whole transaction rolls back.
+/// B-7 requires erasure to reach every index entry. A table a later spec
+/// owns is named here until its migration lands, because sweeping a table
+/// that does not exist fails every erasure: SQLite refuses the `DELETE` and
+/// the whole transaction rolls back. Naming it anyway is the difference
+/// between a requirement deferred and a requirement forgotten.
 ///
-/// Naming it anyway is the difference between a requirement deferred and a
-/// requirement forgotten. Spec 016 moves its entry into [`DERIVATIVES`] in the same change as the migration that
-/// creates the table, under an `extends` edge on this file, and the sweep
-/// itself needs no edit. Until then [`Eraser::also`] registers the planned
-/// derivative against a table the caller has created so tests can exercise
-/// the future-table contract without weakening missing-table failures.
-pub const PLANNED: &[Derivative] = &[
-    // Spec 016 section 2: the application-owned text index.
-    Derivative::new("chunk_token", "memory_id", "scope_id"),
-];
+/// Empty since spec 016 moved its `chunk_token` entry into [`DERIVATIVES`]
+/// with the migration that creates the table. [`Eraser::also`] still
+/// registers a derivative against a table a caller has created.
+pub const PLANNED: &[Derivative] = &[];
 
 /// What one erasure did (B-7, B-8).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -466,10 +469,10 @@ impl Eraser {
 
     /// The same, also sweeping `derivative`.
     ///
-    /// For a table this schema version does not carry yet: spec 016 moves its
-    /// [`PLANNED`] entry into [`DERIVATIVES`] when its migration lands, and
-    /// until then a caller that has created the table itself registers it
-    /// here. Registering a table that does not exist fails the erasure rather
+    /// For a table this schema version does not carry yet: a later spec
+    /// moves its [`PLANNED`] entry into [`DERIVATIVES`] when its migration
+    /// lands, and until then a caller that has created the table itself
+    /// registers it here. Registering a table that does not exist fails the erasure rather
     /// than silently skipping it, which is the right way round for an
     /// invariant that is frozen.
     #[must_use]
@@ -860,6 +863,7 @@ impl Eraser {
             ERASE_SCOPE_CLAIMS_SQL,
             vec![Value::from(&scope_id)],
         ));
+        crate::graph_tables::stage_scope_erasure(&mut txn, scope_id.as_str());
         for statement in [
             "DELETE FROM claim_relation WHERE scope_id = ?1",
             "DELETE FROM claim_retraction WHERE scope_id = ?1",
@@ -1063,6 +1067,18 @@ impl Eraser {
         scope: &ScopeId,
         shells: &[Shell],
     ) -> core::ops::Range<usize> {
+        // Spec 016 B-5: subtract the postings from `token_df` while they still
+        // exist, so no frequency row counts an erased chunk or keeps a token
+        // only the erased memory held. Outside the counted span: these touch
+        // aggregate rows, not the memory's own derivatives.
+        for shell in shells {
+            crate::text_postings::stage_uncount_memory(
+                txn,
+                scope.as_str(),
+                &shell.id.to_string(),
+                None,
+            );
+        }
         let start = txn.len();
         for derivative in &self.derivatives {
             for shell in shells {
@@ -1075,7 +1091,10 @@ impl Eraser {
                 ));
             }
         }
-        start..txn.len()
+        let swept = start..txn.len();
+        // Spec 017 FR-006: outside the counted span, like the uncount above.
+        crate::graph_tables::stage_origin_erased(txn, scope.as_str());
+        swept
     }
 
     /// The columns a tombstone needs, for a memory that is not one yet.
