@@ -12,7 +12,7 @@
 //! reaches them from an automated client: the interactive-principal check is
 //! the route's (B-8), and a [`Sub`] is not something an agent has (011 B-7).
 
-use aicortex_store::ScopeId;
+use aicortex_store::{DecisionRefRepo, ReasonCode, RefKind, ScopeId, append_decision};
 use aicortex_types::{DecisionRef, Memory, MemoryId, Promotion, Scope, Status, TrustClass};
 use rahi_ledger::{Decision, DecisionId, DecisionKind, Ledger, Outcome};
 use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
@@ -185,23 +185,24 @@ impl<'a> Promoter<'a> {
         let decision_id = format!("{KIND_PROMOTE}-{memory}-{}", Uuid::now_v7().simple());
         let reference = DecisionRef::new(decision_id.clone())
             .map_err(|error| Error::Validation(error.to_string()))?;
-        self.ledger
-            .append(
-                Decision::new(
-                    DecisionId::new(decision_id.clone()),
-                    DecisionKind::new(KIND_PROMOTE),
-                    by.clone(),
-                    Outcome::Allow,
-                    "a memory was promoted to instruction grade by a person",
-                )
-                .with_payload(serde_json::json!({
-                    "scope": scope.to_string(),
-                    "memory_id": memory.to_string(),
-                    "promoted_by": by.as_str(),
-                    "review_due": review_due.get(),
-                })),
+        append_decision(
+            self.ledger,
+            Decision::new(
+                DecisionId::new(decision_id.clone()),
+                DecisionKind::new(KIND_PROMOTE),
+                by.clone(),
+                Outcome::Allow,
+                "a memory was promoted to instruction grade by a person",
             )
-            .await?;
+            .with_payload(serde_json::json!({
+                "scope": scope.to_string(),
+                "memory_id": memory.to_string(),
+                "reason_code": ReasonCode::Promotion.label(),
+                "promoted_by": by.as_str(),
+                "review_due": review_due.get(),
+            })),
+        )
+        .await?;
 
         found.trust = TrustClass::instruction(Promotion::new(by.clone(), reference));
         found.updated = now;
@@ -247,6 +248,7 @@ impl<'a> Promoter<'a> {
                 Value::Integer(sql_seconds(review_due)?),
             ],
         ));
+        DecisionRefRepo::stage(&mut txn, scope, memory, &decision_id, RefKind::Promote, now);
         txn.push(Statement::with_params(
             "UPDATE review_item
              SET state = 'resolved', resolved_by = ?3, resolved_at = ?4,
@@ -329,28 +331,30 @@ impl<'a> Promoter<'a> {
         }
         let scope_id = ScopeId::of(scope);
         let decision_id = format!("{KIND_DEMOTE}-{memory}-{}", Uuid::now_v7().simple());
-        self.ledger
-            .append(
-                Decision::new(
-                    DecisionId::new(decision_id.clone()),
-                    DecisionKind::new(KIND_DEMOTE),
-                    by.clone(),
-                    Outcome::Allow,
-                    "a memory was returned to assertion grade by a person",
-                )
-                .with_payload(serde_json::json!({
-                    "scope": scope.to_string(),
-                    "memory_id": memory.to_string(),
-                    "demoted_by": by.as_str(),
-                })),
+        append_decision(
+            self.ledger,
+            Decision::new(
+                DecisionId::new(decision_id.clone()),
+                DecisionKind::new(KIND_DEMOTE),
+                by.clone(),
+                Outcome::Allow,
+                "a memory was returned to assertion grade by a person",
             )
-            .await?;
+            .with_payload(serde_json::json!({
+                "scope": scope.to_string(),
+                "memory_id": memory.to_string(),
+                "reason_code": ReasonCode::Demotion.label(),
+                "demoted_by": by.as_str(),
+            })),
+        )
+        .await?;
         let status = found.status.label();
         found.trust = TrustClass::Assertion;
         found.updated = now;
         let mut txn = TxnBuilder::new();
         txn.push(memory_update(&scope_id, &found, status, &expected)?);
         txn.push(delete_promotion(&scope_id, memory));
+        DecisionRefRepo::stage(&mut txn, scope, memory, &decision_id, RefKind::Demote, now);
         if let Err(error) = self.store.txn(txn.into_statements()).await {
             refuse(self.ledger, KIND_DEMOTE, scope, memory, by).await;
             return Err(error);
@@ -421,26 +425,28 @@ impl<'a> Promoter<'a> {
             current.updated = now;
 
             let decision_id = format!("{KIND_LAPSE}-{}", row.decision_id);
-            self.ledger
-                .append(
-                    Decision::new(
-                        DecisionId::new(decision_id.clone()),
-                        DecisionKind::new(KIND_LAPSE),
-                        Sub::new(row.promoted_by.as_str()),
-                        Outcome::Allow,
-                        "a promotion lapsed at its review date and the memory returned to \
-                         assertion grade",
-                    )
-                    .with_payload(serde_json::json!({
-                        "scope": scope.to_string(),
-                        "memory_id": memory.to_string(),
-                        "promotion_decision": row.decision_id,
-                    })),
+            append_decision(
+                self.ledger,
+                Decision::new(
+                    DecisionId::new(decision_id.clone()),
+                    DecisionKind::new(KIND_LAPSE),
+                    Sub::new(row.promoted_by.as_str()),
+                    Outcome::Allow,
+                    "a promotion lapsed at its review date and the memory returned to \
+                     assertion grade",
                 )
-                .await?;
+                .with_payload(serde_json::json!({
+                    "scope": scope.to_string(),
+                    "memory_id": memory.to_string(),
+                    "reason_code": ReasonCode::PromotionLapsed.label(),
+                    "promotion_decision": row.decision_id,
+                })),
+            )
+            .await?;
             let mut txn = TxnBuilder::new();
             txn.push(memory_update(&scope_id, current, status, expected)?);
             txn.push(delete_promotion_if(&scope_id, memory, &row.decision_id));
+            DecisionRefRepo::stage(&mut txn, scope, memory, &decision_id, RefKind::Lapse, now);
             txn.push(Statement::with_params(
                 "INSERT INTO review_item
                    (item_id, scope_id, kind, subject, created, state)
@@ -522,6 +528,7 @@ async fn refuse(ledger: &Ledger, kind: &str, scope: &Scope, memory: MemoryId, by
     .with_payload(serde_json::json!({
         "scope": scope.to_string(),
         "memory_id": memory.to_string(),
+        "reason_code": ReasonCode::ActNotCommitted.label(),
     }));
-    let _ = ledger.append(refusal).await;
+    let _ = append_decision(ledger, refusal).await;
 }
