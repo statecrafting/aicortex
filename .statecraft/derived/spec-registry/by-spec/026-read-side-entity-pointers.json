@@ -39,6 +39,14 @@
     "extends": [
       {
         "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "017-entities-and-typed-edges",
         "unit": {
           "kind": "file",
@@ -59,6 +67,14 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/src/dto.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/Cargo.toml"
         }
       },
       {
@@ -168,6 +184,6 @@
     "summary": "Spec 022 turns a session into captured memories, but nothing on the read side tells an agent that the store already holds something about the person or project it just asked about, so the agent answers generically about facts the store knew. This spec adds entity pointers to the existing recall result: when a search asks for them, the server resolves entity names in the query by exact and normalized alias match in the searched scope, with no model call, and returns a small framed block of entity ids, kinds, counts, and last-seen times beside the evidence. The block is untrusted data under 019, bounded in size, counted inside any delivery budget, and opt-in per request. No client hook carries pointers: every client's hook output starts as \"not a data position\", and the MCP surface stays at seven tools.\n",
     "title": "Read-side entity pointers: tell the agent, inside its recall results, that memory about a named entity exists"
   },
-  "shardHash": "533c7875f88b55198c070c9348b9ca2741a7d3afac1f585a01bf400517a3b9ab",
+  "shardHash": "85d26f3c8de28490b25f6a210b9d88d37abba24842501f8f12a2aab2bc3524b6",
   "specVersion": "1.11.0"
 }

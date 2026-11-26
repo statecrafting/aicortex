@@ -40,11 +40,19 @@
     ],
     "implementingPaths": [
       {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "clients/README.md",
         "source": "spec-edge"
       },
       {
         "path": "clients/matrix.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/Cargo.toml",
         "source": "spec-edge"
       },
       {
@@ -125,6 +133,19 @@
       {
         "locations": [
           {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "clients/README.md"
           }
         ],
@@ -146,6 +167,19 @@
         "unit": {
           "kind": "file",
           "path": "clients/matrix.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/Cargo.toml"
         }
       },
       {
@@ -270,5 +304,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "533c7875f88b55198c070c9348b9ca2741a7d3afac1f585a01bf400517a3b9ab"
+  "shardHash": "85d26f3c8de28490b25f6a210b9d88d37abba24842501f8f12a2aab2bc3524b6"
 }

@@ -119,6 +119,13 @@ blake3 = { version = "1", default-features = false, features = ["std"] }
 # of B-4 is computed in fixed-point integers (D-4).
 unicode-normalization = "0.1"
 
+# Tests only: spec 026's FR-006 installs a capturing subscriber under the
+# fully assembled router, so it can show that asking for entity pointers adds
+# no occurrence of the query to any log line or span. The crate is already in
+# the chassis's locked tree at this version (axum and hiqlite carry it), so it
+# adds no tree.
+tracing = "0.1"
+
 # Pure civil-time conversion for spec 052. The projection rejects a policy
 # whose pinned database identity differs from the database compiled here.
 chrono = { version = "0.4", default-features = false, features = ["std"] }

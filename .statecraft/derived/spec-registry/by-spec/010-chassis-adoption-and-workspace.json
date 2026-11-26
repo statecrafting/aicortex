@@ -61,14 +61,14 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "010-the-cell": "396b5daa0a8493f7010f7ffcb46d8f73120cfc882dee24ada688bdad652d7334",
+      "010-the-cell": "42d67b81d52ec29e3843f0195fb90466bf197c1ccb542a5abf45c7d07da1ec92",
       "1-purpose": "dfc3e51d5387ffde1506e3fcc6c35e99dfcf3a59540e390a1de4c44430d2b4ea",
       "2-territory": "dfefe36b5a48c048ad91f848e333cf8eb3045f3a05bb525e3da084d2d372111b",
       "3-behavior": "eb24afa04571676df05d45823d0d8a4c6e49f6f496d8cadbaf8a9b36ef1085b0",
       "4-functional-requirements": "beb707d66846f14fdcb3b2e52c9c80413a963b2423d2b8e53a008b24c2fc4756",
       "5-acceptance-criteria": "40cb9ce0f88088b6034237ace7c8dd06ff72d3ab1349313f3b330fdc177ce461",
       "6-out-of-scope": "3c8496aef8b69184969800ee792f4d425913b11a946378f680918843b4ff6f03",
-      "7-resolved-decisions": "cf9b84c55211ed676add575a5d337f952e581b9f1e157811532766fea6a0dbc7",
+      "7-resolved-decisions": "b3dd3a620aad013d834a107c4e503b9b2bc7434a226af5e9d29920058f5af991",
       "status-2026-09-17-complete-the-chassis-release-landed": "53a7b66cf22f9644eeffe4f5980bdd04e6eedf834a1da59773b129001bb8b3f2",
       "verification": "a16f76da0500f5060306b5f8b4d7b84606f4ca49b358b3abd1f9b339a5e8c305"
     },
@@ -89,6 +89,6 @@
     "summary": "The workspace and the seam to the chassis. rahi crates are pinned to one exact version in the workspace manifest and are never vendored or patched. The application is a `Cell`: it returns a manifest, a migration list, a router, and an operator router, and `main` hands it to rahi's runner, which owns argument parsing, boot, the verbs, and the exit codes. The manifest is the capability ceiling, and it starts closed: no egress host is declared until a spec needs one.\n",
     "title": "The cell: a Cargo workspace, pinned rahi crates, a declared manifest, and one line of main"
   },
-  "shardHash": "154edf65f755ab4c069dfedbe515a05e7e3245ae04c24296425bab1a29ef489c",
+  "shardHash": "785da4da42c262b1dfb06e7b9cf0af2a2e4f2df9b112dc1913cd41309dffac1c",
   "specVersion": "1.11.0"
 }
