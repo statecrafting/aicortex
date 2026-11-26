@@ -6,7 +6,7 @@ kind: "feature"
 domain: "clients"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: medium
 wave: 2
 depends_on:
@@ -18,10 +18,12 @@ establishes:
   - "clients/codex/"
   - "clients/cursor/"
   - "clients/antigravity/"
+  - "clients/capture-core.mjs"
   - "crates/aicortex-api/src/clients.rs"
   - "crates/aicortex-api/tests/clients.rs"
 extends:
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
+  - { spec: "001-agentic-harness", unit: "spec-spine.toml", nature: additive }
 references:
   - { unit: { kind: file, path: "docs/design/00-lineage.md" }, role: context }
   - { unit: { kind: file, path: "specs/013-write-gate-and-redaction/spec.md" }, role: context }
@@ -166,6 +168,91 @@ server.
   alongside this is outside this amendment and is not specified here. The
   amendment adds behavior to an approved spec that no human has reviewed,
   so this spec returns to `status: draft` (constitution V).
+
+- **D-3 (2026-11-26, build).** How the hook gets a token is not specified,
+  and the spec's own rules leave it open: a hook is a process of its own, so
+  it cannot borrow the client's OAuth session, and no static key may exist
+  (constitution VII). The hook reads a bearer token from
+  `AICORTEX_ACCESS_TOKEN` or a per-client file (`~/.aicortex/<client>.token`)
+  and sends nothing, logging that it had none, when there is neither. How a
+  person obtains a per-client token with `memory.read` and `memory.write`
+  only, without pasting a key, needs a chassis flow (a device or loopback
+  login for a non-MCP process) that rahi does not yet offer; it is not
+  invented here. Until it exists the hooks are tested with minted tokens
+  only.
+- **D-4 (2026-11-26, build).** `GET /api/v1/clients/{name}` is gated by
+  `memory.read` like the rest of the prefix, because `/api/v1` is declared a
+  bearer route and a request with no credential is refused there. The URL it
+  fills in is the deployment's `RAHI_PUBLIC_URL`, which a user already
+  knows; serving the snippet before sign-in would need a public route outside
+  the prefix and is not done.
+- **D-5 (2026-11-26, build).** How a hook recognises a durable item
+  structurally (B-8). A hook reads only user and assistant message text, and
+  within it only lines that begin with one of five labels, each naming one
+  011 B-4 kind: `Preference:`, `Correction:`, `Decision:`, `Commitment:`
+  (`Task`), `Remember:` (`Fact`). Tool use and results, shell, MCP, plugin,
+  system, and meta events are never read for content, even when their text
+  carries a label. The labels are an authoring convention the user (or an
+  instruction the user puts in the client's own memory file) follows; it is
+  deterministic, and a line with no label is never sent. A smarter
+  classifier would need a model, which B-8 forbids.
+- **D-6 (2026-11-26, build).** Hooks are Node ES modules: one shared
+  `clients/capture-core.mjs` (the filter, the request, the silent failure)
+  and one small `hook.mjs` per client that maps that client's payload to
+  session events. Node was chosen because the repository already ships Node
+  tooling (`scripts/mcp-sdk-client.mjs`), `fetch` and `crypto` need no
+  package, and a shell hook would need `jq`. The shared file is claimed in
+  `establishes`. Each client's fixtures are `fixtures/invocations.json` (a
+  list of `{stdin, args}` the test feeds the hook; `${FIXTURES}` expands to
+  the fixtures directory) beside any payload file it names. They are
+  authored in the shape each vendor documents, not recorded from a session:
+  no client could be driven here, so no matrix row claims more than the
+  fixtures show.
+- **D-7 (2026-11-26, build).** The matrix is parsed by a reader for the
+  subset of TOML the file uses (`[client.<name>]` tables of strings,
+  booleans, and one-line string lists), because `aicortex-api` has no TOML
+  dependency and the dependency set belongs to spec 010. The reader refuses
+  anything outside the subset by line. The MCP path `/mcp` is repeated in
+  `clients.rs` because `aicortex-mcp` depends on this crate; spec 021 owns
+  the value. The matrix and templates are embedded with `include_str!`, so
+  the served text is the repository's text; the one `match` that maps a row
+  to its template is covered by a test that refuses a row with no template
+  or a directory with no row.
+- **D-8 (2026-11-26, build).** Every matrix row is `verified = false`. B-1's
+  oauth and dynamic-registration columns record what each vendor documents,
+  not what was observed against this server, and the compatibility pair of
+  021 B-7 is `false` for all four because 021 cites a need for one client
+  only (OpenAI connectors), which is not in the matrix. Antigravity's hook
+  surface and MCP configuration key are unchecked, so its row says so and
+  its handler reads a neutral event list.
+
+- **D-9 (2026-11-26, build).** `spec-spine.toml [index] extra_hashed_inputs`
+  gains `clients/matrix.toml`, `clients/README.md`, and
+  `clients/capture-core.mjs`, because the lint (L-008) refuses a claimed file
+  that is in no content hash and these three are the ones that change what
+  every client is told. The hooks and snippets under the client directories
+  are claimed as directories and stay out of the hash, as other source does.
+  The edge on spec 001's `spec-spine.toml` is additive.
+
+## Status
+
+- **2026-11-26.** `implementation: in-progress`. Built and tested: B-1 to
+  B-4, B-6, B-8, and FR-001 to FR-006 (AC-1:
+  `cargo test -p aicortex-api --locked --test clients`, which drives each
+  shipped hook with Node against its fixtures, once against a recording
+  stub, once against a 503 and a dead port, and once against the real
+  cell). **AC-2 is not met.** It needs two clients completing the browser
+  sign-in against a running instance and a hook with a token of its own, and
+  neither exists yet: spec 021's AC-2 is blocked on the rahi chassis (rahi
+  specs 051 and 052, unreleased) refusing an anonymous `POST` before it can
+  be challenged and on a dynamically registered client not receiving a token
+  with this resource's audience (020 D-14), and the per-client token for a
+  hook has no chassis flow (D-3 here). B-5's per-client OAuth registration is
+  therefore designed in (each hook and snippet is per client, and the actor
+  names the client) but unobserved. What can run today is a hook with a
+  token minted for the test, which is what the tests do. When rahi lands the
+  flow: sign in two clients, run their hooks, record versions and dates in
+  `matrix.toml`, and flip those rows to `verified = true`.
 
 ## Verification
 

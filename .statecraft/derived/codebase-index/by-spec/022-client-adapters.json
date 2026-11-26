@@ -1,62 +1,61 @@
 {
-  "diagnostics": {
-    "errors": [],
-    "warnings": [
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'clients/README.md' does not exist",
-        "path": "clients/README.md"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'clients/matrix.toml' does not exist",
-        "path": "clients/matrix.toml"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'clients/claude-code/' does not exist",
-        "path": "clients/claude-code/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'clients/codex/' does not exist",
-        "path": "clients/codex/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'clients/cursor/' does not exist",
-        "path": "clients/cursor/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'clients/antigravity/' does not exist",
-        "path": "clients/antigravity/"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'crates/aicortex-api/src/clients.rs' does not exist",
-        "path": "crates/aicortex-api/src/clients.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '022-client-adapters' file unit 'crates/aicortex-api/tests/clients.rs' does not exist",
-        "path": "crates/aicortex-api/tests/clients.rs"
-      }
-    ]
-  },
   "mapping": {
     "dependsOn": [
       "021-mcp-server"
     ],
     "implementingPaths": [
       {
+        "path": "clients/README.md",
+        "source": "spec-edge"
+      },
+      {
+        "path": "clients/antigravity/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "clients/capture-core.mjs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "clients/claude-code/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "clients/codex/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "clients/cursor/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "clients/matrix.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/clients.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/clients.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "spec-spine.toml",
         "source": "spec-edge"
       }
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "clients/README.md"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -65,7 +64,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "clients/antigravity/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -74,7 +77,24 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "clients/capture-core.mjs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "clients/capture-core.mjs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "clients/claude-code/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -83,7 +103,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "clients/codex/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -92,7 +116,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "clients/cursor/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -101,7 +129,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "clients/matrix.toml"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -110,7 +142,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/clients.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -119,7 +155,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/clients.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -138,6 +178,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "spec-spine.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
         }
       },
       {
@@ -171,5 +224,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "e1c47a9bbd6c0f6e14f70b2b5a7771c7e7a7f0f255c494955d64071a52f99130"
+  "shardHash": "4c173a0ef8fff552362c42c77aa28fe749c08343f7544fb4b7f0cd50c6f1bf39"
 }

@@ -36,6 +36,10 @@
       },
       {
         "kind": "file",
+        "path": "clients/capture-core.mjs"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-api/src/clients.rs"
       },
       {
@@ -51,13 +55,21 @@
           "kind": "file",
           "path": "crates/aicortex-api/src/router.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "001-agentic-harness",
+        "unit": {
+          "kind": "file",
+          "path": "spec-spine.toml"
+        }
       }
     ],
     "extraFrontmatter": {
       "wave": 2
     },
     "id": "022-client-adapters",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "feature",
     "references": [
       {
@@ -77,14 +89,15 @@
     ],
     "risk": "medium",
     "sectionDigests": {
-      "022-client-adapters": "70a664f716fa6aca76da9f03d3bab6ab64956a940d96a82aa2dd6f4e197000a8",
+      "022-client-adapters": "32667a03ebf65bcbbc4d3b0ecb73c9e022a38d677cd1767651ad2155f86aa5f0",
       "1-purpose": "03696686a843665f3bdd97c36255676f45f7dbbf26fba1b2d6efce9eae50ece7",
       "2-territory": "41b5088baeca1a4ad42c1ad9018402f8720492fbf564be98ab1c623da18fadc2",
       "3-behavior": "1ad28a93548c7f2c3906d6320ea1d9e3c39f3d278bd4ffb3d111fe260177ee9f",
       "4-functional-requirements": "f734d3587e4a25a2fedd15b2fd73685e941284e2763164ae5665ce118f709f11",
       "5-acceptance-criteria": "44491057a47245cffe05f59b4259c32845aa5ff25fe007abc3a4cb439fbd2e2e",
       "6-out-of-scope": "7cf1f75b904541bfcd1e807a51ffe72c4113af3e984d11369225f32d1a76be4a",
-      "7-resolved-decisions": "e4410cd208589ec5d6b1049fd14b54afe5eb3b12fb5455dbd45df6eb93e97dea",
+      "7-resolved-decisions": "5f676e6aa7edc1948ee5e9c9dfe681302e03522e6977001bab0c5ab6409f1f4e",
+      "status": "ebdccd796fa59300d349e807f31d01583dade67b3f465b5772dcb57dc5bacf64",
       "verification": "0a29d40d64c2142b535a92d3cfdd53d69ef52a01c1603d5c6e70ae447cbdc0cf"
     },
     "sectionHeadings": [
@@ -96,6 +109,7 @@
       "5. Acceptance criteria",
       "6. Out of scope",
       "7. Resolved decisions",
+      "Status",
       "Verification"
     ],
     "specPath": "specs/022-client-adapters/spec.md",
@@ -103,6 +117,6 @@
     "summary": "Connecting is one URL, and everything a client needs beyond that is generated rather than written by hand. This spec owns the capability matrix: which clients support remote MCP, which support OAuth against it, and what each offers for automatic capture, which is the only place they genuinely differ. It ships per-client configuration snippets and the hook or notification payloads that turn a session into captured memories, and a route that serves the correct snippet for a client so setup is a copy rather than a document to follow.\n",
     "title": "Client adapters: one capability matrix, four install paths, zero client code in the core"
   },
-  "shardHash": "e1c47a9bbd6c0f6e14f70b2b5a7771c7e7a7f0f255c494955d64071a52f99130",
+  "shardHash": "4c173a0ef8fff552362c42c77aa28fe749c08343f7544fb4b7f0cd50c6f1bf39",
   "specVersion": "1.11.0"
 }
