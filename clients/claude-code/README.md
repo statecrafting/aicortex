@@ -15,7 +15,7 @@ No key is pasted anywhere, because none exists.
 
 1. Copy this repository's `clients/` directory to `~/.aicortex/clients/`
    (the hook imports `../capture-core.mjs`). Node 20 or newer is required.
-2. Add the `SessionEnd` entry from the served snippet to `~/.claude/settings.json`. The hook reads the session transcript: only `text` blocks of user and assistant messages count; `tool_use` and `tool_result` blocks and meta entries are skipped.
+2. Add the `SessionEnd` entry from the served snippet to `~/.claude/settings.json`. The hook reads the session transcript: only `text` blocks of user and assistant messages count; `tool_use` and `tool_result` blocks and meta entries are skipped. It reads a transcript only as a `.jsonl` file under Claude Code's projects directory (`~/.claude/projects`, or `$CLAUDE_CONFIG_DIR/projects`); any other path is not read.
 
 ## What automatic capture sends
 

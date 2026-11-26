@@ -14,11 +14,11 @@ depends_on:
 establishes:
   - "clients/README.md"
   - "clients/matrix.toml"
+  - "clients/capture-core.mjs"
   - "clients/claude-code/"
   - "clients/codex/"
   - "clients/cursor/"
   - "clients/antigravity/"
-  - "clients/capture-core.mjs"
   - "crates/aicortex-api/src/clients.rs"
   - "crates/aicortex-api/tests/clients.rs"
 extends:

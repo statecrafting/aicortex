@@ -60,6 +60,7 @@ fn run_hook(client: &str, invocation: &Value, url: &str, extra: &[(&str, &str)],
         .env("AICORTEX_URL", url)
         .env("AICORTEX_HOME", scratch)
         .env("AICORTEX_HOOK_LOG", scratch.join("hook.log"))
+        .env("AICORTEX_TRANSCRIPT_ROOT", &fixtures)
         .stdin(Stdio::piped())
         .stdout(Stdio::null())
         .stderr(Stdio::piped());
@@ -399,6 +400,33 @@ async fn the_off_switch_and_a_missing_token_send_nothing() {
         let log = std::fs::read_to_string(none.path().join("hook.log")).unwrap();
         assert!(log.contains("no access token"), "{client}: {log}");
     }
+}
+
+/// The Claude Code hook reads a transcript only from under its projects
+/// directory: an input naming any other file reads nothing and sends nothing.
+#[tokio::test(flavor = "multi_thread")]
+async fn a_transcript_outside_the_projects_directory_is_not_read() {
+    let (url, seen) = stub(StatusCode::OK).await;
+    let scratch = tempfile::tempdir().unwrap();
+    let outside = scratch.path().join("elsewhere.jsonl");
+    std::fs::copy(
+        root().join("claude-code/fixtures/transcript.jsonl"),
+        &outside,
+    )
+    .unwrap();
+    let invocation = serde_json::json!({
+        "stdin": { "session_id": "s-outside", "transcript_path": outside },
+    });
+    run_hook(
+        "claude-code",
+        &invocation,
+        &url,
+        &[("AICORTEX_ACCESS_TOKEN", "t")],
+        scratch.path(),
+    );
+    assert!(seen.lock().unwrap().is_empty());
+    let log = std::fs::read_to_string(scratch.path().join("hook.log")).unwrap();
+    assert!(log.contains("nothing read"), "{log}");
 }
 
 /// B-4, B-5, B-6: the real hook against the real cell, with a token that

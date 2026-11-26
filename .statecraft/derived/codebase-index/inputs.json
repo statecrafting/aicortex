@@ -142,7 +142,7 @@
       "contentHash": "320e1ef62aefec8ea772808415edda69c81563fefa1f2a0d99324d1337d9f9d4"
     },
     "clients/capture-core.mjs": {
-      "contentHash": "dc5a96f70f77b09de77ecc435e2c764e3c73f9d88eb6399ac2bf6867261c2a8c"
+      "contentHash": "0c7a6753f0908cb88a533f489202e62344933c2923277fce2a00004e6c6cb9c7"
     },
     "clients/matrix.toml": {
       "contentHash": "a6876b62c3e0e6513ce371cde108eebc77b0deefef2499fd2dfe03ecdb47d61a"

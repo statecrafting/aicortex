@@ -67,7 +67,7 @@ function home(...parts) {
   return path.join(process.env.AICORTEX_HOME ?? path.join(os.homedir(), ".aicortex"), ...parts);
 }
 
-function record(message) {
+export function record(message) {
   try {
     const file = process.env.AICORTEX_HOOK_LOG ?? home("hook.log");
     fs.mkdirSync(path.dirname(file), { recursive: true });
