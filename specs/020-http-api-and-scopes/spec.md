@@ -345,6 +345,16 @@ documents.
   code, under policy isolation (spec 044 section 3.3). No requirement or
   acceptance criterion changes.
 
+- **D-19 (2026-11-26, dependency edge, the search surface manifest commit).**
+  `aicortex-api` takes `aicortex-embed` as a normal dependency (it was a
+  dev-dependency), so `POST /search` can hold the query embedder 018 B-2's
+  vector channel needs behind a seam of this crate (`search::QueryEmbedder`)
+  and the cell can supply one. The edge points downward (surfaces over
+  understanding, spec 002) and `aicortex-recall` already depends on it. It
+  lands on its own, ahead of the code, under policy isolation (spec 044
+  section 3.3). `Cargo.lock` does not change. No requirement or acceptance
+  criterion changes.
+
 ## Status
 
 - **2026-11-24.** `implementation: complete`. B-1 to B-10 and FR-001 to FR-009
