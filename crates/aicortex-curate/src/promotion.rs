@@ -272,12 +272,6 @@ impl<'a> Promoter<'a> {
         })
     }
 
-    /// Return `memory` to assertion grade on the authority of `by` (B-6).
-    ///
-    /// # Errors
-    ///
-    /// [`Error::NotFound`] when the memory is not in the scope;
-    /// [`Error::Conflict`] when it is not instruction grade or changed while
     /// When `memory`'s promotion is next reviewed, if it holds one in
     /// `scope`.
     ///
@@ -313,6 +307,12 @@ impl<'a> Promoter<'a> {
             .transpose()
     }
 
+    /// Return `memory` to assertion grade on the authority of `by` (B-6).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::NotFound`] when the memory is not in the scope;
+    /// [`Error::Conflict`] when it is not instruction grade or changed while
     /// the Decision was being appended; the store's or the ledger's error.
     pub async fn demote(
         &self,

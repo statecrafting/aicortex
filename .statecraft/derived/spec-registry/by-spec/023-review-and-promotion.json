@@ -155,6 +155,14 @@
           "kind": "file",
           "path": "crates/aicortex-mcp/tests/tools.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/support/mod.rs"
+        }
       }
     ],
     "extraFrontmatter": {
@@ -202,6 +210,6 @@
     "summary": "Three situations need a person: content whose origin could not be established and was quarantined, two edges that contradict each other, and a memory that someone wants a client to act on. This spec is the one queue where all three wait, the decisions that empty it, and the ledger records those decisions produce. Promotion is the important one: it is the only path to instruction grade, it requires the promote scope and an interactive principal, and it writes a rahi Decision whose id becomes part of the memory's trust.\n",
     "title": "Review: the queue where quarantine, contradiction, and promotion wait for a human"
   },
-  "shardHash": "733491e64c042bc31778e09e51146dccc54a59be2d2c3ccb80b9bbbe4a9c8818",
+  "shardHash": "16e238280d379b2855f1c65b864965cf8b64b797dd589bb15461a947a53c7a2a",
   "specVersion": "1.11.0"
 }

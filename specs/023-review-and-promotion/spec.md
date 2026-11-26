@@ -36,6 +36,7 @@ extends:
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/resources.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
+  - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/support/mod.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
 summary: >

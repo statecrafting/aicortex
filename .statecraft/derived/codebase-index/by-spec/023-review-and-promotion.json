@@ -81,6 +81,10 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-mcp/tests/support/mod.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-mcp/tests/tools.rs",
         "source": "spec-edge"
       },
@@ -352,6 +356,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-mcp/tests/support/mod.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/support/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-mcp/tests/tools.rs"
           }
         ],
@@ -419,5 +436,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "733491e64c042bc31778e09e51146dccc54a59be2d2c3ccb80b9bbbe4a9c8818"
+  "shardHash": "16e238280d379b2855f1c65b864965cf8b64b797dd589bb15461a947a53c7a2a"
 }
