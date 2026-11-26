@@ -488,6 +488,57 @@ async fn keep_edge_keeps_an_earlier_end_and_refuses_an_edge_no_longer_active() {
     node.shutdown().await;
 }
 
+/// D-7: a boundary at the end of the shared period would leave the later
+/// edge with no duration, so it is refused; one second earlier holds.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn a_disjoint_boundary_never_leaves_an_edge_without_duration() {
+    let node = node().await;
+    let scope = scope("alice");
+    let source = active(&node, &scope, "alice changed projects twice").await;
+    add_edge(&node.handle(), &scope, "edg-a", "apollo", 100, None, source).await;
+    add_edge(
+        &node.handle(),
+        &scope,
+        "edg-b",
+        "gemini",
+        200,
+        Some(400),
+        source,
+    )
+    .await;
+    add_contradiction(&node.handle(), &scope, "edg-a", "edg-b").await;
+    let item = the_open_item(&node, &scope, ReviewKind::Contradiction).await;
+    let handle = node.handle();
+    let reviewer = Reviewer::new(&handle, &node.ledger);
+    let at_boundary = |boundary| Resolution::Disjoint {
+        boundary: UnixSeconds::new(boundary),
+        reason: "the periods meet here".to_owned(),
+    };
+    let refused = reviewer
+        .resolve(
+            &scope,
+            &item.id,
+            &person("alice"),
+            &at_boundary(400),
+            at(10),
+        )
+        .await;
+    assert!(matches!(refused, Err(Error::Validation(_))), "{refused:?}");
+    reviewer
+        .resolve(
+            &scope,
+            &item.id,
+            &person("alice"),
+            &at_boundary(399),
+            at(11),
+        )
+        .await
+        .unwrap();
+    let later = edge(&node.handle(), &scope, "edg-b").await;
+    assert_eq!((later.valid_from, later.valid_until), (399, Some(400)));
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr005_two_disjoint_periods_leave_two_active_edges_that_do_not_overlap() {
     let node = node().await;
