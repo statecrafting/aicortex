@@ -244,6 +244,10 @@ pub fn router_with(api: Api) -> Router {
             scoped(ApiScope::MemoryRead, k, get(entities::list)),
         )
         .route(
+            "/entities/{id}",
+            scoped(ApiScope::MemoryRead, k, get(entities::page)),
+        )
+        .route(
             "/entities/{id}/neighbors",
             scoped(ApiScope::MemoryRead, k, get(entities::neighbors)),
         )

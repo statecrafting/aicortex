@@ -11,7 +11,13 @@
 //! from and the extractor version that produced it, a walk ([`walk`]) returns
 //! memories with the path that reached them and never an answer of its own,
 //! and a derived assertion never outranks the memory it came from (B-6).
-//! This crate carries no content out: identifiers, paths, and counts only.
+//! The page ([`page`]) is the one answer to "what do I know about this entity,
+//! and why": a computed projection of all of the above, cited to the memories
+//! that still exist, with nothing generated and nothing stored (spec 056).
+//!
+//! This crate serializes no content: a walk returns identifiers, paths, and
+//! counts, and a page hands memories and literals to a surface as data, to be
+//! enveloped by spec 019's boundary before they leave.
 
 #![forbid(unsafe_code)]
 #![warn(missing_docs)]
@@ -20,6 +26,7 @@ pub mod edge;
 pub mod entity;
 pub mod extract;
 pub mod migrations;
+pub mod page;
 pub mod preflight;
 pub mod resolve;
 pub mod vocabulary;
@@ -34,6 +41,12 @@ pub use entity::{Entity, EntityId, MAX_LIST, NewEntity, derived_id, get, list, n
 pub use extract::{
     CONFIDENCE_FLOOR, EdgeProposal, Extraction, Extractor, KnownEntity, MentionProposal,
     ObjectProposal, PatternExtractor, Rejection, ValidEdge, Validated, validate,
+};
+pub use page::{
+    Continuation, DEFAULT_CONTRADICTIONS, DEFAULT_FACTS, DEFAULT_MENTIONS, Direction, EntityPage,
+    Fact, FactEnd, FactGroup, Header, MAX_CONTRADICTIONS, MAX_FACT_SOURCES, MAX_FACTS,
+    MAX_MENTIONS, MentionRange, MentioningMemory, PageBounds, PageContradiction, Slice,
+    entity_page,
 };
 pub use preflight::{GraphPreflight, ScopeGraph, read_deployment, read_scope};
 pub use resolve::{

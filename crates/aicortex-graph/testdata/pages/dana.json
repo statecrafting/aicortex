@@ -1,0 +1,274 @@
+{
+  "as_of": 1700001000,
+  "contradictions": {
+    "items": [
+      {
+        "detected": 1700000100,
+        "id": "ctd-0001",
+        "predicate": "works_at",
+        "sides": [
+          {
+            "confidence": 800,
+            "direction": "outgoing",
+            "edge": "edg-0001",
+            "extractor": "pattern",
+            "extractor_version": 1,
+            "other": {
+              "entity": {
+                "id": "ent-acme",
+                "name": "Acme Corp"
+              }
+            },
+            "source_count": 1,
+            "sources": [
+              "019c4f00-0000-7000-8000-000000000001"
+            ],
+            "trust": "assertion",
+            "valid_from": 1700000000,
+            "valid_until": null
+          },
+          {
+            "confidence": 700,
+            "direction": "outgoing",
+            "edge": "edg-0002",
+            "extractor": "pattern",
+            "extractor_version": 1,
+            "other": {
+              "entity": {
+                "id": "ent-globex",
+                "name": "Globex"
+              }
+            },
+            "source_count": 1,
+            "sources": [
+              "019c4f00-0000-7000-8000-000000000002"
+            ],
+            "trust": "evidence",
+            "valid_from": 1700000100,
+            "valid_until": null
+          }
+        ],
+        "status": "open"
+      }
+    ],
+    "next": null
+  },
+  "facts": [
+    {
+      "facts": [
+        {
+          "confidence": 900,
+          "direction": "outgoing",
+          "edge": "edg-0003",
+          "extractor": "pattern",
+          "extractor_version": 1,
+          "other": {
+            "entity": {
+              "id": "ent-apollo",
+              "name": "Apollo"
+            }
+          },
+          "source_count": 1,
+          "sources": [
+            "019c4f00-0000-7000-8000-000000000003"
+          ],
+          "trust": "assertion",
+          "valid_from": 1700000200,
+          "valid_until": null
+        }
+      ],
+      "next": null,
+      "predicate": "works_on"
+    },
+    {
+      "facts": [
+        {
+          "confidence": 700,
+          "direction": "outgoing",
+          "edge": "edg-0002",
+          "extractor": "pattern",
+          "extractor_version": 1,
+          "other": {
+            "entity": {
+              "id": "ent-globex",
+              "name": "Globex"
+            }
+          },
+          "source_count": 1,
+          "sources": [
+            "019c4f00-0000-7000-8000-000000000002"
+          ],
+          "trust": "evidence",
+          "valid_from": 1700000100,
+          "valid_until": null
+        },
+        {
+          "confidence": 800,
+          "direction": "outgoing",
+          "edge": "edg-0001",
+          "extractor": "pattern",
+          "extractor_version": 1,
+          "other": {
+            "entity": {
+              "id": "ent-acme",
+              "name": "Acme Corp"
+            }
+          },
+          "source_count": 1,
+          "sources": [
+            "019c4f00-0000-7000-8000-000000000001"
+          ],
+          "trust": "assertion",
+          "valid_from": 1700000000,
+          "valid_until": null
+        }
+      ],
+      "next": null,
+      "predicate": "works_at"
+    },
+    {
+      "facts": [
+        {
+          "confidence": 650,
+          "direction": "outgoing",
+          "edge": "edg-0009",
+          "extractor": "pattern",
+          "extractor_version": 1,
+          "other": {
+            "entity": {
+              "id": "ent-lab",
+              "name": "The Lab"
+            }
+          },
+          "source_count": 1,
+          "sources": [
+            "019c4f00-0000-7000-8000-000000000003"
+          ],
+          "trust": "assertion",
+          "valid_from": 1700000200,
+          "valid_until": null
+        }
+      ],
+      "next": null,
+      "predicate": "located_in"
+    },
+    {
+      "facts": [
+        {
+          "confidence": 600,
+          "direction": "incoming",
+          "edge": "edg-0005",
+          "extractor": "pattern",
+          "extractor_version": 1,
+          "other": {
+            "entity": {
+              "id": "ent-apollo",
+              "name": "Apollo"
+            }
+          },
+          "source_count": 1,
+          "sources": [
+            "019c4f00-0000-7000-8000-000000000003"
+          ],
+          "trust": "assertion",
+          "valid_from": 1700000200,
+          "valid_until": null
+        }
+      ],
+      "next": null,
+      "predicate": "related_to"
+    },
+    {
+      "facts": [
+        {
+          "confidence": 950,
+          "direction": "outgoing",
+          "edge": "edg-0004",
+          "extractor": "pattern",
+          "extractor_version": 1,
+          "other": {
+            "literal": "dark mode"
+          },
+          "source_count": 1,
+          "sources": [
+            "019c4f00-0000-7000-8000-000000000001"
+          ],
+          "trust": "assertion",
+          "valid_from": 1700000000,
+          "valid_until": null
+        }
+      ],
+      "next": null,
+      "predicate": "prefers"
+    }
+  ],
+  "header": {
+    "aliases": [
+      "Dana W.",
+      "Dee Whit"
+    ],
+    "canonical": "Dana Whitfield",
+    "first_seen": 1700000000,
+    "id": "ent-dana",
+    "kind": "person",
+    "last_seen": 1700000200,
+    "mention_count": 5,
+    "merged": [
+      "ent-dee"
+    ]
+  },
+  "mentions": {
+    "items": [
+      {
+        "created": 1700000200,
+        "id": "019c4f00-0000-7000-8000-000000000003",
+        "origin_erased": false,
+        "ranges": [
+          [
+            0,
+            7,
+            800
+          ],
+          [
+            41,
+            55,
+            900
+          ]
+        ],
+        "trust": "assertion"
+      },
+      {
+        "created": 1700000100,
+        "id": "019c4f00-0000-7000-8000-000000000002",
+        "origin_erased": false,
+        "ranges": [
+          [
+            0,
+            14,
+            900
+          ]
+        ],
+        "trust": "evidence"
+      },
+      {
+        "created": 1700000000,
+        "id": "019c4f00-0000-7000-8000-000000000001",
+        "origin_erased": false,
+        "ranges": [
+          [
+            0,
+            14,
+            900
+          ],
+          [
+            35,
+            39,
+            700
+          ]
+        ],
+        "trust": "assertion"
+      }
+    ],
+    "next": null
+  }
+}

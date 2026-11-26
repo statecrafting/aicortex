@@ -17,7 +17,8 @@ pub mod recall;
 pub mod trace;
 
 pub use envelope::{
-    EnvelopeInput, FRAMING_STATEMENT, FRAMING_VERSION, FramedMemories, frame_memories,
+    EnvelopeInput, FRAMING_STATEMENT, FRAMING_VERSION, FramedMemories, LiteralEnvelope,
+    LiteralInput, frame_literal, frame_memories,
 };
 pub use filter::{Extra, Filter};
 pub use freshness::{EntityFreshness, Freshness, SourceFreshness};

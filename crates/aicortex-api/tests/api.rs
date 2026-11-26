@@ -12,8 +12,13 @@ mod common;
 
 use std::time::Duration;
 
+use aicortex_graph::{ExtractionConfig, ExtractionWorker, PatternExtractor};
 use aicortex_recall::FRAMING_STATEMENT;
+use aicortex_store::{ScopeId, stage_extraction};
+use aicortex_types::{MemoryId, Scope};
 use common::{Who, capture_body};
+use rahi_store::TxnBuilder;
+use rahi_types::{Sub, UnixSeconds};
 use reqwest::{Method, StatusCode, header};
 use serde_json::{Value, json};
 
@@ -553,5 +558,291 @@ async fn b4_correct_supersede_page_and_erase() {
     )
     .await;
     assert_eq!(status, StatusCode::FORBIDDEN);
+    cell.shutdown().await;
+}
+
+/// Capture `text` as `owner` and run extraction over it, so the entity page
+/// has rows to read; returns the memory's id.
+async fn capture_and_extract(cell: &common::Cell, who: &Who, owner: &str, text: &str) -> String {
+    let (status, _, body) = send(
+        cell,
+        Method::POST,
+        "/api/v1/capture",
+        who,
+        Some(capture_body(text)),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    let id = parse(&body)["results"][0]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let scope_id = ScopeId::of(&Scope::personal(Sub::new(owner)));
+    let store = cell.store.handle();
+    let mut txn = TxnBuilder::new();
+    stage_extraction(
+        &mut txn,
+        scope_id.as_str(),
+        id.parse::<MemoryId>().unwrap(),
+        PatternExtractor::NAME,
+        PatternExtractor::VERSION,
+        UnixSeconds::new(1_700_000_001),
+    )
+    .expect("the work stages");
+    store.txn(txn.into_statements()).await.expect("commits");
+    let report = ExtractionWorker::new(
+        PatternExtractor,
+        ExtractionConfig::standard(),
+        "api-test-worker",
+    )
+    .expect("a worker")
+    .drain(&store, UnixSeconds::new(1_700_000_100))
+    .await
+    .expect("a drain");
+    assert_eq!(report.completed, 1);
+    id
+}
+
+/// The id of the entity named `name` in `who`'s scope.
+async fn entity_id(cell: &common::Cell, who: &Who, name: &str) -> String {
+    let (status, _, text) = send(cell, Method::GET, "/api/v1/entities", who, None).await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    parse(&text)["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| item["canonical"] == name)
+        .unwrap_or_else(|| panic!("no entity {name}: {text}"))["id"]
+        .as_str()
+        .unwrap()
+        .to_owned()
+}
+
+/// 056 FR-003 and 019 FR-001: every occurrence of the fixture sits between an
+/// opening and its closing delimiter, of a memory or of a literal, and the
+/// framing statement precedes the first envelope.
+fn assert_page_enveloped(text: &str) {
+    let framing = text.find(FRAMING_STATEMENT).expect("the framing statement");
+    let mut seen = 0;
+    let mut from = 0;
+    while let Some(found) = text[from..].find(INJECTION) {
+        let at = from + found;
+        let before = &text[..at];
+        let open = ["<<<AICORTEX_MEMORY ", "<<<AICORTEX_LITERAL "]
+            .into_iter()
+            .filter_map(|marker| before.rfind(marker).map(|index| (index, marker)))
+            .max()
+            .expect("inside an envelope");
+        let closing = open.1.replace("<<<", "<<<END_");
+        assert!(
+            !before[open.0..].contains(&closing),
+            "the fixture sits outside an envelope"
+        );
+        assert!(framing < open.0, "the framing statement comes first");
+        from = at + INJECTION.len();
+        seen += 1;
+    }
+    assert!(seen >= 2, "the memory and the literal were both returned");
+}
+
+/// 056 B-7, B-8, FR-003: the page carries the framing statement, and the
+/// hostile memory body and the hostile literal edge object appear only inside
+/// envelopes.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn entity_page_envelopes_memory_bodies_and_literals() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    let memory = capture_and_extract(
+        &cell,
+        &alice,
+        "sub-alice",
+        &format!("Dana Whitfield prefers {INJECTION}. Dana Whitfield works on Apollo."),
+    )
+    .await;
+    let dana = entity_id(&cell, &alice, "Dana Whitfield").await;
+    let (status, _, text) = send(
+        &cell,
+        Method::GET,
+        &format!("/api/v1/entities/{dana}"),
+        &alice,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    assert_page_enveloped(&text);
+    let page = parse(&text);
+    assert_eq!(page["framing"], FRAMING_STATEMENT);
+    assert_eq!(page["framing_version"], 1);
+    assert_eq!(page["derived"], true);
+    assert_eq!(page["header"]["canonical"], "Dana Whitfield");
+    assert_eq!(page["header"]["id"], dana.as_str());
+
+    let groups = page["facts"].as_array().unwrap();
+    let predicates: Vec<_> = groups
+        .iter()
+        .map(|g| g["predicate"].as_str().unwrap())
+        .collect();
+    assert_eq!(
+        predicates,
+        ["works_on", "prefers"],
+        "the vocabulary's order"
+    );
+    let literal = groups[1]["facts"][0]["other"]["literal"].as_str().unwrap();
+    assert!(literal.starts_with("<<<AICORTEX_LITERAL edg-"), "{literal}");
+    assert_eq!(groups[1]["facts"][0]["sources"][0], memory.as_str());
+    assert_eq!(groups[0]["facts"][0]["other"]["entity"]["name"], "Apollo");
+
+    // The mentions are the same envelopes `/memories/{id}` returns, with the
+    // byte range of each mention beside them.
+    let (_, _, direct) = send(
+        &cell,
+        Method::GET,
+        &format!("/api/v1/memories/{memory}"),
+        &alice,
+        None,
+    )
+    .await;
+    assert_eq!(
+        page["mentions"]["memories"],
+        parse(&direct)["memories"],
+        "one envelope function, one result"
+    );
+    assert_eq!(page["mentions"]["framing"], FRAMING_STATEMENT);
+    assert_eq!(page["mentions"]["items"][0]["id"], memory.as_str());
+    assert_eq!(page["mentions"]["items"][0]["ranges"][0]["start"], 0);
+    assert!(
+        page["contradictions"]["items"]
+            .as_array()
+            .unwrap()
+            .is_empty()
+    );
+    cell.shutdown().await;
+}
+
+/// 056 B-9, FR-005: another scope's entity reads exactly as an unknown id, the
+/// route needs `memory.read`, and a malformed request is refused with the
+/// requirement.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn entity_page_is_scoped_gated_and_validated() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    let bob = Who::person("sub-bob", ALL);
+    capture_and_extract(
+        &cell,
+        &alice,
+        "sub-alice",
+        "Dana Whitfield works on Apollo.",
+    )
+    .await;
+    let dana = entity_id(&cell, &alice, "Dana Whitfield").await;
+
+    let (status, _, foreign) = send(
+        &cell,
+        Method::GET,
+        &format!("/api/v1/entities/{dana}"),
+        &bob,
+        None,
+    )
+    .await;
+    let (unknown_status, _, unknown) = send(
+        &cell,
+        Method::GET,
+        "/api/v1/entities/ent-00000000000000000000000000000000",
+        &bob,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(
+        (status, &foreign),
+        (unknown_status, &unknown),
+        "indistinguishable"
+    );
+
+    let writer = Who::person("sub-alice", &["memory.write"]);
+    let (status, _, _) = send(
+        &cell,
+        Method::GET,
+        &format!("/api/v1/entities/{dana}"),
+        &writer,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+
+    for query in [
+        "after=nonsense",
+        "after=facts:no_such:1:1:e",
+        "surprise=1",
+        "facts=many",
+    ] {
+        let (status, _, body) = send(
+            &cell,
+            Method::GET,
+            &format!("/api/v1/entities/{dana}?{query}"),
+            &alice,
+            None,
+        )
+        .await;
+        assert_eq!(status, StatusCode::BAD_REQUEST, "{query}: {body}");
+    }
+    let (_, _, body) = send(
+        &cell,
+        Method::GET,
+        &format!("/api/v1/entities/{dana}?after=nonsense"),
+        &alice,
+        None,
+    )
+    .await;
+    assert!(
+        body.contains("pass back a `next` value unchanged"),
+        "the refusal states the requirement: {body}"
+    );
+    cell.shutdown().await;
+}
+
+/// 056 FR-004, B-6: a truncated section names where it resumes, and the
+/// continuation returns the rest of that section alone.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn entity_page_sections_are_bounded_and_resumable() {
+    let cell = common::boot().await;
+    let alice = Who::person("sub-alice", ALL);
+    capture_and_extract(
+        &cell,
+        &alice,
+        "sub-alice",
+        "Dana Whitfield works on Apollo. Dana Whitfield works on Hermes.",
+    )
+    .await;
+    let dana = entity_id(&cell, &alice, "Dana Whitfield").await;
+    let path = format!("/api/v1/entities/{dana}");
+    let (_, _, text) = send(&cell, Method::GET, &format!("{path}?facts=1"), &alice, None).await;
+    let first = parse(&text);
+    assert_eq!(first["facts"][0]["facts"].as_array().unwrap().len(), 1);
+    let next = first["facts"][0]["next"]
+        .as_str()
+        .expect("truncated")
+        .to_owned();
+
+    let (status, _, text) = send(
+        &cell,
+        Method::GET,
+        &format!("{path}?facts=1&after={next}"),
+        &alice,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{text}");
+    let rest = parse(&text);
+    assert_eq!(rest["facts"][0]["facts"].as_array().unwrap().len(), 1);
+    assert!(
+        rest["facts"][0].get("next").is_none(),
+        "the group is complete"
+    );
+    assert_ne!(
+        first["facts"][0]["facts"][0]["edge"],
+        rest["facts"][0]["facts"][0]["edge"]
+    );
+    assert!(rest["mentions"]["items"].as_array().unwrap().is_empty());
     cell.shutdown().await;
 }
