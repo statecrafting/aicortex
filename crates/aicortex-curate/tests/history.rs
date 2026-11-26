@@ -351,6 +351,27 @@ async fn fr002_fr005_every_emitting_path_validates_and_the_chain_verifies() {
         ["created", "review_decline"]
     );
 
+    // A gate override, opened by hand because no producer opens one yet
+    // (023 D-4), is acknowledged, and that Decision validates too.
+    let scope_id = ScopeId::of(&Scope::personal(Sub::new("sub-alice")));
+    cell.store
+        .handle()
+        .txn(vec![Statement::with_params(
+            "INSERT INTO review_item (item_id, scope_id, kind, subject, created, state)
+             VALUES ('rvw-gate-override', ?1, 'gate_override', ?2, 1, 'open')",
+            vec![Value::from(&scope_id), Value::from(asked.as_str())],
+        )])
+        .await
+        .expect("the override item is written");
+    ok(
+        &cell,
+        Method::POST,
+        "/api/v1/review/rvw-gate-override/resolve",
+        &who,
+        Some(json!({ "resolution": "acknowledge" })),
+    )
+    .await;
+
     // Promotion: promote then demote, and a promotion that lapses.
     let (rule, _) = capture(&cell, &who, "always run the linter").await;
     ok(
@@ -434,6 +455,7 @@ async fn fr002_fr005_every_emitting_path_validates_and_the_chain_verifies() {
         "memory.promotion_lapsed",
         "review.admit",
         "review.decline",
+        "review.acknowledge",
     ] {
         assert!(
             kinds.contains(expected),

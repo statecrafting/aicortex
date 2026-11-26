@@ -20,7 +20,8 @@ use std::path::{Path, PathBuf};
 
 use aicortex_store::{
     Authority, DecisionRefRepo, Eraser, Erasure, EventKind, History, KIND_ERASE, Lifecycle,
-    MAX_JUSTIFICATION_BYTES, ReasonCode, RefKind, append_decision, history, validate_decision,
+    MAX_JUSTIFICATION_BYTES, MAX_REASON_BYTES, ReasonCode, RefKind, append_decision, history,
+    validate_decision,
 };
 use aicortex_types::{Memory, MemoryId, MemoryKind, Scope};
 use rahi_ledger::{Decision, DecisionId, DecisionKind, Outcome};
@@ -459,6 +460,13 @@ fn b2_a_decision_that_could_carry_content_does_not_validate() {
             "a justification that is not text",
             json!({ "scope": "s", "reason_code": "promotion", "justification": 7 }),
         ),
+        (
+            "a long nested reviewer reason",
+            json!({
+                "scope": "s", "reason_code": "promotion",
+                "resolution": { "reason": "x".repeat(MAX_REASON_BYTES + 1) },
+            }),
+        ),
     ];
     for (name, payload) in invalid {
         let error = validate_decision(&decision("memory.x", "bad", payload)).unwrap_err();
@@ -474,6 +482,11 @@ fn b2_a_decision_that_could_carry_content_does_not_validate() {
         "justification": "x".repeat(MAX_JUSTIFICATION_BYTES),
     });
     assert!(validate_decision(&decision("memory.x", "ok2", short)).is_ok());
+    let reason = json!({
+        "scope": "s", "reason_code": "promotion",
+        "resolution": { "reason": "x".repeat(MAX_REASON_BYTES) },
+    });
+    assert!(validate_decision(&decision("memory.x", "ok3", reason)).is_ok());
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

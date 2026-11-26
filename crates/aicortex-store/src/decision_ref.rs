@@ -38,6 +38,11 @@ use crate::scope_repo::{ScopeId, seconds_to_sql};
 /// number and the other renumbers this constant and nothing else.
 pub const DECISION_REF_VERSION: u32 = 15;
 
+/// The longest reviewer reason a Decision may carry anywhere in its payload,
+/// in bytes: 023's limit of 500 characters, at most four UTF-8 bytes each.
+/// Checked here so the chain's bound does not rest on another crate's check.
+pub const MAX_REASON_BYTES: usize = 2_000;
+
 /// The longest optional justification a Decision may carry, in bytes (B-2).
 ///
 /// A short sentence a person typed, never a place to paste content: the value
@@ -286,12 +291,27 @@ fn names_content(value: &serde_json::Value) -> Option<String> {
     }
 }
 
+/// Whether any text `reason` field, at any depth of `value`, is longer than
+/// `max` bytes. A `reason` of another shape (the gate's structured verdict)
+/// is not free text and is checked by its own producer.
+fn reason_over(value: &serde_json::Value, max: usize) -> bool {
+    match value {
+        serde_json::Value::Object(map) => map.iter().any(|(key, value)| {
+            (key == "reason" && value.as_str().is_some_and(|text| text.len() > max))
+                || reason_over(value, max)
+        }),
+        serde_json::Value::Array(items) => items.iter().any(|item| reason_over(item, max)),
+        _ => false,
+    }
+}
+
 /// Check the record shape of B-2 and return the Decision's reason code.
 ///
 /// A Decision names its actor and capability on the record itself; this
 /// checks what is left to the payload: a `scope` string, a `reason_code` from
-/// the closed enum, no key that names memory content, and a justification,
-/// when there is one, of at most [`MAX_JUSTIFICATION_BYTES`].
+/// the closed enum, no key that names memory content, a justification, when
+/// there is one, of at most [`MAX_JUSTIFICATION_BYTES`], and any text
+/// `reason` of at most [`MAX_REASON_BYTES`].
 ///
 /// # Errors
 ///
@@ -328,6 +348,12 @@ pub fn validate_decision(decision: &Decision) -> Result<ReasonCode, Error> {
     if let Some(key) = names_content(payload) {
         return Err(Error::Validation(format!(
             "decision {} carries a {key:?} field, and memory content never enters the chain",
+            decision.id
+        )));
+    }
+    if reason_over(payload, MAX_REASON_BYTES) {
+        return Err(Error::Validation(format!(
+            "decision {} has a reason longer than {MAX_REASON_BYTES} bytes",
             decision.id
         )));
     }

@@ -104,8 +104,8 @@ pub use counters::{Counters, ScopeStats};
 pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
 pub use decision_ref::{
-    DECISION_REF_VERSION, DecisionRefRepo, MAX_JUSTIFICATION_BYTES, ReasonCode, RefKind,
-    append_decision, decision_ref_migration, validate_decision,
+    DECISION_REF_VERSION, DecisionRefRepo, MAX_JUSTIFICATION_BYTES, MAX_REASON_BYTES, ReasonCode,
+    RefKind, append_decision, decision_ref_migration, validate_decision,
 };
 pub use embedding_memory::{
     ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingMemory,
