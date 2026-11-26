@@ -380,18 +380,18 @@ prose, which 017 B-6 forbids.
   FR-009 holds it down to 40 bytes for the route and holds the 8 KiB default
   in the graph's own test. Configured token bounds are clamped to 128 to 8,000
   and pointer counts to 1 to 50.
-- **D-12 (2026-11-26, build).** The MCP `search` tool takes an optional
+- **D-11 (2026-11-26, build).** The MCP `search` tool takes an optional
   boolean `pointers` and passes it to the route, so the result carries the
   route's block. The compatibility shape of 021 B-7 renders a search result as
   a list of ids and does not render the block. The tool's description stays
   static text.
-- **D-13 (2026-11-26, build).** A deployment disables pointers with
+- **D-12 (2026-11-26, build).** A deployment disables pointers with
   `Search::with_pointers(PointerConfig::default().with_enabled(false))`. A
   request that asks then receives `pointers_disabled: true` and no `pointers`
   field; a request that does not ask is unchanged either way. The cell does
   not configure this today, so a deployment gets the default (enabled, 5
   pointers, 400 tokens, 8 KiB).
-- **D-14 (2026-11-26, build).** This spec is built start to finish on one
+- **D-13 (2026-11-26, build).** This spec is built start to finish on one
   branch and lands in parts, as 017 D-8, 018 D-8 and 025 D-7 did: the
   manifest edge first, under policy isolation (spec 044 section 3.3), then
   the code in dependency order, because one change would be about 3,200
