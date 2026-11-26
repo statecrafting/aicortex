@@ -525,19 +525,15 @@ fn fr006_every_readme_states_the_rule_and_the_off_switch() {
 /// client labels injected text untrusted (026 FR-008): the function exists,
 /// carries `#[test]` or a `tokio::test` attribute, and its body names the
 /// word `untrusted`.
-/// The text of the function that `source` starts with, from its header to
-/// its matching closing brace. Braces are counted only in code: a brace in a
-/// string literal (a format placeholder such as `"{extra}"`), a character
-/// literal, or a line or block comment does not count, and a nested block, closure,
-/// or inner scope does not end the body early. Raw strings are not used in
-/// the tests this reads.
-fn function_body(source: &str) -> &str {
-    let Some(open) = source.find('{') else {
-        return "";
-    };
+/// `source` with every comment blanked to spaces, so what remains is code and
+/// literals in their original places. String literals (with their escapes)
+/// and character literals are kept as they are: a `//` or a brace inside one
+/// is text, not a comment or a block. Raw strings are not used in the tests
+/// this reads.
+fn without_comments(source: &str) -> String {
     let bytes = source.as_bytes();
-    let mut depth = 0_usize;
-    let mut at = open;
+    let mut out = bytes.to_vec();
+    let mut at = 0;
     while at < bytes.len() {
         match bytes[at] {
             b'"' => {
@@ -554,49 +550,87 @@ fn function_body(source: &str) -> &str {
             b'\'' if bytes.get(at + 2) == Some(&b'\'') => at += 2,
             b'/' if bytes.get(at + 1) == Some(&b'/') => {
                 while at < bytes.len() && bytes[at] != b'\n' {
+                    out[at] = b' ';
                     at += 1;
                 }
+                continue;
             }
             b'/' if bytes.get(at + 1) == Some(&b'*') => {
-                at += 2;
-                while at + 1 < bytes.len() && !(bytes[at] == b'*' && bytes[at + 1] == b'/') {
+                while at < bytes.len() && !(bytes[at] == b'*' && bytes.get(at + 1) == Some(&b'/')) {
+                    if bytes[at] != b'\n' {
+                        out[at] = b' ';
+                    }
                     at += 1;
                 }
-                at += 1;
+                for blank in out.iter_mut().skip(at).take(2) {
+                    *blank = b' ';
+                }
+                at += 2;
+                continue;
             }
+            _ => {}
+        }
+        at += 1;
+    }
+    String::from_utf8(out).unwrap_or_default()
+}
+
+/// The text of the function that `code` (comments already blanked) starts
+/// with, from its header to its matching closing brace. Braces in string and
+/// character literals are skipped, so a format placeholder such as
+/// `"{extra}"` does not count, and a nested block, closure, or inner scope
+/// does not end the body early.
+fn function_body(code: &str) -> &str {
+    let Some(open) = code.find('{') else {
+        return "";
+    };
+    let bytes = code.as_bytes();
+    let mut depth = 0_usize;
+    let mut at = open;
+    while at < bytes.len() {
+        match bytes[at] {
+            b'"' => {
+                at += 1;
+                while at < bytes.len() && bytes[at] != b'"' {
+                    at += if bytes[at] == b'\\' { 2 } else { 1 };
+                }
+            }
+            b'\'' if bytes.get(at + 1) == Some(&b'\\') && bytes.get(at + 3) == Some(&b'\'') => {
+                at += 3;
+            }
+            b'\'' if bytes.get(at + 2) == Some(&b'\'') => at += 2,
             b'{' => depth += 1,
             b'}' => {
                 depth -= 1;
                 if depth == 0 {
-                    return &source[..=at];
+                    return &code[..=at];
                 }
             }
             _ => {}
         }
         at += 1;
     }
-    source
+    code
 }
 
+/// Whether `source` holds a test named `name` (a `#[test]` or
+/// `#[tokio::test]` function) with an assertion that names the untrusted
+/// label: a line of its code, comments removed, that starts an `assert`
+/// macro and mentions it (026 B-11, 019).
 fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
+    let code = without_comments(source);
     let header = format!("fn {name}(");
-    let Some(at) = source.find(&header) else {
+    let Some(at) = code.find(&header) else {
         return false;
     };
-    let before = &source[..at];
-    let attribute = before.lines().rev().take(3).any(|line| {
+    let attribute = code[..at].lines().rev().take(3).any(|line| {
         let line = line.trim();
         line.starts_with("#[test") || line.starts_with("#[tokio::test")
     });
-    let body = function_body(&source[at..]);
-    // An assertion, not a comment or a stray string, must name the label: a
-    // line of the body that is code, starts an `assert` macro, and mentions
-    // the untrusted marking (026 B-11, 019).
-    let asserts_the_label = body.lines().map(str::trim).any(|line| {
-        // Only the code before a trailing comment counts.
-        let code = line.split("//").next().unwrap_or_default();
-        code.starts_with("assert") && code.to_lowercase().contains("untrusted")
-    });
+    let asserts_the_label = function_body(&code[at..])
+        .lines()
+        .map(str::trim)
+        .any(|line| line.starts_with("assert") && line.to_lowercase().contains("untrusted"));
     attribute && asserts_the_label
 }
 
@@ -708,6 +742,11 @@ fn comments_a_brace_then_asserts() {
 }
 
 #[test]
+fn asserts_a_url() {
+    assert!(output.contains(\"http://untrusted.example\"));
+}
+
+#[test]
 fn only_says_it() {
     // the client labels this untrusted
     let label = \"untrusted\";
@@ -730,6 +769,10 @@ fn only_says_it() {
     assert!(
         is_a_test_asserting_untrusted(source, "comments_a_brace_then_asserts"),
         "a brace in a block comment is not counted"
+    );
+    assert!(
+        is_a_test_asserting_untrusted(source, "asserts_a_url"),
+        "a `//` inside a string is not a comment"
     );
     assert!(
         !is_a_test_asserting_untrusted(source, "comments_the_label"),
