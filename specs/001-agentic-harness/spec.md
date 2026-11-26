@@ -585,6 +585,13 @@ consumes this repository as a registered target.
   and the documents that name it. A branch cut before the configuration pull
   request regenerates its shards under `.statecraft/derived/` when it next
   merges main.
+- **D-21 (2026-11-26, configuration, the 022 hashed inputs).**
+  `spec-spine.toml` lists `clients/matrix.toml`, `clients/README.md` and
+  `clients/capture-core.mjs` as extra hashed inputs, for spec 022: a matrix
+  row or a hook filter rule changes what every client is told, so an edit
+  is a governance change (022 D-9), and lint L-008 refuses an unhashed
+  governed file. The configuration lands on its own, ahead of the files,
+  under policy isolation (spec 044 section 3.3). No requirement changes.
 
 ## Verification
 
