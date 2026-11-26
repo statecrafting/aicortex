@@ -28,6 +28,7 @@ extends:
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/search.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/dto.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/Cargo.toml", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/lib.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
   - { spec: "022-client-adapters", unit: "clients/matrix.toml", nature: additive }
@@ -336,6 +337,57 @@ prose, which 017 B-6 forbids.
   earliest, then by id, which is 017 B-2's order with B-3's filter applied
   first, so a stale duplicate never hides a live entity. One entity appears
   once, at its first match.
+- **D-7 (2026-11-26, build).** What provenance B-5 gives a pointer. Each name
+  is one `frame_literal` envelope (019 B-6): its id is the entity id, its
+  `derived_from` is the newest `active` mentioning memory, and its trust class
+  is the strongest among the `active` mentioning memories, as 056 labels a
+  fact. The fields beside the envelope are bare values: entity id, kind (a
+  closed vocabulary), the count, the time, and the byte range of the match.
+  `Pointer` therefore carries two fields B-4 does not list, `trust` and
+  `newest`, and nothing else derived from stored text. The block names the
+  counter (`id`, `version`, and `fallback_from` when a configured counter
+  could not run), `truncated`, `text_truncated`, the fixed sentence when at
+  least one pointer is kept, and the list. It carries no framing statement of
+  its own: it is a sibling of the framed memories in `POST /search`, which
+  state it once ahead of it.
+- **D-8 (2026-11-26, build).** How B-9 counts. 025's `deliver_with` packs the
+  evidence exactly as `deliver` does, then asks the block what each prefix of
+  its pointers costs and keeps the longest that fits in what the evidence
+  leaves, down to none. The recounted payload is the sum of the evidence's
+  count and the block's, which for the shipped counters is never less than the
+  count of the two fields serialized together, and `used` reports that sum.
+  Because the evidence is packed first and fits, pointers can never force step
+  5's recount to cut or drop a result. When even the block with no pointer does
+  not fit, the block is omitted and `used` is the evidence's. The trait is
+  `delivery::Companion`, reached by its module path because the crate's
+  `lib.rs` is frozen by 019.
+- **D-9 (2026-11-26, build).** B-2's count of pointers returned is not
+  written into the trace. The trace type belongs to 018 and this spec has no
+  edge on it; the response carries the pointers themselves. FR-006 therefore
+  compares traces that are identical. Its subscriber is the `tracing`
+  dev-dependency of 010 D-15 and 020 D-22, and it is process-wide, so the
+  tests of `tests/pointers.rs` run one at a time. "No outbound connection" is
+  shown by the stage's seams (a read store and no client), the same embedding
+  requests in both runs, the same decision records, and the manifest's empty
+  egress ceiling, which would refuse and ledger a governed call.
+- **D-10 (2026-11-26, build).** The text bound (B-6) and 020's query limit.
+  `POST /search` refuses a query over 2,000 characters, at most 8,000 bytes,
+  which is under the 8 KiB default, so a request cannot reach the default
+  bound through the API. The bound is the configured `PointerConfig` value;
+  FR-009 holds it down to 40 bytes for the route and holds the 8 KiB default
+  in the graph's own test. Configured token bounds are clamped to 128 to 8,000
+  and pointer counts to 1 to 50.
+- **D-12 (2026-11-26, build).** The MCP `search` tool takes an optional
+  boolean `pointers` and passes it to the route, so the result carries the
+  route's block. The compatibility shape of 021 B-7 renders a search result as
+  a list of ids and does not render the block. The tool's description stays
+  static text.
+- **D-13 (2026-11-26, build).** A deployment disables pointers with
+  `Search::with_pointers(PointerConfig::default().with_enabled(false))`. A
+  request that asks then receives `pointers_disabled: true` and no `pointers`
+  field; a request that does not ask is unchanged either way. The cell does
+  not configure this today, so a deployment gets the default (enabled, 5
+  pointers, 400 tokens, 8 KiB).
 - **D-14 (2026-11-26, build).** This spec is built start to finish on one
   branch and lands in parts, as 017 D-8, 018 D-8 and 025 D-7 did: the
   manifest edge first, under policy isolation (spec 044 section 3.3), then

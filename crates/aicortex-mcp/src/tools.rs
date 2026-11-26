@@ -206,6 +206,7 @@ pub fn definitions() -> Vec<Value> {
                     },
                     "window_radius": { "type": "integer", "minimum": 1, "maximum": 3, "description": "Neighbors on each side of a window." },
                     "token_budget": { "type": "integer", "minimum": 1, "description": "A hard cap on the returned text, framing included." },
+                    "pointers": { "type": "boolean", "default": false, "description": "Also return which known entities the query names, as labelled data." },
                 },
                 "required": ["query"],
                 "additionalProperties": false,
@@ -375,6 +376,8 @@ struct SearchArgs {
     window_radius: Option<u64>,
     #[serde(default)]
     token_budget: Option<u64>,
+    #[serde(default)]
+    pointers: Option<bool>,
 }
 
 #[derive(Deserialize)]
@@ -635,6 +638,9 @@ pub fn plan(name: &str, args: Value) -> Result<Plan, RpcError> {
                 if let Some(value) = value {
                     body.insert(name.to_owned(), value);
                 }
+            }
+            if let Some(pointers) = args.pointers {
+                body.insert("pointers".to_owned(), json!(pointers));
             }
             Plan::Route(Upstream {
                 method: Method::POST,
