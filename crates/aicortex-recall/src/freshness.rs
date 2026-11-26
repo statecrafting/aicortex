@@ -97,7 +97,7 @@ pub async fn compute(
     for entity in entities {
         let rows: Vec<EntityRow> = store
             .query(
-                "SELECT MAX(p.captured_at) AS newest, COUNT(*) AS count
+                "SELECT MAX(p.captured_at) AS newest, COUNT(DISTINCT m.id) AS count
                  FROM memory m JOIN provenance p
                    ON p.memory_id = m.id AND p.scope_id = m.scope_id
                  WHERE m.scope_id = ?1 AND m.status = 'active' AND p.captured_at <= ?3
@@ -165,7 +165,7 @@ pub async fn compute(
     for (system, reference) in keys {
         let rows: Vec<SourceRow> = store
             .query(
-                "SELECT MAX(p.captured_at) AS newest, COUNT(*) AS count
+                "SELECT MAX(p.captured_at) AS newest, COUNT(DISTINCT m.id) AS count
                  FROM provenance p JOIN memory m
                    ON m.id = p.memory_id AND m.scope_id = p.scope_id
                  WHERE p.scope_id = ?1 AND m.status = 'active' AND p.captured_at <= ?4
