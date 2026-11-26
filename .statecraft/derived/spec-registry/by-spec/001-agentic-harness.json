@@ -140,7 +140,7 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "001-agentic-engineering-harness": "82ae4f05622d7e339a3f938cd6e3414e2e9c4820b5bcd572425465468fa8861c",
+      "001-agentic-engineering-harness": "df30e7924627fd6ed040930c97b4bfc1d4aa40eaad13dc69cab0d679ec9ad26c",
       "1-purpose": "e8e79fa321ec9a5ff407990e586c2b60720314bd570c6e0461a1d327b25979e9",
       "2-territory": "5c9eee77cc5bdf8cf4cdff7e64e510aca134a5a3274b05196ab264940de1c226",
       "3-behavior": "9d59c72507df510835d1fe8e4791e99d456323af273816b66e0215a697bac832",
@@ -154,7 +154,8 @@
       "revision-14-implementation-record-2026-10-02": "d5c20a1c6c5c29d1772c2458c0c97fff2d9ea16eb99132222fc0352815bfb9c1",
       "revision-21-implementation-record-2026-10-30": "f4dc09524029e372ac1d100961895c785d662965fda2be61cab6ac705d23e077",
       "revision-22-implementation-record-2026-10-30": "3594645da25b3840bf435488509fd21a7a10f0b1d611faa531d55d80d22ab021",
-      "revision-28-implementation-record-2026-11-08": "37f533f274665c12babe7413b18940d7792c45758873a6f4ca7124d8c751ffe6",
+      "revision-28-implementation-record-2026-11-08": "a40193982f498907d9e89dc56417477074ef2673decafa2e9351b7f57bc16bf0",
+      "revision-29-implementation-record-2026-11-26": "005670233db3712e73ec3b25c4cba59760e2643b9297f505404bfb4d3e5063a5",
       "verification": "a4cc373d91ba6d971ac7ad04ed912c6dad51341da8817eeec4fa1af774bcdb37"
     },
     "sectionHeadings": [
@@ -173,13 +174,14 @@
       "Revision 21 implementation record (2026-10-30)",
       "Revision 22 implementation record (2026-10-30)",
       "Derived directory move record (2026-10-31)",
-      "Revision 28 implementation record (2026-11-08)"
+      "Revision 28 implementation record (2026-11-08)",
+      "Revision 29 implementation record (2026-11-26)"
     ],
     "specPath": "specs/001-agentic-harness/spec.md",
     "status": "approved",
     "summary": "The machinery that turns the corpus into work: AGENTS.md as the cross-agent session protocol and backlog discipline, CLAUDE.md as the Claude Code overlay, six behavioral rules of which three are path-scoped, four subagents, ten skills, settings hooks that report and refuse, one Makefile that is the single definition of the gate and splits its reading half from its writing half, and a CI workflow that runs the same targets. This spec is complete on arrival: the harness exists before the first line of product code.\n",
     "title": "Agentic engineering harness: session protocol, skills, agents, hooks, and the gate"
   },
-  "shardHash": "b621d0061e33b53f652126c90c15d0864aaf66c491dd933a1229dfac178b518a",
+  "shardHash": "06d6da9bf1b5af82d6b376935741e7add896920bd0b2eef21ed47fdc9d0e1ca5",
   "specVersion": "1.11.0"
 }
