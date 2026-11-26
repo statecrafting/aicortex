@@ -354,6 +354,14 @@ documents.
   lands on its own, ahead of the code, under policy isolation (spec 044
   section 3.3). `Cargo.lock` does not change. No requirement or acceptance
   criterion changes.
+- **D-20 (2026-11-26, dependency edge, the 023 manifest commit).**
+  `aicortex-api` takes the workspace's `aicortex-curate`, so 023 can replace
+  the 501 of D-12 and mount the review routes. The handlers stay in this
+  crate and call the curate crate's repositories; the curate crate never
+  depends on the API. The edge points downward in the dependency order the
+  build needs (023 D-2). It lands on its own, ahead of the code, under policy
+  isolation (spec 044 section 3.3). `Cargo.lock` gains the edge on this
+  crate's entry. No requirement or acceptance criterion changes.
 
 ## Status
 

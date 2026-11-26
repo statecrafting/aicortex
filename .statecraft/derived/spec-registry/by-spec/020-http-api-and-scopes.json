@@ -163,14 +163,14 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "020-the-http-api": "7b72d6a2e068e474fcc375bf037ceb747dbdf58507403990f23ede6d5d78651c",
+      "020-the-http-api": "8e920eafb1acd45b771c0f79f7d6069e27f58015dc261456f40af554b4af0492",
       "1-purpose": "0d855f459e0d7cd0660a4ac4f98f7673216425b32401239d8d3d21d202840f6b",
       "2-territory": "6f97065db8817df7f4aec10a4dfef9a68c95bfe38aa05b5bad865e17ae2a7aee",
       "3-behavior": "a36fcf3d8d73d93425d89a2cc793c651b6c5519439d4cb66e6602e213fd2d3fd",
       "4-functional-requirements": "697c8a0adb4e758d0bb1191196d2a9dbc91ab1b8d1cb71e9d97af221ff586667",
       "5-acceptance-criteria": "a18e6d9080c37ebda1509331f2f49c66f67eda86a3c3cb3c37ec0f4879889bdb",
       "6-out-of-scope": "07ab55fff16d300b9681f9efe8ff72808bf97d33f42e92967e741c06d6b60e1a",
-      "7-resolved-decisions": "467ab4fde601801de28e29609b248466479a6d3da2c8f57b7f83cfdf1b2d61eb",
+      "7-resolved-decisions": "67e36f0106ee58c136533aae846e6374edbf400b91c354d46fe7b58a0976f6d9",
       "status": "26d3e31f401c6b7e28691af1b642365c27541393f55505811d457b37c91d6254",
       "verification": "f831f0069ae9d07aecd70a65272bf555d3fcd71f6d783b65c43abad7521277ce"
     },
@@ -191,6 +191,6 @@
     "summary": "The product's own HTTP surface, mounted by the cell into rahi's edge. Every route is authorized by a rauthy-issued bearer token or a browser session, both resolved to the same principal, and gated by an OAuth scope that names what it permits. Scopes are coarse enough to be understandable and fine enough to be useful: read, write, delete, admin, a separate scope for promotion, which no agent client is ever granted, and a read and a write scope for coordination, which no memory scope implies. Long operations report progress over server-sent events through the chassis's declared streaming routes. Every response carrying content obeys the untrusted content boundary.\n",
     "title": "The HTTP API: bearer-authorized, scope-gated, streaming where it earns it"
   },
-  "shardHash": "5426f422956221ef932fb905b255b6b32ffc691102489741913255aeb4959e2b",
+  "shardHash": "e0e55f654ca10c8e200297cf23ac4f0829383d87ab53c9f95cf17b8df2503ae5",
   "specVersion": "1.11.0"
 }

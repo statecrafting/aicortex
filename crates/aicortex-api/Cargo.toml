@@ -13,6 +13,7 @@ publish = false
 spec = "020-http-api-and-scopes"
 
 [dependencies]
+aicortex-curate = { workspace = true }
 aicortex-embed = { workspace = true }
 aicortex-gate = { workspace = true }
 aicortex-graph = { workspace = true }

@@ -160,6 +160,7 @@ dependencies = [
 name = "aicortex-api"
 version = "0.1.0"
 dependencies = [
+ "aicortex-curate",
  "aicortex-embed",
  "aicortex-gate",
  "aicortex-graph",

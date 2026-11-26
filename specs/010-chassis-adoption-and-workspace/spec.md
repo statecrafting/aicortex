@@ -351,6 +351,13 @@ manifest will eventually declare. The reference deployment (044).
   sits below the app in spec 002's graph, so the edge points downward. It
   lands on its own, ahead of the code, under policy isolation (spec 044
   section 3.3). No requirement or acceptance criterion changes.
+- **D-14 (2026-11-26, dependency edge, the 023 manifest commit).** The
+  workspace declares `aicortex-curate`, the crate spec 023 founds (review
+  queue and promotion), beside the other workspace libraries, with a path
+  and an exact version so `cargo deny` sees a requirement. The crate itself
+  and its own `Cargo.lock` entry landed with it; this change adds only the
+  workspace declaration and no third-party package. No requirement or
+  acceptance criterion changes.
 
 ## Status (2026-09-17, complete: the chassis release landed)
 
