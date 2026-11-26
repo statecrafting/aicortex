@@ -592,6 +592,13 @@ consumes this repository as a registered target.
   is a governance change (022 D-9), and lint L-008 refuses an unhashed
   governed file. The configuration lands on its own, ahead of the files,
   under policy isolation (spec 044 section 3.3). No requirement changes.
+- **D-22 (2026-11-26, the repository's review guide).** `REVIEW.md` is
+  the repository guide the profile's reviewer contract reads beside
+  `.statecraft/REVIEW.md`. It states what the gate already enforces over
+  the whole tree and the review cannot see in hunks (derived shards, which
+  the review diff excludes; ownership claims in untouched front matter;
+  the policy-isolation split), and names the highest-risk surfaces. It adds
+  no rule and changes no gate.
 
 ## Verification
 
