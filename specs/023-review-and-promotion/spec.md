@@ -28,7 +28,7 @@ extends:
   - { spec: "018-retrieval-and-recall-trace", unit: "crates/aicortex-store/tests/recall_trace.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/lib.rs", nature: additive }
-  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/memories.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/memories.rs", nature: replacing }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/capture.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/tests/authz.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/tests/common/mod.rs", nature: additive }

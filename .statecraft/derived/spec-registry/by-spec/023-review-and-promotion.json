@@ -93,7 +93,7 @@
         }
       },
       {
-        "nature": "additive",
+        "nature": "replacing",
         "spec": "020-http-api-and-scopes",
         "unit": {
           "kind": "file",
@@ -202,6 +202,6 @@
     "summary": "Three situations need a person: content whose origin could not be established and was quarantined, two edges that contradict each other, and a memory that someone wants a client to act on. This spec is the one queue where all three wait, the decisions that empty it, and the ledger records those decisions produce. Promotion is the important one: it is the only path to instruction grade, it requires the promote scope and an interactive principal, and it writes a rahi Decision whose id becomes part of the memory's trust.\n",
     "title": "Review: the queue where quarantine, contradiction, and promotion wait for a human"
   },
-  "shardHash": "a48151e1c90a1d9b1e24d5f1fb802f9dcd69659bac2c13e6ad43d8ce95a2a779",
+  "shardHash": "733491e64c042bc31778e09e51146dccc54a59be2d2c3ccb80b9bbbe4a9c8818",
   "specVersion": "1.11.0"
 }

@@ -584,11 +584,29 @@ pub async fn resolve(
             "a resolved item names no decision",
         )
     })?;
+    // An approval is a promotion, so it reports the re-review date as
+    // `POST /promote/{id}` does (B-5).
+    let review_due = match resolution {
+        Resolution::Approve { .. } => {
+            let memory = MemoryId::parse(&item.subject).map_err(|_| {
+                ApiError::new(
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "internal",
+                    "an approved promotion request names no memory",
+                )
+            })?;
+            Promoter::new(api.app.store(), api.app.ledger())
+                .review_due(&scope, memory)
+                .await?
+                .map(UnixSeconds::get)
+        }
+        _ => None,
+    };
     Ok(Json(DecisionResponse {
         id: item.id,
         outcome: resolution.label().to_owned(),
         decision_id,
-        review_due: None,
+        review_due,
     }))
 }
 

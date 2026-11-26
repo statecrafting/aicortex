@@ -445,6 +445,11 @@ async fn a_person_with_write_asks_and_a_person_with_promote_decides() {
     .await;
     assert_eq!(status, StatusCode::OK, "{text}");
     assert_eq!(decisions(&cell, "memory.promote").await, 1);
+    let decided: serde_json::Value = serde_json::from_str(&text).unwrap();
+    assert!(
+        decided["review_due"].as_u64().is_some(),
+        "an approval reports its re-review date, as /promote does: {text}"
+    );
     cell.ledger.verify().await.expect("the chain verifies");
     cell.shutdown().await;
 }

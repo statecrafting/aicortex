@@ -278,6 +278,41 @@ impl<'a> Promoter<'a> {
     ///
     /// [`Error::NotFound`] when the memory is not in the scope;
     /// [`Error::Conflict`] when it is not instruction grade or changed while
+    /// When `memory`'s promotion is next reviewed, if it holds one in
+    /// `scope`.
+    ///
+    /// # Errors
+    ///
+    /// The store's error.
+    pub async fn review_due(
+        &self,
+        scope: &Scope,
+        memory: MemoryId,
+    ) -> Result<Option<UnixSeconds>, Error> {
+        #[derive(Deserialize)]
+        struct Due {
+            review_due: i64,
+        }
+        let rows: Vec<Due> = self
+            .store
+            .query_consistent(
+                "SELECT review_due FROM promotion WHERE scope_id = ?1 AND memory_id = ?2",
+                vec![
+                    Value::from(&ScopeId::of(scope)),
+                    Value::from(memory.to_string()),
+                ],
+            )
+            .await?;
+        rows.into_iter()
+            .next()
+            .map(|row| {
+                u64::try_from(row.review_due)
+                    .map(UnixSeconds::new)
+                    .map_err(|_| Error::Integrity("a review date is negative".to_owned()))
+            })
+            .transpose()
+    }
+
     /// the Decision was being appended; the store's or the ledger's error.
     pub async fn demote(
         &self,
