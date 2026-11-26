@@ -607,25 +607,37 @@ fn function_body(code: &str) -> &str {
     code
 }
 
-/// The assertion a data-position test makes (026 FR-008, 019 B-2): text a
-/// client injected from a hook reaches the model only after 019's framing
-/// statement, which labels everything after it untrusted data.
-fn assert_labelled_untrusted(injected: &str) {
+/// The assertion a data-position test makes (026 FR-008, 019 B-2): in what
+/// the client hands its model, `injected` (the text a hook injected) appears,
+/// and 019's framing statement appears before it, so everything after the
+/// statement, `injected` included, is labelled untrusted data.
+fn assert_labelled_untrusted(output: &str, injected: &str) {
+    let framing = output.find(aicortex_recall::FRAMING_STATEMENT);
+    let content = output.find(injected);
     assert!(
-        injected.contains(aicortex_recall::FRAMING_STATEMENT),
-        "injected text is not labelled untrusted: {injected}"
+        matches!((framing, content), (Some(framing), Some(content)) if framing < content),
+        "the injected text is not preceded by the framing statement: {output}"
     );
 }
 
 #[test]
-fn the_untrusted_label_assertion_holds_for_framed_text_only() {
-    let framed = format!(
-        "{}\n<memory>hostile</memory>",
-        aicortex_recall::FRAMING_STATEMENT
-    );
-    assert_labelled_untrusted(&framed);
-    let bare = std::panic::catch_unwind(|| assert_labelled_untrusted("hostile"));
-    assert!(bare.is_err(), "bare text is refused");
+fn the_untrusted_label_assertion_needs_the_framing_first() {
+    let statement = aicortex_recall::FRAMING_STATEMENT;
+    assert_labelled_untrusted(&format!("{statement}\n<memory>hostile</memory>"), "hostile");
+    for (output, why) in [
+        ("<memory>hostile</memory>".to_owned(), "no framing at all"),
+        (
+            format!("<memory>hostile</memory>\n{statement}"),
+            "framing after the content",
+        ),
+        (
+            format!("{statement}\n<memory>other</memory>"),
+            "the injected text is absent",
+        ),
+    ] {
+        let refused = std::panic::catch_unwind(|| assert_labelled_untrusted(&output, "hostile"));
+        assert!(refused.is_err(), "{why}");
+    }
 }
 
 /// Whether `source` holds a test named `name` (a `#[test]` or
@@ -709,7 +721,7 @@ fn fr008_the_untrusted_test_check_reads_the_test_source() {
     let source = "\
 #[tokio::test]
 async fn labels_it() {
-    assert_labelled_untrusted(&output);
+    assert_labelled_untrusted(&output, PAYLOAD);
 }
 
 #[test]
@@ -718,7 +730,7 @@ fn says_nothing() {
 }
 
 fn not_a_test() {
-    assert_labelled_untrusted(&output);
+    assert_labelled_untrusted(&output, PAYLOAD);
 }
 
 #[test]
@@ -728,25 +740,25 @@ fn asserts_after_a_nested_block() {
             continue;
         }
     }
-    assert_labelled_untrusted(&output);
+    assert_labelled_untrusted(&output, PAYLOAD);
 }
 
 #[test]
 fn formats_before_it_asserts() {
     let shown = format!(\"{extra} }} {{\", extra = '}');
-    assert_labelled_untrusted(&shown);
+    assert_labelled_untrusted(&shown, PAYLOAD);
 }
 
 #[test]
 fn quotes_a_quote_then_asserts() {
     let marks = ['\\'', '}'];
-    assert_labelled_untrusted(&format!(\"{marks:?}\"));
+    assert_labelled_untrusted(&format!(\"{marks:?}\"), PAYLOAD);
 }
 
 #[test]
 fn comments_a_brace_then_asserts() {
     /* a stray } in a block comment */
-    assert_labelled_untrusted(&output);
+    assert_labelled_untrusted(&output, PAYLOAD);
 }
 
 #[test]
@@ -756,12 +768,12 @@ fn only_mentions_the_word() {
 
 #[test]
 fn comments_the_call() {
-    assert!(output.is_empty()); // assert_labelled_untrusted(&output);
+    assert!(output.is_empty()); // assert_labelled_untrusted(&output, PAYLOAD);
 }
 
 #[test]
 fn strings_the_call() {
-    let text = \"assert_labelled_untrusted(&output)\";
+    let text = \"assert_labelled_untrusted(&output, PAYLOAD)\";
     assert!(!text.is_empty());
 }
 ";
