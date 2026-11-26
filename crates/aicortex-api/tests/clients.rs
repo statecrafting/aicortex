@@ -525,6 +525,31 @@ fn fr006_every_readme_states_the_rule_and_the_off_switch() {
 /// client labels injected text untrusted (026 FR-008): the function exists,
 /// carries `#[test]` or a `tokio::test` attribute, and its body names the
 /// word `untrusted`.
+/// The text of the function that `source` starts with, from its header to
+/// its matching closing brace, found by counting braces so a nested block,
+/// closure, or inner scope does not end it early. The tests this reads are
+/// rustfmt-formatted Rust; braces inside string literals are not expected
+/// there.
+fn function_body(source: &str) -> &str {
+    let Some(open) = source.find('{') else {
+        return "";
+    };
+    let mut depth = 0_usize;
+    for (offset, ch) in source[open..].char_indices() {
+        match ch {
+            '{' => depth += 1,
+            '}' => {
+                depth -= 1;
+                if depth == 0 {
+                    return &source[..open + offset + 1];
+                }
+            }
+            _ => {}
+        }
+    }
+    source
+}
+
 fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
     let header = format!("fn {name}(");
     let Some(at) = source.find(&header) else {
@@ -535,7 +560,7 @@ fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
         let line = line.trim();
         line.starts_with("#[test") || line.starts_with("#[tokio::test")
     });
-    let body = source[at..].split("\n}\n").next().unwrap_or_default();
+    let body = function_body(&source[at..]);
     // An assertion, not a comment or a stray string, must name the label: a
     // line of the body that is code, starts an `assert` macro, and mentions
     // the untrusted marking (026 B-11, 019).
@@ -622,6 +647,16 @@ fn not_a_test() {
 }
 
 #[test]
+fn asserts_after_a_nested_block() {
+    for line in output.lines() {
+        if line.is_empty() {
+            continue;
+        }
+    }
+    assert!(output.contains(\"untrusted\"));
+}
+
+#[test]
 fn only_says_it() {
     // the client labels this untrusted
     let label = \"untrusted\";
@@ -629,6 +664,10 @@ fn only_says_it() {
 }
 ";
     assert!(is_a_test_asserting_untrusted(source, "labels_it"));
+    assert!(
+        is_a_test_asserting_untrusted(source, "asserts_after_a_nested_block"),
+        "a nested block does not end the body early"
+    );
     assert!(!is_a_test_asserting_untrusted(source, "says_nothing"));
     assert!(!is_a_test_asserting_untrusted(source, "not_a_test"));
     assert!(!is_a_test_asserting_untrusted(source, "absent"));

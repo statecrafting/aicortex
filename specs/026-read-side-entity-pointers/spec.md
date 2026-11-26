@@ -381,26 +381,18 @@ prose, which 017 B-6 forbids.
   FR-009 holds it down to 40 bytes for the route and holds the 8 KiB default
   in the graph's own test. Configured token bounds are clamped to 128 to 8,000
   and pointer counts to 1 to 50.
-- **D-11 (2026-11-26, build).** The matrix reader takes flat keys, because it
-  reads one-level tables: `read_pointer` (mechanism or `none`),
-  `read_pointer_position`, `data_position`, `data_position_evidence`, and
-  `data_position_test`, which a row must carry exactly when `data_position`
-  is true. This needed the reader in `clients.rs` to learn the keys and so
-  an `extends` edge on it. Only Claude Code's row is stated from the
-  owner's decision (D-4). The others record `none` or "unrecorded" rather than
-  a vendor claim nobody here has checked.
-- **D-12 (2026-11-26, build).** The MCP `search` tool takes an optional
+- **D-11 (2026-11-26, build).** The MCP `search` tool takes an optional
   boolean `pointers` and passes it to the route, so the result carries the
   route's block. The compatibility shape of 021 B-7 renders a search result as
   a list of ids and does not render the block. The tool's description stays
   static text.
-- **D-13 (2026-11-26, build).** A deployment disables pointers with
+- **D-12 (2026-11-26, build).** A deployment disables pointers with
   `Search::with_pointers(PointerConfig::default().with_enabled(false))`. A
   request that asks then receives `pointers_disabled: true` and no `pointers`
   field; a request that does not ask is unchanged either way. The cell does
   not configure this today, so a deployment gets the default (enabled, 5
   pointers, 400 tokens, 8 KiB).
-- **D-14 (2026-11-26, build).** This spec is built start to finish on one
+- **D-13 (2026-11-26, build).** This spec is built start to finish on one
   branch and lands in parts, as 017 D-8, 018 D-8 and 025 D-7 did: the
   manifest edge first, under policy isolation (spec 044 section 3.3), then
   the code in dependency order, because one change would be about 3,200
@@ -413,6 +405,15 @@ prose, which 017 B-6 forbids.
   FR-007, FR-009, FR-010, FR-011, AC-2, AC-4), and depends on part 1. Part 3 is
   the client matrix rows (B-11, B-12, FR-008, AC-3) and the status, and is
   independent of part 2. No requirement or acceptance criterion changes.
+
+- **D-14 (2026-11-26, build).** The matrix reader takes flat keys, because it
+  reads one-level tables: `read_pointer` (mechanism or `none`),
+  `read_pointer_position`, `data_position`, `data_position_evidence`, and
+  `data_position_test`, which a row must carry exactly when `data_position`
+  is true. This needed the reader in `clients.rs` to learn the keys and so
+  an `extends` edge on it. Only Claude Code's row is stated from the
+  owner's decision (D-4). The others record `none` or "unrecorded" rather than
+  a vendor claim nobody here has checked.
 
 ## Status
 
