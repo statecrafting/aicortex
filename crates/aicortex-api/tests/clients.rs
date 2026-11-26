@@ -209,7 +209,9 @@ fn a_matrix_outside_the_rules_is_refused() {
         format!(
             "[client.x]\ntransport = [\"streamable-http\"]\noauth = true\ndynamic_registration = true\n\
              compat_pair = false\ncapture = \"hook\"\ncapture_scopes = [\"memory.write\"]\n\
-             fixtures = \"x/fixtures\"\n{extra}"
+             fixtures = \"x/fixtures\"\nread_pointer = \"none\"\n\
+             read_pointer_position = \"not applicable\"\ndata_position = false\n\
+             data_position_evidence = \"none\"\n{extra}"
         )
     };
     assert!(Matrix::parse(&row("verified = false\nnote = \"why\"\n")).is_ok());
@@ -515,4 +517,381 @@ fn fr006_every_readme_states_the_rule_and_the_off_switch() {
             );
         }
     }
+}
+
+// ---- spec 026 B-11, B-12: the read-pointer capability rows ----
+
+/// `source` with every comment, and the contents of every string and
+/// character literal, blanked to spaces, so what remains is code in its
+/// original places, with each literal's delimiters kept. A `//`, a brace, or
+/// a call written inside a literal is text, not code. Raw strings are not
+/// used in the tests this reads.
+fn code_only(source: &str) -> String {
+    let bytes = source.as_bytes();
+    let mut out = bytes.to_vec();
+    let mut at = 0;
+    while at < bytes.len() {
+        match bytes[at] {
+            b'"' => {
+                at += 1;
+                while at < bytes.len() && bytes[at] != b'"' {
+                    let step = if bytes[at] == b'\\' { 2 } else { 1 };
+                    for blank in out.iter_mut().skip(at).take(step) {
+                        if *blank != b'\n' {
+                            *blank = b' ';
+                        }
+                    }
+                    at += step;
+                }
+            }
+            // An escaped character literal (`'\''`, `'\n'`) first, then a
+            // plain one (`'}'`); a lifetime (`'a`) matches neither.
+            b'\'' if bytes.get(at + 1) == Some(&b'\\') && bytes.get(at + 3) == Some(&b'\'') => {
+                for blank in out.iter_mut().skip(at + 1).take(2) {
+                    *blank = b' ';
+                }
+                at += 3;
+            }
+            b'\'' if bytes.get(at + 2) == Some(&b'\'') => {
+                out[at + 1] = b' ';
+                at += 2;
+            }
+            b'/' if bytes.get(at + 1) == Some(&b'/') => {
+                while at < bytes.len() && bytes[at] != b'\n' {
+                    out[at] = b' ';
+                    at += 1;
+                }
+                continue;
+            }
+            b'/' if bytes.get(at + 1) == Some(&b'*') => {
+                while at < bytes.len() && !(bytes[at] == b'*' && bytes.get(at + 1) == Some(&b'/')) {
+                    if bytes[at] != b'\n' {
+                        out[at] = b' ';
+                    }
+                    at += 1;
+                }
+                for blank in out.iter_mut().skip(at).take(2) {
+                    *blank = b' ';
+                }
+                at += 2;
+                continue;
+            }
+            _ => {}
+        }
+        at += 1;
+    }
+    String::from_utf8(out).unwrap_or_default()
+}
+
+/// The text of the function that `code` (from [`code_only`]) starts with,
+/// from its header to its matching closing brace. Comments and literals are
+/// already blank there, so only code braces count, and a nested block,
+/// closure, or inner scope does not end the body early.
+fn function_body(code: &str) -> &str {
+    let Some(open) = code.find('{') else {
+        return "";
+    };
+    let mut depth = 0_usize;
+    for (offset, ch) in code[open..].char_indices() {
+        match ch {
+            '{' => depth += 1,
+            '}' => {
+                depth -= 1;
+                if depth == 0 {
+                    return &code[..=open + offset];
+                }
+            }
+            _ => {}
+        }
+    }
+    code
+}
+
+/// The assertion a data-position test makes (026 FR-008, 019 B-2): in what
+/// the client hands its model, `injected` (the text a hook injected) appears,
+/// and 019's framing statement appears before it, so everything after the
+/// statement, `injected` included, is labelled untrusted data.
+fn assert_labelled_untrusted(output: &str, injected: &str) {
+    let framing = output.find(aicortex_recall::FRAMING_STATEMENT);
+    let content = output.find(injected);
+    assert!(
+        matches!((framing, content), (Some(framing), Some(content)) if framing < content),
+        "the injected text is not preceded by the framing statement: {output}"
+    );
+}
+
+#[test]
+fn the_untrusted_label_assertion_needs_the_framing_first() {
+    let statement = aicortex_recall::FRAMING_STATEMENT;
+    assert_labelled_untrusted(&format!("{statement}\n<memory>hostile</memory>"), "hostile");
+    for (output, why) in [
+        ("<memory>hostile</memory>".to_owned(), "no framing at all"),
+        (
+            format!("<memory>hostile</memory>\n{statement}"),
+            "framing after the content",
+        ),
+        (
+            format!("{statement}\n<memory>other</memory>"),
+            "the injected text is absent",
+        ),
+    ] {
+        let refused = std::panic::catch_unwind(|| assert_labelled_untrusted(&output, "hostile"));
+        assert!(refused.is_err(), "{why}");
+    }
+}
+
+/// Whether `source` holds a test named `name` (a `#[test]` or
+/// `#[tokio::test]` function) whose code calls [`assert_labelled_untrusted`],
+/// the one assertion that shows a client labels injected text untrusted
+/// (026 FR-008, 019 B-2). A mention of the word, in a comment, a string, or
+/// another assertion, does not count.
+fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
+    let code = code_only(source);
+    let header = format!("fn {name}(");
+    let Some(at) = code.find(&header) else {
+        return false;
+    };
+    let attribute = code[..at].lines().rev().take(3).any(|line| {
+        let line = line.trim();
+        line.starts_with("#[test") || line.starts_with("#[tokio::test")
+    });
+    let asserts_the_label = function_body(&code[at..]).contains("assert_labelled_untrusted(");
+    attribute && asserts_the_label
+}
+
+/// 026 B-11: a row claims a data position only by naming the test that shows
+/// it, and every row says what its hook mechanism and position are.
+#[test]
+fn b11_the_reader_refuses_a_data_position_without_its_test() {
+    let row = |extra: &str| {
+        format!(
+            "[client.x]\ntransport = [\"streamable-http\"]\noauth = true\ndynamic_registration = true\n\
+             compat_pair = false\ncapture = \"hook\"\ncapture_scopes = [\"memory.write\"]\n\
+             fixtures = \"x/fixtures\"\nverified = false\nnote = \"why\"\n{extra}"
+        )
+    };
+    let entry = "read_pointer = \"hook\"\nread_pointer_position = \"context\"\n\
+                 data_position_evidence = \"a test\"\n";
+    assert!(Matrix::parse(&row(&format!("{entry}data_position = false\n"))).is_ok());
+    assert!(
+        Matrix::parse(&row(&format!(
+            "{entry}data_position = true\ndata_position_test = \"a_test\"\n"
+        )))
+        .is_ok()
+    );
+    for (bad, why) in [
+        (String::new(), "no read_pointer entry at all"),
+        (
+            "read_pointer_position = \"p\"\ndata_position = false\ndata_position_evidence = \"e\"\n"
+                .to_owned(),
+            "no read_pointer",
+        ),
+        (
+            "read_pointer = \"h\"\ndata_position = false\ndata_position_evidence = \"e\"\n"
+                .to_owned(),
+            "no read_pointer_position",
+        ),
+        (
+            "read_pointer = \"h\"\nread_pointer_position = \"p\"\ndata_position_evidence = \"e\"\n"
+                .to_owned(),
+            "no data_position",
+        ),
+        (
+            "read_pointer = \"h\"\nread_pointer_position = \"p\"\ndata_position = false\n"
+                .to_owned(),
+            "no data_position_evidence",
+        ),
+        (
+            format!("{entry}data_position = true\n"),
+            "a data position with no test named",
+        ),
+        (
+            format!("{entry}data_position = false\ndata_position_test = \"a_test\"\n"),
+            "a test named by a row that is not a data position",
+        ),
+    ] {
+        assert!(Matrix::parse(&row(&bad)).is_err(), "{why}");
+    }
+}
+
+/// 026 FR-008: the check that a named test exists and asserts the client
+/// labels injected text untrusted does what it says.
+#[test]
+fn fr008_the_untrusted_test_check_reads_the_test_source() {
+    let source = "\
+#[tokio::test]
+async fn labels_it() {
+    assert_labelled_untrusted(&output, PAYLOAD);
+}
+
+#[test]
+fn says_nothing() {
+    assert!(true);
+}
+
+fn not_a_test() {
+    assert_labelled_untrusted(&output, PAYLOAD);
+}
+
+#[test]
+fn asserts_after_a_nested_block() {
+    for line in output.lines() {
+        if line.is_empty() {
+            continue;
+        }
+    }
+    assert_labelled_untrusted(&output, PAYLOAD);
+}
+
+#[test]
+fn formats_before_it_asserts() {
+    let shown = format!(\"{extra} }} {{\", extra = '}');
+    assert_labelled_untrusted(&shown, PAYLOAD);
+}
+
+#[test]
+fn quotes_a_quote_then_asserts() {
+    let marks = ['\\'', '}'];
+    assert_labelled_untrusted(&format!(\"{marks:?}\"), PAYLOAD);
+}
+
+#[test]
+fn comments_a_brace_then_asserts() {
+    /* a stray } in a block comment */
+    assert_labelled_untrusted(&output, PAYLOAD);
+}
+
+#[test]
+fn only_mentions_the_word() {
+    assert!(output.contains(\"http://untrusted.example\"));
+}
+
+#[test]
+fn comments_the_call() {
+    assert!(output.is_empty()); // assert_labelled_untrusted(&output, PAYLOAD);
+}
+
+#[test]
+fn strings_the_call() {
+    let text = \"assert_labelled_untrusted(&output, PAYLOAD)\";
+    assert!(!text.is_empty());
+}
+";
+    for (name, expected, why) in [
+        ("labels_it", true, "a test that calls the assertion"),
+        (
+            "asserts_after_a_nested_block",
+            true,
+            "a nested block does not end the body early",
+        ),
+        (
+            "formats_before_it_asserts",
+            true,
+            "braces in string and character literals are not counted",
+        ),
+        (
+            "quotes_a_quote_then_asserts",
+            true,
+            "an escaped quote literal does not hide a brace",
+        ),
+        (
+            "comments_a_brace_then_asserts",
+            true,
+            "a brace in a block comment is not counted",
+        ),
+        (
+            "says_nothing",
+            false,
+            "a test that asserts nothing about the label",
+        ),
+        ("not_a_test", false, "a function that is not a test"),
+        ("absent", false, "a name that is not in the file"),
+        (
+            "only_mentions_the_word",
+            false,
+            "mentioning the word is not the assertion",
+        ),
+        (
+            "comments_the_call",
+            false,
+            "a call in a comment is not a call",
+        ),
+        (
+            "strings_the_call",
+            false,
+            "a call written in a string is not a call",
+        ),
+    ] {
+        assert_eq!(
+            is_a_test_asserting_untrusted(source, name),
+            expected,
+            "{name}: {why}"
+        );
+    }
+}
+
+/// 026 FR-008: every row has a `read_pointer` entry; a row whose
+/// `data_position` is true names a test in this file that exists and asserts
+/// the client labels injected text untrusted, and every other row is false;
+/// the Claude Code row is false and says why; and no pointer hook is shipped
+/// or generated for any client (B-12).
+#[test]
+fn fr008_every_row_has_a_read_pointer_entry_and_no_hook_carries_pointers() {
+    let source =
+        std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/clients.rs"))
+            .unwrap();
+    let matrix = Matrix::shipped();
+    for name in names() {
+        let row = matrix.get(&name).unwrap();
+        assert!(!row.read_pointer.trim().is_empty(), "{name}: read_pointer");
+        assert!(
+            !row.read_pointer_position.trim().is_empty(),
+            "{name}: read_pointer_position"
+        );
+        assert!(
+            !row.data_position_evidence.trim().is_empty(),
+            "{name}: data_position_evidence"
+        );
+        match (&row.data_position, &row.data_position_test) {
+            (true, Some(test)) => assert!(
+                is_a_test_asserting_untrusted(&source, test),
+                "{name} claims a data position but {test} is not a test here that asserts \
+                 the client labels injected text untrusted"
+            ),
+            (true, None) => panic!("{name} claims a data position and names no test"),
+            (false, None) => {}
+            (false, Some(test)) => panic!("{name} says false and names {test}"),
+        }
+
+        // B-12: nothing generated or shipped for a client carries pointers.
+        let dir = root().join(&name);
+        for file in ["snippet.txt", "hook.mjs"] {
+            let text = std::fs::read_to_string(dir.join(file))
+                .unwrap()
+                .to_lowercase();
+            assert!(!text.contains("pointer"), "{name}/{file} mentions pointers");
+        }
+        for entry in std::fs::read_dir(&dir).unwrap().filter_map(Result::ok) {
+            let file = entry.file_name().to_string_lossy().to_lowercase();
+            assert!(!file.contains("pointer"), "{name} ships {file}");
+        }
+        let served = clients::snippet_for(&matrix, &name, "https://mem.example.org").unwrap();
+        assert!(!served.snippet.to_lowercase().contains("pointer"), "{name}");
+    }
+    let core = std::fs::read_to_string(root().join("capture-core.mjs"))
+        .unwrap()
+        .to_lowercase();
+    assert!(
+        !core.contains("pointer"),
+        "the shared hook core carries no pointers"
+    );
+
+    let claude = matrix.get("claude-code").unwrap();
+    assert!(!claude.data_position);
+    assert!(
+        claude
+            .read_pointer_position
+            .contains("feedback from the user")
+    );
+    assert!(claude.read_pointer_position.contains("directive"));
 }

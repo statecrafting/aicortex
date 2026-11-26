@@ -31,6 +31,7 @@ extends:
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/lib.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
   - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
+  - { spec: "022-client-adapters", unit: "crates/aicortex-api/src/clients.rs", nature: additive }
   - { spec: "022-client-adapters", unit: "clients/matrix.toml", nature: additive }
   - { spec: "022-client-adapters", unit: "clients/README.md", nature: additive }
   - { spec: "022-client-adapters", unit: "crates/aicortex-api/tests/clients.rs", nature: additive }
@@ -404,6 +405,34 @@ prose, which 017 B-6 forbids.
   FR-007, FR-009, FR-010, FR-011, AC-2, AC-4), and depends on part 1. Part 3 is
   the client matrix rows (B-11, B-12, FR-008, AC-3) and the status, and is
   independent of part 2. No requirement or acceptance criterion changes.
+
+- **D-14 (2026-11-26, build).** The matrix reader takes flat keys, because it
+  reads one-level tables: `read_pointer` (mechanism or `none`),
+  `read_pointer_position`, `data_position`, `data_position_evidence`, and
+  `data_position_test`, which a row must carry exactly when `data_position`
+  is true. This needed the reader in `clients.rs` to learn the keys and so
+  an `extends` edge on it. Only Claude Code's row is stated from the
+  owner's decision (D-4). The others record `none` or "unrecorded" rather than
+  a vendor claim nobody here has checked. A row's `data_position_test`
+  counts only when that test calls `assert_labelled_untrusted` in
+  `crates/aicortex-api/tests/clients.rs`, which asserts the injected text
+  follows 019's framing statement; the check reads the test's code with
+  comments and literals blanked, so a mention of the word does not count.
+
+## Status
+
+- **2026-11-26.** `implementation: in-progress`. Built and tested: B-1 to
+  B-12 and FR-001 to FR-011. AC-1 to AC-4 pass
+  (`cargo test -p aicortex-graph --locked --test pointer`,
+  `-p aicortex-api --locked --test pointers`, `--test clients`, and
+  `-p aicortex-mcp --locked --test tools`). No migration, table, route, tool,
+  or hook was added, and the only manifest change is the `tracing`
+  dev-dependency of D-9 (010 D-15, 020 D-22). This spec stays in progress
+  while the specs it depends on do: 021 and 022 wait on rahi for a real OAuth
+  client flow (021 AC-2), and nothing here was observed through one; every
+  test authorizes with a bearer token, as the existing tests do. No
+  retrieval ranking, chunking, embedding, or fusion changed, so no
+  evaluation-corpus delta applies; spec 040's corpus is not involved.
 
 ## Verification
 
