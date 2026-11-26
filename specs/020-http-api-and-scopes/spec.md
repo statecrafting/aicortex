@@ -354,6 +354,27 @@ documents.
   lands on its own, ahead of the code, under policy isolation (spec 044
   section 3.3). `Cargo.lock` does not change. No requirement or acceptance
   criterion changes.
+- **D-20 (2026-11-26, the 023 build).** The router has an extension seam in
+  the style of `Api::with_search`: `Api::with_routes` takes `ApiRoute` values
+  (a path, the scope that gates it, and a method router over `Api`), and
+  `router_with` mounts each one inside the same `/api/v1` prefix and under the
+  same `scoped(...)` gate as the routes of this crate. A composing app uses it
+  to supply routes whose handlers live above this crate in spec 002's layering
+  (023 D-2); the MCP server calls `router_with` in process, so a route
+  supplied this way is reachable from its tools and resources as well. The
+  seam adds no route of its own, `capture::now` and the other items such a
+  handler shares (the caller, the errors, the scope types) are `pub`, and no
+  dependency is added: this crate takes none on `aicortex-curate`. No
+  requirement or acceptance criterion changes.
+- **D-21 (2026-11-26, the 023 build).** D-12's 501 is replaced by absence:
+  `memories::promote` is removed, and `POST /promote/{id}` is answered by the
+  route spec 023 supplies through D-20's seam (a person's token,
+  `memory.promote`, one Decision, the trust class written with its id). The
+  `/review` and `/demote` subtrees are declared person-only beside
+  `/promote` in `bearer_routes`. The 403 for a client credentials token is
+  the chassis's and stands as D-12 left it, and `tests/authz.rs` keeps it
+  and the scope gate; the answer a person gets is asserted where the handler
+  is, in `crates/aicortex-curate/tests/routes.rs`.
 
 - **D-22 (2026-11-26, dependency edge, the 026 manifest commit).**
   `aicortex-api` takes the workspace's `tracing` as a dev-dependency, so

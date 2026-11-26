@@ -40,7 +40,15 @@
       },
       {
         "kind": "file",
+        "path": "crates/aicortex-curate/src/routes.rs"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-curate/tests/review.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-curate/tests/routes.rs"
       }
     ],
     "extends": [
@@ -75,6 +83,86 @@
           "kind": "file",
           "path": "crates/aicortex-api/src/router.rs"
         }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/lib.rs"
+        }
+      },
+      {
+        "nature": "replacing",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/memories.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/capture.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/authz.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/common/mod.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "010-chassis-adoption-and-workspace",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/resources.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "021-mcp-server",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/support/mod.rs"
+        }
       }
     ],
     "extraFrontmatter": {
@@ -94,16 +182,16 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "023-review-and-promotion": "dabcec36ebdb49c648d9c074661430c741b2a648a2f16605d97716d65dd6ba2a",
+      "023-review-and-promotion": "75ba5ab6ce348b249b9b8babd0169841e22cf0e3943f395ff7abd1c817a71edc",
       "1-purpose": "1807f7f18c84dcf1997bfe196f63fa932616cad046bc004c1597eec9e4275c50",
       "2-territory": "fd26d40c077dc7cb155585ca0cf9bf8c1ecd9d1b7f994e3fcada78ef92188d1b",
       "3-behavior": "b91c10d93dfaf0b1d6507297c8d3578f5f9b78c5756014836dcba94417336955",
       "4-functional-requirements": "4a654176440730d68f2774b47ce71631d2a9a86b17733609622ab01e9e341ac6",
       "5-acceptance-criteria": "0d77eb9f00306ecf15ed9c3426c5c76079f5f665cd2d459d8f5ef3354e0e70b8",
       "6-out-of-scope": "2c9f74c5843dd747fb2f74dbd1d962aa8d1ed68e90325c1f971e561a97e01f39",
-      "7-resolved-decisions": "e6cd645fba9a3db0eb71b4fa3d462c212c8cd46a8b029d6f92ec74144b9a8c72",
-      "status": "edf3e1c8314ed32354256a304abf9d662ad18dc61a417665a046a86d84b4bfbc",
-      "verification": "94baf4981a922f22b8ccd4f208dedf6410f126aa74c46a0fa74df9189c9ceff3"
+      "7-resolved-decisions": "837d880c4ef2654804b6b366badc0a417ebe648ffb864cf56916bca6bf414c2b",
+      "status": "969fcf2c1388cb715d3638a5f82525034e07eac06e1633b8ffe8e7e3c20d1689",
+      "verification": "b5c8a4f6b025f6e0216fcac6fc5d1ccd89d680b062b05188aab49248df118256"
     },
     "sectionHeadings": [
       "023: Review and promotion",
@@ -122,6 +210,6 @@
     "summary": "Three situations need a person: content whose origin could not be established and was quarantined, two edges that contradict each other, and a memory that someone wants a client to act on. This spec is the one queue where all three wait, the decisions that empty it, and the ledger records those decisions produce. Promotion is the important one: it is the only path to instruction grade, it requires the promote scope and an interactive principal, and it writes a rahi Decision whose id becomes part of the memory's trust.\n",
     "title": "Review: the queue where quarantine, contradiction, and promotion wait for a human"
   },
-  "shardHash": "7e0b08f7b0c444ec1ee84c2ad9a05c80a046800b5c10aa20c586142672fa119a",
+  "shardHash": "16e238280d379b2855f1c65b864965cf8b64b797dd589bb15461a947a53c7a2a",
   "specVersion": "1.11.0"
 }

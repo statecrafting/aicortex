@@ -2,7 +2,7 @@
 //!
 //! Every test runs against a real single-voter node and the chassis's real
 //! decision chain. The HTTP half (the 403 of FR-003, the scopes, the
-//! envelopes) is `aicortex-api`'s `tests/review.rs`.
+//! envelopes) is `tests/routes.rs`.
 
 #![allow(
     clippy::unwrap_used,

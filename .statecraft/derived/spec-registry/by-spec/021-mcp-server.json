@@ -122,14 +122,14 @@
     ],
     "risk": "critical",
     "sectionDigests": {
-      "021-the-mcp-server": "407e657b3eb58c3adcc707fb4a7dd2e4b68ebc9822fe5be9f8bccc94c07f44a7",
+      "021-the-mcp-server": "da213c0f8d981d167f0987ce7714e6d31cb8511d68e9ea249a8b57bcde5a7409",
       "1-purpose": "cc0e1557dc41e0bfd1a28a660a749ded7a413329b508e68e4ff175682b891b18",
       "2-territory": "d5842d4011564bfc565ed7e326514a51176947785a8d6b3a4b4c0587187b2ae1",
       "3-behavior": "6417dd366f845f86ae044817c976af6b60a7680e56c50789f8256e35be8c75ad",
       "4-functional-requirements": "222ac1e46a566989cf880aa7f60e5f562b2dfa8e1c1a7b4e02523b97320bff6e",
       "5-acceptance-criteria": "7bf3f5fc1f23a4a8385dedc2ee15e4e8e183fb8c3b26d37a551eea358f23e831",
       "6-out-of-scope": "3c24c16f329ea129e2fc1e4736e95d252c1444af057f98d30f219f1bd3142ee0",
-      "7-resolved-decisions": "2fe8cc11f34b2db5b0847d664b8b3fab411446c8ee487e27aecacd09673b9c59",
+      "7-resolved-decisions": "17d421f8c52ff6d5fa8dcdfaadd516d5fa15358b77c707324da00c2517ccc507",
       "status": "ce4b736bdae9906e3147e4ba9875b02147268480efbde9bf0189bde4d2c17c87",
       "verification": "257672220f7d5b576f9378bd12f61ce1fd948f9cbf41a97c122cdd311c25ce34"
     },
@@ -150,6 +150,6 @@
     "summary": "One remote MCP server over streamable HTTP, stateless per request, serving every client that speaks the protocol. Seven tools, no more: capture, search, fetch, list, update, forget, and relate. Authorization is the chassis's resource server, so an unauthenticated initialize answers the challenge that lets a client discover the authorization server and register itself without the user pasting anything. Tool results carry envelopes and the framing statement, and the tool descriptions themselves never contain recalled content.\n",
     "title": "The MCP server: streamable HTTP, a small tool surface, OAuth discovery that bootstraps itself"
   },
-  "shardHash": "dcccc7cd2286d0cf67eef18df6357b6b45ecccdf00905a06dcf28ad75a8790c5",
+  "shardHash": "9447fd75a06979ac32cba512cdf06716e98ca09c5836b555434fc88ff2b48f6a",
   "specVersion": "1.11.0"
 }

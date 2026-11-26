@@ -71,12 +71,15 @@ impl Cell for Aicortex {
         vec![rahi_store::coordination_set(), rahi_store::receipt_set()]
     }
 
-    /// The merged product router: spec 020's HTTP API under `/api/v1` and
-    /// spec 021's MCP server at `/mcp`, over one event bus.
+    /// The merged product router: spec 020's HTTP API under `/api/v1`, with
+    /// spec 023's review routes supplied through its extension seam (020
+    /// D-20, 023 D-2), and spec 021's MCP server at `/mcp`, over one event
+    /// bus.
     fn routes(state: AppState) -> Router {
         let api = Api::new(state)
             .with_events(events())
-            .with_search(search_surface::search(&rahi_cli::process_env()));
+            .with_search(search_surface::search(&rahi_cli::process_env()))
+            .with_routes(aicortex_curate::routes::routes());
         aicortex_api::router_with(api.clone()).merge(aicortex_mcp::router(api))
     }
 

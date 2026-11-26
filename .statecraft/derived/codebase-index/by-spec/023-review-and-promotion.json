@@ -5,7 +5,31 @@
     ],
     "implementingPaths": [
       {
+        "path": "apps/aicortex/src/cell.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/capture.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/src/memories.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-api/src/router.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/authz.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/tests/common/mod.rs",
         "source": "spec-edge"
       },
       {
@@ -33,11 +57,35 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-curate/src/routes.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-curate/tests/common/mod.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-curate/tests/review.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-curate/tests/routes.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-mcp/src/resources.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-mcp/src/tools.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-mcp/tests/support/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-mcp/tests/tools.rs",
         "source": "spec-edge"
       },
       {
@@ -126,6 +174,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-curate/src/routes.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/routes.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-curate/tests/common/mod.rs"
           }
         ],
@@ -152,6 +213,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-curate/tests/routes.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/tests/routes.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/src/review_tables.rs"
           }
         ],
@@ -165,6 +239,58 @@
       {
         "locations": [
           {
+            "file": "apps/aicortex/src/cell.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "apps/aicortex/src/cell.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/capture.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/capture.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/src/memories.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/src/memories.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-api/src/router.rs"
           }
         ],
@@ -173,6 +299,84 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/src/router.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/authz.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/authz.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/common/mod.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/common/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-mcp/src/resources.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/resources.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-mcp/src/tools.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/src/tools.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-mcp/tests/support/mod.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/support/mod.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-mcp/tests/tools.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-mcp/tests/tools.rs"
         }
       },
       {
@@ -232,5 +436,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "7e0b08f7b0c444ec1ee84c2ad9a05c80a046800b5c10aa20c586142672fa119a"
+  "shardHash": "16e238280d379b2855f1c65b864965cf8b64b797dd589bb15461a947a53c7a2a"
 }

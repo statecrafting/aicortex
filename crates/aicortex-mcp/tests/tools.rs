@@ -396,7 +396,12 @@ async fn b8_resources_carry_counts_and_never_a_body() {
     let queue = read("aicortex://review-queue").await;
     let queue: Value =
         serde_json::from_str(queue["result"]["contents"][0]["text"].as_str().unwrap()).unwrap();
-    assert_eq!(queue, json!({ "quarantined": 0 }));
+    assert_eq!(queue["open"], 0);
+    assert_eq!(queue["by_kind"]["quarantine"], 0);
+    assert!(
+        !queue.to_string().contains(INJECTION),
+        "the queue count carries no content"
+    );
 
     let project = read("aicortex://scopes/project/alpha").await;
     let project: Value =

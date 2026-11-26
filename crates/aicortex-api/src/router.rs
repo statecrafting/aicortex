@@ -14,7 +14,7 @@ use aicortex_store::CursorKey;
 use axum::Router;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
-use axum::routing::{delete, get, patch, post};
+use axum::routing::{MethodRouter, delete, get, patch, post};
 use rahi_edge::{AppState, StreamRoutes};
 use rahi_idp::{Bearer, BearerRoutes};
 use rahi_types::{Error, Principal, Sub};
@@ -34,6 +34,12 @@ pub const API_PREFIX: &str = "/api/v1";
 /// (B-3, FR-003, `rahi://025` B-4).
 pub const PROMOTE_PREFIX: &str = "/api/v1/promote";
 
+/// The review subtree, a person's token only (023 B-8).
+pub const REVIEW_PREFIX: &str = "/api/v1/review";
+
+/// The demotion subtree, a person's token only (023 B-6, B-8).
+pub const DEMOTE_PREFIX: &str = "/api/v1/demote";
+
 /// The default ceiling on candidates per capture (B-9).
 pub const DEFAULT_MAX_BATCH: usize = 100;
 
@@ -47,14 +53,16 @@ pub const CURSOR_KEY_CACHE_KEY: &str = "aicortex.api.cursor-key";
 ///
 /// The whole surface is service-callable, so an importer or the orchestrator
 /// holding a client credentials token reaches capture and the listing; the
-/// promotion subtree is declared for a person's token only, so the chassis
-/// refuses a client credentials token there before the handler runs. The
-/// longest matching prefix wins.
+/// promotion, demotion, and review subtrees are declared for a person's token
+/// only (023 B-8), so the chassis refuses a client credentials token there
+/// before the handler runs. The longest matching prefix wins.
 #[must_use]
 pub fn bearer_routes() -> BearerRoutes {
     BearerRoutes::new()
         .service_route(API_PREFIX)
         .route(PROMOTE_PREFIX)
+        .route(REVIEW_PREFIX)
+        .route(DEMOTE_PREFIX)
 }
 
 /// The tunable limits of this surface.
@@ -88,7 +96,35 @@ pub struct Api {
     pub limits: Limits,
     /// What `POST /search` is configured with (018, 025).
     pub search: Search,
+    supplied: Arc<Vec<ApiRoute>>,
     cursor: Arc<OnceCell<CursorKey>>,
+}
+
+/// A route the composing app supplies, whose handler lives above this crate
+/// in spec 002's layering (020 D-20, 023 D-2).
+///
+/// [`router_with`] mounts it inside [`API_PREFIX`] under the scope gate it
+/// names, as it does every route of its own, so the handler runs with the same
+/// authentication and the same [`Caller`]. A path can be supplied once per
+/// method, with a scope for each, as `/memories/{id}` is.
+#[derive(Clone)]
+pub struct ApiRoute {
+    path: &'static str,
+    scope: ApiScope,
+    method: MethodRouter<Api>,
+}
+
+impl ApiRoute {
+    /// The route at `path` (relative to [`API_PREFIX`]), answering `method`
+    /// for a caller holding `scope`.
+    #[must_use]
+    pub const fn new(path: &'static str, scope: ApiScope, method: MethodRouter<Api>) -> Self {
+        Self {
+            path,
+            scope,
+            method,
+        }
+    }
 }
 
 impl std::fmt::Debug for Api {
@@ -109,6 +145,7 @@ impl Api {
             events: Events::new(),
             limits: Limits::default(),
             search: Search::default(),
+            supplied: Arc::new(Vec::new()),
             cursor: Arc::new(OnceCell::new()),
         }
     }
@@ -134,6 +171,18 @@ impl Api {
     #[must_use]
     pub fn with_search(mut self, search: Search) -> Self {
         self.search = search;
+        self
+    }
+
+    /// The same, also serving `routes`, which [`router_with`] mounts beside
+    /// its own (020 D-20). The subtrees that take a person's token only are
+    /// the chassis declaration of [`bearer_routes`], whoever supplies the
+    /// handler.
+    #[must_use]
+    pub fn with_routes(mut self, routes: impl IntoIterator<Item = ApiRoute>) -> Self {
+        let mut all = self.supplied.as_ref().clone();
+        all.extend(routes);
+        self.supplied = Arc::new(all);
         self
     }
 
@@ -236,7 +285,7 @@ pub fn router(state: AppState) -> Router {
 pub fn router_with(api: Api) -> Router {
     let kernel = api.app.kernel().clone();
     let k = &kernel;
-    let routes = Router::new()
+    let mut routes = Router::new()
         .route(
             "/capture",
             scoped(ApiScope::MemoryWrite, k, post(capture::capture)),
@@ -275,14 +324,16 @@ pub fn router_with(api: Api) -> Router {
             "/clients/{name}",
             scoped(ApiScope::MemoryRead, k, get(clients::get_snippet)),
         )
-        .route(
-            "/promote/{id}",
-            scoped(ApiScope::MemoryPromote, k, post(memories::promote)),
-        )
         .stream_route(
             "/events",
             scoped(ApiScope::MemoryRead, k, get(events::events)),
-        )
-        .with_state(api);
+        );
+    for supplied in api.supplied.iter() {
+        routes = routes.route(
+            supplied.path,
+            scoped(supplied.scope, k, supplied.method.clone()),
+        );
+    }
+    let routes = routes.with_state(api);
     Router::new().nest(API_PREFIX, routes)
 }

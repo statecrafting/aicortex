@@ -10,10 +10,11 @@
 //! [`bearer_routes`] from `Cell::bearer_routes`, and the chassis does the
 //! rest.
 //!
-//! - [`router`]: the routes under `/api/v1`, each behind its scope gate.
+//! - [`router`]: the routes under `/api/v1`, each behind its scope gate, and
+//!   the seam through which the composing app supplies more ([`ApiRoute`]).
 //! - [`capture`]: `POST /capture`, through the write gate, idempotent.
 //! - [`memories`]: listing, detail, correction, supersession, erasure,
-//!   counts, and the promotion boundary.
+//!   and counts.
 //! - [`clients`]: `GET /clients/{name}`, the filled-in snippet for a client (022).
 //! - [`events`]: `GET /events`, the chassis-declared progress stream.
 //! - [`search`] and [`entities`]: `POST /search` (018, 025) and the entity
@@ -43,7 +44,8 @@ pub mod search;
 pub use error::{ApiError, ApiResult, Problem};
 pub use events::{ApiEvent, Events};
 pub use router::{
-    API_PREFIX, Api, Caller, Limits, PROMOTE_PREFIX, bearer_routes, router, router_with,
+    API_PREFIX, Api, ApiRoute, Caller, DEMOTE_PREFIX, Limits, PROMOTE_PREFIX, REVIEW_PREFIX,
+    bearer_routes, router, router_with,
 };
 pub use scopes::ApiScope;
 pub use search::{QueryEmbedder, Search};

@@ -485,6 +485,13 @@ impl Upstream {
         Self::get("/stats", query)
     }
 
+    /// `GET /review/count`, which the review queue resource reads (spec 023
+    /// B-2).
+    #[must_use]
+    pub fn review_count() -> Self {
+        Self::get("/review/count", Vec::new())
+    }
+
     /// The route this call goes to, for tests.
     #[must_use]
     pub fn route(&self) -> String {
