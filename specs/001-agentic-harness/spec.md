@@ -585,6 +585,20 @@ consumes this repository as a registered target.
   and the documents that name it. A branch cut before the configuration pull
   request regenerates its shards under `.statecraft/derived/` when it next
   merges main.
+- **D-21 (2026-11-26, configuration, the 022 hashed inputs).**
+  `spec-spine.toml` lists `clients/matrix.toml`, `clients/README.md` and
+  `clients/capture-core.mjs` as extra hashed inputs, for spec 022: a matrix
+  row or a hook filter rule changes what every client is told, so an edit
+  is a governance change (022 D-9), and lint L-008 refuses an unhashed
+  governed file. The configuration lands on its own, ahead of the files,
+  under policy isolation (spec 044 section 3.3). No requirement changes.
+- **D-22 (2026-11-26, the repository's review guide).** `REVIEW.md` is
+  the repository guide the profile's reviewer contract reads beside
+  `.statecraft/REVIEW.md`. It states what the gate already enforces over
+  the whole tree and the review cannot see in hunks (derived shards, which
+  the review diff excludes; ownership claims in untouched front matter;
+  the policy-isolation split), and names the highest-risk surfaces. It adds
+  no rule and changes no gate.
 
 ## Verification
 

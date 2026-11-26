@@ -96,6 +96,11 @@ extra_hashed_inputs = [
   "docker/**/*",
   "deploy/**/*",
   "eval/**/*",
+  # The client matrix and the hook core (spec 022): a row or a filter rule
+  # changes what every client is told, so an edit is a governance change.
+  "clients/matrix.toml",
+  "clients/README.md",
+  "clients/capture-core.mjs",
 ]
 resolver_exclusions = ["target", "node_modules", ".statecraft/derived", "dist", "build", "data"]
 
