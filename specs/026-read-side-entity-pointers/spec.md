@@ -336,9 +336,12 @@ prose, which 017 B-6 forbids.
   earliest, then by id, which is 017 B-2's order with B-3's filter applied
   first, so a stale duplicate never hides a live entity. One entity appears
   once, at its first match.
-- **D-14 (2026-11-26, build).** This spec lands in three parts, in dependency
-  order, because one change would be about 3,200 lines and the review's
-  limit is about 2,000. Part 1 is the resolver in `aicortex-graph` (B-1 to
+- **D-14 (2026-11-26, build).** This spec is built start to finish on one
+  branch and lands in parts, as 017 D-8, 018 D-8 and 025 D-7 did: the
+  manifest edge first, under policy isolation (spec 044 section 3.3), then
+  the code in dependency order, because one change would be about 3,200
+  lines and the review's limit is about 2,000. The spec stays
+  `in-progress` until its last part lands, so no part claims it complete. Part 1 is the resolver in `aicortex-graph` (B-1 to
   B-4, B-6's bounds, B-7, FR-001 to FR-003, FR-009's default bound, AC-1) and
   needs nothing else. Part 2 is the block, the budget, and the two read
   surfaces: 025's `deliver_with`, `aicortex-api`'s `pointers` module and its
