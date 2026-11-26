@@ -28,6 +28,18 @@
       },
       {
         "kind": "file",
+        "path": "crates/aicortex-recall/src/freshness.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/recall.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/tests/common/mod.rs"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-recall/src/fusion.rs"
       },
       {
@@ -51,6 +63,32 @@
         "path": "crates/aicortex-recall/testdata/queries/"
       }
     ],
+    "extends": [
+      {
+        "nature": "additive",
+        "spec": "016-vector-index-and-scan",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "016-vector-index-and-scan",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/scan.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "016-vector-index-and-scan",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/src/text.rs"
+        }
+      }
+    ],
     "extraFrontmatter": {
       "wave": 1
     },
@@ -59,14 +97,14 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "018-recall": "6a6aa53611e7f925379d3f976178fd94762a30689309eae14bac83bf7526e20a",
+      "018-recall": "d2b3f119411b0c33ff713d834fd992b7cf24f09ab02e3bf6386413557c3770b6",
       "1-purpose": "12eb79601c5277b1eaed13d354120dc5bc73aa78045db6e5227c103c01473fa1",
       "2-territory": "4445ce5a0d5cad27112cd1567995258302a3accfb185d41e791bcf981caf169c",
       "3-behavior": "ad1e5fa7c10be9541fea86cc72cc5995a86eb0a32b657e93c61a3a07b9b84479",
       "4-functional-requirements": "26dc1fca38a83c58188e946870d13ca8171164bf517a2d1809217a5cdcd3e9bf",
       "5-acceptance-criteria": "ef3b3d9add1ffdb4c3acbdb47e3c1010dca083f333ca619ddfbdbc658488fd97",
       "6-out-of-scope": "5a532b1ce244419b5b6f0278a72981af0774f61c5eb2c1f1fa7ce29fb967b204",
-      "7-resolved-decisions": "4ed32d47537dd29218b24f6fdd41aa99510b8d9a9fce33772e8a471ebf8e7d1d",
+      "7-resolved-decisions": "db127d576cd79e6926f44b6294156e3d120895fe984f3f81a980fe817fea66ab",
       "verification": "b98d91f345350958f9006b4ae6e935b68063418d7b9a070d8527d8c7d64c3e0d"
     },
     "sectionHeadings": [
@@ -85,6 +123,6 @@
     "summary": "One query, four candidate channels (vector, text, recency, graph), one fused order, and a trace that explains it. Fusion is reciprocal rank with declared weights and an importance prior, chosen because it needs no score calibration between channels that do not share a scale. Every result set carries the query, the per-channel candidates and scores, the fusion arithmetic, and the reason each returned memory made the cut. A ranking that cannot be explained is not shippable, and an evaluation corpus (040) is the only way a weight changes.\n",
     "title": "Recall: four channels fused into one order, every result explainable, scope in the SQL"
   },
-  "shardHash": "41a7197e0b1bc8d6e69ab301cb84aad7cef62aa0a6a3b1ed3ee13a4f3d796623",
+  "shardHash": "f738e5609fee50cb8405a2030361dbc53c9f2f53ee50a440752b07e96156572e",
   "specVersion": "1.11.0"
 }

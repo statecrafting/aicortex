@@ -16,12 +16,19 @@ establishes:
   - "crates/aicortex-recall/src/lib.rs"
   - "crates/aicortex-recall/src/query.rs"
   - "crates/aicortex-recall/src/channels.rs"
+  - "crates/aicortex-recall/src/freshness.rs"
+  - "crates/aicortex-recall/src/recall.rs"
+  - "crates/aicortex-recall/tests/common/mod.rs"
   - "crates/aicortex-recall/src/fusion.rs"
   - "crates/aicortex-recall/src/trace.rs"
   - "crates/aicortex-recall/src/filter.rs"
   - "crates/aicortex-recall/tests/fusion.rs"
   - "crates/aicortex-recall/tests/trace.rs"
   - "crates/aicortex-recall/testdata/queries/"
+extends:
+  - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/src/lib.rs", nature: additive }
+  - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/src/scan.rs", nature: additive }
+  - { spec: "016-vector-index-and-scan", unit: "crates/aicortex-index/src/text.rs", nature: additive }
 summary: >
   One query, four candidate channels (vector, text, recency, graph), one
   fused order, and a trace that explains it. Fusion is reciprocal rank with
@@ -208,6 +215,62 @@ expansion, likewise.
   channels concurrently; no runtime is started here). All are existing
   workspace entries; `tempfile` joins as a dev-dependency. Every edge points
   downward.
+
+- **D-6 (2026-11-26, build).** B-1 requires every filter predicate to be in
+  each channel's SQL. Spec 016's scan and search carried only a status list,
+  so 018 extends them additively (`extends` edges above): a typed
+  `Restriction` (kinds, trusts, actor kinds, source systems, entities, a
+  created range) that `Filter::restricted` carries and the scan statement
+  and the text statement render as fixed clauses over the `memory` alias,
+  every value bound as a parameter, an empty field adding no clause. The
+  recency and graph channels render the same `Restriction` in their own
+  statements. Nothing is filtered after the fact. Recall owns SQL against
+  `memory`, `provenance`, `mention`, and `entity_alias` for the recency
+  channel, the graph admission check, importance priors, and B-11, because
+  no repository exposes those reads; this refines the Territory sentence
+  that recall owns no SQL against the memory tables, it does not widen
+  what recall writes (nothing).
+- **D-7 (2026-11-26, build).** Choices B-2, B-3, and B-11 left open, and
+  the defaults B-3 asks this spec to record. Weights: vector 1.0, text 0.8,
+  graph 0.6, recency 0.2. RRF constant 60. Overfetch 4 (candidates per
+  channel are `k * 4`). Recency half-life 7 days, scored `0.5^(age /
+  half_life)`, admitting only memories younger than 4 half-lives and not
+  later than the injected clock, so it can surface but cannot dominate.
+  Importance prior: `1 - span/2 + span * decayed` with span 0.5, so it
+  ranges over 0.75 to 1.25 and never zeroes a memory; a record with no
+  readable importance takes decayed 0.5 (prior 1.0). Because the prior
+  multiplies the fused score, enabling one channel returns that channel's
+  order (FR-002) when the candidates' priors are equal, and the prior may
+  reorder adjacent ranks otherwise; FR-002's test holds importance equal.
+  Graph channel: entities are those whose normalized alias occurs in the
+  normalized query as whole words (016's `normalize`, at most 16); a memory
+  that mentions one scores 1.0 (path length zero), a memory reached by an
+  edge walk of `n` hops scores `1 / (1 + n)`; the walk and mention reads are
+  followed by one admission statement that applies status and filter. B-11
+  reads `provenance.captured_at` as the capture time, bounds it by the
+  clock, and keys a source by system plus external id; entities are
+  resolved for freshness whether or not the graph channel is enabled. A
+  channel that cannot run (no active revision, a provider that is not the
+  active model, an embedding failure) is skipped and says why in the trace,
+  rather than failing the query. Default budget in `Query::new` is 2 seconds.
+- **D-8 (2026-11-26, build).** Part 1 of 018 lands B-1 to B-5, B-7 to B-9,
+  and B-11 with FR-001 to FR-009 over the real store, and leaves
+  `implementation: in-progress`. Not in part 1: B-6's stored trace (a
+  migration, a repository, the retention window, and the evaluation
+  corpus switch: the trace serializes to body-free JSON today and FR-007 is
+  asserted on that JSON), the metrics counter for truncation (B-9), a search
+  route in `aicortex-api/src/search.rs` (020 D-17), and AC-2, which needs
+  spec 040's corpus. No ranking change has run an evaluation: the corpus
+  does not exist yet (B-10), so the defaults of D-7 are provisional until
+  040 reports a baseline. The part's files are claimed in `establishes`
+  above: `query.rs` and `channels.rs` (written there when this spec was
+  approved), `fusion.rs`, `trace.rs`, `filter.rs`, `freshness.rs`,
+  `recall.rs`, and the tests and `testdata/queries/`.
+- **D-9 (2026-11-26, build).** A filter that admits superseded memories
+  names no successor: recall builds the index filter from the store's
+  payload-free `StatusFilter` through `aicortex_index::Filter::status_filters`,
+  an additive constructor beside `Filter::statuses` (the D-6 edge on 016's
+  `scan.rs`), so no placeholder `MemoryId` is minted.
 
 ## Verification
 

@@ -87,14 +87,14 @@
     "kind": "constraint",
     "risk": "critical",
     "sectionDigests": {
-      "019-the-untrusted-content-boundary": "a22bcf6515c87d86762663013e3e369fa1380869bb02e822a84afe356d7a3c55",
+      "019-the-untrusted-content-boundary": "a020077e4f6186e5939a6743aa4a66ed4e843c5af16a33b6ec8ce09085f704eb",
       "1-purpose": "f1c38a5787b2dfde7b20d9716d3a33046fdaa22ea3b3bf3e74f9e03f55fd83c7",
       "2-territory": "e7729397531e66e976487aba288e09f6b789fd9151c4ebc4c12908fb9b3f24ff",
       "3-behavior": "bf36f98dfc42881351d7cff3265c1a2da8e7d55bfdf61827549602ffac6771a6",
       "4-functional-requirements": "fd2f621b309cd7eadf58748638040318bca558f91d06058da8d5e2d8a6d6985e",
       "5-acceptance-criteria": "34fd11c1fc90a0f84c12198966656456dc2d1b594b420742f55d35e257f5ab8b",
       "6-out-of-scope": "eee8eabbf0b28703d6efc3c5774b56a6c81110d18f5422bb2323d7059ae87923",
-      "7-resolved-decisions": "f9852febf58c4ea970dee55b49174945c9e2d9ec980fdf9790af7653f9187cf4",
+      "7-resolved-decisions": "98c30577be8c077e504ccff93f1b2045d2db1f662f4ea9f8ed0c36f3ffde2b50",
       "verification": "1ba584f2af10f953ca7d0366e763c40267aa1ba6b399e1281781bf2fe9511b6d"
     },
     "sectionHeadings": [
@@ -133,6 +133,6 @@
     ],
     "title": "Recalled content is data: delimited, labelled, never in an instruction position"
   },
-  "shardHash": "f0c783c375f1b699551d8335a4c5d0e60ca137588ff4fde4a9b3efc38442158d",
+  "shardHash": "6645483564d0ad451d314fb8939d27b5e15c75ff65ce1cc570928deca311a9e4",
   "specVersion": "1.11.0"
 }
