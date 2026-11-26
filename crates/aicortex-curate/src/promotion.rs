@@ -207,8 +207,8 @@ impl<'a> Promoter<'a> {
         found.updated = now;
         let mut txn = TxnBuilder::new();
         if let Some(item) = item {
-            // The approved item must exist in this scope and still be open
-            // when this commits. Otherwise this inserts a row with a NULL
+            // The approved item must be this memory's open promotion request
+            // in this scope when this commits. Otherwise this inserts a row with a NULL
             // scope_id, which the NOT NULL column refuses, aborting the
             // whole transaction; an absent or closed item never lets the
             // promotion commit.
@@ -216,8 +216,13 @@ impl<'a> Promoter<'a> {
                 "INSERT INTO review_item (item_id, scope_id, kind, subject, created, state)
                  SELECT ?2, NULL, 'promotion_request', '', 0, 'open'
                  WHERE NOT EXISTS (SELECT 1 FROM review_item
-                                   WHERE scope_id = ?1 AND item_id = ?2 AND state = 'open')",
-                vec![Value::from(&scope_id), Value::from(item)],
+                                   WHERE scope_id = ?1 AND item_id = ?2 AND state = 'open'
+                                     AND kind = 'promotion_request' AND subject = ?3)",
+                vec![
+                    Value::from(&scope_id),
+                    Value::from(item),
+                    Value::from(memory.to_string()),
+                ],
             ));
         }
         txn.push(memory_update(

@@ -737,6 +737,23 @@ async fn an_approval_of_an_item_closed_meanwhile_promotes_nothing() {
         .unwrap();
     assert_eq!(item.state, ReviewState::Resolved);
     assert_eq!(item.resolution.as_deref(), Some("decline"));
+    // Another memory's open request does not authorize this one.
+    let other = active(&node, &scope, "someone else's request").await;
+    let others = queue
+        .request_promotion(
+            &node.handle(),
+            &scope,
+            other,
+            &person("agent-client"),
+            at(6),
+        )
+        .await
+        .unwrap();
+    let borrowed = Promoter::new(&handle, &node.ledger)
+        .promote_for_item(&scope, memory, &person("alice"), None, at(6), &others.id)
+        .await;
+    assert!(borrowed.is_err(), "{borrowed:?}");
+    assert!(!read(&node, &scope, memory).await.trust.is_actionable());
     // An item id the scope does not hold promotes nothing either.
     let unknown = Promoter::new(&handle, &node.ledger)
         .promote_for_item(
