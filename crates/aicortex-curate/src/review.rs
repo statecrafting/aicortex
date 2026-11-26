@@ -12,7 +12,7 @@
 //! the Decision says, in one transaction, with the item closed in the same
 //! transaction. A rejection is the one act whose Decision is 014's: its
 //! erasure and the item's close commit together and 014 appends the Decision
-//! from the receipt that transaction wrote (D-10). The Decision names ids and
+//! from the receipt that transaction wrote (D-9). The Decision names ids and
 //! reason codes. It never carries a body (constitution XIV).
 
 use std::fmt;
@@ -912,7 +912,7 @@ impl<'a> Reviewer<'a> {
         let prepared = eraser
             .prepare_erase(self.store, scope, id, false, &authority, closing.now)
             .await?;
-        // The erasure and the item's close commit together (D-10): a failure
+        // The erasure and the item's close commit together (D-9): a failure
         // of either leaves the memory quarantined and the item open, so the
         // reconciliation never withdraws an item for a memory that a
         // rejection erased.

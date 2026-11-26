@@ -199,7 +199,7 @@ concern; the routes and the queue count are the surface for now.
   managed service in the cell, which is left to the curation workers of 034
   and the cell's service list; no cell file is changed by this part.
 
-- **D-10 (2026-11-26, build, rejection is atomic).** B-3's rejection is
+- **D-9 (2026-11-26, build, rejection is atomic).** B-3's rejection is
   014's erasure, and the item's close has to commit with it, or a failure
   between the two would leave a memory erased and its item open, which the
   reconciliation (D-4) then withdraws with no Decision. 014's `Eraser` already
@@ -214,12 +214,19 @@ concern; the routes and the queue count are the surface for now.
   for that memory appends it, which is 014's own recovery path. This spec
   adds no sweeper for undelivered receipts. No change to 014 was needed.
 
+- **D-10 (2026-11-26, build, how the build lands).** This spec is built
+  start to finish on one branch and lands in parts, as 017 D-8, 018 D-8,
+  025 D-7 and 026 D-13 did: first the curate crate, its tables and the
+  review and promotion rules; then the workspace and app manifest edges
+  alone, under policy isolation (spec 044 section 3.3); then the routes
+  and the MCP count. The spec stays `in-progress` until its last part
+  lands, so no part claims it complete.
 ## Status
 
 - **2026-11-26.** `implementation: in-progress`. The curate crate, the review
   tables and the promotion rules of this spec hold in
   `cargo test -p aicortex-curate --locked --test review`. The routes and the
-  MCP count follow in a later part of this build.
+  MCP count follow in the last part of this build (D-10).
 
 ## Verification
 
