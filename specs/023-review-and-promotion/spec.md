@@ -15,11 +15,11 @@ establishes:
   - "crates/aicortex-curate/Cargo.toml"
   - "crates/aicortex-curate/src/lib.rs"
   - "crates/aicortex-curate/src/review.rs"
+  - "crates/aicortex-curate/tests/common/mod.rs"
+  - "crates/aicortex-store/src/review_tables.rs"
   - "crates/aicortex-curate/src/promotion.rs"
   - "crates/aicortex-curate/src/migrations.rs"
   - "crates/aicortex-curate/tests/review.rs"
-  - "crates/aicortex-curate/tests/common/mod.rs"
-  - "crates/aicortex-store/src/review_tables.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
