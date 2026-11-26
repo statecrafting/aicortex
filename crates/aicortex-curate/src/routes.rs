@@ -586,7 +586,7 @@ pub async fn resolve(
     })?;
     // An approval is a promotion, so it reports the re-review date as
     // `POST /promote/{id}` does (B-5).
-    let review_due = match resolution {
+    let review_due = match &resolution {
         Resolution::Approve { .. } => {
             let memory = MemoryId::parse(&item.subject).map_err(|_| {
                 ApiError::new(
