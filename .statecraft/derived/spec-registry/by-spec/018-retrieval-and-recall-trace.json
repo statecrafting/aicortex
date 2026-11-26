@@ -28,18 +28,6 @@
       },
       {
         "kind": "file",
-        "path": "crates/aicortex-recall/src/fusion.rs"
-      },
-      {
-        "kind": "file",
-        "path": "crates/aicortex-recall/src/trace.rs"
-      },
-      {
-        "kind": "file",
-        "path": "crates/aicortex-recall/src/filter.rs"
-      },
-      {
-        "kind": "file",
         "path": "crates/aicortex-recall/src/freshness.rs"
       },
       {
@@ -49,6 +37,18 @@
       {
         "kind": "file",
         "path": "crates/aicortex-recall/tests/common/mod.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/fusion.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/trace.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-recall/src/filter.rs"
       },
       {
         "kind": "file",
@@ -123,6 +123,6 @@
     "summary": "One query, four candidate channels (vector, text, recency, graph), one fused order, and a trace that explains it. Fusion is reciprocal rank with declared weights and an importance prior, chosen because it needs no score calibration between channels that do not share a scale. Every result set carries the query, the per-channel candidates and scores, the fusion arithmetic, and the reason each returned memory made the cut. A ranking that cannot be explained is not shippable, and an evaluation corpus (040) is the only way a weight changes.\n",
     "title": "Recall: four channels fused into one order, every result explainable, scope in the SQL"
   },
-  "shardHash": "f31d069716ef1422bd8329210332e3a9fef31781f06a3313ab4ecd0584a2c39e",
+  "shardHash": "f738e5609fee50cb8405a2030361dbc53c9f2f53ee50a440752b07e96156572e",
   "specVersion": "1.11.0"
 }
