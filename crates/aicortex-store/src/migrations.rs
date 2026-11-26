@@ -68,8 +68,11 @@ pub const EMBEDDING_MIGRATION_VERSION: u32 = 9;
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = TEXT_INDEX_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = GRAPH_VERSION;
 
+/// The graph schema of spec 017, appended by that spec under an `extends`
+/// edge on this file; its tables live in [`crate::graph_tables`].
+pub use crate::graph_tables::GRAPH_VERSION;
 /// The text index of spec 016 B-5, appended by that spec under an `extends`
 /// edge on this file; its tables live in [`crate::text_postings`].
 pub use crate::text_postings::TEXT_INDEX_VERSION;
@@ -490,7 +493,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 10]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 11]> = std::sync::LazyLock::new(|| {
     [
         // Creation-only migrations are additive (spec 046 B-2, D-2). Versions
         // 7 and 9 below are deliberately not additive. The declaration is not
@@ -600,5 +603,8 @@ static LIST: std::sync::LazyLock<[Migration; 10]> = std::sync::LazyLock::new(|| 
         // Not declared additive either: an older binary does not release
         // text postings on erasure (spec 016 B-5).
         crate::text_postings::text_index_migration(),
+        // Not declared additive either: an older binary does not release
+        // mentions and edge sources on erasure (spec 017 FR-006).
+        crate::graph_tables::graph_migration(),
     ]
 });

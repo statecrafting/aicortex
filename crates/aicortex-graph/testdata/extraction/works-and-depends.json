@@ -1,0 +1,17 @@
+{
+  "text": "Dana Whitfield works on Apollo. Apollo depends on Hermes.",
+  "known": [],
+  "expect": {
+    "mentions": [
+      ["Dana Whitfield", "person"],
+      ["Apollo", "project"],
+      ["Apollo", "project"],
+      ["Hermes", "project"]
+    ],
+    "edges": [
+      ["Dana Whitfield", "works_on", "Apollo"],
+      ["Apollo", "depends_on", "Hermes"]
+    ],
+    "rejected": []
+  }
+}

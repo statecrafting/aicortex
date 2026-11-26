@@ -261,6 +261,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "aicortex-graph"
+version = "0.1.0"
+dependencies = [
+ "aicortex-index",
+ "aicortex-store",
+ "aicortex-types",
+ "rahi-store",
+ "rahi-types",
+ "ring",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+ "unicode-normalization",
+]
+
+[[package]]
 name = "aicortex-index"
 version = "0.1.0"
 dependencies = [

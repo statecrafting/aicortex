@@ -1,0 +1,31 @@
+[package]
+name = "aicortex-graph"
+version = "0.1.0"
+description = "Entities, aliases, and a closed vocabulary of typed edges for Aicortex"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish = false
+
+[package.metadata.spec-spine]
+spec = "017-entities-and-typed-edges"
+
+[dependencies]
+aicortex-index = { workspace = true }
+aicortex-store = { workspace = true }
+aicortex-types = { workspace = true }
+rahi-store = { workspace = true }
+rahi-types = { workspace = true }
+ring = { workspace = true }
+serde = { workspace = true }
+unicode-normalization = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+tempfile = { workspace = true }
+tokio = { workspace = true }
+
+[lints]
+workspace = true
