@@ -413,7 +413,11 @@ prose, which 017 B-6 forbids.
   is true. This needed the reader in `clients.rs` to learn the keys and so
   an `extends` edge on it. Only Claude Code's row is stated from the
   owner's decision (D-4). The others record `none` or "unrecorded" rather than
-  a vendor claim nobody here has checked.
+  a vendor claim nobody here has checked. A row's `data_position_test`
+  counts only when that test calls `assert_labelled_untrusted` in
+  `crates/aicortex-api/tests/clients.rs`, which asserts the injected text
+  follows 019's framing statement; the check reads the test's code with
+  comments and literals blanked, so a mention of the word does not count.
 
 ## Status
 

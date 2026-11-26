@@ -521,16 +521,12 @@ fn fr006_every_readme_states_the_rule_and_the_off_switch() {
 
 // ---- spec 026 B-11, B-12: the read-pointer capability rows ----
 
-/// Whether `source` holds a test function `name` whose body asserts that the
-/// client labels injected text untrusted (026 FR-008): the function exists,
-/// carries `#[test]` or a `tokio::test` attribute, and its body names the
-/// word `untrusted`.
-/// `source` with every comment blanked to spaces, so what remains is code and
-/// literals in their original places. String literals (with their escapes)
-/// and character literals are kept as they are: a `//` or a brace inside one
-/// is text, not a comment or a block. Raw strings are not used in the tests
-/// this reads.
-fn without_comments(source: &str) -> String {
+/// `source` with every comment, and the contents of every string and
+/// character literal, blanked to spaces, so what remains is code in its
+/// original places, with each literal's delimiters kept. A `//`, a brace, or
+/// a call written inside a literal is text, not code. Raw strings are not
+/// used in the tests this reads.
+fn code_only(source: &str) -> String {
     let bytes = source.as_bytes();
     let mut out = bytes.to_vec();
     let mut at = 0;
@@ -539,15 +535,27 @@ fn without_comments(source: &str) -> String {
             b'"' => {
                 at += 1;
                 while at < bytes.len() && bytes[at] != b'"' {
-                    at += if bytes[at] == b'\\' { 2 } else { 1 };
+                    let step = if bytes[at] == b'\\' { 2 } else { 1 };
+                    for blank in out.iter_mut().skip(at).take(step) {
+                        if *blank != b'\n' {
+                            *blank = b' ';
+                        }
+                    }
+                    at += step;
                 }
             }
             // An escaped character literal (`'\''`, `'\n'`) first, then a
             // plain one (`'}'`); a lifetime (`'a`) matches neither.
             b'\'' if bytes.get(at + 1) == Some(&b'\\') && bytes.get(at + 3) == Some(&b'\'') => {
+                for blank in out.iter_mut().skip(at + 1).take(2) {
+                    *blank = b' ';
+                }
                 at += 3;
             }
-            b'\'' if bytes.get(at + 2) == Some(&b'\'') => at += 2,
+            b'\'' if bytes.get(at + 2) == Some(&b'\'') => {
+                out[at + 1] = b' ';
+                at += 2;
+            }
             b'/' if bytes.get(at + 1) == Some(&b'/') => {
                 while at < bytes.len() && bytes[at] != b'\n' {
                     out[at] = b' ';
@@ -575,50 +583,58 @@ fn without_comments(source: &str) -> String {
     String::from_utf8(out).unwrap_or_default()
 }
 
-/// The text of the function that `code` (comments already blanked) starts
-/// with, from its header to its matching closing brace. Braces in string and
-/// character literals are skipped, so a format placeholder such as
-/// `"{extra}"` does not count, and a nested block, closure, or inner scope
-/// does not end the body early.
+/// The text of the function that `code` (from [`code_only`]) starts with,
+/// from its header to its matching closing brace. Comments and literals are
+/// already blank there, so only code braces count, and a nested block,
+/// closure, or inner scope does not end the body early.
 fn function_body(code: &str) -> &str {
     let Some(open) = code.find('{') else {
         return "";
     };
-    let bytes = code.as_bytes();
     let mut depth = 0_usize;
-    let mut at = open;
-    while at < bytes.len() {
-        match bytes[at] {
-            b'"' => {
-                at += 1;
-                while at < bytes.len() && bytes[at] != b'"' {
-                    at += if bytes[at] == b'\\' { 2 } else { 1 };
-                }
-            }
-            b'\'' if bytes.get(at + 1) == Some(&b'\\') && bytes.get(at + 3) == Some(&b'\'') => {
-                at += 3;
-            }
-            b'\'' if bytes.get(at + 2) == Some(&b'\'') => at += 2,
-            b'{' => depth += 1,
-            b'}' => {
+    for (offset, ch) in code[open..].char_indices() {
+        match ch {
+            '{' => depth += 1,
+            '}' => {
                 depth -= 1;
                 if depth == 0 {
-                    return &code[..=at];
+                    return &code[..=open + offset];
                 }
             }
             _ => {}
         }
-        at += 1;
     }
     code
 }
 
+/// The assertion a data-position test makes (026 FR-008, 019 B-2): text a
+/// client injected from a hook reaches the model only after 019's framing
+/// statement, which labels everything after it untrusted data.
+fn assert_labelled_untrusted(injected: &str) {
+    assert!(
+        injected.contains(aicortex_recall::FRAMING_STATEMENT),
+        "injected text is not labelled untrusted: {injected}"
+    );
+}
+
+#[test]
+fn the_untrusted_label_assertion_holds_for_framed_text_only() {
+    let framed = format!(
+        "{}\n<memory>hostile</memory>",
+        aicortex_recall::FRAMING_STATEMENT
+    );
+    assert_labelled_untrusted(&framed);
+    let bare = std::panic::catch_unwind(|| assert_labelled_untrusted("hostile"));
+    assert!(bare.is_err(), "bare text is refused");
+}
+
 /// Whether `source` holds a test named `name` (a `#[test]` or
-/// `#[tokio::test]` function) with an assertion that names the untrusted
-/// label: a line of its code, comments removed, that starts an `assert`
-/// macro and mentions it (026 B-11, 019).
+/// `#[tokio::test]` function) whose code calls [`assert_labelled_untrusted`],
+/// the one assertion that shows a client labels injected text untrusted
+/// (026 FR-008, 019 B-2). A mention of the word, in a comment, a string, or
+/// another assertion, does not count.
 fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
-    let code = without_comments(source);
+    let code = code_only(source);
     let header = format!("fn {name}(");
     let Some(at) = code.find(&header) else {
         return false;
@@ -627,10 +643,7 @@ fn is_a_test_asserting_untrusted(source: &str, name: &str) -> bool {
         let line = line.trim();
         line.starts_with("#[test") || line.starts_with("#[tokio::test")
     });
-    let asserts_the_label = function_body(&code[at..])
-        .lines()
-        .map(str::trim)
-        .any(|line| line.starts_with("assert") && line.to_lowercase().contains("untrusted"));
+    let asserts_the_label = function_body(&code[at..]).contains("assert_labelled_untrusted(");
     attribute && asserts_the_label
 }
 
@@ -696,7 +709,7 @@ fn fr008_the_untrusted_test_check_reads_the_test_source() {
     let source = "\
 #[tokio::test]
 async fn labels_it() {
-    assert!(output.contains(\"untrusted\"));
+    assert_labelled_untrusted(&output);
 }
 
 #[test]
@@ -705,7 +718,7 @@ fn says_nothing() {
 }
 
 fn not_a_test() {
-    // untrusted
+    assert_labelled_untrusted(&output);
 }
 
 #[test]
@@ -715,76 +728,94 @@ fn asserts_after_a_nested_block() {
             continue;
         }
     }
-    assert!(output.contains(\"untrusted\"));
+    assert_labelled_untrusted(&output);
 }
 
 #[test]
 fn formats_before_it_asserts() {
     let shown = format!(\"{extra} }} {{\", extra = '}');
-    assert!(shown.contains(\"untrusted\"));
+    assert_labelled_untrusted(&shown);
 }
 
 #[test]
 fn quotes_a_quote_then_asserts() {
     let marks = ['\\'', '}'];
-    assert!(output.contains(\"untrusted\"), \"{marks:?}\");
-}
-
-#[test]
-fn comments_the_label() {
-    assert!(output.is_empty()); // untrusted
+    assert_labelled_untrusted(&format!(\"{marks:?}\"));
 }
 
 #[test]
 fn comments_a_brace_then_asserts() {
     /* a stray } in a block comment */
-    assert!(output.contains(\"untrusted\"));
+    assert_labelled_untrusted(&output);
 }
 
 #[test]
-fn asserts_a_url() {
+fn only_mentions_the_word() {
     assert!(output.contains(\"http://untrusted.example\"));
 }
 
 #[test]
-fn only_says_it() {
-    // the client labels this untrusted
-    let label = \"untrusted\";
-    assert!(!label.is_empty());
+fn comments_the_call() {
+    assert!(output.is_empty()); // assert_labelled_untrusted(&output);
+}
+
+#[test]
+fn strings_the_call() {
+    let text = \"assert_labelled_untrusted(&output)\";
+    assert!(!text.is_empty());
 }
 ";
-    assert!(is_a_test_asserting_untrusted(source, "labels_it"));
-    assert!(
-        is_a_test_asserting_untrusted(source, "asserts_after_a_nested_block"),
-        "a nested block does not end the body early"
-    );
-    assert!(
-        is_a_test_asserting_untrusted(source, "formats_before_it_asserts"),
-        "braces in string and character literals are not counted"
-    );
-    assert!(
-        is_a_test_asserting_untrusted(source, "quotes_a_quote_then_asserts"),
-        "an escaped quote literal does not hide a brace"
-    );
-    assert!(
-        is_a_test_asserting_untrusted(source, "comments_a_brace_then_asserts"),
-        "a brace in a block comment is not counted"
-    );
-    assert!(
-        is_a_test_asserting_untrusted(source, "asserts_a_url"),
-        "a `//` inside a string is not a comment"
-    );
-    assert!(
-        !is_a_test_asserting_untrusted(source, "comments_the_label"),
-        "a trailing comment is not an assertion"
-    );
-    assert!(!is_a_test_asserting_untrusted(source, "says_nothing"));
-    assert!(!is_a_test_asserting_untrusted(source, "not_a_test"));
-    assert!(!is_a_test_asserting_untrusted(source, "absent"));
-    assert!(
-        !is_a_test_asserting_untrusted(source, "only_says_it"),
-        "a comment or a string outside an assertion does not count"
-    );
+    for (name, expected, why) in [
+        ("labels_it", true, "a test that calls the assertion"),
+        (
+            "asserts_after_a_nested_block",
+            true,
+            "a nested block does not end the body early",
+        ),
+        (
+            "formats_before_it_asserts",
+            true,
+            "braces in string and character literals are not counted",
+        ),
+        (
+            "quotes_a_quote_then_asserts",
+            true,
+            "an escaped quote literal does not hide a brace",
+        ),
+        (
+            "comments_a_brace_then_asserts",
+            true,
+            "a brace in a block comment is not counted",
+        ),
+        (
+            "says_nothing",
+            false,
+            "a test that asserts nothing about the label",
+        ),
+        ("not_a_test", false, "a function that is not a test"),
+        ("absent", false, "a name that is not in the file"),
+        (
+            "only_mentions_the_word",
+            false,
+            "mentioning the word is not the assertion",
+        ),
+        (
+            "comments_the_call",
+            false,
+            "a call in a comment is not a call",
+        ),
+        (
+            "strings_the_call",
+            false,
+            "a call written in a string is not a call",
+        ),
+    ] {
+        assert_eq!(
+            is_a_test_asserting_untrusted(source, name),
+            expected,
+            "{name}: {why}"
+        );
+    }
 }
 
 /// 026 FR-008: every row has a `read_pointer` entry; a row whose
