@@ -510,7 +510,11 @@ fn fit(
     room: u64,
 ) -> Result<Fitted, DeliveryError> {
     for keep in (0..=companion.entries()).rev() {
-        let tokens = companion.tokens(counter, keep)?;
+        // One token more than the block counts alone: a counter that floors
+        // (`utf8-bytes-div3`) can count two texts together one higher than
+        // the sum of their separate counts, and the budget caps the two
+        // together (026 D-8).
+        let tokens = companion.tokens(counter, keep)?.saturating_add(1);
         if tokens <= room {
             return Ok(Fitted {
                 keep: Some(keep),
