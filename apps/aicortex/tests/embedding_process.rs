@@ -161,6 +161,29 @@ fn preflight_prints_the_embedding_report(data_dir: &Path, ports: Ports) -> Outco
 }
 
 #[test]
+fn ac2_017_preflight_prints_the_graph_report_on_a_migrated_deployment() -> Outcome {
+    on_fresh_ports(preflight_prints_the_graph_report)
+}
+
+/// Spec 017 AC-2: `app.graph` reports counts and the extraction dead letters.
+fn preflight_prints_the_graph_report(data_dir: &Path, ports: Ports) -> Outcome {
+    prepared(data_dir, ports)?;
+
+    let output = run("preflight", data_dir, ports, &[])?;
+    let report = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        report.lines().any(|line| line.starts_with("PASS app.graph")
+            && line.contains("0 entities, 0 edges, 0 extraction dead letters")),
+        "report:\n{report}"
+    );
+    assert!(
+        report.contains("extraction queue: pending=0 dead=0 quarantined=0"),
+        "report:\n{report}"
+    );
+    Ok(())
+}
+
+#[test]
 fn fr005_preflight_and_serve_refuse_a_remote_provider_absent_from_the_ceiling() -> Outcome {
     on_fresh_ports(preflight_and_serve_refuse_an_undeclared_remote)
 }
