@@ -1405,29 +1405,31 @@ mod tests {
             each: 20,
         };
         let kept = |room| fit(&companion, &Utf8Bytes, room).unwrap();
+        // Each cost is the block's count plus the one token of rounding slack
+        // (026 D-8): 10 + 20 per entry + 1.
         assert_eq!(
             kept(1_000),
             Fitted {
                 keep: Some(4),
-                tokens: 90
+                tokens: 91
             }
         );
         assert_eq!(
-            kept(89),
+            kept(90),
             Fitted {
                 keep: Some(3),
-                tokens: 70
+                tokens: 71
+            }
+        );
+        assert_eq!(
+            kept(11),
+            Fitted {
+                keep: Some(0),
+                tokens: 11
             }
         );
         assert_eq!(
             kept(10),
-            Fitted {
-                keep: Some(0),
-                tokens: 10
-            }
-        );
-        assert_eq!(
-            kept(9),
             Fitted {
                 keep: None,
                 tokens: 0
