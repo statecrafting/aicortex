@@ -256,6 +256,15 @@ thesis.
   route's `filter.kinds`), and answers the route's framed document with the
   trace in metadata (B-6). `relate` stays staged until 017's tool lands. The
   seven tools and the static descriptions (B-5, B-6) are unchanged.
+- **D-13 (2026-11-26, the 023 build).** D-10 said `aicortex://review-queue`
+  answers the quarantined count until 023 gives the queue a producer of its
+  own. It now reads `GET /review/count` (an in-process call under the
+  caller's own token, as every tool is) and answers `{ "open": n, "by_kind":
+  { quarantine, contradiction, promotion_request, gate_override } }`: counts
+  keyed by a closed vocabulary, so no stored string can reach a resource
+  (019 B-3). It is read-only, and no tool or resource resolves an item (B-8
+  of 023). Reading needs `memory.read` and a person's token; the count route
+  is a person-only subtree, so a client acting as itself is refused.
 
 ## Status
 

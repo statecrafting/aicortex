@@ -20,11 +20,21 @@ establishes:
   - "crates/aicortex-curate/tests/review.rs"
   - "crates/aicortex-curate/tests/common/mod.rs"
   - "crates/aicortex-store/src/review_tables.rs"
+  - "crates/aicortex-api/src/review.rs"
+  - "crates/aicortex-api/tests/review.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "018-retrieval-and-recall-trace", unit: "crates/aicortex-store/tests/recall_trace.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/lib.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/memories.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/tests/authz.rs", nature: additive }
+  - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/Cargo.toml", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "Cargo.toml", nature: additive }
+  - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/resources.rs", nature: additive }
+  - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/src/tools.rs", nature: additive }
+  - { spec: "021-mcp-server", unit: "crates/aicortex-mcp/tests/tools.rs", nature: additive }
 references:
   - { unit: { kind: file, path: "specs/019-untrusted-content-boundary/spec.md" }, role: constraint }
 summary: >
@@ -173,6 +183,16 @@ concern; the routes and the queue count are the surface for now.
   person acting, and every Decision names an actor, so the lapse names the
   subject whose promotion it ends. The Decision references beyond these (024)
   are not built here.
+- **D-6 (2026-11-26, build, authority).** Listing and counting need
+  `memory.read`, opening a promotion request needs `memory.write`, and
+  resolving, promoting and demoting need `memory.promote`. All of them are
+  declared person-only to the chassis (`/api/v1/review`, `/promote`,
+  `/demote`) and the handlers refuse a client credentials token with 403
+  `interactive_principal_required` again. The curate crate takes a `Sub`,
+  never a token, so it cannot be handed an automated credential. A reviewer's
+  reason text is not returned by the listing, because it is free text a
+  person typed and the listing is what a client puts in front of a model
+  (019 B-6); the ledger and the item keep it.
 - **D-7 (2026-11-26, build, contradiction resolution and 019 FR-005).** B-4's
   three choices are two resolutions: `keep_edge` (the named edge stays active,
   the other becomes `superseded` with `valid_until` set to the later of its
@@ -182,7 +202,7 @@ concern; the routes and the queue count are the surface for now.
   017's overlap test stays silent). The review views are the only derived
   presentation this spec emits, and each is labelled with the lowest trust
   class of the memories it shows (019 B-5), so an `Assertion` memory's item is
-  an `Assertion`.
+  an `Assertion`; the test is in `crates/aicortex-api/tests/review.rs`.
   019 FR-005's curator digest is 034's to generate and inherits the same
   rule; this spec generates no digest of its own.
 - **D-8 (2026-11-26, build, promotion expiry).** A promotion carries a review
@@ -192,12 +212,29 @@ concern; the routes and the queue count are the surface for now.
   managed service in the cell, which is left to the curation workers of 034
   and the cell's service list; no cell file is changed by this part.
 
+- **D-9 (2026-11-26, build, the MCP count).** B-2's queue count is
+  `aicortex://review-queue`, which now reads `GET /review/count` instead of
+  the quarantined counter (021 D-13). 021 does not extend this spec, so the
+  edges are additive `extends` from here. The count route reconciles the queue
+  (D-4) before it counts, so a memory quarantined a moment ago is counted.
+  No MCP tool resolves, promotes, or demotes anything (B-8), and the tests of
+  021 still assert the seven-tool surface.
+
 ## Status
 
-- **2026-11-26.** `implementation: in-progress`. The curate crate, the review
-  tables and the promotion rules of this spec hold in
-  `cargo test -p aicortex-curate --locked --test review`. The routes and the
-  MCP count follow in a later part of this build.
+- **2026-11-26.** `implementation: in-progress`. B-1 to B-9, FR-001 to FR-005
+  and AC-1 hold in `cargo test -p aicortex-curate --locked --test review`
+  and the API half in `cargo test -p aicortex-api --locked --test review`.
+  AC-2 is asserted in-process: every promotion, demotion, quarantine
+  rejection, contradiction resolution and lapse test ends in
+  `Ledger::verify()` on the chassis's real chain; the `aicortex ledger verify`
+  binary itself was not run against a served cell. Remaining before
+  `complete`: the sweep that drives `Promoter::expire_due` on a schedule is
+  not wired into the cell (D-8); the gate and graph do not yet open items
+  themselves (D-4, reconciliation covers them); `GateOverride` has no
+  producer; a person's token minted by a real rauthy (the live harness of 020
+  D-14) is not exercised by these routes, which are tested with bearer
+  tokens as 021's are; and the dependency 022 is itself `in-progress`.
 
 ## Verification
 

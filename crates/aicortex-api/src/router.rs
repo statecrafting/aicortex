@@ -25,7 +25,7 @@ use crate::error::ApiError;
 use crate::events::Events;
 use crate::scopes::{ApiScope, scoped};
 use crate::search::Search;
-use crate::{capture, clients, entities, events, memories, search};
+use crate::{capture, clients, entities, events, memories, review, search};
 
 /// Where the router is mounted (B-1, B-10).
 pub const API_PREFIX: &str = "/api/v1";
@@ -33,6 +33,12 @@ pub const API_PREFIX: &str = "/api/v1";
 /// The promotion subtree, which a client credentials token never reaches
 /// (B-3, FR-003, `rahi://025` B-4).
 pub const PROMOTE_PREFIX: &str = "/api/v1/promote";
+
+/// The review subtree, a person's token only (023 B-8).
+pub const REVIEW_PREFIX: &str = "/api/v1/review";
+
+/// The demotion subtree, a person's token only (023 B-6, B-8).
+pub const DEMOTE_PREFIX: &str = "/api/v1/demote";
 
 /// The default ceiling on candidates per capture (B-9).
 pub const DEFAULT_MAX_BATCH: usize = 100;
@@ -47,14 +53,16 @@ pub const CURSOR_KEY_CACHE_KEY: &str = "aicortex.api.cursor-key";
 ///
 /// The whole surface is service-callable, so an importer or the orchestrator
 /// holding a client credentials token reaches capture and the listing; the
-/// promotion subtree is declared for a person's token only, so the chassis
-/// refuses a client credentials token there before the handler runs. The
-/// longest matching prefix wins.
+/// promotion, demotion, and review subtrees are declared for a person's token
+/// only (023 B-8), so the chassis refuses a client credentials token there
+/// before the handler runs. The longest matching prefix wins.
 #[must_use]
 pub fn bearer_routes() -> BearerRoutes {
     BearerRoutes::new()
         .service_route(API_PREFIX)
         .route(PROMOTE_PREFIX)
+        .route(REVIEW_PREFIX)
+        .route(DEMOTE_PREFIX)
 }
 
 /// The tunable limits of this surface.
@@ -276,8 +284,28 @@ pub fn router_with(api: Api) -> Router {
             scoped(ApiScope::MemoryRead, k, get(clients::get_snippet)),
         )
         .route(
+            "/review",
+            scoped(ApiScope::MemoryRead, k, get(review::list)).merge(scoped(
+                ApiScope::MemoryWrite,
+                k,
+                post(review::request),
+            )),
+        )
+        .route(
+            "/review/count",
+            scoped(ApiScope::MemoryRead, k, get(review::count)),
+        )
+        .route(
+            "/review/{id}/resolve",
+            scoped(ApiScope::MemoryPromote, k, post(review::resolve)),
+        )
+        .route(
             "/promote/{id}",
-            scoped(ApiScope::MemoryPromote, k, post(memories::promote)),
+            scoped(ApiScope::MemoryPromote, k, post(review::promote)),
+        )
+        .route(
+            "/demote/{id}",
+            scoped(ApiScope::MemoryPromote, k, post(review::demote)),
         )
         .stream_route(
             "/events",

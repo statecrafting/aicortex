@@ -1,5 +1,5 @@
-//! The memory routes: list, read, correct or supersede, erase, count, and
-//! promote (B-4, B-5, D-3).
+//! The memory routes: list, read, correct or supersede, erase, and count
+//! (B-4, B-5, D-3). Promotion is `review.rs`'s (023 B-5).
 //!
 //! Every route resolves the scope against the caller first (B-2): a scope
 //! the caller cannot reach is a 404 decided before any store read. Every
@@ -234,34 +234,4 @@ pub async fn stats(
     let scope = query(request)?.scope_ref().resolve(caller.sub())?;
     let stats = Counters::stats(api.app.store(), &scope).await?;
     Ok(Json(StatsResponse::from(stats)))
-}
-
-/// `POST /promote/{id}`: the human boundary of 019 B-4 (D-12).
-///
-/// The route and its authorization are this spec's: `memory.promote`, a
-/// person's token (the chassis refuses a client credentials token on this
-/// subtree before the handler runs, and the handler refuses one again), and
-/// a memory in a scope the caller reaches. The act itself, appending the
-/// Decision and writing the trust class, is 023 B-5's, and until 023 lands
-/// this answers 501 without writing anything.
-pub async fn promote(
-    State(api): State<Api>,
-    caller: Caller,
-    Path(id): Path<String>,
-    request: Result<Query<ScopeQuery>, QueryRejection>,
-) -> ApiResult<Json<()>> {
-    if caller.is_service() {
-        return Err(ApiError::new(
-            StatusCode::FORBIDDEN,
-            "interactive_principal_required",
-            "promotion requires a person's token; a client credentials token never promotes",
-        ));
-    }
-    let scope = query(request)?.scope_ref().resolve(caller.sub())?;
-    existing(&api, &scope, memory_id(&id)?).await?;
-    Err(ApiError::new(
-        StatusCode::NOT_IMPLEMENTED,
-        "promotion_unavailable",
-        "promotion is written by the review spec (023), which has not landed",
-    ))
 }

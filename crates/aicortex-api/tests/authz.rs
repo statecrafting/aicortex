@@ -177,7 +177,8 @@ async fn fr003_a_client_credentials_token_never_reaches_promote() {
         .expect("answered");
     assert_eq!(response.status(), StatusCode::OK);
 
-    // A person with the scope reaches the route, which waits on 023 (D-12).
+    // A person with the scope promotes (023 B-5); the refusals above wrote no
+    // Decision, and this writes exactly one.
     let response = cell
         .request(
             Method::POST,
@@ -187,9 +188,16 @@ async fn fr003_a_client_credentials_token_never_reaches_promote() {
         .send()
         .await
         .expect("answered");
-    assert_eq!(response.status(), StatusCode::NOT_IMPLEMENTED);
+    assert_eq!(response.status(), StatusCode::OK);
     let body = json(response).await;
-    assert_eq!(body["code"], "promotion_unavailable");
+    assert_eq!(body["outcome"], "promoted");
+    let promotions = cell
+        .records()
+        .await
+        .iter()
+        .filter(|record| record.decision().unwrap().kind.as_str() == "memory.promote")
+        .count();
+    assert_eq!(promotions, 1);
 
     // Without the scope, the gate refuses first.
     let writer = Who::person("sub-promoter", &[READ, WRITE]);

@@ -13,8 +13,9 @@
 //! - [`router`]: the routes under `/api/v1`, each behind its scope gate.
 //! - [`capture`]: `POST /capture`, through the write gate, idempotent.
 //! - [`memories`]: listing, detail, correction, supersession, erasure,
-//!   counts, and the promotion boundary.
+//!   and counts.
 //! - [`clients`]: `GET /clients/{name}`, the filled-in snippet for a client (022).
+//! - [`review`]: the review queue, promotion, and demotion (spec 023).
 //! - [`events`]: `GET /events`, the chassis-declared progress stream.
 //! - [`search`] and [`entities`]: `POST /search` (018, 025) and the entity
 //!   routes (017), staged by 020 D-3.
@@ -34,6 +35,7 @@ pub mod entities;
 pub mod error;
 pub mod events;
 pub mod memories;
+pub mod review;
 pub mod router;
 pub mod scopes;
 pub mod search;
@@ -41,7 +43,8 @@ pub mod search;
 pub use error::{ApiError, ApiResult, Problem};
 pub use events::{ApiEvent, Events};
 pub use router::{
-    API_PREFIX, Api, Caller, Limits, PROMOTE_PREFIX, bearer_routes, router, router_with,
+    API_PREFIX, Api, Caller, DEMOTE_PREFIX, Limits, PROMOTE_PREFIX, REVIEW_PREFIX, bearer_routes,
+    router, router_with,
 };
 pub use scopes::ApiScope;
 pub use search::{QueryEmbedder, Search};

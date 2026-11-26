@@ -4,7 +4,8 @@
 //! instruction position under 019 B-3, so nothing here can carry stored text.
 //! A scope summary is the route `GET /stats` answers, which is counters keyed
 //! by the closed vocabularies of kinds and states, and the review queue count
-//! is the quarantined count from the same answer. The summary of a scope the
+//! is `GET /review/count`, which answers counts by the closed vocabulary of
+//! review kinds (spec 023 B-2, 021 D-13). The summary of a scope the
 //! caller cannot reach is the API's own 404, so existence does not leak.
 
 use serde_json::{Value, json};
@@ -33,7 +34,7 @@ pub fn list() -> Value {
             {
                 "uri": REVIEW_QUEUE_URI,
                 "name": "review-queue-count",
-                "description": "How many memories await review in your personal scope. A count only.",
+                "description": "How many items await a person's review in your personal scope, by kind. A count only.",
                 "mimeType": "application/json",
             },
         ],
@@ -71,7 +72,7 @@ pub enum Read {
         /// The key, for a project or shared scope.
         key: Option<String>,
     },
-    /// The quarantined count of the personal scope.
+    /// The count of items waiting for a person in the personal scope.
     ReviewQueue,
 }
 
@@ -105,7 +106,7 @@ impl Read {
     #[must_use]
     pub fn upstream(&self) -> Upstream {
         let query = match self {
-            Self::ReviewQueue => Vec::new(),
+            Self::ReviewQueue => return Upstream::review_count(),
             Self::Summary { kind, key } => {
                 let mut query = vec![("scope", kind.clone())];
                 match (kind.as_str(), key) {
@@ -119,15 +120,13 @@ impl Read {
         Upstream::stats(query)
     }
 
-    /// The document the `GET /stats` answer becomes: counts only.
+    /// The document the upstream answer becomes: counts only.
     #[must_use]
     pub fn document(&self, stats: &Value) -> Value {
         match self {
             Self::ReviewQueue => json!({
-                "quarantined": stats
-                    .pointer("/by_status/quarantined")
-                    .and_then(Value::as_u64)
-                    .unwrap_or(0),
+                "open": stats.get("open").and_then(Value::as_u64).unwrap_or(0),
+                "by_kind": stats.get("by_kind").cloned().unwrap_or_else(|| json!({})),
             }),
             Self::Summary { kind, key } => json!({
                 "scope": key.as_ref().map_or_else(|| kind.clone(), |key| format!("{kind}/{key}")),

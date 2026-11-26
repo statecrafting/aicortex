@@ -362,6 +362,14 @@ documents.
   build needs (023 D-2). It lands on its own, ahead of the code, under policy
   isolation (spec 044 section 3.3). `Cargo.lock` gains the edge on this
   crate's entry. No requirement or acceptance criterion changes.
+- **D-21 (2026-11-26, the 023 build).** D-12's 501 is replaced. `POST
+  /promote/{id}` now answers from spec 023's `review.rs` in this crate (a
+  person's token, `memory.promote`, one Decision, the trust class written with
+  its id), and the `/review` and `/demote` subtrees are declared person-only
+  beside `/promote`. `memories::promote` is removed. The 403 for a client
+  credentials token and the 404 for an unreachable scope stand as D-12 left
+  them, and `tests/authz.rs` now asserts the 200 where it asserted the 501.
+  No requirement of this spec changes.
 
 ## Status
 
