@@ -14,8 +14,11 @@
 mod common;
 
 use std::collections::BTreeSet;
+use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 
-use aicortex_api::ApiScope;
+use aicortex_api::{ApiRoute, ApiScope};
+use axum::routing::post;
 use common::{Who, capture_body};
 use reqwest::{Method, StatusCode, header};
 use serde_json::Value;
@@ -148,26 +151,40 @@ async fn fr002_a_read_token_is_refused_capture_naming_memory_write() {
     cell.shutdown().await;
 }
 
+/// FR-003 over the extension seam (020 D-20): the promotion subtree is a
+/// person's alone whoever supplies the handler, and a route supplied through
+/// the seam sits behind the same scope gate as the routes of this crate. The
+/// stand-in handler counts how often it runs.
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr003_a_client_credentials_token_never_reaches_promote() {
-    let cell = common::boot().await;
+    let reached = Arc::new(AtomicUsize::new(0));
+    let counter = Arc::clone(&reached);
+    let cell = common::boot_routed(vec![ApiRoute::new(
+        "/promote/{id}",
+        ApiScope::MemoryPromote,
+        post(move || {
+            let counter = Arc::clone(&counter);
+            async move {
+                counter.fetch_add(1, Ordering::SeqCst);
+                StatusCode::NO_CONTENT
+            }
+        }),
+    )])
+    .await;
     let person = Who::person("sub-promoter", &[READ, WRITE, PROMOTE]);
     let id = captured(&cell, &person, "a memory someone may promote").await;
+    let path = format!("/api/v1/promote/{id}");
 
     // A client acting as itself, holding every scope there is.
     let every: Vec<&'static str> = ApiScope::ALL.iter().map(|scope| scope.as_str()).collect();
     let service = Who::service("importer", &every);
     let response = cell
-        .request(
-            Method::POST,
-            &format!("/api/v1/promote/{id}"),
-            Some(&service),
-        )
+        .request(Method::POST, &path, Some(&service))
         .send()
         .await
         .expect("answered");
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
-    assert_eq!(cell.rows("memory").await, 1);
+    assert_eq!(reached.load(Ordering::SeqCst), 0, "the chassis refused it");
 
     // The same service reaches the service-callable rest of the surface.
     let response = cell
@@ -177,40 +194,24 @@ async fn fr003_a_client_credentials_token_never_reaches_promote() {
         .expect("answered");
     assert_eq!(response.status(), StatusCode::OK);
 
-    // A person with the scope promotes (023 B-5); the refusals above wrote no
-    // Decision, and this writes exactly one.
+    // A person with the scope reaches the supplied handler.
     let response = cell
-        .request(
-            Method::POST,
-            &format!("/api/v1/promote/{id}"),
-            Some(&person),
-        )
+        .request(Method::POST, &path, Some(&person))
         .send()
         .await
         .expect("answered");
-    assert_eq!(response.status(), StatusCode::OK);
-    let body = json(response).await;
-    assert_eq!(body["outcome"], "promoted");
-    let promotions = cell
-        .records()
-        .await
-        .iter()
-        .filter(|record| record.decision().unwrap().kind.as_str() == "memory.promote")
-        .count();
-    assert_eq!(promotions, 1);
+    assert_eq!(response.status(), StatusCode::NO_CONTENT);
+    assert_eq!(reached.load(Ordering::SeqCst), 1);
 
     // Without the scope, the gate refuses first.
     let writer = Who::person("sub-promoter", &[READ, WRITE]);
     let response = cell
-        .request(
-            Method::POST,
-            &format!("/api/v1/promote/{id}"),
-            Some(&writer),
-        )
+        .request(Method::POST, &path, Some(&writer))
         .send()
         .await
         .expect("answered");
     assert_eq!(response.status(), StatusCode::FORBIDDEN);
+    assert_eq!(reached.load(Ordering::SeqCst), 1);
     cell.shutdown().await;
 }
 

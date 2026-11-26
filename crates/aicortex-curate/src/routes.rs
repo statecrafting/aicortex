@@ -1,9 +1,15 @@
 //! The review routes: the queue, its decisions, and promotion (spec 023 B-2,
 //! B-5, B-6, B-8, B-9).
 //!
+//! Curation sits above the surfaces in spec 002's layering, so these handlers
+//! live here and use the API's caller, errors, scope types, and events
+//! downward (D-2). [`routes`] is what the app hands to the API's extension
+//! seam (`Api::with_routes`, 020 D-20), which mounts them inside the API
+//! router under the same prefix, auth layers, and scope gates as the API's own.
+//!
 //! Every route here is mounted under a prefix the chassis declares for a
-//! person's token only (`router::bearer_routes`), and every handler refuses a
-//! client acting as itself again before it does anything (B-8). The decisions
+//! person's token only (`aicortex_api::bearer_routes`), and every handler
+//! refuses a client acting as itself again before it does anything (B-8). The decisions
 //! take the caller's subject and never a token, so the curate crate cannot be
 //! handed an automated credential. What a reviewer is shown is a memory body,
 //! so every body leaves inside 019's envelope (B-9); the queue's own fields
@@ -13,10 +19,10 @@
 //! not returned by the listing: it is free text a person typed, and the
 //! listing is what a client puts in front of a model (019 B-6).
 
-use aicortex_curate::{
-    ContradictionPair, DEFAULT_PAGE_ROWS, MAX_PAGE_ROWS, Promoter, Resolution, ReviewFilter,
-    ReviewItem, ReviewKind, ReviewQueue, Reviewer,
-};
+use aicortex_api::capture::now;
+use aicortex_api::dto::{ScopeQuery, ScopeRef};
+use aicortex_api::events::{ApiEvent, EventData, scope_label};
+use aicortex_api::{Api, ApiError, ApiResult, ApiRoute, ApiScope, Caller};
 use aicortex_recall::{EnvelopeInput, FramedMemories, frame_memories};
 use aicortex_store::MemoryRepo;
 use aicortex_types::{Memory, MemoryId, Status, TrustClass};
@@ -25,14 +31,32 @@ use axum::body::Bytes;
 use axum::extract::rejection::QueryRejection;
 use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
+use axum::routing::{get, post};
 use rahi_types::UnixSeconds;
 use serde::{Deserialize, Serialize};
 
-use crate::capture::now;
-use crate::dto::{ScopeQuery, ScopeRef};
-use crate::error::{ApiError, ApiResult};
-use crate::events::{ApiEvent, EventData, scope_label};
-use crate::router::{Api, Caller};
+use crate::{
+    ContradictionPair, DEFAULT_PAGE_ROWS, MAX_PAGE_ROWS, Promoter, Resolution, ReviewFilter,
+    ReviewItem, ReviewKind, ReviewQueue, Reviewer,
+};
+
+/// The routes of this module, for the app to hand to `Api::with_routes`: each
+/// path relative to the API prefix, with the scope that gates it (B-8).
+#[must_use]
+pub fn routes() -> Vec<ApiRoute> {
+    vec![
+        ApiRoute::new("/review", ApiScope::MemoryRead, get(list)),
+        ApiRoute::new("/review", ApiScope::MemoryWrite, post(request)),
+        ApiRoute::new("/review/count", ApiScope::MemoryRead, get(count)),
+        ApiRoute::new(
+            "/review/{id}/resolve",
+            ApiScope::MemoryPromote,
+            post(resolve),
+        ),
+        ApiRoute::new("/promote/{id}", ApiScope::MemoryPromote, post(promote)),
+        ApiRoute::new("/demote/{id}", ApiScope::MemoryPromote, post(demote)),
+    ]
+}
 
 /// The most rows one review page returns over HTTP.
 ///

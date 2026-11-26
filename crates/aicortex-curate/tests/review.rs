@@ -2,7 +2,7 @@
 //!
 //! Every test runs against a real single-voter node and the chassis's real
 //! decision chain. The HTTP half (the 403 of FR-003, the scopes, the
-//! envelopes) is `aicortex-api`'s `tests/review.rs`.
+//! envelopes) is `tests/routes.rs`.
 
 #![allow(
     clippy::unwrap_used,
@@ -20,6 +20,7 @@ use aicortex_curate::{
 use aicortex_store::MemoryRepo;
 use aicortex_types::{Memory, MemoryId, Scope, Status, TrustClass};
 use common::{Node, add_contradiction, add_edge, add_memory, count, edge, node, person, scope};
+use rahi_store::Statement;
 use rahi_types::{Error, UnixSeconds};
 
 const T0: u64 = 1_800_000_000;
@@ -195,6 +196,86 @@ async fn ac2_rejecting_a_quarantined_memory_erases_it_and_the_chain_verifies() {
     node.shutdown().await;
 }
 
+/// D-10: a rejection's erasure and the item's close commit together. When
+/// the close cannot commit, nothing is erased and the item stays open, so the
+/// reconciliation never withdraws it without a Decision; once the close can
+/// commit, the item names the Decision 014 appended.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn d10_a_rejection_erases_and_closes_together_or_does_neither() {
+    let node = node().await;
+    let scope = scope("alice");
+    let memory = quarantined(&node, &scope, "origin unknown").await;
+    let item = the_open_item(&node, &scope, ReviewKind::Quarantine).await;
+    let handle = node.handle();
+    let reviewer = Reviewer::new(&handle, &node.ledger);
+    // Any failure of the close statement stands for the second half failing.
+    handle
+        .txn(vec![Statement::new(
+            "CREATE TRIGGER refuse_close BEFORE UPDATE ON review_item
+             BEGIN SELECT RAISE(ABORT, 'the close is refused'); END",
+        )])
+        .await
+        .unwrap();
+
+    let refused = reviewer
+        .resolve(
+            &scope,
+            &item.id,
+            &person("alice"),
+            &Resolution::Reject,
+            at(10),
+        )
+        .await;
+
+    assert!(refused.is_err(), "{refused:?}");
+    assert_eq!(
+        read(&node, &scope, memory).await.status,
+        Status::Quarantined
+    );
+    let still = ReviewQueue::new()
+        .get(&handle, &scope, &item.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(still.state, ReviewState::Open);
+    assert_eq!(node.decisions("memory.erase").await, 0);
+
+    handle
+        .txn(vec![Statement::new("DROP TRIGGER refuse_close")])
+        .await
+        .unwrap();
+    let resolved = reviewer
+        .resolve(
+            &scope,
+            &item.id,
+            &person("alice"),
+            &Resolution::Reject,
+            at(11),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(read(&node, &scope, memory).await.status, Status::Erased);
+    assert_eq!(resolved.state, ReviewState::Resolved);
+    let erase_decisions: Vec<String> = node
+        .ledger
+        .records()
+        .await
+        .unwrap()
+        .iter()
+        .map(|record| record.decision().unwrap())
+        .filter(|decision| decision.kind.as_str() == "memory.erase")
+        .map(|decision| decision.id.as_str().to_owned())
+        .collect();
+    assert_eq!(
+        erase_decisions,
+        vec![resolved.decision_id.clone().unwrap()],
+        "the item names the one erasure Decision"
+    );
+    node.ledger.verify().await.unwrap();
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn a_resolution_must_answer_the_items_kind_and_an_item_resolves_once() {
     let node = node().await;
@@ -327,6 +408,82 @@ async fn fr005_keeping_one_edge_leaves_exactly_one_active_edge() {
         Some("the newer note supersedes the older")
     );
     assert_eq!(node.decisions("review.contradiction").await, 1);
+    node.ledger.verify().await.unwrap();
+    node.shutdown().await;
+}
+
+/// D-7: a losing edge that already ended before the resolution keeps its
+/// end, and FR-003: an edge that stops being active before the resolution
+/// commits aborts it, so the item stays open and no act is half-done.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn keep_edge_keeps_an_earlier_end_and_refuses_an_edge_no_longer_active() {
+    let node = node().await;
+    let scope = scope("alice");
+    let source = active(&node, &scope, "alice works on two things").await;
+    add_edge(
+        &node.handle(),
+        &scope,
+        "edg-a",
+        "apollo",
+        100,
+        Some(150),
+        source,
+    )
+    .await;
+    add_edge(&node.handle(), &scope, "edg-b", "gemini", 120, None, source).await;
+    add_contradiction(&node.handle(), &scope, "edg-a", "edg-b").await;
+    let item = the_open_item(&node, &scope, ReviewKind::Contradiction).await;
+    let handle = node.handle();
+    let reviewer = Reviewer::new(&handle, &node.ledger);
+    let keep_b = Resolution::KeepEdge {
+        survivor: "edg-b".to_owned(),
+        reason: "the newer note supersedes the older".to_owned(),
+    };
+    reviewer
+        .resolve(&scope, &item.id, &person("alice"), &keep_b, at(11))
+        .await
+        .unwrap();
+    let loser = edge(&node.handle(), &scope, "edg-a").await;
+    assert_eq!(loser.status, "superseded");
+    assert_eq!(loser.valid_until, Some(150), "an earlier end is kept");
+
+    add_edge(&node.handle(), &scope, "edg-c", "hermes", 300, None, source).await;
+    add_edge(&node.handle(), &scope, "edg-d", "zeus", 400, None, source).await;
+    add_contradiction(&node.handle(), &scope, "edg-c", "edg-d").await;
+    let open = the_open_item(&node, &scope, ReviewKind::Contradiction).await;
+    // Another writer retires the would-be loser before this resolution commits.
+    node.handle()
+        .txn(vec![rahi_store::Statement::with_params(
+            "UPDATE edge SET status = 'superseded' WHERE scope_id = ?1 AND edge_id = 'edg-c'",
+            vec![rahi_store::Value::from(&aicortex_store::ScopeId::of(
+                &scope,
+            ))],
+        )])
+        .await
+        .unwrap();
+    let refused = reviewer
+        .resolve(
+            &scope,
+            &open.id,
+            &person("alice"),
+            &Resolution::KeepEdge {
+                survivor: "edg-d".to_owned(),
+                reason: "the later one holds".to_owned(),
+            },
+            at(13),
+        )
+        .await;
+    assert!(refused.is_err(), "{refused:?}");
+    let still = ReviewQueue::new()
+        .get(&node.handle(), &scope, &open.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(still.state, ReviewState::Open, "the item is not closed");
+    assert_eq!(
+        edge(&node.handle(), &scope, "edg-c").await.valid_until,
+        None
+    );
     node.ledger.verify().await.unwrap();
     node.shutdown().await;
 }

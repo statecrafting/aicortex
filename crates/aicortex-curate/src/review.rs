@@ -10,8 +10,10 @@
 //!
 //! Every resolution appends one Decision to rahi's ledger and then does what
 //! the Decision says, in one transaction, with the item closed in the same
-//! transaction. The Decision names ids and reason codes. It never carries a
-//! body (constitution XIV).
+//! transaction. A rejection is the one act whose Decision is 014's: its
+//! erasure and the item's close commit together and 014 appends the Decision
+//! from the receipt that transaction wrote (D-10). The Decision names ids and
+//! reason codes. It never carries a body (constitution XIV).
 
 use std::fmt;
 use std::str::FromStr;
@@ -898,14 +900,29 @@ impl<'a> Reviewer<'a> {
             )));
         }
         let authority = Authority::of(closing.by.clone()).because("review_reject");
-        let erased = Eraser::new()
+        let eraser = Eraser::new();
+        let prepared = eraser
+            .prepare_erase(self.store, scope, id, false, &authority, closing.now)
+            .await?;
+        // The erasure and the item's close commit together (D-10): a failure
+        // of either leaves the memory quarantined and the item open, so the
+        // reconciliation never withdraws an item for a memory that a
+        // rejection erased.
+        let mut txn = TxnBuilder::new();
+        let staged = Eraser::stage_erase(&mut txn, prepared)?;
+        txn.push(closing.statement(staged.decision.as_str())?);
+        self.store.txn(txn.into_statements()).await?;
+        // The erasure Decision is appended after its transaction commits, by
+        // 014's rule, from the durable receipt that transaction wrote; this
+        // call delivers it, and a failure here is retried by repeating it.
+        eraser
             .erase(
                 self.store,
                 self.ledger,
                 &Erasure::new(scope, id, &authority, closing.now),
             )
             .await?;
-        close_only(self.store, closing, erased.decision.as_str()).await
+        Ok(())
     }
 
     /// Contradiction, keep one edge (B-4).
@@ -943,11 +960,17 @@ impl<'a> Reviewer<'a> {
         .await?;
         let mut txn = TxnBuilder::new();
         // The loser stops holding when the reviewer decided, never before it
-        // began; nothing is deleted (017 FR-005).
+        // began, and never later than an end it already had (D-7); nothing is
+        // deleted (017 FR-005). An edge no longer active when this commits
+        // writes NULL into the NOT NULL status, aborting the whole
+        // transaction, so the recorded Decision never closes an item whose
+        // act did not happen (FR-003); `commit_or_refuse` then records the
+        // refusal.
         txn.push(Statement::with_params(
-            "UPDATE edge SET status = 'superseded',
-                 valid_until = COALESCE(valid_until, MAX(valid_from, ?3))
-             WHERE scope_id = ?1 AND edge_id = ?2 AND status = 'active'",
+            "UPDATE edge SET
+                 status = CASE WHEN status = 'active' THEN 'superseded' ELSE NULL END,
+                 valid_until = MIN(COALESCE(valid_until, MAX(valid_from, ?3)), MAX(valid_from, ?3))
+             WHERE scope_id = ?1 AND edge_id = ?2",
             vec![
                 Value::from(closing.scope_id),
                 Value::from(loser.as_str()),
@@ -1010,9 +1033,11 @@ impl<'a> Reviewer<'a> {
         )
         .await?;
         let mut txn = TxnBuilder::new();
+        // As in `keep_edge`: an edge no longer active aborts the transaction.
         txn.push(Statement::with_params(
-            "UPDATE edge SET valid_until = ?3
-             WHERE scope_id = ?1 AND edge_id = ?2 AND status = 'active'",
+            "UPDATE edge SET valid_until = ?3,
+                 status = CASE WHEN status = 'active' THEN status ELSE NULL END
+             WHERE scope_id = ?1 AND edge_id = ?2",
             vec![
                 Value::from(closing.scope_id),
                 Value::from(first.edge_id.as_str()),
@@ -1020,8 +1045,9 @@ impl<'a> Reviewer<'a> {
             ],
         ));
         txn.push(Statement::with_params(
-            "UPDATE edge SET valid_from = ?3
-             WHERE scope_id = ?1 AND edge_id = ?2 AND status = 'active'",
+            "UPDATE edge SET valid_from = ?3,
+                 status = CASE WHEN status = 'active' THEN status ELSE NULL END
+             WHERE scope_id = ?1 AND edge_id = ?2",
             vec![
                 Value::from(closing.scope_id),
                 Value::from(second.edge_id.as_str()),
@@ -1449,8 +1475,7 @@ async fn commit_or_refuse(
     }
 }
 
-/// Close an item whose act already committed elsewhere (erasure), or that
-/// has no act.
+/// Close an item whose resolution has no act beyond its Decision.
 async fn close_only(
     store: &StoreHandle,
     closing: &Closing<'_>,

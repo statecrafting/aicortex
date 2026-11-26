@@ -180,12 +180,39 @@ pub async fn boot() -> Cell {
 
 /// Boot the cell with `limits`.
 pub async fn boot_with(limits: aicortex_api::Limits) -> Cell {
-    boot_inner(limits, None, None, aicortex_api::Search::default()).await
+    boot_inner(
+        limits,
+        None,
+        None,
+        aicortex_api::Search::default(),
+        Vec::new(),
+    )
+    .await
+}
+
+/// Boot the cell with `routes` supplied through the API's extension seam
+/// (020 D-20), as the app supplies spec 023's.
+pub async fn boot_routed(routes: Vec<aicortex_api::ApiRoute>) -> Cell {
+    boot_inner(
+        aicortex_api::Limits::default(),
+        None,
+        None,
+        aicortex_api::Search::default(),
+        routes,
+    )
+    .await
 }
 
 /// Boot the cell with `search` configured for `POST /search` (spec 018, 025).
 pub async fn boot_with_search(search: aicortex_api::Search) -> Cell {
-    boot_inner(aicortex_api::Limits::default(), None, None, search).await
+    boot_inner(
+        aicortex_api::Limits::default(),
+        None,
+        None,
+        search,
+        Vec::new(),
+    )
+    .await
 }
 
 /// A surface mounted beside the API: its router, the bearer routes it
@@ -209,11 +236,22 @@ pub type Mount = Box<dyn FnOnce(&aicortex_api::Api) -> Extra>;
 /// Boot a cell serving the API and `mount`, against a real rauthy when `live`
 /// names one.
 pub async fn boot_mounting(live: Option<&live::LiveEnv>, mount: Mount) -> Cell {
+    boot_mounting_routed(live, mount, Vec::new()).await
+}
+
+/// [`boot_mounting`], with `routes` supplied through the API's extension seam
+/// as well (020 D-20).
+pub async fn boot_mounting_routed(
+    live: Option<&live::LiveEnv>,
+    mount: Mount,
+    routes: Vec<aicortex_api::ApiRoute>,
+) -> Cell {
     boot_inner(
         aicortex_api::Limits::default(),
         live,
         Some(mount),
         aicortex_api::Search::default(),
+        routes,
     )
     .await
 }
@@ -228,6 +266,7 @@ pub async fn boot_live(live: &live::LiveEnv) -> Cell {
         Some(live),
         None,
         aicortex_api::Search::default(),
+        Vec::new(),
     )
     .await
 }
@@ -237,6 +276,7 @@ async fn boot_inner(
     live: Option<&live::LiveEnv>,
     mount: Option<Mount>,
     search: aicortex_api::Search,
+    routes: Vec<aicortex_api::ApiRoute>,
 ) -> Cell {
     let (store, dir) = open_store().await;
     let handle = store.handle();
@@ -351,7 +391,8 @@ async fn boot_inner(
     let surface = aicortex_api::Api::new(state.clone())
         .with_events(events.clone())
         .with_limits(limits)
-        .with_search(search);
+        .with_search(search)
+        .with_routes(routes);
     let api = aicortex_api::router_with(surface.clone());
     let (api, bearer, open_bootstrap) = match mount {
         Some(mount) => {

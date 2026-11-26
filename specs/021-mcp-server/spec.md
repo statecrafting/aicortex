@@ -264,7 +264,12 @@ thesis.
   keyed by a closed vocabulary, so no stored string can reach a resource
   (019 B-3). It is read-only, and no tool or resource resolves an item (B-8
   of 023). Reading needs `memory.read` and a person's token; the count route
-  is a person-only subtree, so a client acting as itself is refused.
+  is a person-only subtree, so a client acting as itself is refused. The
+  route is spec 023's, in `aicortex-curate`, which sits above this crate and
+  reaches the API router through its extension seam (020 D-20, 023 D-2), so
+  this crate depends on neither: its tests answer `GET /review/count` with a
+  stand-in of the documented shape, and the route itself is tested in
+  `aicortex-curate`.
 
 ## Status
 

@@ -5,11 +5,11 @@
     ],
     "implementingPaths": [
       {
-        "path": "Cargo.toml",
+        "path": "apps/aicortex/src/cell.rs",
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-api/Cargo.toml",
+        "path": "crates/aicortex-api/src/capture.rs",
         "source": "spec-edge"
       },
       {
@@ -21,10 +21,6 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-api/src/review.rs",
-        "source": "spec-edge"
-      },
-      {
         "path": "crates/aicortex-api/src/router.rs",
         "source": "spec-edge"
       },
@@ -33,7 +29,7 @@
         "source": "spec-edge"
       },
       {
-        "path": "crates/aicortex-api/tests/review.rs",
+        "path": "crates/aicortex-api/tests/common/mod.rs",
         "source": "spec-edge"
       },
       {
@@ -61,11 +57,19 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-curate/src/routes.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-curate/tests/common/mod.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-curate/tests/review.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-curate/tests/routes.rs",
         "source": "spec-edge"
       },
       {
@@ -98,32 +102,6 @@
       }
     ],
     "resolvedUnits": [
-      {
-        "locations": [
-          {
-            "file": "crates/aicortex-api/src/review.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-api/src/review.rs"
-        }
-      },
-      {
-        "locations": [
-          {
-            "file": "crates/aicortex-api/tests/review.rs"
-          }
-        ],
-        "ownership": true,
-        "sourceField": "establishes",
-        "unit": {
-          "kind": "file",
-          "path": "crates/aicortex-api/tests/review.rs"
-        }
-      },
       {
         "locations": [
           {
@@ -192,6 +170,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-curate/src/routes.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/src/routes.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-curate/tests/common/mod.rs"
           }
         ],
@@ -218,6 +209,19 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-curate/tests/routes.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "establishes",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-curate/tests/routes.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-store/src/review_tables.rs"
           }
         ],
@@ -231,27 +235,27 @@
       {
         "locations": [
           {
-            "file": "Cargo.toml"
+            "file": "apps/aicortex/src/cell.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "Cargo.toml"
+          "path": "apps/aicortex/src/cell.rs"
         }
       },
       {
         "locations": [
           {
-            "file": "crates/aicortex-api/Cargo.toml"
+            "file": "crates/aicortex-api/src/capture.rs"
           }
         ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-api/Cargo.toml"
+          "path": "crates/aicortex-api/src/capture.rs"
         }
       },
       {
@@ -304,6 +308,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/tests/authz.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/tests/common/mod.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/tests/common/mod.rs"
         }
       },
       {
@@ -402,5 +419,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "c5838a3b1569e196eaa456e79bd8ec9f900fd784793f4a2f275abc62791de26c"
+  "shardHash": "6a24837d7c2689dded467b7fbd592aa9a977d3354c87dd576ec1cb15597a97a6"
 }

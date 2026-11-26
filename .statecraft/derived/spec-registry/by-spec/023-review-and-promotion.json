@@ -32,7 +32,15 @@
       },
       {
         "kind": "file",
+        "path": "crates/aicortex-curate/src/routes.rs"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-curate/tests/review.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-curate/tests/routes.rs"
       },
       {
         "kind": "file",
@@ -41,14 +49,6 @@
       {
         "kind": "file",
         "path": "crates/aicortex-store/src/review_tables.rs"
-      },
-      {
-        "kind": "file",
-        "path": "crates/aicortex-api/src/review.rs"
-      },
-      {
-        "kind": "file",
-        "path": "crates/aicortex-api/tests/review.rs"
       }
     ],
     "extends": [
@@ -105,6 +105,14 @@
         "spec": "020-http-api-and-scopes",
         "unit": {
           "kind": "file",
+          "path": "crates/aicortex-api/src/capture.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "020-http-api-and-scopes",
+        "unit": {
+          "kind": "file",
           "path": "crates/aicortex-api/tests/authz.rs"
         }
       },
@@ -113,7 +121,7 @@
         "spec": "020-http-api-and-scopes",
         "unit": {
           "kind": "file",
-          "path": "crates/aicortex-api/Cargo.toml"
+          "path": "crates/aicortex-api/tests/common/mod.rs"
         }
       },
       {
@@ -121,7 +129,7 @@
         "spec": "010-chassis-adoption-and-workspace",
         "unit": {
           "kind": "file",
-          "path": "Cargo.toml"
+          "path": "apps/aicortex/src/cell.rs"
         }
       },
       {
@@ -166,16 +174,16 @@
     ],
     "risk": "high",
     "sectionDigests": {
-      "023-review-and-promotion": "4903c40eed25e16f0bb19760717499e106dd4c1f342b35b9c7ba0f2063f61135",
+      "023-review-and-promotion": "4c26c33e1e5897c0b9e66de96473b0790cbbf42676467d703933070e5c1c1269",
       "1-purpose": "1807f7f18c84dcf1997bfe196f63fa932616cad046bc004c1597eec9e4275c50",
       "2-territory": "fd26d40c077dc7cb155585ca0cf9bf8c1ecd9d1b7f994e3fcada78ef92188d1b",
       "3-behavior": "b91c10d93dfaf0b1d6507297c8d3578f5f9b78c5756014836dcba94417336955",
       "4-functional-requirements": "4a654176440730d68f2774b47ce71631d2a9a86b17733609622ab01e9e341ac6",
       "5-acceptance-criteria": "0d77eb9f00306ecf15ed9c3426c5c76079f5f665cd2d459d8f5ef3354e0e70b8",
       "6-out-of-scope": "2c9f74c5843dd747fb2f74dbd1d962aa8d1ed68e90325c1f971e561a97e01f39",
-      "7-resolved-decisions": "e7f51ee22b04295f42bfde0ff8a316422a6895ed57f2a3444a51dac6a89a48ab",
-      "status": "1b2f674874475dff11d2aa129424bf1398964e927716db037f3b7d2f9460e2b8",
-      "verification": "94baf4981a922f22b8ccd4f208dedf6410f126aa74c46a0fa74df9189c9ceff3"
+      "7-resolved-decisions": "f76f8ff97d068e41a687f47ac5432a5b7bc982396f2197136632feed9f15aff3",
+      "status": "969fcf2c1388cb715d3638a5f82525034e07eac06e1633b8ffe8e7e3c20d1689",
+      "verification": "b5c8a4f6b025f6e0216fcac6fc5d1ccd89d680b062b05188aab49248df118256"
     },
     "sectionHeadings": [
       "023: Review and promotion",
@@ -194,6 +202,6 @@
     "summary": "Three situations need a person: content whose origin could not be established and was quarantined, two edges that contradict each other, and a memory that someone wants a client to act on. This spec is the one queue where all three wait, the decisions that empty it, and the ledger records those decisions produce. Promotion is the important one: it is the only path to instruction grade, it requires the promote scope and an interactive principal, and it writes a rahi Decision whose id becomes part of the memory's trust.\n",
     "title": "Review: the queue where quarantine, contradiction, and promotion wait for a human"
   },
-  "shardHash": "c5838a3b1569e196eaa456e79bd8ec9f900fd784793f4a2f275abc62791de26c",
+  "shardHash": "6a24837d7c2689dded467b7fbd592aa9a977d3354c87dd576ec1cb15597a97a6",
   "specVersion": "1.11.0"
 }

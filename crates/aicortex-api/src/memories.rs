@@ -1,5 +1,6 @@
 //! The memory routes: list, read, correct or supersede, erase, and count
-//! (B-4, B-5, D-3). Promotion is `review.rs`'s (023 B-5).
+//! (B-4, B-5, D-3). Promotion is spec 023's, supplied through the router's
+//! extension seam (020 D-20).
 //!
 //! Every route resolves the scope against the caller first (B-2): a scope
 //! the caller cannot reach is a 404 decided before any store read. Every

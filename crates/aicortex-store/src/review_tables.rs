@@ -35,7 +35,9 @@ const REVIEW_TABLES: &str = "CREATE TABLE review_item (
     resolution TEXT,
     reason TEXT,
     decision_id TEXT,
-    CHECK ((state = 'resolved') = (resolved_by IS NOT NULL))
+    CHECK ((state = 'resolved') = (resolved_by IS NOT NULL)),
+    CHECK (state <> 'resolved'
+        OR (resolved_at IS NOT NULL AND resolution IS NOT NULL AND decision_id IS NOT NULL))
 );
 CREATE UNIQUE INDEX review_item_open
     ON review_item (scope_id, kind, subject) WHERE state = 'open';

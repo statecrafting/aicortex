@@ -23,6 +23,7 @@ path = "src/main.rs"
 
 [dependencies]
 aicortex-api = { workspace = true }
+aicortex-curate = { workspace = true }
 aicortex-embed = { workspace = true }
 aicortex-graph = { workspace = true }
 aicortex-mcp = { workspace = true }

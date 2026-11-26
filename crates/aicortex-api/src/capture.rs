@@ -73,7 +73,7 @@ fn digest(parts: &[&[u8]]) -> String {
 }
 
 /// The current time, in Unix seconds.
-pub(crate) fn now() -> UnixSeconds {
+pub fn now() -> UnixSeconds {
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .map_or(0, |elapsed| elapsed.as_secs());

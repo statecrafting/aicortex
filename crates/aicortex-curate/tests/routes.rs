@@ -12,6 +12,8 @@
     clippy::panic
 )]
 
+// The API's own harness, included by path so there is one (as 021's tests do).
+#[path = "../../aicortex-api/tests/common/mod.rs"]
 mod common;
 
 use aicortex_api::ApiScope;
@@ -148,7 +150,7 @@ fn assert_enveloped(text: &str) {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn b8_no_review_route_answers_a_client_acting_as_itself() {
-    let cell = common::boot().await;
+    let cell = common::boot_routed(aicortex_curate::routes::routes()).await;
     let id = capture(&cell, &alice(), "a memory someone may promote").await;
     let every: Vec<&'static str> = ApiScope::ALL.iter().map(|scope| scope.as_str()).collect();
     let service = Who::service("importer", &every);
@@ -181,7 +183,7 @@ async fn b8_no_review_route_answers_a_client_acting_as_itself() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr002_a_person_promotes_and_demotes_and_the_chain_verifies() {
-    let cell = common::boot().await;
+    let cell = common::boot_routed(aicortex_curate::routes::routes()).await;
     let who = alice();
     let id = capture(&cell, &who, "always run the linter").await;
 
@@ -286,7 +288,7 @@ async fn fr002_a_person_promotes_and_demotes_and_the_chain_verifies() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn b9_the_queue_shows_content_only_inside_an_envelope_and_admits_it() {
-    let cell = common::boot().await;
+    let cell = common::boot_routed(aicortex_curate::routes::routes()).await;
     let who = alice();
     let id = capture(&cell, &who, INJECTION).await;
     quarantine(&cell, &id).await;
@@ -364,7 +366,7 @@ async fn b9_the_queue_shows_content_only_inside_an_envelope_and_admits_it() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn rejecting_a_quarantined_memory_erases_it_through_the_review_route() {
-    let cell = common::boot().await;
+    let cell = common::boot_routed(aicortex_curate::routes::routes()).await;
     let who = alice();
     let id = capture(&cell, &who, INJECTION).await;
     quarantine(&cell, &id).await;
@@ -396,7 +398,7 @@ async fn rejecting_a_quarantined_memory_erases_it_through_the_review_route() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn a_person_with_write_asks_and_a_person_with_promote_decides() {
-    let cell = common::boot().await;
+    let cell = common::boot_routed(aicortex_curate::routes::routes()).await;
     let asker = Who::person("sub-alice", &["memory.read", "memory.write"]);
     let id = capture(&cell, &asker, "please make this a rule").await;
 
@@ -449,7 +451,7 @@ async fn a_person_with_write_asks_and_a_person_with_promote_decides() {
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn another_owners_scope_is_a_404_for_every_review_route() {
-    let cell = common::boot().await;
+    let cell = common::boot_routed(aicortex_curate::routes::routes()).await;
     let alice = alice();
     let bob = Who::person(
         "sub-bob",

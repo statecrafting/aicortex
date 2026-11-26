@@ -353,11 +353,15 @@ manifest will eventually declare. The reference deployment (044).
   section 3.3). No requirement or acceptance criterion changes.
 - **D-14 (2026-11-26, dependency edge, the 023 manifest commit).** The
   workspace declares `aicortex-curate`, the crate spec 023 founds (review
-  queue and promotion), beside the other workspace libraries, with a path
-  and an exact version so `cargo deny` sees a requirement. The crate itself
-  and its own `Cargo.lock` entry landed with it; this change adds only the
-  workspace declaration and no third-party package. No requirement or
-  acceptance criterion changes.
+  queue, promotion, and the review route handlers), beside the other
+  workspace libraries, with a path and an exact version so `cargo deny` sees a
+  requirement, and `apps/aicortex` takes it, so the cell can hand the crate's
+  routes to the API's extension seam (023 D-2). The edge points downward: the
+  app sits above every crate (spec 002 section 4), and `aicortex-api` takes no
+  dependency on `aicortex-curate`, which depends on it instead. The crate
+  itself and its own `Cargo.lock` entry landed with it; this change adds the
+  workspace declaration and the app's edge, and no third-party package. No
+  requirement or acceptance criterion changes.
 
 ## Status (2026-09-17, complete: the chassis release landed)
 

@@ -14,7 +14,10 @@
 #[path = "../../../aicortex-api/tests/common/mod.rs"]
 pub mod common;
 
+use aicortex_api::{ApiRoute, ApiScope};
 use aicortex_mcp::Revision;
+use axum::Json;
+use axum::routing::get;
 #[allow(unused_imports)]
 pub use common::{Cell, Who};
 use reqwest::{StatusCode, header};
@@ -35,15 +38,39 @@ pub async fn boot_open() -> Cell {
 }
 
 async fn boot_with(open_bootstrap: bool) -> Cell {
-    common::boot_mounting(
+    common::boot_mounting_routed(
         None,
         Box::new(move |api| common::Extra {
             router: aicortex_mcp::router(api.clone()),
             bearer: aicortex_mcp::bearer_routes(aicortex_api::bearer_routes()),
             open_bootstrap,
         }),
+        vec![review_count()],
     )
     .await
+}
+
+/// A stand-in for `GET /review/count`, which the cell serves from spec 023's
+/// routes through the API's extension seam (020 D-20). This crate sits below
+/// `aicortex-curate` and does not depend on it, so the review queue resource
+/// is tested against the answer that route documents (021 D-13); the route
+/// itself is tested in `aicortex-curate`.
+fn review_count() -> ApiRoute {
+    ApiRoute::new(
+        "/review/count",
+        ApiScope::MemoryRead,
+        get(|| async {
+            Json(json!({
+                "open": 0,
+                "by_kind": {
+                    "quarantine": 0,
+                    "contradiction": 0,
+                    "promotion_request": 0,
+                    "gate_override": 0,
+                },
+            }))
+        }),
+    )
 }
 
 /// What a POST to the server answered.
