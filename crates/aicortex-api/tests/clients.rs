@@ -528,7 +528,7 @@ fn fr006_every_readme_states_the_rule_and_the_off_switch() {
 /// The text of the function that `source` starts with, from its header to
 /// its matching closing brace. Braces are counted only in code: a brace in a
 /// string literal (a format placeholder such as `"{extra}"`), a character
-/// literal, or a line comment does not count, and a nested block, closure,
+/// literal, or a line or block comment does not count, and a nested block, closure,
 /// or inner scope does not end the body early. Raw strings are not used in
 /// the tests this reads.
 fn function_body(source: &str) -> &str {
@@ -556,6 +556,13 @@ fn function_body(source: &str) -> &str {
                 while at < bytes.len() && bytes[at] != b'\n' {
                     at += 1;
                 }
+            }
+            b'/' if bytes.get(at + 1) == Some(&b'*') => {
+                at += 2;
+                while at + 1 < bytes.len() && !(bytes[at] == b'*' && bytes[at + 1] == b'/') {
+                    at += 1;
+                }
+                at += 1;
             }
             b'{' => depth += 1,
             b'}' => {
@@ -695,6 +702,12 @@ fn comments_the_label() {
 }
 
 #[test]
+fn comments_a_brace_then_asserts() {
+    /* a stray } in a block comment */
+    assert!(output.contains(\"untrusted\"));
+}
+
+#[test]
 fn only_says_it() {
     // the client labels this untrusted
     let label = \"untrusted\";
@@ -713,6 +726,10 @@ fn only_says_it() {
     assert!(
         is_a_test_asserting_untrusted(source, "quotes_a_quote_then_asserts"),
         "an escaped quote literal does not hide a brace"
+    );
+    assert!(
+        is_a_test_asserting_untrusted(source, "comments_a_brace_then_asserts"),
+        "a brace in a block comment is not counted"
     );
     assert!(
         !is_a_test_asserting_untrusted(source, "comments_the_label"),
