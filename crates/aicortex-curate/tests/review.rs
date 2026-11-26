@@ -331,6 +331,82 @@ async fn fr005_keeping_one_edge_leaves_exactly_one_active_edge() {
     node.shutdown().await;
 }
 
+/// D-7: a losing edge that already ended before the resolution keeps its
+/// end, and FR-003: an edge that stops being active before the resolution
+/// commits aborts it, so the item stays open and no act is half-done.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn keep_edge_keeps_an_earlier_end_and_refuses_an_edge_no_longer_active() {
+    let node = node().await;
+    let scope = scope("alice");
+    let source = active(&node, &scope, "alice works on two things").await;
+    add_edge(
+        &node.handle(),
+        &scope,
+        "edg-a",
+        "apollo",
+        100,
+        Some(150),
+        source,
+    )
+    .await;
+    add_edge(&node.handle(), &scope, "edg-b", "gemini", 120, None, source).await;
+    add_contradiction(&node.handle(), &scope, "edg-a", "edg-b").await;
+    let item = the_open_item(&node, &scope, ReviewKind::Contradiction).await;
+    let handle = node.handle();
+    let reviewer = Reviewer::new(&handle, &node.ledger);
+    let keep_b = Resolution::KeepEdge {
+        survivor: "edg-b".to_owned(),
+        reason: "the newer note supersedes the older".to_owned(),
+    };
+    reviewer
+        .resolve(&scope, &item.id, &person("alice"), &keep_b, at(11))
+        .await
+        .unwrap();
+    let loser = edge(&node.handle(), &scope, "edg-a").await;
+    assert_eq!(loser.status, "superseded");
+    assert_eq!(loser.valid_until, Some(150), "an earlier end is kept");
+
+    add_edge(&node.handle(), &scope, "edg-c", "hermes", 300, None, source).await;
+    add_edge(&node.handle(), &scope, "edg-d", "zeus", 400, None, source).await;
+    add_contradiction(&node.handle(), &scope, "edg-c", "edg-d").await;
+    let open = the_open_item(&node, &scope, ReviewKind::Contradiction).await;
+    // Another writer retires the would-be loser before this resolution commits.
+    node.handle()
+        .txn(vec![rahi_store::Statement::with_params(
+            "UPDATE edge SET status = 'superseded' WHERE scope_id = ?1 AND edge_id = 'edg-c'",
+            vec![rahi_store::Value::from(&aicortex_store::ScopeId::of(
+                &scope,
+            ))],
+        )])
+        .await
+        .unwrap();
+    let refused = reviewer
+        .resolve(
+            &scope,
+            &open.id,
+            &person("alice"),
+            &Resolution::KeepEdge {
+                survivor: "edg-d".to_owned(),
+                reason: "the later one holds".to_owned(),
+            },
+            at(13),
+        )
+        .await;
+    assert!(refused.is_err(), "{refused:?}");
+    let still = ReviewQueue::new()
+        .get(&node.handle(), &scope, &open.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(still.state, ReviewState::Open, "the item is not closed");
+    assert_eq!(
+        edge(&node.handle(), &scope, "edg-c").await.valid_until,
+        None
+    );
+    node.ledger.verify().await.unwrap();
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn fr005_two_disjoint_periods_leave_two_active_edges_that_do_not_overlap() {
     let node = node().await;
