@@ -50,8 +50,10 @@ async fn trace(node: &common::Node, scope: &Scope, id: &str) {
 }
 
 #[test]
-fn the_trace_table_is_the_last_schema_version() {
-    assert_eq!(RECALL_TRACE_VERSION, EXPECTED_SCHEMA_VERSION);
+fn the_trace_table_is_no_newer_than_the_expected_schema_version() {
+    // Later specs append after it (023's review tables), so the expected
+    // version is the newest and this one only has to be within the list.
+    const { assert!(RECALL_TRACE_VERSION <= EXPECTED_SCHEMA_VERSION) };
 }
 
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]

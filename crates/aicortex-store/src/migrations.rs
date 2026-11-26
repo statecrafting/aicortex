@@ -68,7 +68,7 @@ pub const EMBEDDING_MIGRATION_VERSION: u32 = 9;
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = RECALL_TRACE_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = REVIEW_VERSION;
 
 /// The conversation reference of spec 031 B-9 on the provenance row, added by
 /// spec 025 section 2 because evidence delivery is built first: two nullable
@@ -81,6 +81,10 @@ pub use crate::graph_tables::GRAPH_VERSION;
 /// The persisted recall trace of spec 018 B-6, appended by that spec under an
 /// `extends` edge on this file; its table lives in [`crate::recall_trace_table`].
 pub use crate::recall_trace_table::RECALL_TRACE_VERSION;
+/// The review queue and promotion schema of spec 023, appended by that spec
+/// under an `extends` edge on this file; its tables live in
+/// [`crate::review_tables`].
+pub use crate::review_tables::REVIEW_VERSION;
 /// The text index of spec 016 B-5, appended by that spec under an `extends`
 /// edge on this file; its tables live in [`crate::text_postings`].
 pub use crate::text_postings::TEXT_INDEX_VERSION;
@@ -513,7 +517,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 13]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 14]> = std::sync::LazyLock::new(|| {
     [
         // Creation-only migrations are additive (spec 046 B-2, D-2). Versions
         // 7 and 9 below are deliberately not additive. The declaration is not
@@ -637,5 +641,8 @@ static LIST: std::sync::LazyLock<[Migration; 13]> = std::sync::LazyLock::new(|| 
         // Not declared additive either: an older binary does not remove a
         // scope's traces when it erases the scope (spec 018 B-6).
         crate::recall_trace_table::recall_trace_migration(),
+        // Additive: new tables only, and an older binary never reads them
+        // (spec 023 D-3).
+        crate::review_tables::review_migration(),
     ]
 });
