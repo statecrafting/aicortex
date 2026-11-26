@@ -4,16 +4,6 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-recall/src/delivery.rs' does not exist",
-        "path": "crates/aicortex-recall/src/delivery.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-recall/tests/delivery.rs' does not exist",
-        "path": "crates/aicortex-recall/tests/delivery.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '025-evidence-delivery-and-token-budget' file unit 'crates/aicortex-recall/testdata/delivery/' does not exist",
         "path": "crates/aicortex-recall/testdata/delivery/"
       }
@@ -40,11 +30,19 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-index/tests/text.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-mcp/src/tools.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-mcp/tests/tools.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-recall/src/delivery.rs",
         "source": "spec-edge"
       },
       {
@@ -56,11 +54,27 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-recall/tests/delivery.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-store/src/migrations.rs",
         "source": "spec-edge"
       },
       {
         "path": "crates/aicortex-store/src/provenance_repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/lifecycle.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-store/tests/repo.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-types/src/lib.rs",
         "source": "spec-edge"
       },
       {
@@ -70,7 +84,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/src/delivery.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -88,7 +106,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-recall/tests/delivery.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -133,6 +155,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-api/tests/api.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-index/tests/text.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-index/tests/text.rs"
         }
       },
       {
@@ -216,6 +251,45 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-store/tests/lifecycle.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/lifecycle.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-store/tests/repo.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/tests/repo.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-types/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-types/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-types/src/provenance.rs"
           }
         ],
@@ -270,5 +344,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "ed7e436dca934f3fb183be22fa244f32a96ca0c994b8f973c2c82115286984fd"
+  "shardHash": "96b2d48034986d8e512481b0a2a72d47da7f6daa6d094728833abca67be9e7d1"
 }

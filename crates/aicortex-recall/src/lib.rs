@@ -8,6 +8,7 @@
 #![allow(clippy::float_arithmetic)]
 
 pub mod channels;
+pub mod delivery;
 pub mod envelope;
 pub mod filter;
 pub mod freshness;
@@ -16,9 +17,13 @@ pub mod query;
 pub mod recall;
 pub mod trace;
 
+pub use delivery::{
+    Delivered, Delivery, DeliveryConfig, DeliveryError, DeliveryReport, DeliveryRequest,
+    EvidenceUnit, Reason, TokenCounter, Utf8Bytes, Utf8BytesDiv3,
+};
 pub use envelope::{
-    EnvelopeInput, FRAMING_STATEMENT, FRAMING_VERSION, FramedMemories, LiteralEnvelope,
-    LiteralInput, frame_literal, frame_memories,
+    CUT_MARKER, EnvelopeInput, EvidenceInput, FRAMING_STATEMENT, FRAMING_VERSION, FramedMemories,
+    LiteralEnvelope, LiteralInput, frame_evidence, frame_literal, frame_memories,
 };
 pub use filter::{Extra, Filter};
 pub use freshness::{EntityFreshness, Freshness, SourceFreshness};

@@ -114,11 +114,9 @@ fn the_text_index_migration_follows_the_embedding_schema_and_is_not_additive() {
         migration.version,
         aicortex_index::migrations::TEXT_INDEX_VERSION
     );
-    // Spec 017's graph migration follows it and is now the newest.
-    assert_eq!(
-        migration.version + 1,
-        aicortex_store::EXPECTED_SCHEMA_VERSION
-    );
+    // Spec 017's graph migration follows it; later specs append after that.
+    assert_eq!(migration.version + 1, aicortex_store::GRAPH_VERSION);
+    const { assert!(aicortex_store::GRAPH_VERSION < aicortex_store::EXPECTED_SCHEMA_VERSION) };
     assert!(migration.version > aicortex_store::EMBEDDING_MIGRATION_VERSION);
     assert!(migration.sql.contains("CREATE TABLE chunk_token"));
     assert!(migration.sql.contains("CREATE TABLE token_df"));

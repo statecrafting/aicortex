@@ -198,6 +198,99 @@ impl AdmissionOverride {
     }
 }
 
+/// The identifier a source gives a conversation (spec 031 B-9).
+///
+/// The export's own id, or the derived `d:` id 031 B-9 defines. Two message
+/// memories are turns of one conversation exactly when they share a scope, a
+/// source system, and this id. The value is held to the shape of every other
+/// key in this crate (non-empty, unpadded, no control character, at most 128
+/// bytes) so it is safe as a SQL key and as a label.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize)]
+#[serde(transparent)]
+pub struct ConversationId(String);
+
+impl ConversationId {
+    /// Validate and wrap a conversation id.
+    ///
+    /// # Errors
+    ///
+    /// [`TypeError::Invalid`] naming `conversation.id` when the id is empty,
+    /// padded, over the length ceiling, or carries a control character.
+    pub fn new(id: impl Into<String>) -> Result<Self> {
+        let id = id.into();
+        validate_key("conversation.id", &id)?;
+        Ok(Self(id))
+    }
+
+    /// The id.
+    #[must_use]
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Display for ConversationId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.0)
+    }
+}
+
+impl<'de> Deserialize<'de> for ConversationId {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> core::result::Result<Self, D::Error> {
+        let id = String::deserialize(deserializer)?;
+        Self::new(id).map_err(serde::de::Error::custom)
+    }
+}
+
+/// Where a message memory sits in its conversation (spec 031 B-9).
+///
+/// The wire form is the provenance key `conversation` holding an object with
+/// exactly the keys `id` and `turn`; an extra, missing, or renamed key is
+/// refused. `turn` is the message's 1-based position in the export's message
+/// order, assigned before skipping, so a skipped message leaves a gap rather
+/// than renumbering the turns after it.
+#[derive(Clone, Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[serde(try_from = "ConversationRefWire")]
+pub struct ConversationRef {
+    /// The conversation the message belongs to.
+    pub id: ConversationId,
+    /// The message's 1-based turn number.
+    pub turn: u32,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct ConversationRefWire {
+    id: ConversationId,
+    turn: u32,
+}
+
+impl TryFrom<ConversationRefWire> for ConversationRef {
+    type Error = TypeError;
+
+    fn try_from(wire: ConversationRefWire) -> Result<Self> {
+        Self::new(wire.id, wire.turn)
+    }
+}
+
+impl ConversationRef {
+    /// Name a turn of a conversation.
+    ///
+    /// # Errors
+    ///
+    /// [`TypeError::Invalid`] naming `conversation.turn` when `turn` is 0:
+    /// turns are numbered from 1.
+    pub fn new(id: ConversationId, turn: u32) -> Result<Self> {
+        if turn == 0 {
+            return Err(TypeError::Invalid {
+                field: "conversation.turn",
+                reason: "is 0, and turns are numbered from 1".to_owned(),
+            });
+        }
+        Ok(Self { id, turn })
+    }
+}
+
 /// What makes a memory a claim rather than a floating string.
 ///
 /// There is no `Default` and no builder that finishes without a source and
@@ -238,6 +331,14 @@ pub struct Provenance {
     /// carries offsets and a keyed digest, never content.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub spans: Vec<SourceSpan>,
+    /// The conversation this message memory is a turn of, when it is one
+    /// (spec 031 B-9, added here under spec 025 section 2).
+    ///
+    /// Additive and serialized only when present, so every record written
+    /// before this field existed reads back byte-identically (011 FR-001).
+    /// A memory is conversational exactly when this is set (025 B-2).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub conversation: Option<ConversationRef>,
 }
 
 impl Provenance {
@@ -256,6 +357,7 @@ impl Provenance {
             extractor: None,
             admission: None,
             spans: Vec::new(),
+            conversation: None,
         }
     }
 
@@ -283,9 +385,57 @@ impl Provenance {
         self
     }
 
+    /// The same provenance, naming the conversation turn it is (031 B-9).
+    #[must_use]
+    pub fn in_conversation(mut self, conversation: ConversationRef) -> Self {
+        self.conversation = Some(conversation);
+        self
+    }
+
     /// Whether this memory was derived from others.
     #[must_use]
     pub const fn is_derived(&self) -> bool {
         !self.derived_from.is_empty()
+    }
+}
+
+#[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::expect_used)]
+mod tests {
+    use super::*;
+
+    fn provenance(conversation: &str) -> String {
+        format!(r#"{{"source":{{"system":"chat"}},"captured_at":1,"ingested_at":2{conversation}}}"#)
+    }
+
+    #[test]
+    fn a_conversation_reference_has_exactly_the_keys_id_and_turn() {
+        let wire = provenance(r#","conversation":{"id":"c1","turn":4}"#);
+        let parsed: Provenance = serde_json::from_str(&wire).unwrap();
+        let reference = parsed.conversation.clone().unwrap();
+        assert_eq!((reference.id.as_str(), reference.turn), ("c1", 4));
+        assert_eq!(serde_json::to_string(&parsed).unwrap(), wire);
+
+        for bad in [
+            r#","conversation":{"id":"c1"}"#,
+            r#","conversation":{"turn":4}"#,
+            r#","conversation":{"id":"c1","turn":4,"extra":1}"#,
+            r#","conversation":{"id":"c1","step":4}"#,
+            r#","conversation":{"id":"c1","turn":0}"#,
+            r#","conversation":{"id":"","turn":1}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<Provenance>(&provenance(bad)).is_err(),
+                "{bad} was accepted"
+            );
+        }
+    }
+
+    #[test]
+    fn a_provenance_without_a_conversation_serializes_without_the_key() {
+        let wire = provenance("");
+        let parsed: Provenance = serde_json::from_str(&wire).unwrap();
+        assert_eq!(parsed.conversation, None);
+        assert_eq!(serde_json::to_string(&parsed).unwrap(), wire);
     }
 }
