@@ -4,21 +4,6 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/src/pointer.rs' does not exist",
-        "path": "crates/aicortex-graph/src/pointer.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/tests/pointer.rs' does not exist",
-        "path": "crates/aicortex-graph/tests/pointer.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-graph/testdata/pointers/' does not exist",
-        "path": "crates/aicortex-graph/testdata/pointers/"
-      },
-      {
-        "code": "W-001",
         "message": "spec '026-read-side-entity-pointers' file unit 'crates/aicortex-api/src/pointers.rs' does not exist",
         "path": "crates/aicortex-api/src/pointers.rs"
       },
@@ -40,11 +25,19 @@
     ],
     "implementingPaths": [
       {
+        "path": "Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
         "path": "clients/README.md",
         "source": "spec-edge"
       },
       {
         "path": "clients/matrix.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-api/Cargo.toml",
         "source": "spec-edge"
       },
       {
@@ -61,6 +54,18 @@
       },
       {
         "path": "crates/aicortex-graph/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-graph/src/pointer.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-graph/testdata/pointers/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-graph/tests/pointer.rs",
         "source": "spec-edge"
       },
       {
@@ -96,7 +101,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/src/pointer.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -105,7 +114,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/testdata/pointers/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -114,12 +127,29 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-graph/tests/pointer.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-graph/tests/pointer.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "Cargo.toml"
         }
       },
       {
@@ -146,6 +176,19 @@
         "unit": {
           "kind": "file",
           "path": "clients/matrix.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-api/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-api/Cargo.toml"
         }
       },
       {
@@ -270,5 +313,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "5a64df4c4ec97482ad3b327bb6ed745fc65908843fde31d2dee77501cb02b0c8"
+  "shardHash": "93a9228f1d9e183dd565467986790d093f65d80afe5711b7a07ea4d9871f609c"
 }

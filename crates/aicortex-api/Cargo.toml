@@ -37,6 +37,7 @@ rcgen = { workspace = true, features = ["aws_lc_rs"] }
 reqwest = { workspace = true }
 tempfile = { workspace = true }
 tokio = { workspace = true, features = ["net", "sync", "time"] }
+tracing = { workspace = true }
 
 [lints]
 workspace = true
