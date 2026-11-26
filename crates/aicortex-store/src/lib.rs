@@ -71,12 +71,14 @@
 #[cfg(test)]
 extern crate self as aicortex_store;
 
+pub mod audit;
 pub mod claim_admission_repo;
 pub mod claim_proposal_repo;
 pub mod claim_repo;
 pub mod counters;
 pub mod cursor;
 pub mod decision_key;
+pub mod decision_ref;
 pub mod embedding_memory;
 pub mod erasure;
 pub mod fingerprint;
@@ -92,6 +94,7 @@ pub mod review_tables;
 pub mod scope_repo;
 pub mod text_postings;
 
+pub use audit::{EventKind, History, HistoryEvent, MAX_HISTORY_EVENTS, history};
 pub use claim_admission_repo::{
     AdmissionDecisions, AdmissionRecord, ClaimAdmissionRepo, policy_digest,
 };
@@ -100,6 +103,10 @@ pub use claim_repo::{ClaimAppend, ClaimHistoryPage, ClaimRepo, MAX_CLAIM_PAGE_RO
 pub use counters::{Counters, ScopeStats};
 pub use cursor::{Cursor, CursorKey};
 pub use decision_key::{DIGEST_ALGORITHM, DecisionKey, DecisionKeyId, DecisionKeyRepo};
+pub use decision_ref::{
+    DECISION_REF_VERSION, DecisionRefRepo, MAX_JUSTIFICATION_BYTES, MAX_REASON_BYTES, ReasonCode,
+    RefKind, append_decision, decision_ref_migration, validate_decision,
+};
 pub use embedding_memory::{
     ActiveEmbedding, EMBEDDING_NAMESPACE, EMBEDDING_PROCESSOR, EmbeddingMemory,
     EmbeddingQueueCounts, EmbeddingTarget, ReadStore, active_embedding, embedding_coverage,

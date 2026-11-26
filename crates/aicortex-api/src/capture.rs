@@ -17,7 +17,10 @@ use aicortex_gate::{
     Candidate, DigestRef, KIND_QUARANTINE, KIND_REFUSE, LedgerEntry, Origin, Reason, Verdict,
     ledger_entry,
 };
-use aicortex_store::{Captured, DIGEST_ALGORITHM, DecisionKey, DecisionKeyRepo, Lifecycle};
+use aicortex_store::{
+    Captured, DIGEST_ALGORITHM, DecisionKey, DecisionKeyRepo, DecisionRefRepo, Lifecycle, RefKind,
+    append_decision,
+};
 use aicortex_types::{
     Actor, ActorId, AgentOrigin, Importance, MemoryBody, MemoryId, MemoryParts, Provenance, Scope,
     SourceRef, SourceSystem, TrustClass,
@@ -407,7 +410,6 @@ pub(crate) async fn commit(
     let stored = captured.map(Captured::id);
     let scope = &candidate.parts.scope;
     DecisionKeyRepo::stage(&mut txn, scope, &key, stored, candidate.parts.created);
-    store.txn(txn.into_statements()).await?;
 
     let kind = if matches!(verdict, Verdict::Refuse(_)) {
         KIND_REFUSE
@@ -415,31 +417,49 @@ pub(crate) async fn commit(
         KIND_QUARANTINE
     };
     let entry = ledger_entry(kind, reason, scope, caller.sub(), &digest, stored);
-    let id = append(api, &entry, candidate.parts.id).await?;
+    let id = decision_id(&entry, candidate.parts.id);
+    if let (Some(memory), KIND_QUARANTINE) = (stored, kind) {
+        // Spec 024 B-3: the reference commits with the row it is about, so a
+        // quarantined memory is never without it. The id is derived from the
+        // candidate, so it is known before the Decision is appended.
+        DecisionRefRepo::stage(
+            &mut txn,
+            scope,
+            memory,
+            &id,
+            RefKind::Quarantine,
+            candidate.parts.created,
+        );
+    }
+    store.txn(txn.into_statements()).await?;
+    append(api, &entry, &id).await?;
     Ok((captured, Some(id)))
 }
 
-/// Append one gate Decision, with an id derived from the candidate so a
+/// The id a gate Decision is appended under, derived from the candidate so a
 /// replay is visible rather than silent.
-async fn append(api: &Api, entry: &LedgerEntry, candidate: MemoryId) -> Result<String, Error> {
-    let id = format!("{}-{candidate}", entry.kind);
+fn decision_id(entry: &LedgerEntry, candidate: MemoryId) -> String {
+    format!("{}-{candidate}", entry.kind)
+}
+
+/// Append one gate Decision under `id`, through spec 024's validated append.
+async fn append(api: &Api, entry: &LedgerEntry, id: &str) -> Result<(), Error> {
     let outcome = if entry.denied {
         Outcome::Deny
     } else {
         Outcome::Allow
     };
-    api.app
-        .ledger()
-        .append(
-            Decision::new(
-                DecisionId::new(id.clone()),
-                DecisionKind::new(entry.kind),
-                entry.actor.clone(),
-                outcome,
-                entry.reason.clone(),
-            )
-            .with_payload(entry.payload.clone()),
+    append_decision(
+        api.app.ledger(),
+        Decision::new(
+            DecisionId::new(id),
+            DecisionKind::new(entry.kind),
+            entry.actor.clone(),
+            outcome,
+            entry.reason.clone(),
         )
-        .await?;
-    Ok(id)
+        .with_payload(entry.payload.clone()),
+    )
+    .await?;
+    Ok(())
 }

@@ -1,17 +1,19 @@
 //! The memory routes: list, read, correct or supersede, erase, and count
-//! (B-4, B-5, D-3). Promotion is spec 023's, supplied through the router's
-//! extension seam (020 D-20).
+//! (B-4, B-5, D-3), and a memory's audit history (spec 024 B-4). Promotion
+//! is spec 023's, supplied through the router's extension seam (020 D-20).
 //!
 //! Every route resolves the scope against the caller first (B-2): a scope
 //! the caller cannot reach is a 404 decided before any store read. Every
 //! body returned goes through [`aicortex_recall::frame_memories`], the one
 //! outbound serializer of 019, with the `origin_erased` marker read beside
-//! the memories it describes.
+//! the memories it describes. The history route is the one exception: it
+//! returns ids, kinds and times and no content, so it has nothing to envelope.
 
 use aicortex_gate::{Candidate, Origin, Verdict};
 use aicortex_recall::{EnvelopeInput, frame_memories};
 use aicortex_store::{
-    Authority, Counters, DEFAULT_PAGE_ROWS, Eraser, Erasure, Lifecycle, MemoryFilter, MemoryRepo,
+    Authority, Counters, DEFAULT_PAGE_ROWS, Eraser, Erasure, History, Lifecycle, MemoryFilter,
+    MemoryRepo,
 };
 use aicortex_types::{Memory, MemoryId, MemoryKind, Scope};
 use axum::Json;
@@ -224,6 +226,24 @@ pub async fn erase(
         .await?;
     changed(&api, &scope, id, "erased");
     Ok(Json(EraseResponse::from(erased)))
+}
+
+/// `GET /memories/{id}/history`: the memory's audit timeline (spec 024 B-4).
+///
+/// Ids, kinds and times only; no content, so the reply needs no envelope. A
+/// memory in another scope is a 404, exactly as `GET /memories/{id}` answers
+/// it.
+pub async fn history(
+    State(api): State<Api>,
+    caller: Caller,
+    Path(id): Path<String>,
+    request: Result<Query<ScopeQuery>, QueryRejection>,
+) -> ApiResult<Json<History>> {
+    let scope = query(request)?.scope_ref().resolve(caller.sub())?;
+    let id = memory_id(&id)?;
+    Ok(Json(
+        aicortex_store::history(api.app.store(), &scope, id).await?,
+    ))
 }
 
 /// `GET /stats`: the scope's counters, one bounded read (012 B-6).
