@@ -262,7 +262,15 @@ expansion, likewise.
   route in `aicortex-api/src/search.rs` (020 D-17), and AC-2, which needs
   spec 040's corpus. No ranking change has run an evaluation: the corpus
   does not exist yet (B-10), so the defaults of D-7 are provisional until
-  040 reports a baseline.
+  040 reports a baseline. The part's files are claimed in `establishes`
+  above: `query.rs` and `channels.rs` (written there when this spec was
+  approved), `fusion.rs`, `trace.rs`, `filter.rs`, `freshness.rs`,
+  `recall.rs`, and the tests and `testdata/queries/`.
+- **D-9 (2026-11-26, build).** A filter that admits superseded memories
+  names no successor: recall builds the index filter from the store's
+  payload-free `StatusFilter` through `aicortex_index::Filter::status_filters`,
+  an additive constructor beside `Filter::statuses` (the D-6 edge on 016's
+  `scan.rs`), so no placeholder `MemoryId` is minted.
 
 ## Verification
 

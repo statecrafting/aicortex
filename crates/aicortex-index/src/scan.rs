@@ -18,7 +18,7 @@
 use std::future::Future;
 use std::time::{Duration, Instant};
 
-use aicortex_store::ScopeId;
+use aicortex_store::{ScopeId, StatusFilter};
 use aicortex_types::{MemoryId, Status};
 use rahi_store::{Blob, DEFAULT_PAGE_ROWS, Page, StoreHandle, Value};
 use rahi_types::Error;
@@ -82,7 +82,17 @@ impl Filter {
     /// [`Error::Validation`] when the set is empty: a scan that admits no
     /// status could only ever return nothing.
     pub fn statuses(statuses: impl IntoIterator<Item = Status>) -> Result<Self, Error> {
-        let mut labels: Vec<&'static str> = statuses.into_iter().map(Status::label).collect();
+        Self::status_filters(statuses.into_iter().map(|status| StatusFilter::of(&status)))
+    }
+
+    /// Exactly the named statuses, by discriminant alone, so a caller that
+    /// admits superseded memories names no successor (spec 018 B-1).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Validation`] when the set is empty, as for [`Self::statuses`].
+    pub fn status_filters(statuses: impl IntoIterator<Item = StatusFilter>) -> Result<Self, Error> {
+        let mut labels: Vec<&'static str> = statuses.into_iter().map(StatusFilter::label).collect();
         labels.sort_unstable();
         labels.dedup();
         if labels.is_empty() {

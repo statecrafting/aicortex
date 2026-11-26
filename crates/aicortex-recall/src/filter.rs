@@ -7,6 +7,7 @@
 //! unrequestable by construction: [`Extra`] has no variant for them.
 
 use aicortex_index::{Filter as IndexFilter, Restriction};
+use aicortex_store::StatusFilter;
 use aicortex_types::{MemoryKind, Status};
 use rahi_types::{Error, UnixSeconds};
 use serde::Serialize;
@@ -121,15 +122,14 @@ impl Filter {
     /// [`Error::Validation`] from [`Filter::validate`].
     pub fn index_filter(&self) -> Result<IndexFilter, Error> {
         self.validate()?;
-        // The successor id is never read: the column holds the discriminant.
         let statuses = self.status_labels().into_iter().filter_map(|label| {
             Some(match label {
-                "active" => Status::Active,
-                "superseded" => Status::Superseded(aicortex_types::MemoryId::now_v7()),
-                "expired" => Status::Expired,
+                "active" => StatusFilter::Active,
+                "superseded" => StatusFilter::Superseded,
+                "expired" => StatusFilter::Expired,
                 _ => return None,
             })
         });
-        Ok(IndexFilter::statuses(statuses)?.restricted(self.restriction()))
+        Ok(IndexFilter::status_filters(statuses)?.restricted(self.restriction()))
     }
 }
