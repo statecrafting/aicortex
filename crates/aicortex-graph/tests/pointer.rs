@@ -50,7 +50,7 @@ impl ReadStore for Recording {
         &self,
         sql: &'static str,
         values: Vec<Value>,
-    ) -> impl Future<Output = Result<Vec<T>, Error>> + Send {
+    ) -> impl std::future::Future<Output = Result<Vec<T>, Error>> + Send {
         self.seen
             .lock()
             .unwrap()
@@ -62,7 +62,7 @@ impl ReadStore for Recording {
         &self,
         sql: &'static str,
         values: Vec<Value>,
-    ) -> impl Future<Output = Result<Vec<T>, Error>> + Send {
+    ) -> impl std::future::Future<Output = Result<Vec<T>, Error>> + Send {
         self.seen
             .lock()
             .unwrap()
