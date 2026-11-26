@@ -20,6 +20,7 @@ use aicortex_curate::{
 use aicortex_store::MemoryRepo;
 use aicortex_types::{Memory, MemoryId, Scope, Status, TrustClass};
 use common::{Node, add_contradiction, add_edge, add_memory, count, edge, node, person, scope};
+use rahi_store::Statement;
 use rahi_types::{Error, UnixSeconds};
 
 const T0: u64 = 1_800_000_000;
@@ -191,6 +192,86 @@ async fn ac2_rejecting_a_quarantined_memory_erases_it_and_the_chain_verifies() {
     assert_eq!(resolved.resolution.as_deref(), Some("reject"));
     assert!(resolved.decision_id.is_some());
     assert_eq!(node.decisions("memory.erase").await, 1);
+    node.ledger.verify().await.unwrap();
+    node.shutdown().await;
+}
+
+/// D-10: a rejection's erasure and the item's close commit together. When
+/// the close cannot commit, nothing is erased and the item stays open, so the
+/// reconciliation never withdraws it without a Decision; once the close can
+/// commit, the item names the Decision 014 appended.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn d10_a_rejection_erases_and_closes_together_or_does_neither() {
+    let node = node().await;
+    let scope = scope("alice");
+    let memory = quarantined(&node, &scope, "origin unknown").await;
+    let item = the_open_item(&node, &scope, ReviewKind::Quarantine).await;
+    let handle = node.handle();
+    let reviewer = Reviewer::new(&handle, &node.ledger);
+    // Any failure of the close statement stands for the second half failing.
+    handle
+        .txn(vec![Statement::new(
+            "CREATE TRIGGER refuse_close BEFORE UPDATE ON review_item
+             BEGIN SELECT RAISE(ABORT, 'the close is refused'); END",
+        )])
+        .await
+        .unwrap();
+
+    let refused = reviewer
+        .resolve(
+            &scope,
+            &item.id,
+            &person("alice"),
+            &Resolution::Reject,
+            at(10),
+        )
+        .await;
+
+    assert!(refused.is_err(), "{refused:?}");
+    assert_eq!(
+        read(&node, &scope, memory).await.status,
+        Status::Quarantined
+    );
+    let still = ReviewQueue::new()
+        .get(&handle, &scope, &item.id)
+        .await
+        .unwrap()
+        .unwrap();
+    assert_eq!(still.state, ReviewState::Open);
+    assert_eq!(node.decisions("memory.erase").await, 0);
+
+    handle
+        .txn(vec![Statement::new("DROP TRIGGER refuse_close")])
+        .await
+        .unwrap();
+    let resolved = reviewer
+        .resolve(
+            &scope,
+            &item.id,
+            &person("alice"),
+            &Resolution::Reject,
+            at(11),
+        )
+        .await
+        .unwrap();
+
+    assert_eq!(read(&node, &scope, memory).await.status, Status::Erased);
+    assert_eq!(resolved.state, ReviewState::Resolved);
+    let erase_decisions: Vec<String> = node
+        .ledger
+        .records()
+        .await
+        .unwrap()
+        .iter()
+        .map(|record| record.decision().unwrap())
+        .filter(|decision| decision.kind.as_str() == "memory.erase")
+        .map(|decision| decision.id.as_str().to_owned())
+        .collect();
+    assert_eq!(
+        erase_decisions,
+        vec![resolved.decision_id.clone().unwrap()],
+        "the item names the one erasure Decision"
+    );
     node.ledger.verify().await.unwrap();
     node.shutdown().await;
 }

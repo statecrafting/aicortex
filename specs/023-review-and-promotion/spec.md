@@ -122,16 +122,21 @@ concern; the routes and the queue count are the surface for now.
   configurable interval, rather than lasting forever. A memory system's
   worst failure mode is a stale instruction, and the cost of reconfirmation
   is one queue item.
-- **D-2 (2026-11-26, build, crate layout).** `aicortex-curate` is a library
-  over the store and the ledger: it has no HTTP, axum, or recall dependency.
-  The routes of B-2, B-5, and B-6 are handlers in `aicortex-api`, which takes
-  the curate crate as a dependency (020 D-20) and frames every body it returns
-  through 019's envelope. The dependency table in `CLAUDE.md` lists curate
-  above api; that ordering describes the curation workers of 034, which
-  consume the API's surface. The review queue itself must sit below the
-  routes that mount it, because spec 020's router is where B-2 says its
-  routes are added. The manifest of the new crate has only workspace and path
-  dependencies, so it lands with the manifest commit of this change.
+- **D-2 (2026-11-26, build, crate layout).** `aicortex-curate` holds both
+  the review queue and the HTTP handlers of B-2, B-5, and B-6. Spec 002
+  section 4 orders the layers as types, admission, understanding, recall,
+  surfaces (`aicortex-api`, `aicortex-mcp`), intake, curation
+  (`aicortex-curate`), proof, and the cell, and dependencies point downward
+  only, so curation depends on the API and never the reverse. The handlers use
+  the API's scope gate, errors, caller, and framing helpers, which that crate
+  exposes as `pub` items, and the routes reach the API router through its
+  additive extension seam (020 D-20), mounted inside the same prefix, auth
+  layers, and scope gates as every other route. They have to sit inside that
+  router because the MCP server calls it in process (021 D-13). `apps/aicortex`
+  composes the two and declares the routes person-only to the chassis. The
+  manifest of the new crate has only workspace and path dependencies, so it
+  lands whole with the crate; the root workspace entry and the app's edge land
+  ahead of the routes as 010 D-14.
 - **D-3 (2026-11-26, build, migration 14).** The review tables are migration
   14 (`REVIEW_VERSION`, additive, in `crates/aicortex-store/src/review_tables.rs`
   beside 015's, 016's and 017's tables), because the migration list is the
@@ -191,6 +196,21 @@ concern; the routes and the queue count are the surface for now.
   bounded to 100 promotions per scope per pass. Driving it on a schedule is a
   managed service in the cell, which is left to the curation workers of 034
   and the cell's service list; no cell file is changed by this part.
+
+- **D-10 (2026-11-26, build, rejection is atomic).** B-3's rejection is
+  014's erasure, and the item's close has to commit with it, or a failure
+  between the two would leave a memory erased and its item open, which the
+  reconciliation (D-4) then withdraws with no Decision. 014's `Eraser` already
+  exposes the seam: `prepare_erase` captures the erasure and `stage_erase`
+  appends it to a caller's transaction, with the Decision id known before the
+  commit. The rejection stages the erasure and the statement that closes the
+  item, naming that id, into one transaction. Per 014 B-7 the Decision is
+  appended after the commit, from the durable receipt that transaction wrote,
+  so the rejection then calls `Eraser::erase` once more, which delivers that
+  receipt. If the append fails, the error is returned with the memory erased
+  and the item closed naming the pending Decision; repeating `Eraser::erase`
+  for that memory appends it, which is 014's own recovery path. This spec
+  adds no sweeper for undelivered receipts. No change to 014 was needed.
 
 ## Status
 
