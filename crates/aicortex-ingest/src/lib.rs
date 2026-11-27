@@ -34,7 +34,9 @@ pub mod cursor;
 mod drive;
 pub mod mapping;
 pub mod migrations;
+pub mod preflight;
 pub mod registry;
+pub mod routes;
 pub mod run;
 
 pub use adapter::{
