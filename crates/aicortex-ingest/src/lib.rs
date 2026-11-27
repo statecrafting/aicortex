@@ -4,7 +4,7 @@
 //! copy of the same six hundred lines, so a fix in one never reached the
 //! others (`openbrain://fork-per-feature`). This crate is the alternative. A
 //! source is an implementation of one trait ([`SourceAdapter`]), registered by
-//! name ([`Registry`]), and driven by one runner (`Runner`) that owns paging,
+//! name ([`Registry`]), and driven by one runner ([`Runner`]) that owns paging,
 //! mapping, the write gate, the transaction, the resumable cursor, rate and
 //! budget, and progress. An adapter fetches and maps; it never writes (D-1).
 //!
@@ -31,9 +31,11 @@
 
 pub mod adapter;
 pub mod cursor;
+mod drive;
 pub mod mapping;
 pub mod migrations;
 pub mod registry;
+pub mod run;
 
 pub use adapter::{
     AdapterContext, AdapterError, AdapterResult, BoxFuture, Candidate, MAX_EXTERNAL_ID_BYTES,
@@ -43,3 +45,8 @@ pub use adapter::{
 pub use cursor::{Cursor, CursorRepo, MAX_CURSOR_BYTES};
 pub use mapping::{IngestPolicy, ItemRepo, ItemRow, PublicPolicy, RunId};
 pub use registry::{INGEST_SERVICE, Registered, Registry, SourceDescription, ceiling_covers};
+pub use run::{
+    CancelOutcome, DEFAULT_STALE_AFTER, MAX_BOARD_RUNS, MAX_DRY_RUN_ITEMS, MAX_ITEM_BUDGET,
+    MAX_RATE_PER_SECOND, MAX_RETRIES, RunCounts, RunFailure, RunLimits, RunReport, RunRequest,
+    RunState, Runner, Runtime, Started,
+};

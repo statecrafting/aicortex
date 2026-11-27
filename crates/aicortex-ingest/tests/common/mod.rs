@@ -19,9 +19,12 @@ use std::path::Path;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 
+use aicortex_api::Events;
+use aicortex_gate::Gate;
 use aicortex_ingest::{
-    AdapterContext, AdapterError, AdapterResult, BoxFuture, Candidate, Cursor, Page, Probe,
-    RawItem, SourceAdapter, SourceId, SourceKind,
+    AdapterContext, AdapterError, AdapterResult, BoxFuture, Candidate, Cursor, IngestPolicy, Page,
+    Probe, RawItem, Registry, RunLimits, RunRequest, Runner, Runtime, SourceAdapter, SourceId,
+    SourceKind,
 };
 use aicortex_types::{Memory, MemoryKind, Scope};
 use rahi_kernel::{Manifest, ServiceName};
@@ -64,6 +67,19 @@ impl Node {
         let ledger = other.ledger.clone();
         other.shutdown().await;
         ledger
+    }
+
+    pub fn runtime(&self) -> Runtime {
+        self.runtime_with(self.ledger.clone())
+    }
+
+    pub fn runtime_with(&self, ledger: Ledger) -> Runtime {
+        Runtime {
+            store: self.handle(),
+            ledger,
+            gate: Arc::new(Gate::standard()),
+            events: Events::new(),
+        }
     }
 
     /// One integer out of a `SELECT COUNT(*) AS count` statement.
@@ -471,5 +487,38 @@ impl SourceAdapter for Stub {
                 None => candidate,
             },
         )
+    }
+}
+
+/// A runner over `stubs`, registered under a manifest that grants no egress.
+pub fn runner(stubs: &[Arc<Stub>], policy: IngestPolicy) -> Runner {
+    let mut registry = Registry::new();
+    let manifest = manifest(&[]);
+    for stub in stubs {
+        registry
+            .register_under(stub.clone(), &manifest, &ingest_service())
+            .expect("the stub registers");
+    }
+    Runner::new(Arc::new(registry), None, policy)
+}
+
+/// Limits that do not slow a test down.
+pub fn quick() -> RunLimits {
+    RunLimits {
+        max_items: 100_000,
+        rate_per_second: 100_000,
+        retries: 2,
+        backoff: std::time::Duration::ZERO,
+    }
+}
+
+pub fn request(scope: &Scope, source: &str) -> RunRequest {
+    RunRequest {
+        scope: scope.clone(),
+        source: SourceId::new(source).expect("a source id"),
+        principal: Sub::new("alice"),
+        options: serde_json::Value::Null,
+        limits: quick(),
+        dry_run: false,
     }
 }

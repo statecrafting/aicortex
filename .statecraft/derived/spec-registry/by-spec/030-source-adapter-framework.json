@@ -24,6 +24,14 @@
       },
       {
         "kind": "file",
+        "path": "crates/aicortex-ingest/src/run.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/src/drive.rs"
+      },
+      {
+        "kind": "file",
         "path": "crates/aicortex-ingest/src/cursor.rs"
       },
       {
@@ -49,6 +57,10 @@
       {
         "kind": "file",
         "path": "crates/aicortex-ingest/tests/adapter.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/run.rs"
       }
     ],
     "extends": [
@@ -119,6 +131,6 @@
     "summary": "The predecessor's ecosystem grew by forking the server: fifty-odd capabilities, each a copy of the same six hundred lines, so a fix in one never reached the others. This spec is the alternative. A source is an implementation of one trait, registered by name, driven by one runner that owns fetching pages, mapping to candidates, passing the gate, staging the transaction, recording a resumable cursor, and reporting progress. Adding a source is a module and a fixture set, and it inherits dedup, retries, provenance, egress governance, and the untrusted content boundary without restating any of them.\n",
     "title": "Source adapters: one contract, incremental and resumable, so a capability is never a fork"
   },
-  "shardHash": "3fff0bad1690203ca61b99ffd5222381221d20936a7cfb373b9f07d52f2ff1ce",
+  "shardHash": "02a1e2338f9c6ade2774e610f0dbbec83b8a4f74634aa5e3f947a7984488ef21",
   "specVersion": "1.11.0"
 }
