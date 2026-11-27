@@ -79,6 +79,7 @@ aicortex-graph = { path = "crates/aicortex-graph", version = "=0.1.0" }
 aicortex-api = { path = "crates/aicortex-api", version = "=0.1.0" }
 aicortex-mcp = { path = "crates/aicortex-mcp", version = "=0.1.0" }
 aicortex-curate = { path = "crates/aicortex-curate", version = "=0.1.0" }
+aicortex-ingest = { path = "crates/aicortex-ingest", version = "=0.1.0" }
 
 # The family's secret detector registry (spec 047): aicortex-gate consumes
 # its tables and scan instead of keeping its own. Exact pin, as the chassis

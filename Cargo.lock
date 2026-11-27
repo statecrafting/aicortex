@@ -130,6 +130,7 @@ dependencies = [
  "aicortex-curate",
  "aicortex-embed",
  "aicortex-graph",
+ "aicortex-ingest",
  "aicortex-mcp",
  "aicortex-store",
  "aicortex-types",
