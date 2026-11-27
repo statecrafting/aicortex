@@ -91,7 +91,7 @@
       "wave": 3
     },
     "id": "031-conversation-and-archive-imports",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "feature",
     "references": [
       {
@@ -139,6 +139,6 @@
     "summary": "A memory system is worth little on day one and a great deal once it knows what you already said. This spec brings a user's existing history in: chat exports from the major assistants, a note vault on disk, a read-later archive, and mail, each as an adapter over the framework. A conversation is stored as one memory per message, linked by a shared conversation id and a turn number in provenance, so each turn keeps its own author and trust class and can be redacted or forgotten alone. The interesting work is not fetching, it is extracting from those turns the memories worth keeping, and doing it without sending the archive anywhere.\n",
     "title": "Bringing a history in: chat exports, note vaults, and read-later archives"
   },
-  "shardHash": "c0b1901e648c663bb6fd68185374361082825c7e7ddc6f42830c65f1d372806d",
+  "shardHash": "c8503e7074dfffbd7ba5fc7dc88c8304cb5b0b3dd49603764ef3b918622a5877",
   "specVersion": "1.11.0"
 }

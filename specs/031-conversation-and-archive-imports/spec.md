@@ -6,7 +6,7 @@ kind: "feature"
 domain: "ingest"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: medium
 wave: 3
 depends_on:
