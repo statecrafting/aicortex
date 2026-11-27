@@ -322,6 +322,8 @@ impl Board {
     ) -> Result<(), Error> {
         self.with(|runs| {
             if runs.len() >= MAX_BOARD_RUNS {
+                // Run ids are `run-` and a UUIDv7, whose text order is its
+                // creation order, so the smallest id is the oldest run.
                 let oldest = runs
                     .iter()
                     .filter(|(_, run)| run.report.state != RunState::Running)
