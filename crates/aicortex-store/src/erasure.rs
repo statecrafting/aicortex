@@ -542,6 +542,11 @@ impl Eraser {
         let keys = keys_at..txn.len();
         let tombstones = stage_tombstones(&mut txn, scope, &scope_id, &shells, now)?;
         let queue = stage_embedding_queue_erasure(&mut txn, &scope_id, &shells, now)?;
+        // Spec 030 B-4, D-4: the source mappings of these memories, in one
+        // statement outside every counted span. Not a `DERIVATIVES` entry,
+        // which costs a statement per memory per table.
+        let ids: Vec<String> = shells.iter().map(|shell| shell.id.to_string()).collect();
+        crate::ingest_tables::stage_memory_erasure(&mut txn, scope_id.as_str(), &ids);
         let mark_at = txn.len();
         txn.push(Statement::with_params(
             MARK_DERIVED_SQL,
@@ -884,6 +889,7 @@ impl Eraser {
         ));
         crate::graph_tables::stage_scope_erasure(&mut txn, scope_id.as_str());
         crate::recall_trace_table::stage_scope_erasure(&mut txn, scope_id.as_str());
+        crate::ingest_tables::stage_scope_erasure(&mut txn, scope_id.as_str());
         for statement in [
             "DELETE FROM claim_relation WHERE scope_id = ?1",
             "DELETE FROM claim_retraction WHERE scope_id = ?1",

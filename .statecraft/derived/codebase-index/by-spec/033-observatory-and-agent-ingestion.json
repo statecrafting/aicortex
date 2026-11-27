@@ -21,11 +21,6 @@
         "code": "W-001",
         "message": "spec '033-observatory-and-agent-ingestion' file unit 'crates/aicortex-ingest/tests/agent_session.rs' does not exist",
         "path": "crates/aicortex-ingest/tests/agent_session.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '033-observatory-and-agent-ingestion' file unit 'crates/aicortex-ingest/src/registry.rs' does not exist",
-        "path": "crates/aicortex-ingest/src/registry.rs"
       }
     ]
   },
@@ -33,7 +28,12 @@
     "dependsOn": [
       "032-capture-sources-and-webhooks"
     ],
-    "implementingPaths": [],
+    "implementingPaths": [
+      {
+        "path": "crates/aicortex-ingest/src/registry.rs",
+        "source": "spec-edge"
+      }
+    ],
     "resolvedUnits": [
       {
         "locations": [],
@@ -72,7 +72,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/registry.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "extends",
         "unit": {

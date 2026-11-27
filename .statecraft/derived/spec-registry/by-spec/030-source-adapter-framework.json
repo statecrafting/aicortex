@@ -24,10 +24,6 @@
       },
       {
         "kind": "file",
-        "path": "crates/aicortex-ingest/src/run.rs"
-      },
-      {
-        "kind": "file",
         "path": "crates/aicortex-ingest/src/cursor.rs"
       },
       {
@@ -44,11 +40,15 @@
       },
       {
         "kind": "file",
-        "path": "crates/aicortex-ingest/tests/adapter.rs"
+        "path": "crates/aicortex-store/src/ingest_tables.rs"
       },
       {
         "kind": "file",
-        "path": "crates/aicortex-ingest/tests/run.rs"
+        "path": "crates/aicortex-ingest/tests/common/mod.rs"
+      },
+      {
+        "kind": "file",
+        "path": "crates/aicortex-ingest/tests/adapter.rs"
       }
     ],
     "extends": [
@@ -58,6 +58,22 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-store/src/migrations.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "012-store-schema-and-repositories",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "014-memory-lifecycle-and-erasure",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-store/src/erasure.rs"
         }
       },
       {
@@ -73,18 +89,18 @@
       "wave": 3
     },
     "id": "030-source-adapter-framework",
-    "implementation": "pending",
+    "implementation": "in-progress",
     "kind": "kernel",
     "risk": "high",
     "sectionDigests": {
-      "030-source-adapters": "0f60d02259c5a3d6b5ed52eda015c4115479df30793128a8b71dfaa1db56cb78",
+      "030-source-adapters": "e9cdd356d7f54910f4fc10960fd1f0af0f4892df80c919701d79a47178b6828a",
       "1-purpose": "5cb36785f7d3541c114a975e2e211fc3b9d81f3e32652db992e0bd3a6ebbd36b",
       "2-territory": "914aa7c5f43785afb8d840ee204a75d17742de509d4758effb13dea2e8ae72be",
       "3-behavior": "b15153b757b007f5f080c1f6ea6ca06ee033fa93b7f8e690df4cd94e5cfd2951",
       "4-functional-requirements": "92390d0ba6b987ff8691c0dd583134aeb50d1f2293950733e1ee594023ef8113",
       "5-acceptance-criteria": "051e8e58d51b74349ab4954a31c14f50d49ca2a389063016a1d6fbde1d515514",
       "6-out-of-scope": "7026f91d751a4d2384c4da747e2f15f42872522e5005ff63ae38d3f247fe233d",
-      "7-resolved-decisions": "a64bae95e5f97321b05e538db2399ae2d54a5255eb99a8c36775a848451909d1",
+      "7-resolved-decisions": "70721c5adaf617eea6b49cf0878551ba5f79f9ff05efbd3973e00040ee092f69",
       "verification": "01d8e926afd077ba9a27b91aea689513715ab3c7049608eba6ba7bea7ee57108"
     },
     "sectionHeadings": [
@@ -103,6 +119,6 @@
     "summary": "The predecessor's ecosystem grew by forking the server: fifty-odd capabilities, each a copy of the same six hundred lines, so a fix in one never reached the others. This spec is the alternative. A source is an implementation of one trait, registered by name, driven by one runner that owns fetching pages, mapping to candidates, passing the gate, staging the transaction, recording a resumable cursor, and reporting progress. Adding a source is a module and a fixture set, and it inherits dedup, retries, provenance, egress governance, and the untrusted content boundary without restating any of them.\n",
     "title": "Source adapters: one contract, incremental and resumable, so a capability is never a fork"
   },
-  "shardHash": "3d561e687b49945960747119ac9a73bad0774b65404fbc06adcaef948d34b8ac",
+  "shardHash": "3fff0bad1690203ca61b99ffd5222381221d20936a7cfb373b9f07d52f2ff1ce",
   "specVersion": "1.11.0"
 }

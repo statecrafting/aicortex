@@ -1,0 +1,11 @@
+{
+  "package": {
+    "kind": "rust-lib",
+    "name": "aicortex-ingest",
+    "path": "crates/aicortex-ingest",
+    "specRef": "030-source-adapter-framework",
+    "version": "0.1.0"
+  },
+  "schemaVersion": "1.3.0",
+  "shardHash": "6a31958dd8c245259f93cf4923949e4d87a82ecd8d0288e3f4b669e36320b147"
+}
