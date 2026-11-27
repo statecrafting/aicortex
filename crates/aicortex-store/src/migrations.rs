@@ -68,7 +68,7 @@ pub const EMBEDDING_MIGRATION_VERSION: u32 = 9;
 ///
 /// `aicortex migrate` reports reaching it (AC-2), and `aicortex serve`
 /// refuses with the chassis's stale exit code against a store below it.
-pub const EXPECTED_SCHEMA_VERSION: u32 = DECISION_REF_VERSION;
+pub const EXPECTED_SCHEMA_VERSION: u32 = INGEST_VERSION;
 
 /// The conversation reference of spec 031 B-9 on the provenance row, added by
 /// spec 025 section 2 because evidence delivery is built first: two nullable
@@ -81,6 +81,9 @@ pub use crate::decision_ref::DECISION_REF_VERSION;
 /// The graph schema of spec 017, appended by that spec under an `extends`
 /// edge on this file; its tables live in [`crate::graph_tables`].
 pub use crate::graph_tables::GRAPH_VERSION;
+/// The source adapter schema of spec 030, appended by that spec under an
+/// `extends` edge on this file; its tables live in [`crate::ingest_tables`].
+pub use crate::ingest_tables::INGEST_VERSION;
 /// The persisted recall trace of spec 018 B-6, appended by that spec under an
 /// `extends` edge on this file; its table lives in [`crate::recall_trace_table`].
 pub use crate::recall_trace_table::RECALL_TRACE_VERSION;
@@ -520,7 +523,7 @@ pub fn migrations() -> &'static [Migration] {
     LIST.as_slice()
 }
 
-static LIST: std::sync::LazyLock<[Migration; 15]> = std::sync::LazyLock::new(|| {
+static LIST: std::sync::LazyLock<[Migration; 16]> = std::sync::LazyLock::new(|| {
     [
         // Creation-only migrations are additive (spec 046 B-2, D-2). Versions
         // 7 and 9 below are deliberately not additive. The declaration is not
@@ -650,5 +653,8 @@ static LIST: std::sync::LazyLock<[Migration; 15]> = std::sync::LazyLock::new(|| 
         // Additive: one new table that an older binary never reads (spec 024
         // D-1).
         crate::decision_ref::decision_ref_migration(),
+        // Additive: new tables only, and an older binary never reads them
+        // (spec 030 D-4).
+        crate::ingest_tables::ingest_migration(),
     ]
 });

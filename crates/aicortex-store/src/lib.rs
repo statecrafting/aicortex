@@ -84,6 +84,7 @@ pub mod erasure;
 pub mod fingerprint;
 pub mod graph_tables;
 pub mod host;
+pub mod ingest_tables;
 pub mod lifecycle;
 pub mod memory_repo;
 pub mod migrations;
@@ -128,6 +129,7 @@ pub use host::{
     PredicateRegistrationGrant, PredicateRegistrationIdentity, PredicateRegistrationPlan,
     PredicateRegistrationRefusal, migration_set,
 };
+pub use ingest_tables::{INGEST_VERSION, ingest_migration};
 pub use lifecycle::{Captured, Expired, Lifecycle, MAX_EXPIRY_BATCH, lifecycle_lease_key};
 pub use memory_repo::{
     DEFAULT_MAX_BODY_BYTES, DEFAULT_PAGE_ROWS, Listing, MAX_PAGE_ROWS, MemoryFilter, MemoryRepo,
