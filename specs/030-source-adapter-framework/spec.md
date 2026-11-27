@@ -246,7 +246,8 @@ is deployment configuration invoking the same routes.
 - **D-8 (2026-11-26, build, runs).** A real run is a row, and at most one is
   `running` per scope and source (a partial unique index), so a second start is
   a conflict. A run that has not touched its row for 120 seconds is taken over:
-  the new run marks it `abandoned` and inserts its own in one transaction, and
+  the new run ends it as `failed` with the error code `abandoned` (the row's
+  state set stays closed) and inserts its own in one transaction, and
   the old one, if it is somehow alive, aborts on its next page's guard. Cancel
   sets a flag in the row, read before every page, so it reaches whichever node
   drives the run and takes effect within one page (FR-006). A dry run writes
@@ -282,7 +283,11 @@ is deployment configuration invoking the same routes.
   manifest only inherits from the workspace is not a policy change under spec
   044 section 3.3); then the runner; then the root workspace entry and the
   app's edge alone (010 D-16, under policy isolation); then the run routes, the
-  preflight check and the cell's wiring. The spec stays `in-progress` until its
+  preflight check and the cell's wiring. The crate is a workspace member from
+  the first part, through the root manifest's `crates/*` members glob, so its
+  package enters `Cargo.lock` there; the third part adds only the
+  `[workspace.dependencies]` entry other crates name it by. The spec stays
+  `in-progress` until its
   last part lands, so no part claims it complete.
 - **D-12 (2026-11-26, build, the cell's part).** `apps/aicortex` hands the run
   routes to the API's extension seam beside 023's, builds the runner over an
