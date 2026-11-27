@@ -807,6 +807,15 @@ impl Drive<'_> {
             self.runner.board.update(&report);
             return report;
         }
+        // A real run that read its source to the end lets the adapter clean
+        // up what it staged (031 B-1).
+        if let Some(source) = self.runner.registry().get(&self.started.request.source) {
+            let ctx = self.runner.context(&self.started.request, source, 1);
+            source
+                .adapter()
+                .finish(&ctx, state == RunState::Completed)
+                .await;
+        }
         let ended = self
             .runtime
             .store

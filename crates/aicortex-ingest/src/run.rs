@@ -510,6 +510,7 @@ impl Runner {
             self.egress.clone(),
             request.principal.clone(),
         )
+        .in_scope(request.scope.clone())
     }
 
     /// Accept a run: probe the source, and for a real run record it.

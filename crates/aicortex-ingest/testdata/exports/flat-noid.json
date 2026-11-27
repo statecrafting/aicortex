@@ -1,0 +1,36 @@
+[
+ {
+  "created_at": "2024-05-02T10:00:00Z",
+  "messages": [
+   {
+    "sender": "human",
+    "text": "First anonymous conversation.",
+    "created_at": "2024-05-02T10:00:00Z"
+   },
+   {
+    "sender": "assistant",
+    "text": "Acknowledged.",
+    "created_at": "2024-05-02T10:00:05+00:00"
+   }
+  ]
+ },
+ {
+  "messages": [
+   {
+    "sender": "human",
+    "text": "Second one, no ids and no creation time.",
+    "created_at": "2024-05-03T11:30:00+02:00"
+   }
+  ]
+ },
+ {
+  "created_at": "2024-05-02T10:00:00Z",
+  "messages": [
+   {
+    "sender": "human",
+    "text": "First anonymous conversation.",
+    "created_at": "2024-05-02T10:00:00Z"
+   }
+  ]
+ }
+]

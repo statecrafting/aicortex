@@ -17,7 +17,7 @@ use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
-use aicortex_types::{MemoryKind, SourceSystem};
+use aicortex_types::{ConversationRef, MemoryKind, Scope, SourceSystem};
 use rahi_kernel::{Egress, Governed, Permit, ResourceName};
 use rahi_types::{Error, Sub, UnixSeconds};
 use serde::{Deserialize, Serialize};
@@ -206,6 +206,25 @@ pub struct Page {
     pub next: Option<Cursor>,
 }
 
+/// Who said what an item carries (031 B-4, B-10).
+///
+/// A claim about the item, not a credential: the runner turns it into the
+/// record's actor and never into a trust class, so a source cannot promote
+/// what it delivers. Absent, the item is the import run's own.
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
+pub enum Author {
+    /// The import run, labelled with the source. What an item has when it
+    /// names no one.
+    #[default]
+    Run,
+    /// The person whose history this is.
+    User,
+    /// An assistant: an `Agent` actor, and an assertion, never evidence.
+    Assistant,
+    /// A named participant who is neither.
+    Participant(String),
+}
+
 /// What an adapter maps an item to, before the gate has judged it.
 ///
 /// Carries what the item says and nothing about where it came from: the
@@ -219,6 +238,10 @@ pub struct Candidate {
     pub title: Option<String>,
     /// What the item says, as it arrived.
     pub text: String,
+    /// Who said it (031 B-4).
+    pub author: Author,
+    /// The conversation turn the item is, when it is one (031 B-9).
+    pub conversation: Option<ConversationRef>,
 }
 
 impl Candidate {
@@ -229,7 +252,23 @@ impl Candidate {
             kind,
             title: None,
             text: text.into(),
+            author: Author::Run,
+            conversation: None,
         }
+    }
+
+    /// The same candidate, said by `author`.
+    #[must_use]
+    pub fn by(mut self, author: Author) -> Self {
+        self.author = author;
+        self
+    }
+
+    /// The same candidate, a turn of a conversation.
+    #[must_use]
+    pub fn in_conversation(mut self, conversation: ConversationRef) -> Self {
+        self.conversation = Some(conversation);
+        self
     }
 
     /// The same candidate, titled.
@@ -278,6 +317,7 @@ pub struct AdapterContext {
     hosts: Arc<[ResourceName]>,
     egress: Option<Governed<Egress>>,
     actor: Sub,
+    scope: Option<Scope>,
 }
 
 impl AdapterContext {
@@ -296,7 +336,22 @@ impl AdapterContext {
             hosts,
             egress,
             actor,
+            scope: None,
         }
+    }
+
+    /// The same context, naming the scope the run writes to, which an
+    /// adapter that reads a scope-owned upload needs (031 B-1).
+    #[must_use]
+    pub fn in_scope(mut self, scope: Scope) -> Self {
+        self.scope = Some(scope);
+        self
+    }
+
+    /// The scope the run writes to, when the runner named it.
+    #[must_use]
+    pub const fn scope(&self) -> Option<&Scope> {
+        self.scope.as_ref()
     }
 
     /// What the person who started the run configured the source with.
@@ -377,6 +432,13 @@ pub trait SourceAdapter: Send + Sync {
         ctx: &'a AdapterContext,
         cursor: Option<&'a Cursor>,
     ) -> BoxFuture<'a, AdapterResult<Page>>;
+
+    /// Called once when a real run ends, with whether it read its source to
+    /// the end. An upload is deleted here (031 B-1). The default does
+    /// nothing, and an adapter cannot fail the run from here.
+    fn finish<'a>(&'a self, _ctx: &'a AdapterContext, _completed: bool) -> BoxFuture<'a, ()> {
+        Box::pin(async {})
+    }
 
     /// Map one raw item to the candidate it becomes.
     ///
