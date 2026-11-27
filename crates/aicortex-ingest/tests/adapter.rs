@@ -17,7 +17,7 @@ use aicortex_gate::Origin;
 use aicortex_ingest::mapping::{digest, memory_parts};
 use aicortex_ingest::{
     AdapterContext, AdapterError, Candidate, Cursor, IngestPolicy, MAX_CURSOR_BYTES,
-    MAX_EXTERNAL_ID_BYTES, PublicPolicy, RawItem, Registry, RunId, SourceId, SourceKind,
+    MAX_EXTERNAL_ID_BYTES, PublicPolicy, RawItem, Registry, RunId, RunLimits, SourceId, SourceKind,
     ceiling_covers,
 };
 use aicortex_types::{ActorKind, MemoryKind, TrustClass};
@@ -384,7 +384,7 @@ fn what_an_adapter_returns_is_bounded_before_it_is_used() {
 }
 
 #[test]
-fn run_ids_are_read_back_strictly() {
+fn run_ids_and_limits_are_read_back_strictly() {
     let id = RunId::mint();
     assert_eq!(RunId::parse(id.as_str()).unwrap(), id);
     for bad in [
@@ -396,5 +396,32 @@ fn run_ids_are_read_back_strictly() {
         &format!("{} ", id.as_str()),
     ] {
         assert!(RunId::parse(bad).is_err(), "{bad:?}");
+    }
+
+    let ok = RunLimits::default();
+    assert_eq!(ok.validated().unwrap(), ok);
+    for bad in [
+        RunLimits { max_items: 0, ..ok },
+        RunLimits {
+            max_items: aicortex_ingest::MAX_ITEM_BUDGET + 1,
+            ..ok
+        },
+        RunLimits {
+            rate_per_second: 0,
+            ..ok
+        },
+        RunLimits {
+            rate_per_second: aicortex_ingest::MAX_RATE_PER_SECOND + 1,
+            ..ok
+        },
+        RunLimits {
+            retries: aicortex_ingest::MAX_RETRIES + 1,
+            ..ok
+        },
+    ] {
+        assert!(
+            matches!(bad.validated(), Err(Error::Validation(_))),
+            "{bad:?}"
+        );
     }
 }

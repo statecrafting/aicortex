@@ -15,6 +15,8 @@ establishes:
   - "crates/aicortex-ingest/Cargo.toml"
   - "crates/aicortex-ingest/src/lib.rs"
   - "crates/aicortex-ingest/src/adapter.rs"
+  - "crates/aicortex-ingest/src/run.rs"
+  - "crates/aicortex-ingest/src/drive.rs"
   - "crates/aicortex-ingest/src/cursor.rs"
   - "crates/aicortex-ingest/src/mapping.rs"
   - "crates/aicortex-ingest/src/registry.rs"
@@ -22,6 +24,7 @@ establishes:
   - "crates/aicortex-store/src/ingest_tables.rs"
   - "crates/aicortex-ingest/tests/common/mod.rs"
   - "crates/aicortex-ingest/tests/adapter.rs"
+  - "crates/aicortex-ingest/tests/run.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
