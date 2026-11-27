@@ -4,16 +4,6 @@
     "warnings": [
       {
         "code": "W-001",
-        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/mod.rs' does not exist",
-        "path": "crates/aicortex-ingest/src/sources/mod.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/chat_export.rs' does not exist",
-        "path": "crates/aicortex-ingest/src/sources/chat_export.rs"
-      },
-      {
-        "code": "W-001",
         "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/vault.rs' does not exist",
         "path": "crates/aicortex-ingest/src/sources/vault.rs"
       },
@@ -26,21 +16,6 @@
         "code": "W-001",
         "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/sources/mail.rs' does not exist",
         "path": "crates/aicortex-ingest/src/sources/mail.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/src/upload.rs' does not exist",
-        "path": "crates/aicortex-ingest/src/upload.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/tests/sources.rs' does not exist",
-        "path": "crates/aicortex-ingest/tests/sources.rs"
-      },
-      {
-        "code": "W-001",
-        "message": "spec '031-conversation-and-archive-imports' file unit 'crates/aicortex-ingest/testdata/exports/' does not exist",
-        "path": "crates/aicortex-ingest/testdata/exports/"
       }
     ]
   },
@@ -56,7 +31,51 @@
         "source": "spec-edge"
       },
       {
+        "path": "crates/aicortex-ingest/Cargo.toml",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/src/adapter.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/src/drive.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/src/lib.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/src/mapping.rs",
+        "source": "spec-edge"
+      },
+      {
         "path": "crates/aicortex-ingest/src/registry.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/src/run.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/src/sources/chat_export.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/src/sources/mod.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/src/upload.rs",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/testdata/exports/",
+        "source": "spec-edge"
+      },
+      {
+        "path": "crates/aicortex-ingest/tests/sources.rs",
         "source": "spec-edge"
       },
       {
@@ -74,7 +93,11 @@
     ],
     "resolvedUnits": [
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/sources/chat_export.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -92,7 +115,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/sources/mod.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -119,7 +146,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/upload.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -128,7 +159,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/testdata/exports/"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -137,7 +172,11 @@
         }
       },
       {
-        "locations": [],
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/tests/sources.rs"
+          }
+        ],
         "ownership": true,
         "sourceField": "establishes",
         "unit": {
@@ -161,6 +200,71 @@
       {
         "locations": [
           {
+            "file": "crates/aicortex-ingest/Cargo.toml"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/Cargo.toml"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/adapter.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/adapter.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/drive.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/drive.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/lib.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/lib.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/mapping.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/mapping.rs"
+        }
+      },
+      {
+        "locations": [
+          {
             "file": "crates/aicortex-ingest/src/registry.rs"
           }
         ],
@@ -169,6 +273,19 @@
         "unit": {
           "kind": "file",
           "path": "crates/aicortex-ingest/src/registry.rs"
+        }
+      },
+      {
+        "locations": [
+          {
+            "file": "crates/aicortex-ingest/src/run.rs"
+          }
+        ],
+        "ownership": true,
+        "sourceField": "extends",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/run.rs"
         }
       },
       {
@@ -241,5 +358,5 @@
     "specStatus": "approved"
   },
   "schemaVersion": "1.3.0",
-  "shardHash": "c0b1901e648c663bb6fd68185374361082825c7e7ddc6f42830c65f1d372806d"
+  "shardHash": "e60f21fb344b2c79e06a1e967cbb9c241e72fc5c6afaa46c68ef0fcbca206a66"
 }

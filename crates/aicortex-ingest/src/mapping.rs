@@ -10,14 +10,14 @@
 use aicortex_gate::Origin;
 use aicortex_store::ScopeId;
 use aicortex_types::{
-    Actor, ActorId, Importance, MemoryBody, MemoryId, MemoryParts, Provenance, Scope, SourceRef,
-    TrustClass,
+    Actor, ActorId, AgentOrigin, Importance, MemoryBody, MemoryId, MemoryParts, Provenance, Scope,
+    SourceRef, TrustClass,
 };
 use rahi_store::{Statement, StoreHandle, TxnBuilder, Value};
 use rahi_types::{EnvReader, Error, UnixSeconds};
 use serde::Deserialize;
 
-use crate::adapter::{Candidate, RawItem, SourceId, SourceKind};
+use crate::adapter::{Author, Candidate, RawItem, SourceId, SourceKind};
 use crate::cursor::seconds;
 
 /// A run's identifier: `run-` and a v7 UUID.
@@ -140,6 +140,14 @@ pub fn digest(candidate: &Candidate) -> String {
         hasher.update(&(part.len() as u64).to_be_bytes());
         hasher.update(part.as_bytes());
     }
+    // Who said it and where it sits are part of what was mapped (031), and an
+    // item that names neither digests exactly as it did before they existed.
+    if candidate.author != Author::Run {
+        hasher.update(format!("author:{:?}", candidate.author).as_bytes());
+    }
+    if let Some(reference) = &candidate.conversation {
+        hasher.update(format!("turn:{}:{}", reference.id, reference.turn).as_bytes());
+    }
     hasher.finalize().to_hex().to_string()
 }
 
@@ -172,12 +180,48 @@ pub fn memory_parts(
         scope: scope.clone(),
         kind: candidate.kind,
         body,
-        actor: Actor::import(ActorId::new(run.as_str()).map_err(invalid)?)
-            .labelled(source.as_str()),
-        provenance: Provenance::captured(origin, item.timestamp, now),
+        actor: actor_of(run, source, &candidate.author)?,
+        provenance: {
+            let provenance = Provenance::captured(origin, item.timestamp, now);
+            match &candidate.conversation {
+                Some(reference) => provenance.in_conversation(reference.clone()),
+                None => provenance,
+            }
+        },
         trust,
         importance: Importance::at(now).map_err(invalid)?,
         created: now,
+    })
+}
+
+/// The actor of a record: the run's, or, for a turn an assistant said, an
+/// agent (031 B-4, B-10). Built here from the run and the source, so a source
+/// names who spoke and cannot forge who it is.
+fn actor_of(run: &RunId, source: &SourceId, author: &Author) -> Result<Actor, Error> {
+    let invalid = |error: aicortex_types::TypeError| Error::Validation(error.to_string());
+    let id = |suffix: &str| {
+        let id = if suffix.is_empty() {
+            run.to_string()
+        } else {
+            format!("{run}/{suffix}")
+        };
+        ActorId::new(id).map_err(invalid)
+    };
+    Ok(match author {
+        Author::Run => Actor::import(id("")?).labelled(source.as_str()),
+        Author::User => Actor::import(id("user")?).labelled("user"),
+        Author::Assistant => Actor::agent(
+            id("assistant")?,
+            AgentOrigin {
+                client: Some(source.to_string()),
+                model: None,
+            },
+        )
+        .labelled("assistant"),
+        Author::Participant(name) => {
+            let label: String = name.chars().filter(|c| !c.is_control()).take(80).collect();
+            Actor::import(id("participant")?).labelled(label)
+        }
     })
 }
 

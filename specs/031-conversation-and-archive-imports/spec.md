@@ -6,7 +6,7 @@ kind: "feature"
 domain: "ingest"
 created: "2026-09-03"
 authors: ["Bartek Kus"]
-implementation: pending
+implementation: in-progress
 risk: medium
 wave: 3
 depends_on:
@@ -24,6 +24,12 @@ establishes:
   - "crates/aicortex-ingest/testdata/exports/"
 extends:
   - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/registry.rs", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/adapter.rs", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/mapping.rs", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/run.rs", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/drive.rs", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/Cargo.toml", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/lib.rs", nature: additive }
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/provenance.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/provenance_repo.rs", nature: additive }
@@ -262,6 +268,56 @@ with no export, which are added as new parsers behind B-2's detection.
   `status: approved`: constitution V makes approval a human act, and the
   human authority who approves this corpus decided the content of this
   amendment, so it is not a machine-authored change awaiting review.
+
+- **D-3 (2026-11-26, build, the framework seams).** 030's candidate carried a
+  kind, a title and a text, and the runner built every actor as the import
+  run, so B-4, B-9 and B-10 had nowhere to say who spoke or which turn a
+  message is. The additive edges are: `Candidate` gains `author` (`Run` by
+  default, `User`, `Assistant`, `Participant(name)`) and `conversation`; the
+  runner turns the author into the actor (an assistant is an `Agent` actor,
+  every other author an `Import` actor labelled for the speaker) and never
+  into a trust class, so a source cannot promote what it delivers; the digest
+  covers both only when set, so every 030 item digests as before; the adapter
+  context names the run's scope (`AdapterContext::in_scope`), which a
+  scope-owned upload needs; and the adapter trait gains `finish`, called once
+  when a real run ends, which is where an upload is deleted (only when the run
+  `Completed`, so a dry run, a cancelled run and a run that stopped at its item
+  budget keep the file for the next run).
+- **D-4 (2026-11-26, build, chat export shapes).** Two parsers, `tree` (a
+  `mapping` of nodes) and `flat` (a `messages` array), recognised by the keys
+  a conversation holds. On a fork of the tree the last child is followed: it
+  is the branch the user kept last, and the others are not imported. The
+  parser identifier in the derived id of B-9 is `tree` or `flat`. When an
+  export states neither a conversation time nor a time on the first message
+  with text, the derived id uses `1970-01-01T00:00:00Z`.
+- **D-5 (2026-11-26, build, uploads).** An upload is a file under
+  `<staging root>/<scope id>/up-<uuid>`, at most 512 MiB, deleted when a run
+  completes, by `DELETE /uploads/{id}`, or at the first staging in its scope
+  after 24 hours. Its routes, `POST /uploads` and `DELETE /uploads/{id}`
+  (`memory.write`), reach the API through its extension seam, as 030's run
+  routes do, so `router.rs` is not edited. A run names it with the option
+  `upload`. A conversation is read to at most 20,000 messages.
+- **D-6 (2026-11-26, build, what the run report counts).** A message with no
+  text and a conversation refused for its id (a duplicate in the export, or an
+  id that is not a valid key) are delivered to the runner and counted as
+  `unmapped`; a message the gate refuses is counted as `refused`, with its
+  Decision and reason code in the ledger as for any capture. The report has no
+  per-turn listing of either.
+
+## Status
+
+- **2026-11-26.** `implementation: in-progress`, part 1 of the build. Built:
+  the framework seams (D-3), `sources/mod.rs`, the chat export adapter with
+  its two parsers (B-2, B-4, B-9, B-10), the upload staging area and routes
+  (B-1), the fixtures under `testdata/exports/`, and `tests/sources.rs`. FR-001
+  (chat shapes only), FR-002, FR-004 (declared hosts only), FR-006, FR-007,
+  FR-008 (scope half), and FR-012 hold in `cargo test -p aicortex-ingest
+  --locked --test sources`. The types and store halves of B-9 and B-11 (FR-009
+  to FR-011, AC-3) landed with spec 025. Not built: the deterministic
+  extraction of B-3, the vault, read-later and mail adapters (B-5, B-6),
+  FR-003, FR-005's envelope half (the store half holds), the other-source half
+  of FR-008, the app's registration of these adapters, and AC-2, which needs a
+  real export of at least 1000 conversations.
 
 ## Verification
 

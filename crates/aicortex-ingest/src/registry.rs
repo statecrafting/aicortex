@@ -149,6 +149,22 @@ impl Registry {
         Ok(())
     }
 
+    /// Register the sources of spec 031 that read an uploaded file: they
+    /// declare no host, so the ceiling is never in question (B-8).
+    ///
+    /// # Errors
+    ///
+    /// [`Error::Validation`] when one of them is already registered.
+    pub fn register_imports(
+        &mut self,
+        staging: &Arc<crate::upload::Staging>,
+        manifest: &Manifest,
+        service: &ServiceName,
+    ) -> Result<(), Error> {
+        let chat = crate::sources::chat_export::ChatExport::new(Arc::clone(staging));
+        self.register_under(Arc::new(chat), manifest, service)
+    }
+
     /// The source registered under `id`.
     #[must_use]
     pub fn get(&self, id: &SourceId) -> Option<&Registered> {

@@ -38,11 +38,13 @@ pub mod preflight;
 pub mod registry;
 pub mod routes;
 pub mod run;
+pub mod sources;
+pub mod upload;
 
 pub use adapter::{
-    AdapterContext, AdapterError, AdapterResult, BoxFuture, Candidate, MAX_EXTERNAL_ID_BYTES,
-    MAX_LOCATOR_BYTES, MAX_OPTIONS_BYTES, MAX_PAGE_ITEMS, Page, Probe, RawItem, SourceAdapter,
-    SourceId, SourceKind,
+    AdapterContext, AdapterError, AdapterResult, Author, BoxFuture, Candidate,
+    MAX_EXTERNAL_ID_BYTES, MAX_LOCATOR_BYTES, MAX_OPTIONS_BYTES, MAX_PAGE_ITEMS, Page, Probe,
+    RawItem, SourceAdapter, SourceId, SourceKind,
 };
 pub use cursor::{Cursor, CursorRepo, MAX_CURSOR_BYTES};
 pub use mapping::{IngestPolicy, ItemRepo, ItemRow, PublicPolicy, RunId};
