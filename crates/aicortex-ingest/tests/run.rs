@@ -18,7 +18,7 @@ use std::time::{Duration, Instant};
 use aicortex_gate::{KIND_QUARANTINE, KIND_REFUSE};
 use aicortex_ingest::{
     CancelOutcome, IngestPolicy, ItemRepo, PublicPolicy, RawItem, RunCounts, RunFailure, RunId,
-    RunLimits, RunState, SourceId, SourceKind,
+    RunLimits, RunState, SourceId, SourceKind, preflight,
 };
 use aicortex_store::{Authority, Eraser, Erasure};
 use common::{Faults, Stub, fixture, node, quick, request, runner, scope, text};
@@ -1092,6 +1092,74 @@ async fn erasing_a_memory_takes_its_mapping_and_a_reimport_does_not_revive_it() 
         .unwrap()
         .unwrap();
     assert_ne!(fresh.memory, row.memory, "the tombstone is not revived");
+    node.shutdown().await;
+}
+
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn preflight_reads_the_last_run_of_each_source_in_each_scope() {
+    // AC-2: the store half of what `aicortex preflight` prints.
+    let node = node().await;
+    let (alice, bob) = (scope("alice"), scope("bob"));
+    let runtime = node.runtime();
+    let good = Stub::new("notes", SourceKind::Authenticated, fixture(250));
+    let flaky = Stub::new("flaky", SourceKind::Authenticated, fixture(250));
+    flaky.set_faults(Faults {
+        fatal_at: Some(1),
+        ..Faults::default()
+    });
+    let runner = runner(&[good, flaky], IngestPolicy::default());
+
+    let empty = preflight::read_deployment(&node.handle(), Duration::from_secs(5))
+        .await
+        .unwrap();
+    assert!(empty.scopes.is_empty() && empty.complete);
+
+    runner
+        .run(&runtime, request(&alice, "notes"))
+        .await
+        .unwrap();
+    let failed = runner
+        .run(&runtime, request(&alice, "flaky"))
+        .await
+        .unwrap();
+    let again = runner.run(&runtime, request(&bob, "notes")).await.unwrap();
+    // A later run of the same source is the one reported.
+    let latest = runner
+        .run(&runtime, request(&alice, "notes"))
+        .await
+        .unwrap();
+
+    let report = preflight::read_deployment(&node.handle(), Duration::from_secs(5))
+        .await
+        .unwrap();
+    assert!(report.complete);
+    assert_eq!(report.scopes.len(), 2);
+    assert_eq!(report.failed(), 1);
+    assert_eq!(report.running(), 0);
+    let mine = report
+        .scopes
+        .iter()
+        .find(|found| found.scope_id == aicortex_store::ScopeId::of(&alice).as_str())
+        .unwrap();
+    let sources: Vec<_> = mine.runs.iter().map(|run| run.source.as_str()).collect();
+    assert_eq!(sources, ["flaky", "notes"]);
+    let flaky = &mine.runs[0];
+    assert_eq!(flaky.run, failed.run_id);
+    assert_eq!(flaky.state, RunState::Failed);
+    assert_eq!(flaky.failure, Some(RunFailure::AdapterFailed));
+    assert!(flaky.resumable, "a failed run left its cursor");
+    let notes = &mine.runs[1];
+    assert_eq!(notes.run, latest.run_id, "the latest run of the source");
+    assert_eq!(notes.state, RunState::Completed);
+    assert_eq!(notes.seen, 250);
+    assert!(!notes.resumable);
+    assert_ne!(notes.run, again.run_id);
+
+    // The time budget bounds the walk, and says it did.
+    let partial = preflight::read_deployment(&node.handle(), Duration::ZERO)
+        .await
+        .unwrap();
+    assert!(!partial.complete);
     node.shutdown().await;
 }
 

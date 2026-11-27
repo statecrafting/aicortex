@@ -14,6 +14,8 @@ pub mod embedding_preflight;
 pub mod embedding_service;
 pub mod graph_preflight;
 pub mod graph_service;
+pub mod ingest_preflight;
+pub mod ingest_surface;
 pub mod search_surface;
 
 use std::sync::OnceLock;
@@ -72,14 +74,17 @@ impl Cell for Aicortex {
     }
 
     /// The merged product router: spec 020's HTTP API under `/api/v1`, with
-    /// spec 023's review routes supplied through its extension seam (020
-    /// D-20, 023 D-2), and spec 021's MCP server at `/mcp`, over one event
-    /// bus.
+    /// spec 023's review routes and spec 030's source run routes supplied
+    /// through its extension seam (020 D-20, 023 D-2, 030 D-2), and spec
+    /// 021's MCP server at `/mcp`, over one event bus.
     fn routes(state: AppState) -> Router {
         let api = Api::new(state)
             .with_events(events())
             .with_search(search_surface::search(&rahi_cli::process_env()))
-            .with_routes(aicortex_curate::routes::routes());
+            .with_routes(aicortex_curate::routes::routes())
+            .with_routes(aicortex_ingest::routes::routes(ingest_surface::runner(
+                &rahi_cli::process_env(),
+            )));
         aicortex_api::router_with(api.clone()).merge(aicortex_mcp::router(api))
     }
 
@@ -103,16 +108,24 @@ impl Cell for Aicortex {
     /// configured provider against the manifest ceiling, then the active
     /// revision, queue health, and coverage from the read-only store view;
     /// and the graph check (spec 017 AC-2): entity and edge counts per scope
-    /// and the extraction dead-letter count.
+    /// and the extraction dead-letter count; and the ingest check (spec 030
+    /// AC-2): the registered sources, their hosts, and the last run of each
+    /// per scope.
     fn preflight_checks() -> Vec<AppCheck> {
-        vec![embedding_preflight::check(), graph_preflight::check()]
+        vec![
+            embedding_preflight::check(),
+            graph_preflight::check(),
+            ingest_preflight::check(),
+        ]
     }
 
     /// The embedding worker and its metrics collector as managed services
     /// (spec 015 B-2, D-25), then the extraction worker (spec 017 B-7). A
     /// malformed or un-admitted provider configuration fails the composition,
-    /// so `serve` refuses to start rather than failing at first use.
+    /// so `serve` refuses to start rather than failing at first use, and so
+    /// does an intake policy that names neither choice (spec 030 D-7).
     fn services(state: AppState, shutdown: ServiceShutdown) -> Result<Vec<ManagedService>> {
+        ingest_surface::policy(&rahi_cli::process_env())?;
         let mut services = embedding_service::compose(&state, &shutdown, &rahi_cli::process_env())?;
         services.extend(graph_service::compose(&state, &shutdown)?);
         Ok(services)

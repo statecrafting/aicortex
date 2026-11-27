@@ -17,18 +17,28 @@ establishes:
   - "crates/aicortex-ingest/src/adapter.rs"
   - "crates/aicortex-ingest/src/run.rs"
   - "crates/aicortex-ingest/src/drive.rs"
+  - "crates/aicortex-ingest/src/routes.rs"
+  - "crates/aicortex-ingest/src/preflight.rs"
   - "crates/aicortex-ingest/src/cursor.rs"
   - "crates/aicortex-ingest/src/mapping.rs"
   - "crates/aicortex-ingest/src/registry.rs"
   - "crates/aicortex-ingest/src/migrations.rs"
   - "crates/aicortex-store/src/ingest_tables.rs"
+  - "apps/aicortex/src/ingest_surface.rs"
+  - "apps/aicortex/src/ingest_preflight.rs"
   - "crates/aicortex-ingest/tests/common/mod.rs"
   - "crates/aicortex-ingest/tests/adapter.rs"
   - "crates/aicortex-ingest/tests/run.rs"
+  - "crates/aicortex-ingest/tests/routes.rs"
+  - "apps/aicortex/tests/ingest.rs"
 extends:
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/lib.rs", nature: additive }
   - { spec: "014-memory-lifecycle-and-erasure", unit: "crates/aicortex-store/src/erasure.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/src/cell.rs", nature: additive }
+  - { spec: "010-chassis-adoption-and-workspace", unit: "apps/aicortex/tests/cell.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "apps/aicortex/tests/embedding_process.rs", nature: additive }
+  - { spec: "015-embedding-pipeline", unit: "apps/aicortex/tests/embedding.rs", nature: additive }
   - { spec: "020-http-api-and-scopes", unit: "crates/aicortex-api/src/router.rs", nature: additive }
 summary: >
   The predecessor's ecosystem grew by forking the server: fifty-odd
@@ -148,13 +158,14 @@ is deployment configuration invoking the same routes.
   023 D-2), so `router.rs` is not edited, and `apps/aicortex` composes them.
   `drive.rs` splits the page loop from the runner's vocabulary in `run.rs`;
   `routes.rs` and `preflight.rs` are the HTTP half and the preflight read, and
-  `tests/common/mod.rs` is the shared fixture. The crate's manifest has only workspace dependencies and lists every one the
-  later parts use, so no later part edits it; the root workspace entry and the
-  app's edge are 010 D-16, which lands after the crate (D-11). `RunId` lives in
-  `mapping.rs`, where the item mapping uses it, so the mapping and its tests
-  land before the runner. `tokio` is taken with its `sync` and `time` features, which the pacing
-  and the cancel flag of B-8 and FR-006 use, and no third-party package is
-  added.
+  `tests/common/mod.rs` is the shared fixture. The crate's manifest has only
+  workspace dependencies and lists every one the later parts use, so no later
+  part edits it; the root workspace entry and the app's edge are 010 D-16,
+  which lands after the crate (D-11). `RunId` lives in `mapping.rs`, where the
+  item mapping uses it, so the mapping and its tests land before the runner.
+  `tokio` is taken with its `sync` and `time`
+  features, which the pacing and the cancel flag of B-8 and FR-006 use, and no
+  third-party package is added.
 - **D-3 (2026-11-26, build, the trait as built).** B-1 sketches `async fn
   probe`, `async fn page` and `fn map` over a `cfg`. The registry holds
   adapters by name, so the trait has to be object safe, and an `async fn` in a
@@ -278,6 +289,28 @@ is deployment configuration invoking the same routes.
   `[workspace.dependencies]` entry other crates name it by. The spec stays
   `in-progress` until its
   last part lands, so no part claims it complete.
+- **D-12 (2026-11-26, build, the cell's part).** `apps/aicortex` hands the run
+  routes to the API's extension seam beside 023's, builds the runner over an
+  empty registry (D-10), reads the intake policy from its environment (D-7),
+  and refuses to start `serve` on a policy that names neither choice. AC-2's
+  report is the `app.ingest` preflight check, which prints the registered
+  sources with their kind and hosts, holds each host to the manifest ceiling
+  again (a ceiling narrowed since registration fails with the chassis's
+  `capability http.egress on <host> for service ingest` wording), and reads the
+  last run of each source in each scope from the read-only store view; a failed
+  last run is a warning, and a partial read says so. The check needs no
+  manifest entry of its own and the cell adds no `[services.ingest]` to the
+  manifest, because nothing here reaches the network.
+
+## Status
+
+- **2026-11-26.** `implementation: in-progress`. B-1 to B-10 and FR-001 to FR-006
+  hold in `cargo test -p aicortex-ingest --locked` (the runner and the registry
+  in `--test run` and `--test adapter`, the routes in `--test routes`), AC-1
+  with them, and AC-2 in `cargo test -p aicortex --locked --test ingest` and
+  the process-level `ac2_030_preflight_lists_the_registered_sources_and_their_runs`
+  in `--test embedding_process`. No concrete adapter exists, so the registry is
+  empty until 031.
 
 ## Verification
 

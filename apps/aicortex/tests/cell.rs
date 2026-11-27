@@ -463,11 +463,12 @@ fn fr003_ac3_preflight_on_an_empty_data_directory_fails_only_keys() -> Outcome {
         .collect();
     let names: Vec<&str> = checks.iter().map(|(_, name)| *name).collect();
     // The chassis's checks, then the cell's own (rahi spec 049 B-1): the
-    // embedding check of spec 015 and the graph check of spec 017, which are
-    // skipped while the store is not open.
+    // embedding check of spec 015, the graph check of spec 017 and the ingest
+    // check of spec 030, which are skipped while the store is not open.
     let mut expected = rahi_ops::preflight::CHECKS.to_vec();
     expected.push("app.embedding");
     expected.push("app.graph");
+    expected.push("app.ingest");
     assert_eq!(names, expected, "report:\n{report}");
 
     let failed: Vec<&str> = checks
@@ -478,7 +479,13 @@ fn fr003_ac3_preflight_on_an_empty_data_directory_fails_only_keys() -> Outcome {
     assert_eq!(failed, vec!["keys"], "report:\n{report}");
 
     // Nothing that listens was opened: the store and rauthy were skipped.
-    for name in ["hiqlite", "rauthy", "app.embedding", "app.graph"] {
+    for name in [
+        "hiqlite",
+        "rauthy",
+        "app.embedding",
+        "app.graph",
+        "app.ingest",
+    ] {
         assert!(
             checks.contains(&("SKIP", name)),
             "{name} was not skipped:\n{report}"

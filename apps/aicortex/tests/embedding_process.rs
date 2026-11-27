@@ -184,6 +184,58 @@ fn preflight_prints_the_graph_report(data_dir: &Path, ports: Ports) -> Outcome {
 }
 
 #[test]
+fn ac2_030_preflight_lists_the_registered_sources_and_their_runs() -> Outcome {
+    on_fresh_ports(preflight_prints_the_ingest_report)
+}
+
+/// Spec 030 AC-2: `app.ingest` lists the registered sources, their hosts, and
+/// the last run state per scope. No concrete adapter exists yet, so a fresh
+/// deployment registers none and has no run.
+fn preflight_prints_the_ingest_report(data_dir: &Path, ports: Ports) -> Outcome {
+    prepared(data_dir, ports)?;
+
+    let output = run("preflight", data_dir, ports, &[])?;
+    let report = String::from_utf8_lossy(&output.stdout);
+    assert!(
+        report
+            .lines()
+            .any(|line| line.starts_with("PASS app.ingest")
+                && line.contains("0 source(s) registered, 0 scope(s) with runs, 0 failed")),
+        "report:\n{report}"
+    );
+    for needle in ["registered sources: 0", "scopes read: 0"] {
+        assert!(report.contains(needle), "{needle} missing:\n{report}");
+    }
+    Ok(())
+}
+
+#[test]
+fn a_typo_in_the_public_origin_policy_fails_preflight() -> Outcome {
+    on_fresh_ports(preflight_refuses_a_policy_typo)
+}
+
+fn preflight_refuses_a_policy_typo(data_dir: &Path, ports: Ports) -> Outcome {
+    prepared(data_dir, ports)?;
+
+    let output = run(
+        "preflight",
+        data_dir,
+        ports,
+        &[("AICORTEX_INGEST_PUBLIC_ORIGIN", "maybe")],
+    )?;
+    let report = String::from_utf8_lossy(&output.stdout);
+    assert_eq!(output.status.code(), Some(1), "report:\n{report}");
+    assert!(
+        report
+            .lines()
+            .any(|line| line.starts_with("FAIL app.ingest")
+                && line.contains("AICORTEX_INGEST_PUBLIC_ORIGIN")),
+        "report:\n{report}"
+    );
+    Ok(())
+}
+
+#[test]
 fn fr005_preflight_and_serve_refuse_a_remote_provider_absent_from_the_ceiling() -> Outcome {
     on_fresh_ports(preflight_and_serve_refuse_an_undeclared_remote)
 }
