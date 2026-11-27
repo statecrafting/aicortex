@@ -28,6 +28,8 @@ extends:
   - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/mapping.rs", nature: additive }
   - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/run.rs", nature: additive }
   - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/drive.rs", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/Cargo.toml", nature: additive }
+  - { spec: "030-source-adapter-framework", unit: "crates/aicortex-ingest/src/lib.rs", nature: additive }
   - { spec: "011-memory-model", unit: "crates/aicortex-types/src/provenance.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/migrations.rs", nature: additive }
   - { spec: "012-store-schema-and-repositories", unit: "crates/aicortex-store/src/provenance_repo.rs", nature: additive }

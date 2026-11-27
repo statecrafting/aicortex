@@ -88,6 +88,22 @@
       },
       {
         "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/Cargo.toml"
+        }
+      },
+      {
+        "nature": "additive",
+        "spec": "030-source-adapter-framework",
+        "unit": {
+          "kind": "file",
+          "path": "crates/aicortex-ingest/src/lib.rs"
+        }
+      },
+      {
+        "nature": "additive",
         "spec": "011-memory-model",
         "unit": {
           "kind": "file",
@@ -173,6 +189,6 @@
     "summary": "A memory system is worth little on day one and a great deal once it knows what you already said. This spec brings a user's existing history in: chat exports from the major assistants, a note vault on disk, a read-later archive, and mail, each as an adapter over the framework. A conversation is stored as one memory per message, linked by a shared conversation id and a turn number in provenance, so each turn keeps its own author and trust class and can be redacted or forgotten alone. The interesting work is not fetching, it is extracting from those turns the memories worth keeping, and doing it without sending the archive anywhere.\n",
     "title": "Bringing a history in: chat exports, note vaults, and read-later archives"
   },
-  "shardHash": "f0af48937e69d0dddc1b9eaa557fda3104ff84a5ec6c628f708cdee67f567375",
+  "shardHash": "e60f21fb344b2c79e06a1e967cbb9c241e72fc5c6afaa46c68ef0fcbca206a66",
   "specVersion": "1.11.0"
 }
