@@ -683,6 +683,34 @@ async fn the_budget_and_the_rate_are_the_runners_to_enforce() {
     node.shutdown().await;
 }
 
+/// D-8: two starts racing for one source and scope, both past the read,
+/// leave one running row; the other caller gets a conflict.
+#[tokio::test(flavor = "multi_thread", worker_threads = 2)]
+async fn racing_starts_leave_one_run_and_one_conflict() {
+    let node = node().await;
+    let alice = scope("alice");
+    let stub = Stub::new("notes", SourceKind::Authenticated, fixture(10));
+    let runner = runner(&[stub], IngestPolicy::default());
+    let runtime = node.runtime();
+    let (left, right) = tokio::join!(
+        runner.start(&runtime, request(&alice, "notes")),
+        runner.start(&runtime, request(&alice, "notes")),
+    );
+    let outcomes = [left, right];
+    assert_eq!(
+        outcomes.iter().filter(|outcome| outcome.is_ok()).count(),
+        1,
+        "{outcomes:?}"
+    );
+    assert!(
+        outcomes
+            .iter()
+            .any(|outcome| matches!(outcome, Err(Error::Conflict(_)))),
+        "{outcomes:?}"
+    );
+    node.shutdown().await;
+}
+
 #[tokio::test(flavor = "multi_thread", worker_threads = 2)]
 async fn one_real_run_per_source_and_scope_at_a_time() {
     let node = node().await;

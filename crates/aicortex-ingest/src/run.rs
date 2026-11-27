@@ -616,6 +616,11 @@ impl Runner {
                 Value::Integer(stale),
             ],
         ));
+        // The read above gives a clear message in the common case; the partial
+        // unique index `ingest_run_active` is what makes the rule hold. Of two
+        // starts that both passed the read, the second insert violates it, and
+        // the store reports a constraint violation as `Error::Conflict`, so
+        // that caller gets the same conflict and no row (D-8).
         txn.push(Statement::with_params(
             "INSERT INTO ingest_run
                 (run_id, scope_id, source_id, started_by, state, item_budget, rate_per_second,
