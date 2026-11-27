@@ -373,6 +373,21 @@ manifest will eventually declare. The reference deployment (044).
   new crate. It lands on its own, ahead of the code, under policy isolation
   (spec 044 section 3.3). No requirement or acceptance criterion changes.
 
+- **D-16 (2026-11-26, dependency edge, the 030 manifest commit).** The
+  workspace declares `aicortex-ingest`, the crate spec 030 founds (the source
+  adapter trait, the runner, the cursor, the registry, and the run route
+  handlers), beside the other workspace libraries, with a path and an exact
+  version so `cargo deny` sees a requirement, and `apps/aicortex` takes it, so
+  the cell can hand the crate's routes to the API's extension seam and report
+  its registered sources in `aicortex preflight` (030 B-9, AC-2). The edge
+  points downward: intake sits below the cell and above the surfaces in spec
+  002's layering, and nothing below the app depends on it. The crate landed
+  before this change with a manifest of workspace dependencies only, so this
+  change adds the workspace declaration and the app's edge, and no third-party
+  package. It lands on its own, ahead of the cell's wiring, under policy
+  isolation (spec 044 section 3.3). No requirement or acceptance criterion
+  changes.
+
 ## Status (2026-09-17, complete: the chassis release landed)
 
 rahi published all nine crates at `0.1.0`, none yanked, tagged `v0.1.0`. The

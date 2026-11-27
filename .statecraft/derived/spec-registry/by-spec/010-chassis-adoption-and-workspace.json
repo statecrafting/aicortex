@@ -61,14 +61,14 @@
     "kind": "kernel",
     "risk": "critical",
     "sectionDigests": {
-      "010-the-cell": "5f35d8978eb6db070b2267dd687515678895fc7f8e4450a0bc210f8d4108bfd9",
+      "010-the-cell": "f3607cca25955c9b975e6dde571466e834af27fab65e570f04ed56e25e52f0e3",
       "1-purpose": "dfc3e51d5387ffde1506e3fcc6c35e99dfcf3a59540e390a1de4c44430d2b4ea",
       "2-territory": "dfefe36b5a48c048ad91f848e333cf8eb3045f3a05bb525e3da084d2d372111b",
       "3-behavior": "eb24afa04571676df05d45823d0d8a4c6e49f6f496d8cadbaf8a9b36ef1085b0",
       "4-functional-requirements": "beb707d66846f14fdcb3b2e52c9c80413a963b2423d2b8e53a008b24c2fc4756",
       "5-acceptance-criteria": "40cb9ce0f88088b6034237ace7c8dd06ff72d3ab1349313f3b330fdc177ce461",
       "6-out-of-scope": "3c8496aef8b69184969800ee792f4d425913b11a946378f680918843b4ff6f03",
-      "7-resolved-decisions": "eef6035896592ed3bd21699881c5f8c74edc1d0d2eec7a97ad36ddfb75c47ae3",
+      "7-resolved-decisions": "73433ca3b1ac57d5db86a481ac2ce9b689085fb88e4e79beab0b060cb09a362c",
       "status-2026-09-17-complete-the-chassis-release-landed": "53a7b66cf22f9644eeffe4f5980bdd04e6eedf834a1da59773b129001bb8b3f2",
       "verification": "a16f76da0500f5060306b5f8b4d7b84606f4ca49b358b3abd1f9b339a5e8c305"
     },
@@ -89,6 +89,6 @@
     "summary": "The workspace and the seam to the chassis. rahi crates are pinned to one exact version in the workspace manifest and are never vendored or patched. The application is a `Cell`: it returns a manifest, a migration list, a router, and an operator router, and `main` hands it to rahi's runner, which owns argument parsing, boot, the verbs, and the exit codes. The manifest is the capability ceiling, and it starts closed: no egress host is declared until a spec needs one.\n",
     "title": "The cell: a Cargo workspace, pinned rahi crates, a declared manifest, and one line of main"
   },
-  "shardHash": "e2d0f3afe9c7cabb658fb70e111386e83dfc564ab3598de652745b98b05eaa3d",
+  "shardHash": "ab41d4e76a320e2e0e1ae71b34fb42a75c39bc51375b08a9fab18ec89268dfa4",
   "specVersion": "1.11.0"
 }

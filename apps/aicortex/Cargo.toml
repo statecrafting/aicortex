@@ -26,6 +26,7 @@ aicortex-api = { workspace = true }
 aicortex-curate = { workspace = true }
 aicortex-embed = { workspace = true }
 aicortex-graph = { workspace = true }
+aicortex-ingest = { workspace = true }
 aicortex-mcp = { workspace = true }
 aicortex-store = { workspace = true }
 rahi-cli = { workspace = true }
